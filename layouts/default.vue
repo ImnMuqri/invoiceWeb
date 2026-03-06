@@ -20,7 +20,7 @@
                 d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z" />
               <path d="M7 7h.01" />
             </svg>
-            arto
+            InvoMate
           </div>
         </div>
         <nav class="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
@@ -178,7 +178,7 @@
               <path
                 d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z" />
             </svg>
-            arto
+            InvoMate
           </div>
           <button
             @click="isMobileMenuOpen = true"
@@ -241,7 +241,7 @@
                           d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z" />
                         <path d="M7 7h.01" />
                       </svg>
-                      arto
+                      InvoMate
                     </div>
                     <button
                       type="button"
