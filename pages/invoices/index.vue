@@ -9,10 +9,33 @@
           A list of all the invoices including their status, client, and amount.
         </p>
       </div>
-      <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
+      <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none flex items-center gap-4">
+        <!-- Search Input -->
+        <div class="relative rounded-md shadow-sm w-full sm:w-64">
+          <div
+            class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+            <svg
+              class="h-4 w-4 text-slate-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="2"
+              stroke="currentColor"
+              aria-hidden="true">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+            </svg>
+          </div>
+          <input
+            type="text"
+            v-model="searchQuery"
+            class="block w-full rounded-md border-0 py-2 pl-9 pr-3 text-slate-900 ring-1 ring-inset ring-slate-300 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+            placeholder="Search invoices..." />
+        </div>
         <NuxtLink
           to="/invoices/create"
-          class="inline-flex items-center justify-center rounded-md border border-transparent bg-slate-900 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2 transition-colors"
+          class="inline-flex items-center justify-center rounded-md border border-transparent bg-slate-900 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2 transition-colors whitespace-nowrap"
           >Create Invoice</NuxtLink
         >
       </div>
@@ -79,7 +102,7 @@
               </thead>
               <tbody class="divide-y divide-slate-200 bg-white">
                 <tr
-                  v-for="invoice in invoiceStore.invoices"
+                  v-for="invoice in filteredInvoices"
                   :key="invoice.id"
                   class="hover:bg-slate-50 transition-colors">
                   <td
@@ -309,9 +332,25 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { useInvoiceStore } from "~/stores/invoiceStore";
 const invoiceStore = useInvoiceStore();
+const emit = defineEmits(["invoice-updated"]);
+
+const searchQuery = ref("");
+
+const filteredInvoices = computed(() => {
+  if (!searchQuery.value) return invoiceStore.invoices;
+
+  const query = searchQuery.value.toLowerCase();
+  return invoiceStore.invoices.filter((invoice) => {
+    return (
+      invoice.id.toLowerCase().includes(query) ||
+      invoice.client.toLowerCase().includes(query) ||
+      invoice.status.toLowerCase().includes(query)
+    );
+  });
+});
 
 const showModal = ref(false);
 const selectedInvoice = ref(null);
