@@ -94,6 +94,36 @@
         </div>
       </div>
 
+      <!-- Floating Card 3 -->
+      <div
+        class="float-subtle absolute right-8 md:right-48 top-20 w-56 h-auto bg-white/80 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-4 shadow-[0_8px_30px_rgb(0,0,0,0.04)] rotate-[4deg] hidden md:block">
+        <div class="flex items-center gap-3">
+          <div
+            class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold overflow-hidden">
+            <img
+              src="https://i.pravatar.cc/100?img=33"
+              alt="Avatar"
+              class="w-full h-full object-cover opacity-90" />
+          </div>
+          <div>
+            <div class="text-sm font-semibold text-slate-800">
+              Sarah Jenkins
+            </div>
+            <div class="text-[10px] text-slate-500">New Client Added</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Floating Card 4 -->
+      <div
+        class="float-slow absolute left-8 md:left-32 bottom-24 w-auto bg-white/80 backdrop-blur-xl border border-slate-200/60 rounded-full py-2.5 px-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] rotate-[-4deg] hidden sm:flex items-center gap-2"
+        style="animation-delay: 2s">
+        <div class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></div>
+        <span class="text-xs font-semibold text-slate-600"
+          >3 Invoices Pending</span
+        >
+      </div>
+
       <!-- Subtle particles -->
       <div
         class="particle p-1 absolute top-[20%] right-[25%] w-2 h-2 rounded-full bg-slate-300 blur-[1px]"></div>
@@ -101,6 +131,15 @@
         class="particle p-2 absolute bottom-[30%] left-[40%] w-1.5 h-1.5 rounded-full bg-indigo-300 blur-[1px]"></div>
       <div
         class="particle p-3 absolute top-[60%] right-[15%] w-2.5 h-2.5 rounded-full bg-slate-200 blur-[2px]"></div>
+      <div
+        class="particle p-1 absolute top-[40%] left-[20%] w-3 h-3 rounded-full bg-indigo-200 blur-[2px]"
+        style="animation-delay: 1s"></div>
+      <div
+        class="particle p-2 absolute bottom-[20%] right-[30%] w-2 h-2 rounded-full bg-emerald-200 blur-[1px]"
+        style="animation-delay: 2.5s"></div>
+      <div
+        class="particle p-3 absolute top-[15%] left-[60%] w-1.5 h-1.5 rounded-full bg-violet-200 blur-[1px]"
+        style="animation-delay: 4s"></div>
     </div>
 
     <!-- Hero Content -->
