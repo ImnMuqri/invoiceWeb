@@ -9,16 +9,15 @@
           <div
             class="flex items-center gap-2 text-[22px] tracking-tight font-semibold text-slate-900">
             <svg
-              class="w-6 h-6 text-slate-900"
+              class="w-6 h-6 text-indigo-600"
               viewBox="0 0 24 24"
               fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round">
+              stroke="currentColor">
               <path
-                d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z" />
-              <path d="M7 7h.01" />
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5" />
             </svg>
             InvoMate
           </div>

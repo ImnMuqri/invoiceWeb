@@ -4,9 +4,9 @@
     <!-- Main Container -->
     <div class="w-full max-w-2xl mx-auto">
       <!-- Brand Header (Outside Card) -->
-      <div class="mb-6 flex justify-between items-center px-2">
+      <div class="mb-6 flex flex-col items-center text-center px-2">
         <div
-          class="inline-flex items-center gap-2 text-slate-900 font-bold tracking-tight">
+          class="inline-flex items-center gap-2 text-slate-900 font-bold tracking-tight text-xl">
           <svg
             class="w-6 h-6 text-indigo-600"
             viewBox="0 0 24 24"
@@ -20,9 +20,10 @@
           </svg>
           InvoMate
         </div>
-        <div class="text-slate-500 font-medium text-sm">
-          Secure Payment Portal
-        </div>
+        <p class="text-slate-500 font-medium text-sm mt-1 max-w-sm">
+          A secure, fast, and transparent platform for managing your
+          professional invoices and payments.
+        </p>
       </div>
 
       <!-- Loading State -->
