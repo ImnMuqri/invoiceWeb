@@ -329,73 +329,42 @@
             <li class="flex items-start gap-4">
               <div
                 class="mt-1 w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center shrink-0">
-                <svg
-                  class="w-4 h-4 text-indigo-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24">
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M5 13l4 4L19 7"></path>
-                </svg>
+                <svg class="w-4 h-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
               </div>
               <div>
-                <h4 class="font-bold text-slate-900 mb-1">Zero Manual Entry</h4>
+                <h4 class="font-bold text-slate-900 mb-1">
+                  AI Invoice Helper
+                </h4>
                 <p class="text-sm text-slate-600">
-                  Smart templates and recurring profiles mean you generate
-                  invoices with a single click.
+                  Just type <span class="text-indigo-600 font-medium bg-indigo-50 px-1 rounded">"Create invoice for Batman, UGC videos RM2000"</span> and watch the magic happen instantly.
                 </p>
               </div>
             </li>
             <li class="flex items-start gap-4">
               <div
-                class="mt-1 w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center shrink-0">
-                <svg
-                  class="w-4 h-4 text-indigo-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24">
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M5 13l4 4L19 7"></path>
-                </svg>
+                class="mt-1 w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center shrink-0">
+                <svg class="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
               </div>
               <div>
                 <h4 class="font-bold text-slate-900 mb-1">
-                  Cash Flow Insights
+                  WhatsApp Delivery
                 </h4>
                 <p class="text-sm text-slate-600">
-                  Beautiful dashboards that actually make sense of your
-                  outstanding, paid, and overdue balances.
+                  Skip the inbox. Send beautifully formatted invoice links directly to your clients via WhatsApp for faster response times.
                 </p>
               </div>
             </li>
             <li class="flex items-start gap-4">
               <div
-                class="mt-1 w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center shrink-0">
-                <svg
-                  class="w-4 h-4 text-indigo-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24">
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M5 13l4 4L19 7"></path>
-                </svg>
+                class="mt-1 w-8 h-8 rounded-full bg-amber-50 flex items-center justify-center shrink-0">
+                <svg class="w-4 h-4 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
               </div>
               <div>
                 <h4 class="font-bold text-slate-900 mb-1">
-                  Automated Reminders
+                  Smart Public Links
                 </h4>
                 <p class="text-sm text-slate-600">
-                  Gentle, AI-crafted nudges sent to clients before and after due
-                  dates to ensure timely payments.
+                  Clients view their invoice securely online (e.g., <span class="font-mono text-xs bg-slate-100 px-1 py-0.5 rounded text-amber-600">arto.com/INV1201</span>) and pay with one tap. No PDF downloads required.
                 </p>
               </div>
             </li>
@@ -403,16 +372,39 @@
         </div>
         <div
           class="lg:w-1/2 relative w-full aspect-square md:aspect-video lg:aspect-square bg-slate-100 rounded-3xl border border-slate-200 overflow-hidden shadow-inner flex items-center justify-center">
-          <div class="text-slate-400 font-medium">Dashboard Preview</div>
+          <div class="text-slate-400 font-medium">✨ AI Generator Preview</div>
           <!-- Mock up overlay graphic -->
           <div
-            class="absolute bottom-[-10%] right-[-10%] w-[80%] h-[80%] bg-white rounded-2xl shadow-2xl border border-slate-200 p-6 rotate-[-2deg]">
-            <div class="h-4 w-1/3 bg-slate-100 rounded mb-4"></div>
-            <div
-              class="h-32 w-full bg-indigo-50 rounded-xl mb-4 border border-indigo-100/50"></div>
-            <div class="flex gap-4">
-              <div class="h-12 w-1/2 bg-slate-50 rounded-lg"></div>
-              <div class="h-12 w-1/2 bg-slate-50 rounded-lg"></div>
+            class="absolute bottom-[-10%] right-[-10%] w-[90%] md:w-[80%] bg-white rounded-2xl shadow-2xl border border-slate-200 p-6 rotate-[-2deg] flex flex-col gap-4">
+            
+            <!-- Context input mock -->
+            <div class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-center gap-3">
+                <span class="flex h-2 w-2 relative shrink-0">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
+                </span>
+                <span class="text-xs text-slate-500 font-medium">Create invoice for Batman, UGC videos RM2000|</span>
+            </div>
+
+            <!-- Generated Draft mock -->
+            <div class="w-full bg-white border border-indigo-100 rounded-xl p-4 shadow-sm relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-1 h-full bg-indigo-500"></div>
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <div class="text-[10px] font-bold text-indigo-600 uppercase tracking-widest mb-1">Draft Ready</div>
+                        <div class="text-sm font-bold text-slate-900">Wayne Enterprises (Batman)</div>
+                    </div>
+                    <div class="text-sm font-black text-slate-900">RM 2,000.00</div>
+                </div>
+                <!-- Line items -->
+                <div class="bg-slate-50 rounded-lg p-2 flex justify-between items-center border border-slate-100">
+                    <div class="text-xs text-slate-600">UGC Video Campaign</div>
+                    <div class="text-xs font-semibold text-slate-900">RM 2,000</div>
+                </div>
+                
+                <div class="mt-4 flex gap-2">
+                    <div class="h-8 flex-1 bg-indigo-600 rounded-lg flex items-center justify-center text-[10px] font-bold text-white uppercase tracking-wider">Send via WhatsApp</div>
+                </div>
             </div>
           </div>
         </div>
