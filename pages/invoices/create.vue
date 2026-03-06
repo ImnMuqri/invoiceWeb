@@ -250,7 +250,7 @@
                   <div class="flex items-center gap-3">
                     <span
                       class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-50 text-indigo-700"
-                      >On Arto+</span
+                      >On InvoMate+</span
                     >
                     <button
                       type="button"

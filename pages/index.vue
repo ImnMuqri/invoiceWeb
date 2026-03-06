@@ -18,7 +18,7 @@
             d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z" />
           <path d="M7 7h.01" />
         </svg>
-        arto.
+        InvoMate.
       </div>
       <div class="flex items-center">
         <NuxtLink
@@ -453,9 +453,9 @@
             <span class="text-indigo-600">grow faster.</span>
           </h2>
           <p class="text-slate-600 mb-8 leading-relaxed">
-            Stop chasing emails and tracking spreadsheets. Arto centralizes your
-            entire billing workflow so you never lose visibility on your revenue
-            stream again.
+            Stop chasing emails and tracking spreadsheets. InvoMate centralizes
+            your entire billing workflow so you never lose visibility on your
+            revenue stream again.
           </p>
 
           <ul class="space-y-6">
@@ -533,7 +533,7 @@
                   Clients view their invoice securely online (e.g.,
                   <span
                     class="font-mono text-xs bg-slate-100 px-1 py-0.5 rounded text-amber-600"
-                    >arto.com/INV1201</span
+                    >invomate.com/INV1201</span
                   >) and pay with one tap. No PDF downloads required.
                 </p>
               </div>
@@ -845,14 +845,15 @@
               Can I cancel my subscription at any time?
             </h4>
             <p class="text-slate-600">
-              Yes! Arto is a month-to-month service. You can cancel, downgrade,
-              or upgrade your plan at any time from your billing settings.
+              Yes! InvoMate is a month-to-month service. You can cancel,
+              downgrade, or upgrade your plan at any time from your billing
+              settings.
             </p>
           </div>
           <div
             class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
             <h4 class="text-lg font-bold text-slate-900 mb-2">
-              Does Arto support international currencies?
+              Does InvoMate support international currencies?
             </h4>
             <p class="text-slate-600">
               Absolutely. You can issue invoices in over 135 currencies.
@@ -894,7 +895,7 @@
                 d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z" />
               <path d="M7 7h.01" />
             </svg>
-            arto.
+            InvoMate.
           </div>
           <p class="text-sm text-slate-500 mb-6">
             Invoicing that feels weightless. Designed for modern businesses.
@@ -966,7 +967,7 @@
       </div>
       <div
         class="max-w-6xl mx-auto pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4">
-        <div class="text-sm">© 2024 Arto. All rights reserved.</div>
+        <div class="text-sm">© 2024 InvoMate. All rights reserved.</div>
         <div class="flex gap-4">
           <a href="#" class="text-slate-500 hover:text-white transition-colors"
             ><svg
