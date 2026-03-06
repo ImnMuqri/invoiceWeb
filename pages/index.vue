@@ -1,6 +1,6 @@
 <template>
   <div
-    class="landing-bg min-h-screen w-full relative overflow-hidden font-sans text-slate-900 flex flex-col selection:bg-indigo-500/30">
+    class="landing-bg min-h-screen w-full relative overflow-x-hidden font-sans text-slate-900 flex flex-col selection:bg-indigo-500/30">
     <!-- Navigation -->
     <nav
       class="relative z-50 px-6 py-6 md:px-12 flex items-center justify-between pointer-events-auto">
@@ -96,7 +96,8 @@
 
       <!-- Floating Card 3 -->
       <div
-        class="float-subtle absolute right-8 md:right-48 top-20 w-56 h-auto bg-white/80 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-4 shadow-[0_8px_30px_rgb(0,0,0,0.04)] rotate-[4deg] hidden md:block">
+        class="float-subtle absolute right-8 md:right-48 top-20 w-56 h-auto bg-white/80 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-4 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hidden md:block"
+        style="--rotation: 4deg">
         <div class="flex items-center gap-3">
           <div
             class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold overflow-hidden">
@@ -116,8 +117,8 @@
 
       <!-- Floating Card 4 -->
       <div
-        class="float-slow absolute left-8 md:left-32 bottom-24 w-auto bg-white/80 backdrop-blur-xl border border-slate-200/60 rounded-full py-2.5 px-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] rotate-[-4deg] hidden sm:flex items-center gap-2"
-        style="animation-delay: 2s">
+        class="float-slow absolute left-8 md:left-32 bottom-24 w-auto bg-white/80 backdrop-blur-xl border border-slate-200/60 rounded-full py-2.5 px-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hidden sm:flex items-center gap-2"
+        style="--rotation: -4deg; animation-delay: 2s">
         <div class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></div>
         <span class="text-xs font-semibold text-slate-600"
           >3 Invoices Pending</span
@@ -126,19 +127,19 @@
 
       <!-- Subtle particles -->
       <div
-        class="particle p-1 absolute top-[20%] right-[25%] w-2 h-2 rounded-full bg-slate-300 blur-[1px]"></div>
+        class="particle anim-p-1 absolute top-[20%] right-[25%] w-2 h-2 rounded-full bg-slate-300 blur-[1px]"></div>
       <div
-        class="particle p-2 absolute bottom-[30%] left-[40%] w-1.5 h-1.5 rounded-full bg-indigo-300 blur-[1px]"></div>
+        class="particle anim-p-2 absolute bottom-[30%] left-[40%] w-1.5 h-1.5 rounded-full bg-indigo-300 blur-[1px]"></div>
       <div
-        class="particle p-3 absolute top-[60%] right-[15%] w-2.5 h-2.5 rounded-full bg-slate-200 blur-[2px]"></div>
+        class="particle anim-p-3 absolute top-[60%] right-[15%] w-2.5 h-2.5 rounded-full bg-slate-200 blur-[2px]"></div>
       <div
-        class="particle p-1 absolute top-[40%] left-[20%] w-3 h-3 rounded-full bg-indigo-200 blur-[2px]"
+        class="particle anim-p-1 absolute top-[40%] left-[20%] w-3 h-3 rounded-full bg-indigo-200 blur-[2px]"
         style="animation-delay: 1s"></div>
       <div
-        class="particle p-2 absolute bottom-[20%] right-[30%] w-2 h-2 rounded-full bg-emerald-200 blur-[1px]"
+        class="particle anim-p-2 absolute bottom-[20%] right-[30%] w-2 h-2 rounded-full bg-emerald-200 blur-[1px]"
         style="animation-delay: 2.5s"></div>
       <div
-        class="particle p-3 absolute top-[15%] left-[60%] w-1.5 h-1.5 rounded-full bg-violet-200 blur-[1px]"
+        class="particle anim-p-3 absolute top-[15%] left-[60%] w-1.5 h-1.5 rounded-full bg-violet-200 blur-[1px]"
         style="animation-delay: 4s"></div>
     </div>
 
@@ -161,7 +162,7 @@
         </div>
 
         <h1
-          class="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter leading-[1.1] mb-8 bg-clip-text text-transparent bg-gradient-to-br from-slate-900 via-slate-800 to-slate-500">
+          class="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter leading-[1.1] pb-8 bg-clip-text text-transparent bg-gradient-to-br from-slate-900 via-slate-800 to-slate-500">
           Invoicing that<br />feels weightless.
         </h1>
 
@@ -285,13 +286,13 @@ definePageMeta({
   animation: float-orb 20s ease-in-out infinite -10s;
 }
 
-.p-1 {
+.anim-p-1 {
   animation: float-particle 10s ease-in-out infinite;
 }
-.p-2 {
+.anim-p-2 {
   animation: float-particle 12s ease-in-out infinite -3s;
 }
-.p-3 {
+.anim-p-3 {
   animation: float-particle 14s ease-in-out infinite -7s;
 }
 </style>
