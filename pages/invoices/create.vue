@@ -5,18 +5,19 @@
     <div
       class="w-full xl:w-1/2 flex-shrink-0 bg-white rounded-xl border border-slate-200 flex flex-col shadow-sm overflow-hidden min-h-[600px] xl:min-h-0">
       <!-- Page Header -->
-      <div class="px-6 pt-6 pb-4 border-b border-slate-200">
-        <h1 class="text-2xl font-semibold tracking-tight text-slate-900">
+      <div class="px-4 sm:px-6 pt-6 pb-4 border-b border-slate-200">
+        <h1
+          class="text-xl sm:text-2xl font-semibold tracking-tight text-slate-900">
           Create Invoice
         </h1>
-        <p class="text-sm text-slate-500 mt-1">
+        <p class="text-xs sm:text-sm text-slate-500 mt-1">
           Generate a new invoice manually or with AI.
         </p>
       </div>
 
       <!-- Input Mode Tabs -->
       <div
-        class="flex border-b border-slate-200 bg-slate-50/50 px-6 pt-3 gap-6">
+        class="flex flex-wrap border-b border-slate-200 bg-slate-50/50 px-4 sm:px-6 pt-3 gap-4 sm:gap-6">
         <button
           type="button"
           @click="inputMode = 'manual'"
@@ -122,10 +123,9 @@
           </button>
         </div>
 
-        <!-- Chat History -->
-        <div
-          class="flex-1 overflow-y-auto p-6 front-sans text-sm space-y-4 min-h-0"
-          ref="chatContainer">
+        <!-- Form Content -->
+        <div class="flex-1 overflow-y-auto p-4 sm:p-6 min-h-0 space-y-8">
+          <!-- General Details -->
           <!-- Initial greeting -->
           <div class="flex items-start gap-3">
             <div
@@ -432,7 +432,7 @@
 
             <!-- Line Items Header -->
             <div
-              class="flex items-center text-xs font-semibold text-slate-500 mb-2 px-1 uppercase tracking-wider">
+              class="hidden sm:flex items-center text-xs font-semibold text-slate-500 mb-2 px-1 uppercase tracking-wider">
               <div class="flex-1">Item</div>
               <div class="w-20 text-center">
                 Qty <span class="text-red-500">*</span>
@@ -446,11 +446,11 @@
               <div
                 v-for="(item, index) in form.lineItems"
                 :key="index"
-                class="flex items-start gap-2 p-3 rounded-lg border border-slate-200 hover:border-slate-300 transition-colors bg-white shadow-sm">
+                class="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-3 rounded-lg border border-slate-200 hover:border-slate-300 transition-colors bg-white shadow-sm relative">
                 <!-- Item Info -->
-                <div class="flex-1 flex items-center gap-3">
+                <div class="flex-1 flex items-center gap-3 w-full sm:w-auto">
                   <div
-                    class="w-10 h-10 rounded-md bg-slate-50 flex items-center justify-center flex-shrink-0 border border-slate-200">
+                    class="w-10 h-10 rounded-md bg-slate-50 flex items-center justify-center flex-shrink-0 border border-slate-200 hidden sm:flex">
                     <svg
                       class="w-5 h-5 text-slate-500"
                       fill="none"
@@ -464,6 +464,11 @@
                     </svg>
                   </div>
                   <div class="flex flex-col gap-1 w-full relative group/input">
+                    <!-- Mobile label -->
+                    <span
+                      class="sm:hidden text-[10px] font-bold text-slate-400 uppercase tracking-wider"
+                      >Product Description</span
+                    >
                     <input
                       type="text"
                       v-model="item.name"
@@ -477,49 +482,63 @@
                   </div>
                 </div>
 
-                <!-- Qty -->
-                <div class="w-20">
-                  <input
-                    type="number"
-                    v-model.number="item.qty"
-                    min="1"
-                    class="w-full text-center text-sm font-medium text-slate-900 rounded-md border border-slate-200 py-2 px-2 outline-none focus:ring-2 focus:ring-slate-950 transition-colors shadow-sm" />
-                </div>
+                <div
+                  class="flex items-center gap-2 w-full sm:w-auto mt-2 sm:mt-0 pt-3 sm:pt-0 border-t sm:border-0 border-slate-100">
+                  <!-- Qty -->
+                  <div class="w-20 flex-shrink-0">
+                    <!-- Mobile label -->
+                    <span
+                      class="sm:hidden text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 block"
+                      >Qty</span
+                    >
+                    <input
+                      type="number"
+                      v-model.number="item.qty"
+                      min="1"
+                      class="w-full text-center text-sm font-medium text-slate-900 rounded-md border border-slate-200 py-2 px-2 outline-none focus:ring-2 focus:ring-slate-950 transition-colors shadow-sm" />
+                  </div>
 
-                <!-- Tax Select -->
-                <div class="w-24 relative group/tax">
-                  <select
-                    v-model="item.tax"
-                    class="appearance-none block w-full rounded-md border-slate-200 shadow-sm focus:ring-2 focus:ring-slate-950 sm:text-sm py-2 pl-3 pr-8 border transition-colors outline-none hover:border-slate-300 bg-white cursor-pointer font-medium text-slate-700">
-                    <option value="0">0%</option>
-                    <option value="5">5%</option>
-                    <option value="10">10%</option>
-                    <option value="15">15%</option>
-                  </select>
-                  <div
-                    class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
-                    <svg
-                      class="w-4 h-4 text-slate-400 group-hover/tax:text-slate-600 transition-colors"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24">
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M19 9l-7 7-7-7"></path>
-                    </svg>
+                  <!-- Tax Select -->
+                  <div class="w-full sm:w-24 relative group/tax">
+                    <!-- Mobile label -->
+                    <span
+                      class="sm:hidden text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 block"
+                      >Tax</span
+                    >
+                    <select
+                      v-model="item.tax"
+                      class="appearance-none block w-full rounded-md border-slate-200 shadow-sm focus:ring-2 focus:ring-slate-950 sm:text-sm py-2 pl-3 pr-8 border transition-colors outline-none hover:border-slate-300 bg-white cursor-pointer font-medium text-slate-700">
+                      <option value="0">0%</option>
+                      <option value="5">5%</option>
+                      <option value="10">10%</option>
+                      <option value="15">15%</option>
+                    </select>
+                    <div
+                      class="absolute bottom-0 right-0 flex items-center pr-2 pb-2.5 pointer-events-none">
+                      <svg
+                        class="w-4 h-4 text-slate-400 group-hover/tax:text-slate-600 transition-colors"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M19 9l-7 7-7-7"></path>
+                      </svg>
+                    </div>
                   </div>
                 </div>
 
                 <!-- Delete -->
-                <div class="w-10 flex items-center justify-center p-2.5">
+                <div
+                  class="absolute sm:relative top-2 right-2 sm:top-0 sm:right-0 w-8 sm:w-10 flex items-center justify-center sm:p-2.5">
                   <button
                     type="button"
                     @click="removeLineItem(index)"
-                    class="text-gray-400 hover:text-red-500 transition-colors rounded">
+                    class="text-slate-300 hover:text-red-500 transition-colors rounded p-1 sm:p-0 bg-white">
                     <svg
-                      class="w-5 h-5"
+                      class="w-5 h-5 sm:w-5 sm:h-5"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24">

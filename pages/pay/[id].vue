@@ -1,10 +1,10 @@
 <template>
   <div class="min-h-screen bg-slate-50 py-12 px-4 sm:px-6 lg:px-8 font-sans">
-    <div class="max-w-3xl mx-auto">
+    <div class="max-w-2xl mx-auto">
       <!-- Loading State -->
       <div
         v-if="loading"
-        class="flex flex-col items-center justify-center py-24">
+        class="flex flex-col items-center justify-center py-32">
         <svg
           class="w-10 h-10 text-indigo-600 animate-spin"
           fill="none"
@@ -29,7 +29,7 @@
       <!-- Not Found State -->
       <div
         v-else-if="!invoice"
-        class="bg-white rounded-2xl shadow-sm border border-slate-200 p-12 text-center">
+        class="bg-white rounded-2xl shadow-sm border border-slate-200 p-12 text-center mt-12">
         <div
           class="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
           <svg
