@@ -187,10 +187,12 @@
                       </svg>
                       Send Reminder
                     </button>
-                    <button
-                      class="text-indigo-600 hover:text-indigo-900 transition-colors ml-2 object-contain">
+                    <NuxtLink
+                      :to="`/pay/${invoice.id.replace('INV-', '')}`"
+                      target="_blank"
+                      class="text-indigo-600 hover:text-indigo-900 transition-colors ml-2 object-contain font-medium">
                       View
-                    </button>
+                    </NuxtLink>
                     <button
                       @click="invoiceStore.deleteInvoice(invoice.id)"
                       class="text-slate-400 hover:text-red-600 transition-colors ml-4">

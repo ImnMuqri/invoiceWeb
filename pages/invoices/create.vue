@@ -1,9 +1,9 @@
 <template>
   <div
-    class="flex flex-col xl:flex-row gap-6 h-[calc(100vh-2rem)] md:h-[calc(100vh-3rem)] lg:h-[calc(100vh-4rem)] w-full pb-0 relative">
+    class="flex flex-col xl:flex-row gap-6 xl:h-[calc(100vh-4rem)] w-full pb-0 relative">
     <!-- Left Column (Form) block -->
     <div
-      class="w-full xl:w-1/2 flex-shrink-0 bg-white rounded-xl border border-slate-200 flex flex-col shadow-sm overflow-hidden min-h-0">
+      class="w-full xl:w-1/2 flex-shrink-0 bg-white rounded-xl border border-slate-200 flex flex-col shadow-sm overflow-hidden min-h-[600px] xl:min-h-0">
       <!-- Page Header -->
       <div class="px-6 pt-6 pb-4 border-b border-slate-200">
         <h1 class="text-2xl font-semibold tracking-tight text-slate-900">
@@ -68,7 +68,9 @@
         v-if="inputMode === 'ai'"
         class="flex-1 flex flex-col bg-slate-50 overflow-hidden relative min-h-0">
         <!-- Clear Chat Action -->
-        <div class="absolute top-4 right-4 z-10" v-if="chatHistory.length > 0">
+        <div
+          class="absolute top-4 right-4 z-10"
+          v-if="chatHistory.length > 0 && userPlan !== 'Basic'">
           <button
             @click="clearChat"
             type="button"
@@ -85,6 +87,38 @@
                 d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
             </svg>
             Clear Chat
+          </button>
+        </div>
+
+        <!-- Premium Lock Screen Overlay -->
+        <div
+          v-if="userPlan === 'Basic'"
+          class="absolute inset-0 z-20 flex flex-col items-center justify-center bg-slate-50/80 backdrop-blur-sm p-6 text-center">
+          <div
+            class="w-16 h-16 bg-white rounded-2xl shadow-sm border border-slate-200 flex items-center justify-center mb-6 text-slate-400">
+            <svg
+              class="w-8 h-8"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+            </svg>
+          </div>
+          <h3 class="text-xl font-bold text-slate-900 mb-2">
+            AI Builder is a Premium Feature
+          </h3>
+          <p class="text-slate-600 mb-8 max-w-sm">
+            Upgrade to the Pro or Full plan to generate complete, accurate
+            invoices instantly using natural language commands.
+          </p>
+          <button
+            type="button"
+            class="inline-flex items-center justify-center rounded-xl bg-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 transition-colors">
+            Upgrade Plan
           </button>
         </div>
 
@@ -180,19 +214,25 @@
         </div>
 
         <!-- Chat Input Area -->
-        <div class="p-5 border-t border-slate-200 bg-slate-50">
-          <form @submit.prevent="submitChatPrompt" class="relative">
+        <div class="p-4 bg-white border-t border-slate-200">
+          <form @submit.prevent="handleChatSubmit" class="relative group">
             <input
-              type="text"
               v-model="chatInput"
-              placeholder="Type instructions here..."
-              class="w-full bg-white border border-slate-200 rounded-xl pl-4 pr-12 py-3.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 placeholder-slate-400 shadow-sm" />
+              type="text"
+              placeholder="Message AI Builder..."
+              :disabled="userPlan === 'Basic'"
+              class="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 pl-4 pr-12 text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all disabled:opacity-50 disabled:cursor-not-allowed" />
             <button
               type="submit"
-              :disabled="!chatInput.trim() || isAiTyping"
-              class="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg bg-indigo-500 text-white hover:bg-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm">
+              :disabled="!chatInput.trim() || userPlan === 'Basic'"
+              class="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-white transition-colors"
+              :class="
+                chatInput.trim() && userPlan !== 'Basic'
+                  ? 'bg-indigo-600 hover:bg-indigo-700'
+                  : 'bg-slate-300 cursor-not-allowed'
+              ">
               <svg
-                class="w-4 h-4"
+                class="w-5 h-5"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24">
@@ -876,14 +916,15 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, computed, nextTick, toRaw } from "vue";
 import { useRouter } from "vue-router";
 import { useInvoiceStore } from "~/stores/invoiceStore";
-import { useClientStore } from "~/stores/clientStore";
 
 const router = useRouter();
 const invoiceStore = useInvoiceStore();
-const clientStore = useClientStore();
+
+const userPlan = ref("Basic"); // Mock plan state for UI demo
+const showAiPreview = ref(false);
 
 const form = ref({
   invoiceName: "Website Overhaul",

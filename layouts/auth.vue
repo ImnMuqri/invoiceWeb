@@ -1,6 +1,26 @@
 <template>
   <div
     class="min-h-screen bg-[#f8fafc] flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden">
+    <!-- Back Button -->
+    <div class="absolute top-6 left-6 z-20">
+      <NuxtLink
+        to="/"
+        class="flex items-center text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors group">
+        <svg
+          class="w-4 h-4 mr-1.5 group-hover:-translate-x-1 transition-transform"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        Back home
+      </NuxtLink>
+    </div>
+
     <!-- Animated Background Orbs -->
     <div class="absolute inset-0 z-0 pointer-events-none overflow-hidden">
       <div

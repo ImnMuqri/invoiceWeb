@@ -393,7 +393,19 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, watch } from "vue";
+import { useRoute } from "vue-router";
 
+const route = useRoute();
 const isMobileMenuOpen = ref(false);
+
+watch(isMobileMenuOpen, (isOpen) => {
+  if (process.client) {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+  }
+});
 </script>
