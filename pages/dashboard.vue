@@ -36,7 +36,7 @@
           Total Revenue
         </dt>
         <dd class="text-2xl font-semibold text-indigo-950 tracking-tight">
-          $45,231.89
+          {{ dashboardStore.stats.totalRevenue.toLocaleString() }} MYR
         </dd>
       </div>
       <!-- Outstanding Card -->
@@ -46,7 +46,7 @@
           Outstanding Invoices
         </dt>
         <dd class="text-2xl font-semibold text-amber-950 tracking-tight">
-          $12,095.00
+          {{ dashboardStore.stats.outstandingAmount.toLocaleString() }} MYR
         </dd>
       </div>
       <!-- Active Clients Card -->
@@ -56,14 +56,16 @@
           Active Clients
         </dt>
         <dd class="text-2xl font-semibold text-emerald-950 tracking-tight">
-          24
+          {{ dashboardStore.stats.activeClients }}
         </dd>
       </div>
       <!-- Overdue Card -->
       <div
         class="bg-rose-50/50 border border-rose-100 rounded-xl p-6 shadow-sm hover:border-rose-200 transition-colors">
         <dt class="text-sm font-semibold text-rose-800 mb-1">Overdue</dt>
-        <dd class="text-2xl font-semibold text-rose-600 tracking-tight">3</dd>
+        <dd class="text-2xl font-semibold text-rose-600 tracking-tight">
+          {{ dashboardStore.stats.overdueCount }}
+        </dd>
       </div>
     </div>
 
@@ -94,7 +96,8 @@
                 </p>
                 <p
                   class="text-3xl font-semibold text-indigo-950 tracking-tight">
-                  $35,400.00
+                  {{ dashboardStore.stats.outstandingAmount.toLocaleString() }}
+                  MYR
                 </p>
               </div>
               <div
@@ -115,7 +118,12 @@
                   </svg>
                 </p>
                 <p class="text-xl font-semibold text-amber-700 tracking-tight">
-                  $4,250.00
+                  {{
+                    (
+                      dashboardStore.stats.outstandingAmount * 0.1
+                    ).toLocaleString()
+                  }}
+                  MYR
                 </p>
               </div>
               <div class="px-2">
@@ -138,23 +146,24 @@
               <div
                 class="absolute inset-0 flex items-end justify-between px-8 py-6 opacity-40">
                 <div
+                  v-for="(record, idx) in (
+                    dashboardStore.cashflow?.history || []
+                  )
+                    .slice(-3)
+                    .concat(dashboardStore.cashflow?.forecast || [])
+                    .slice(0, 3)"
+                  :key="idx"
                   class="w-8 bg-indigo-400 rounded-t-sm"
-                  style="height: 40%"></div>
-                <div
-                  class="w-8 bg-indigo-400 rounded-t-sm"
-                  style="height: 60%"></div>
-                <div
-                  class="w-8 bg-indigo-500 rounded-t-sm shadow-sm"
-                  style="height: 45%"></div>
-                <div
-                  class="w-8 bg-indigo-400 rounded-t-sm"
-                  style="height: 80%"></div>
-                <div
-                  class="w-8 bg-indigo-400 rounded-t-sm"
-                  style="height: 70%"></div>
-                <div
-                  class="w-8 bg-indigo-400 rounded-t-sm"
-                  style="height: 90%"></div>
+                  :style="{
+                    height:
+                      Math.min(
+                        90,
+                        (record.amount /
+                          (dashboardStore.stats.totalRevenue || 1)) *
+                          100 +
+                          20,
+                      ) + '%',
+                  }"></div>
               </div>
               <span
                 class="text-sm font-semibold text-slate-500 z-10 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full border border-slate-200 shadow-sm"
@@ -206,68 +215,37 @@
                 </tr>
               </thead>
               <tbody class="bg-white divide-y divide-slate-100">
-                <tr class="hover:bg-slate-50 transition-colors">
+                <tr
+                  v-for="client in dashboardStore.topClients"
+                  :key="client.id"
+                  class="hover:bg-slate-50 transition-colors">
                   <td class="px-6 py-4">
                     <div class="text-sm font-semibold text-slate-900">
-                      Acme Corp
+                      {{ client.name }}
                     </div>
                   </td>
                   <td class="px-6 py-4 text-sm font-medium text-slate-600">
-                    $45,000
+                    {{ client.totalRevenue.toLocaleString() }} MYR
                   </td>
                   <td class="px-6 py-4">
                     <span
-                      class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-100"
-                      >35%</span
+                      class="inline-flex items-center px-2 py-1 rounded text-xs font-medium border"
+                      :class="
+                        client.profitMargin > 20
+                          ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
+                          : 'bg-rose-50 text-rose-700 border-rose-100'
+                      "
+                      >{{ client.profitMargin }}%</span
                     >
                   </td>
                   <td
-                    class="px-6 py-4 text-right text-sm font-semibold text-emerald-600">
-                    High
-                  </td>
-                </tr>
-                <tr class="hover:bg-slate-50 transition-colors">
-                  <td class="px-6 py-4">
-                    <div class="text-sm font-semibold text-slate-900">
-                      Wayne Ent.
-                    </div>
-                  </td>
-                  <td class="px-6 py-4 text-sm font-medium text-slate-600">
-                    $85,000
-                  </td>
-                  <td class="px-6 py-4">
-                    <span
-                      class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-100"
-                      >25%</span
-                    >
-                  </td>
-                  <td
-                    class="px-6 py-4 text-right text-sm font-semibold text-emerald-600">
-                    Medium
-                  </td>
-                </tr>
-                <tr class="hover:bg-slate-50 transition-colors">
-                  <td class="px-6 py-4">
-                    <div class="text-sm font-semibold text-slate-900">
-                      Stark Ind.
-                    </div>
-                  </td>
-                  <td class="px-6 py-4 text-sm font-medium text-slate-600">
-                    $120,000
-                  </td>
-                  <td class="px-6 py-4">
-                    <span
-                      class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-rose-50 text-rose-700 border border-rose-100"
-                      >10%</span
-                    >
-                  </td>
-                  <td
-                    class="px-6 py-4 text-right text-sm font-semibold text-rose-600">
-                    Low
-                    <span
-                      class="text-xs text-slate-400 ml-1 font-normal xl:hidden 2xl:inline"
-                      >(High Cost)</span
-                    >
+                    class="px-6 py-4 text-right text-sm font-semibold"
+                    :class="
+                      client.profitMargin > 20
+                        ? 'text-emerald-600'
+                        : 'text-rose-600'
+                    ">
+                    {{ client.profitMargin > 20 ? "High" : "Low" }}
                   </td>
                 </tr>
               </tbody>
@@ -348,7 +326,7 @@
           </div>
           <ul role="list" class="divide-y divide-slate-100 flex-1">
             <li
-              v-for="invoice in recentInvoices"
+              v-for="invoice in dashboardStore.recentInvoices"
               :key="invoice.id"
               class="py-3.5 flex items-center gap-4 hover:bg-slate-50 transition-colors cursor-pointer group rounded-lg px-2 -mx-2">
               <div class="flex-shrink-0">
@@ -400,7 +378,7 @@
               </div>
               <div class="min-w-0 flex-1">
                 <p class="text-sm font-semibold text-slate-900 truncate">
-                  {{ invoice.client }}
+                  {{ invoice.client?.name || invoice.client }}
                 </p>
                 <div class="flex items-center gap-2 mt-0.5">
                   <p class="text-xs text-slate-500 font-medium">
@@ -429,7 +407,7 @@
               </div>
             </li>
             <li
-              v-if="recentInvoices.length === 0"
+              v-if="dashboardStore.recentInvoices.length === 0"
               class="py-6 text-center text-sm text-slate-500 bg-slate-50 rounded-lg border border-dashed border-slate-200 mt-2">
               No recent invoices found.
             </li>
@@ -441,14 +419,12 @@
 </template>
 
 <script setup>
-import { computed } from "vue";
-import { useInvoiceStore } from "~/stores/invoiceStore";
+import { onMounted } from "vue";
+import { useDashboardStore } from "~/stores/dashboardStore";
 
-const invoiceStore = useInvoiceStore();
+const dashboardStore = useDashboardStore();
 
-const recentInvoices = computed(() => {
-  return [...invoiceStore.invoices]
-    .sort((a, b) => new Date(b.date) - new Date(a.date))
-    .slice(0, 5);
+onMounted(() => {
+  dashboardStore.fetchDashboardData();
 });
 </script>

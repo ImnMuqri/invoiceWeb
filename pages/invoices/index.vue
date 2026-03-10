@@ -332,9 +332,14 @@
 </template>
 
 <script setup>
-import { computed, ref } from "vue";
+import { computed, ref, onMounted } from "vue";
 import { useInvoiceStore } from "~/stores/invoiceStore";
 const invoiceStore = useInvoiceStore();
+
+onMounted(() => {
+  invoiceStore.fetchInvoices();
+});
+
 const emit = defineEmits(["invoice-updated"]);
 
 const searchQuery = ref("");

@@ -18,6 +18,7 @@
           <div class="mt-2">
             <input
               id="email"
+              v-model="email"
               name="email"
               type="email"
               autocomplete="email"
@@ -34,6 +35,7 @@
           <div class="mt-2">
             <input
               id="password"
+              v-model="password"
               name="password"
               type="password"
               autocomplete="current-password"
@@ -107,9 +109,21 @@
 <script setup>
 definePageMeta({ layout: "auth" });
 import { useRouter } from "vue-router";
-const router = useRouter();
+import { ref } from "vue";
+import { useAuthStore } from "~/stores/authStore";
 
-const handleLogin = () => {
-  router.push("/dashboard");
+const router = useRouter();
+const authStore = useAuthStore();
+
+const email = ref("");
+const password = ref("");
+
+const handleLogin = async () => {
+  const success = await authStore.login(email.value, password.value);
+  if (success) {
+    router.push("/dashboard");
+  } else {
+    alert(authStore.error);
+  }
 };
 </script>

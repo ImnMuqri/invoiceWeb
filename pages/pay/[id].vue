@@ -287,31 +287,19 @@ const invoiceId = route.params.id;
 const loading = ref(true);
 const invoice = ref(null);
 
-onMounted(() => {
-  // Simulate network delay for realism
-  setTimeout(() => {
-    // Try finding the invoice in the store
-    const found = invoiceStore.invoices.find(
-      (inv) => inv.id === invoiceId || inv.id === `INV-${invoiceId}`,
-    );
-    if (found) {
-      invoice.value = found;
-    }
-    loading.value = false;
-  }, 800);
+onMounted(async () => {
+  // Try fetching from store first, if not found fetch from API
+  const invId = invoiceId.startsWith("INV-") ? invoiceId : `INV-${invoiceId}`;
+  invoice.value = await invoiceStore.fetchInvoiceById(invId);
+  loading.value = false;
 });
 
-const markAsPaid = () => {
+const markAsPaid = async () => {
   if (invoice.value) {
     // In a real app we would trigger Stripe/FPX checkout here
-    // For demo, we just update the store
-    const index = invoiceStore.invoices.findIndex(
-      (inv) => inv.id === invoice.value.id,
-    );
-    if (index > -1) {
-      invoiceStore.invoices[index].status = "Paid";
-    }
+    // For demo, we just alert. In the future we should call an API to mark as paid.
     alert("Payment successful! Thank you.");
+    invoice.value.status = "Paid";
   }
 };
 </script>

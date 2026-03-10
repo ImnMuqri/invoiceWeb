@@ -144,9 +144,9 @@
           </NuxtLink>
         </nav>
         <div class="p-4 border-t border-[#e5e5e5]">
-          <NuxtLink
-            to="/login"
-            class="flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:text-slate-900 hover:bg-[#ebebec] transition-colors">
+          <button
+            @click.prevent="authStore.logout()"
+            class="w-full flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:text-slate-900 hover:bg-[#ebebec] transition-colors text-left border-none bg-transparent">
             <svg
               class="w-[18px] h-[18px] mr-3 opacity-70"
               fill="none"
@@ -159,7 +159,7 @@
                 d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
             </svg>
             Sign Out
-          </NuxtLink>
+          </button>
         </div>
       </aside>
 
@@ -363,10 +363,9 @@
 
                   <!-- Bottom Sidebar Action -->
                   <div class="p-4 border-t border-[#e5e5e5]">
-                    <NuxtLink
-                      to="/login"
-                      @click="isMobileMenuOpen = false"
-                      class="flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:text-slate-900 hover:bg-[#ebebec] transition-colors">
+                    <button
+                      @click.prevent="authStore.logout()"
+                      class="w-full flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:text-slate-900 hover:bg-[#ebebec] transition-colors text-left border-none bg-transparent">
                       <svg
                         class="w-[18px] h-[18px] mr-3 opacity-70"
                         fill="none"
@@ -379,7 +378,7 @@
                           d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
                       </svg>
                       Sign Out
-                    </NuxtLink>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -394,8 +393,10 @@
 <script setup>
 import { ref, watch } from "vue";
 import { useRoute } from "vue-router";
+import { useAuthStore } from "~/stores/authStore";
 
 const route = useRoute();
+const authStore = useAuthStore();
 const isMobileMenuOpen = ref(false);
 
 watch(isMobileMenuOpen, (isOpen) => {

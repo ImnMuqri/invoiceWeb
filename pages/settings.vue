@@ -27,7 +27,8 @@
             <input
               type="text"
               id="company-name"
-              value="Acme Inc."
+              placeholder="Enter your company name"
+              v-model="form.companyName"
               class="block w-full rounded-md border border-slate-200 px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-950 sm:text-sm bg-white" />
           </div>
           <div class="sm:col-span-4">
@@ -39,7 +40,8 @@
             <input
               type="email"
               id="company-email"
-              value="billing@acme.com"
+              placeholder="Enter your company name"
+              v-model="form.companyEmail"
               class="block w-full rounded-md border border-slate-200 px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-950 sm:text-sm bg-white" />
           </div>
           <div class="sm:col-span-6">
@@ -50,10 +52,10 @@
             >
             <textarea
               id="address"
+              v-model="form.address"
+              placeholder="Enter your company name"
               rows="3"
-              class="block w-full rounded-md border border-slate-200 px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-950 sm:text-sm bg-white">
-123 Business Rd&#10;Suite 100&#10;San Francisco, CA 94107</textarea
-            >
+              class="block w-full rounded-md border border-slate-200 px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-950 sm:text-sm bg-white"></textarea>
           </div>
         </div>
       </div>
@@ -73,12 +75,13 @@
             >
             <select
               id="currency"
+              v-model="form.defaultCurrency"
               class="block w-full rounded-md border border-slate-200 px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-950 sm:text-sm bg-white text-slate-900">
-              <option>USD ($)</option>
-              <option>EUR (€)</option>
-              <option>GBP (£)</option>
-              <option>IDR (Rp)</option>
-              <option>MYR (RM)</option>
+              <option value="USD">USD ($)</option>
+              <option value="EUR">EUR (€)</option>
+              <option value="GBP">GBP (£)</option>
+              <option value="IDR">IDR (Rp)</option>
+              <option value="MYR">MYR (RM)</option>
             </select>
           </div>
           <div class="sm:col-span-3">
@@ -90,7 +93,7 @@
             <input
               type="number"
               id="tax"
-              value="6"
+              v-model.number="form.defaultTaxRate"
               class="block w-full rounded-md border border-slate-200 px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-950 sm:text-sm bg-white" />
           </div>
         </div>
@@ -100,12 +103,51 @@
         class="bg-white px-6 py-4 border-t border-slate-200 flex justify-end">
         <button
           type="button"
-          class="inline-flex justify-center rounded-md border border-transparent bg-slate-900 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2 transition-colors">
-          Save Settings
+          @click="saveSettings"
+          :disabled="authStore.loading"
+          class="inline-flex justify-center rounded-md border border-transparent bg-slate-900 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2 transition-colors disabled:opacity-50">
+          {{ authStore.loading ? "Saving..." : "Save Settings" }}
         </button>
       </div>
     </div>
   </div>
 </template>
 
-<script setup></script>
+<script setup>
+import { ref, onMounted, watch } from "vue";
+import { useAuthStore } from "~/stores/authStore";
+
+const authStore = useAuthStore();
+
+const form = ref({
+  name: "",
+  companyName: "",
+  companyEmail: "",
+  address: "",
+  defaultCurrency: "MYR",
+  defaultTaxRate: 0,
+});
+
+onMounted(async () => {
+  await authStore.fetchProfile();
+  if (authStore.user) {
+    form.value = {
+      name: authStore.user.name || "",
+      companyName: authStore.user.companyName || "",
+      companyEmail: authStore.user.companyEmail || "",
+      address: authStore.user.address || "",
+      defaultCurrency: authStore.user.defaultCurrency || "MYR",
+      defaultTaxRate: authStore.user.defaultTaxRate || 0,
+    };
+  }
+});
+
+const saveSettings = async () => {
+  const success = await authStore.updateProfile(form.value);
+  if (success) {
+    alert("Settings saved successfully!");
+  } else {
+    alert("Failed to save settings: " + authStore.error);
+  }
+};
+</script>

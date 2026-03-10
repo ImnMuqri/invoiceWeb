@@ -90,6 +90,11 @@
                   <th
                     scope="col"
                     class="px-3 py-4 text-left text-[10px] font-semibold text-slate-400 tracking-wider uppercase">
+                    Address
+                  </th>
+                  <th
+                    scope="col"
+                    class="px-3 py-4 text-left text-[10px] font-semibold text-slate-400 tracking-wider uppercase">
                     Avg Delay
                   </th>
                   <th scope="col" class="relative py-4 pl-3 pr-6">
@@ -151,6 +156,11 @@
                       <div
                         class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
                     </label>
+                  </td>
+                  <td
+                    class="whitespace-nowrap px-3 py-4 text-sm font-semibold text-slate-500 truncate max-w-[150px]"
+                    :title="client.address">
+                    {{ client.address || "-" }}
                   </td>
                   <td
                     class="whitespace-nowrap px-3 py-4 text-sm font-semibold text-slate-700">
@@ -256,6 +266,19 @@
               </div>
               <div>
                 <label
+                  for="phone"
+                  class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2"
+                  >Phone</label
+                >
+                <input
+                  type="text"
+                  id="phone"
+                  v-model="form.phone"
+                  class="block w-full rounded-md border border-slate-200 px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-950 sm:text-sm bg-white"
+                  placeholder="e.g. +60123456789" />
+              </div>
+              <div>
+                <label
                   for="company"
                   class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2"
                   >Company</label
@@ -266,6 +289,19 @@
                   v-model="form.company"
                   class="block w-full rounded-md border border-slate-200 px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-950 sm:text-sm bg-white"
                   placeholder="e.g. Acme Corp" />
+              </div>
+              <div>
+                <label
+                  for="address"
+                  class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2"
+                  >Address</label
+                >
+                <textarea
+                  id="address"
+                  v-model="form.address"
+                  rows="3"
+                  class="block w-full rounded-md border border-slate-200 px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-950 sm:text-sm bg-white"
+                  placeholder="Enter client address"></textarea>
               </div>
               <div class="mt-8 sm:mt-10 sm:grid sm:grid-cols-2 sm:gap-4">
                 <button
@@ -289,13 +325,17 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useClientStore } from "~/stores/clientStore";
 const clientStore = useClientStore();
 
+onMounted(() => {
+  clientStore.fetchClients();
+});
+
 const showAddModal = ref(false);
 const searchQuery = ref("");
-const form = ref({ name: "", email: "", phone: "" });
+const form = ref({ name: "", email: "", phone: "", company: "", address: "" });
 
 const filteredClients = computed(() => {
   if (!searchQuery.value) return clientStore.clients;
@@ -305,28 +345,15 @@ const filteredClients = computed(() => {
     return (
       (client.name && client.name.toLowerCase().includes(query)) ||
       (client.email && client.email.toLowerCase().includes(query)) ||
-      (client.company && client.company.toLowerCase().includes(query))
+      (client.company && client.company.toLowerCase().includes(query)) ||
+      (client.address && client.address.toLowerCase().includes(query))
     );
   });
 });
 
-const submitClient = () => {
-  clientStore.addClient({ ...form.value });
-  form.value = { name: "", email: "", phone: "" };
+const submitClient = async () => {
+  await clientStore.addClient({ ...form.value });
+  form.value = { name: "", email: "", phone: "", company: "", address: "" };
   showAddModal.value = false;
 };
-
-// Add some dummy data if empty for demo
-if (clientStore.clients.length === 0) {
-  clientStore.addClient({
-    name: "Acme Corp",
-    email: "billing@acme.com",
-    phone: "555-0100",
-  });
-  clientStore.addClient({
-    name: "Global Tech",
-    email: "invoices@globaltech.io",
-    phone: "555-0199",
-  });
-}
 </script>

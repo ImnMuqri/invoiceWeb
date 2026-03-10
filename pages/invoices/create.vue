@@ -1,6 +1,6 @@
 <template>
   <div
-    class="flex flex-col xl:flex-row gap-6 xl:h-[calc(100vh-4rem)] w-full pb-0 relative">
+    class="flex flex-col xl:flex-row gap-6 xl:h-[calc(110vh-4rem)] w-full pb-0 relative">
     <!-- Left Column (Form) block -->
     <div
       class="w-full xl:w-1/2 flex-shrink-0 bg-white rounded-xl border border-slate-200 flex flex-col shadow-sm overflow-hidden min-h-[600px] xl:min-h-0">
@@ -265,50 +265,111 @@
                   >People <span class="text-red-500">*</span></label
                 >
                 <div
-                  class="flex items-center justify-between p-3 border border-slate-200 rounded-lg hover:border-slate-300 transition-colors cursor-pointer group bg-white shadow-sm">
-                  <div class="flex items-center gap-3">
+                  v-if="!showManualClient"
+                  class="flex items-center justify-between p-3 border border-slate-200 rounded-lg bg-white shadow-sm gap-4">
+                  <div class="flex items-center gap-3 flex-1 min-w-0">
                     <div
-                      class="w-10 h-10 rounded-full bg-slate-200 overflow-hidden flex-shrink-0">
-                      <!-- Mock Avatar -->
-                      <svg
-                        class="w-full h-full text-slate-400"
-                        fill="currentColor"
-                        viewBox="0 0 24 24">
-                        <path
-                          d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
-                      </svg>
+                      class="w-10 h-10 rounded-full bg-slate-200 overflow-hidden flex-shrink-0 flex items-center justify-center text-slate-500 font-bold">
+                      <template v-if="selectedClient">
+                        {{ selectedClient.name.charAt(0) }}
+                      </template>
+                      <template v-else>
+                        <svg
+                          class="w-full h-full text-slate-400"
+                          fill="currentColor"
+                          viewBox="0 0 24 24">
+                          <path
+                            d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                      </template>
                     </div>
-                    <div>
-                      <div class="text-sm font-semibold text-slate-900">
-                        {{ form.clientName || "Select Client" }}
-                      </div>
-                      <div class="text-xs text-slate-500">
-                        {{ form.clientEmail || "No email set" }}
+                    <div class="flex-1 min-w-0">
+                      <UiSelect
+                        v-model="form.clientId"
+                        :options="clientOptions"
+                        placeholder="Select Client"
+                        custom-class="!border-none !p-0 !shadow-none !ring-0 w-full !pl-3" />
+                      <div class="text-xs text-slate-500 truncate px-3">
+                        {{ selectedClient?.email || "No email set" }}
                       </div>
                     </div>
-                  </div>
-                  <div class="flex items-center gap-3">
-                    <span
-                      class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-50 text-indigo-700"
-                      >On InvoMate+</span
-                    >
-                    <button
-                      type="button"
-                      class="text-gray-400 group-hover:text-gray-600 transition-colors">
-                      <svg
-                        class="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24">
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
-                      </svg>
-                    </button>
                   </div>
                 </div>
+
+                <!-- Manual Input Fields -->
+                <div
+                  v-else
+                  class="space-y-4 p-4 border border-indigo-100 rounded-lg bg-indigo-50/30">
+                  <div class="grid grid-cols-2 gap-4">
+                    <div class="col-span-2">
+                      <label
+                        class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1"
+                        >Name</label
+                      >
+                      <input
+                        v-model="manualClient.name"
+                        type="text"
+                        placeholder="Client Name"
+                        class="w-full border border-slate-200 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none" />
+                    </div>
+                    <div>
+                      <label
+                        class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1"
+                        >Email</label
+                      >
+                      <input
+                        v-model="manualClient.email"
+                        type="email"
+                        placeholder="Email"
+                        class="w-full border border-slate-200 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none" />
+                    </div>
+                    <div>
+                      <label
+                        class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1"
+                        >Phone</label
+                      >
+                      <input
+                        v-model="manualClient.phone"
+                        type="text"
+                        placeholder="Phone"
+                        class="w-full border border-slate-200 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none" />
+                    </div>
+                    <div class="col-span-2">
+                      <label
+                        class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1"
+                        >Company (Optional)</label
+                      >
+                      <input
+                        v-model="manualClient.company"
+                        type="text"
+                        placeholder="Company Name"
+                        class="w-full border border-slate-200 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none" />
+                    </div>
+                    <div class="col-span-2">
+                      <label
+                        class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1"
+                        >Address</label
+                      >
+                      <textarea
+                        v-model="manualClient.address"
+                        rows="2"
+                        placeholder="Address"
+                        class="w-full border border-slate-200 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"></textarea>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Toggle Button -->
+                <button
+                  type="button"
+                  @click="showManualClient = !showManualClient"
+                  class="mt-2 text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition-colors flex items-center gap-1 uppercase tracking-wider">
+                  {{
+                    showManualClient
+                      ? "← Select Existing Client"
+                      : "+ Add New Client Instead"
+                  }}
+                </button>
               </div>
 
               <!-- Invoice Name Input -->
@@ -372,52 +433,15 @@
                 </div>
               </div>
 
-              <!-- Currency Select -->
-              <div>
-                <label
-                  for="currency"
-                  class="block text-sm font-medium text-slate-700 mb-2"
-                  >Currency</label
-                >
-                <div class="relative group">
-                  <select
-                    id="currency"
-                    v-model="form.currency"
-                    class="w-full appearance-none border border-slate-200 rounded-md pl-10 pr-3 py-2 bg-white hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-950 transition-colors shadow-sm cursor-pointer text-slate-900 font-medium text-sm">
-                    <option value="IDR">Indonesian Rupiah</option>
-                    <option value="USD">US Dollar</option>
-                  </select>
-                  <div
-                    class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                    <div
-                      class="w-4 h-4 rounded-full bg-red-500 overflow-hidden relative">
-                      <!-- Simplified ID flag mock -->
-                      <div
-                        class="absolute top-0 left-0 right-0 h-1/2 bg-red-500"></div>
-                      <div
-                        class="absolute bottom-0 left-0 right-0 h-1/2 bg-white"></div>
-                    </div>
-                  </div>
-                  <div
-                    class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                    <span
-                      class="text-sm font-medium text-slate-700 bg-white px-1 mr-4"
-                      >IDR</span
-                    >
-                    <svg
-                      class="w-4 h-4 text-slate-400 group-hover:text-slate-600 transition-colors"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24">
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M19 9l-7 7-7-7"></path>
-                    </svg>
-                  </div>
-                </div>
-              </div>
+              <!-- Currency Selection -->
+              <UiSelect
+                v-model="form.currency"
+                label="Currency"
+                :options="[
+                  { label: 'MYR - Malaysian Ringgit', value: 'MYR' },
+                  { label: 'USD - US Dollar', value: 'USD' },
+                ]"
+                placeholder="Select Currency" />
             </div>
           </section>
 
@@ -477,8 +501,9 @@
                     <input
                       type="text"
                       v-model="item.priceStr"
+                      @input="updatePriceNum(item)"
                       class="text-xs text-slate-500 bg-transparent outline-none w-full p-0 border-none focus:ring-0 cursor-text"
-                      placeholder="Price (e.g. 125.000 IDR)" />
+                      placeholder="Price (e.g. 1,200)" />
                   </div>
                 </div>
 
@@ -572,28 +597,7 @@
               Add New Line
             </button>
 
-            <!-- Toggles (Coupon / Discount) -->
             <div class="mt-8 space-y-4">
-              <div class="flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                  <label
-                    for="add-coupon"
-                    class="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      id="add-coupon"
-                      class="sr-only peer" />
-                    <div
-                      class="w-9 h-5 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-slate-950 peer-focus:ring-offset-2 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-slate-900"></div>
-                  </label>
-                  <label
-                    for="add-coupon"
-                    class="text-sm font-medium text-slate-700 cursor-pointer"
-                    >Add Coupon</label
-                  >
-                </div>
-              </div>
-
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
                   <label
@@ -613,25 +617,14 @@
                     >Add Discount</label
                   >
                 </div>
-                <div class="relative">
-                  <select
-                    class="appearance-none bg-white border border-slate-200 rounded-md pl-3 pr-8 py-1.5 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-950 shadow-sm cursor-pointer hover:border-slate-300 transition-colors">
-                    <option>Summer Sale 10th</option>
-                  </select>
-                  <div
-                    class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
-                    <svg
-                      class="w-4 h-4 text-slate-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24">
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M19 9l-7 7-7-7"></path>
-                    </svg>
-                  </div>
+                <div v-if="form.addDiscount" class="flex items-center gap-2">
+                  <input
+                    v-model.number="form.discountPercentage"
+                    type="number"
+                    min="0"
+                    max="100"
+                    class="w-20 border border-slate-200 rounded-md px-2 py-1 text-sm text-right focus:ring-2 focus:ring-slate-950 outline-none" />
+                  <span class="text-sm font-medium text-slate-500">%</span>
                 </div>
               </div>
             </div>
@@ -659,7 +652,7 @@
             type="submit"
             @click="submitInvoice"
             class="inline-flex items-center gap-2 justify-center rounded-md border border-transparent bg-slate-900 py-2 px-4 text-sm font-medium text-white shadow hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2 transition-colors">
-            Processing Invoice
+            Process Invoice
           </button>
         </div>
       </div>
@@ -775,10 +768,23 @@
             <div>
               <div class="text-xs text-slate-500 mb-1">Billed to</div>
               <div class="text-sm font-semibold text-slate-900">
-                {{ form.clientName }}
+                {{
+                  showManualClient
+                    ? manualClient.name || "Client Name"
+                    : selectedClient?.name || "Select Client"
+                }}
               </div>
-              <div class="text-sm text-slate-500 mt-0.5">
-                {{ form.clientEmail }}
+              <div class="text-sm text-slate-500 mt-0.5 whitespace-pre-line">
+                {{
+                  showManualClient ? manualClient.email : selectedClient?.email
+                }}
+                <p>
+                  {{
+                    showManualClient
+                      ? manualClient.address
+                      : selectedClient?.address
+                  }}
+                </p>
               </div>
             </div>
             <div>
@@ -788,6 +794,16 @@
                 {{
                   form.currency === "IDR" ? "Indonesian Rupiah" : "US Dollar"
                 }}
+              </div>
+            </div>
+            <div>
+              <div class="text-xs text-slate-500 mb-1">From</div>
+              <div class="text-sm font-semibold text-slate-900">
+                {{ form.from.companyName }}
+              </div>
+              <div class="text-sm text-slate-500 mt-0.5 whitespace-pre-line">
+                {{ form.from.companyEmail }}
+                <p>{{ form.from.companyAddress }}</p>
               </div>
             </div>
           </div>
@@ -855,7 +871,10 @@
                   v-if="form.addDiscount"
                   class="flex justify-between text-sm">
                   <span class="font-medium text-slate-600"
-                    >Discount <span class="text-xs">-10%</span></span
+                    >Discount
+                    <span class="text-xs"
+                      >{{ form.discountPercentage }}%</span
+                    ></span
                   >
                   <span class="font-semibold text-slate-900"
                     >{{ calculateDiscount().toLocaleString() }}
@@ -940,19 +959,44 @@ import { useRouter } from "vue-router";
 import { useInvoiceStore } from "~/stores/invoiceStore";
 
 const router = useRouter();
+import { useClientStore } from "~/stores/clientStore";
+import { onMounted } from "vue";
+
 const invoiceStore = useInvoiceStore();
+const clientStore = useClientStore();
+
+onMounted(() => {
+  clientStore.fetchClients();
+});
 
 const userPlan = ref("Basic"); // Mock plan state for UI demo
 const showAiPreview = ref(false);
+const showManualClient = ref(false);
+const manualClient = ref({
+  name: "",
+  email: "",
+  phone: "",
+  company: "",
+  address: "",
+});
 
 const form = ref({
+  clientId: "",
+  invoiceNumber: "INV-" + Math.floor(Math.random() * 9000 + 1000),
   invoiceName: "Website Overhaul",
-  clientName: "John Smith",
-  clientEmail: "john_s@gmail.com",
   subject: "Service per June 2023",
-  dueDate: "10 November 2023",
+  dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
+    .toISOString()
+    .split("T")[0],
   currency: "MYR",
-  addDiscount: true,
+  addDiscount: false,
+  discountPercentage: 0,
+  status: "Pending",
+  from: {
+    companyName: "Acme Inc.",
+    companyEmail: "billing@acme.com",
+    companyAddress: "123 Business Rd\nSuite 100\nSan Francisco, CA 94107",
+  },
   lineItems: [
     {
       name: "Summer 2K23 T-shirt",
@@ -962,6 +1006,17 @@ const form = ref({
       tax: "10",
     },
   ],
+});
+
+const selectedClient = computed(() => {
+  return clientStore.clients.find((c) => c.id === form.value.clientId);
+});
+
+const clientOptions = computed(() => {
+  return clientStore.clients.map((c) => ({
+    label: `${c.name} (${c.company || "Personal"})`,
+    value: c.id,
+  }));
 });
 
 // UI State
@@ -1055,16 +1110,44 @@ const removeLineItem = (index) => {
   form.value.lineItems.splice(index, 1);
 };
 
-const submitInvoice = () => {
-  // simplified mock save
-  invoiceStore.addInvoice({
-    ...form.value,
-    client: "John Smith",
+const submitInvoice = async () => {
+  let clientId = form.value.clientId;
+
+  if (showManualClient.value) {
+    if (!manualClient.value.name || !manualClient.value.email) {
+      alert("Please fill in the client name and email");
+      return;
+    }
+    const newClient = await clientStore.addClient({ ...manualClient.value });
+    if (newClient && newClient.id) {
+      clientId = newClient.id;
+    } else {
+      alert("Failed to create client");
+      return;
+    }
+  }
+
+  if (!clientId) {
+    alert("Please select or add a client");
+    return;
+  }
+
+  const payload = {
+    clientId: clientId,
+    invoiceNumber: form.value.invoiceNumber,
+    date: new Date().toISOString(),
+    dueDate: new Date(form.value.dueDate).toISOString(),
+    currency: form.value.currency,
+    status: form.value.status,
     amount: calculateTotal(),
-    id: "INV2398-08-087",
-    status: "Pending",
-    date: form.value.dueDate,
-  });
+    items: form.value.lineItems.map((item) => ({
+      name: item.name,
+      price: item.priceNum,
+      quantity: item.qty,
+    })),
+  };
+
+  await invoiceStore.addInvoice(payload);
   router.push("/invoices");
 };
 
@@ -1078,12 +1161,18 @@ const calculateSubtotal = () => {
 
 const calculateDiscount = () => {
   if (!form.value.addDiscount) return 0;
-  // Mock 10% discount
-  return calculateSubtotal() * -0.1;
+  return calculateSubtotal() * (form.value.discountPercentage / 100);
+};
+
+const updatePriceNum = (item) => {
+  // Remove commas or dots used as thousands separators and convert to number
+  const cleanStr = item.priceStr.replace(/,/g, "");
+  const num = parseFloat(cleanStr);
+  item.priceNum = isNaN(num) ? 0 : num;
 };
 
 const calculateTotal = () => {
-  return calculateSubtotal() + calculateDiscount();
+  return calculateSubtotal() - calculateDiscount();
 };
 </script>
 <style scoped>
