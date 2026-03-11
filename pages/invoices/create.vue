@@ -398,10 +398,7 @@
               <UiSelect
                 v-model="form.currency"
                 label="Currency"
-                :options="[
-                  { label: 'MYR - Malaysian Ringgit', value: 'MYR' },
-                  { label: 'USD - US Dollar', value: 'USD' },
-                ]"
+                :options="currencyOptions"
                 placeholder="Select Currency" />
 
               <UiSelect
@@ -1192,6 +1189,7 @@ const authStore = useAuthStore();
 const toast = ref({ message: "", type: "success" });
 
 onMounted(async () => {
+  fetchCurrencies();
   clientStore.fetchClients();
 
   // Populate "From" info from user profile
@@ -1268,6 +1266,20 @@ const chatInput = ref("");
 const isAiTyping = ref(false);
 const chatHistory = ref([]);
 const chatContainer = ref(null);
+const currencyOptions = ref([]);
+
+const fetchCurrencies = async () => {
+  try {
+    const response = await $fetch("http://localhost:3002/api/currencies");
+    currencyOptions.value = response;
+  } catch (err) {
+    console.error("Failed to fetch currencies:", err);
+    currencyOptions.value = [
+      { value: "MYR", label: "MYR (RM)" },
+      { value: "USD", label: "USD ($)" },
+    ];
+  }
+};
 
 const clearChat = () => {
   chatHistory.value = [];

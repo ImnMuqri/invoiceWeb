@@ -105,10 +105,7 @@
               <UiSelect
                 v-model="form.currency"
                 label="Currency"
-                :options="[
-                  { label: 'MYR - Malaysian Ringgit', value: 'MYR' },
-                  { label: 'USD - US Dollar', value: 'USD' },
-                ]"
+                :options="currencyOptions"
                 placeholder="Select Currency" />
               <UiSelect
                 v-model="form.status"
@@ -475,23 +472,10 @@
 
         <!-- The Invoice Paper -->
         <div class="relative mt-6 group">
-          <!-- Drizzle Animation Overlay -->
           <div
             v-if="isProcessing"
             class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/40 backdrop-blur-[2px] rounded-xl">
-            <div class="relative w-24 h-24 mb-6">
-              <!-- The "Drizzle" effect -->
-              <div
-                v-for="n in 8"
-                :key="n"
-                class="absolute w-1 bg-emerald-500/60 rounded-full animate-drizzle"
-                :style="{
-                  left: Math.random() * 100 + '%',
-                  top: '-20px',
-                  height: 12 + Math.random() * 20 + 'px',
-                  animationDelay: Math.random() * 1.5 + 's',
-                  animationDuration: 0.8 + Math.random() * 0.4 + 's',
-                }"></div>
+            <div class="relative w-20 h-20 mb-6">
               <div
                 class="absolute inset-0 border-4 border-slate-100 rounded-full"></div>
               <div
@@ -510,10 +494,10 @@
             v-if="processingComplete"
             class="absolute inset-0 z-[60] flex flex-col items-center justify-center bg-white/60 backdrop-blur-sm rounded-xl animate-in zoom-in fade-in duration-500">
             <div
-              class="w-20 h-20 rounded-full bg-emerald-100 border-4 border-white shadow-xl flex items-center justify-center mb-4">
+              class="w-16 h-16 rounded-full bg-emerald-100 border-4 border-white shadow-xl flex items-center justify-center mb-4">
               <UiIcon
-                icon="heroicons:check-badge"
-                class="w-12 h-12 text-emerald-600" />
+                icon="material-symbols:check-rounded"
+                custom-class="w-8 h-8 text-emerald-600" />
             </div>
             <h3 class="text-xl font-semibold text-slate-900">
               Invoice Updated!
@@ -860,6 +844,20 @@ const invoiceStore = useInvoiceStore();
 const clientStore = useClientStore();
 const authStore = useAuthStore();
 const toast = ref({ message: "", type: "success" });
+const currencyOptions = ref([]);
+
+const fetchCurrencies = async () => {
+  try {
+    const response = await $fetch("http://localhost:3002/api/currencies");
+    currencyOptions.value = response;
+  } catch (err) {
+    console.error("Failed to fetch currencies:", err);
+    currencyOptions.value = [
+      { value: "MYR", label: "MYR (RM)" },
+      { value: "USD", label: "USD ($)" },
+    ];
+  }
+};
 
 const loadingInvoice = ref(true);
 const isProcessing = ref(false);
@@ -888,6 +886,7 @@ const form = ref({
 });
 
 onMounted(async () => {
+  fetchCurrencies();
   await clientStore.fetchClients();
 
   try {
@@ -1078,27 +1077,6 @@ const whatsappInvoice = async () => {
 </script>
 
 <style scoped>
-@keyframes drizzle {
-  0% {
-    transform: translateY(0) scaleY(1);
-    opacity: 0;
-  }
-  20% {
-    opacity: 1;
-  }
-  80% {
-    opacity: 1;
-  }
-  100% {
-    transform: translateY(120px) scaleY(0.5);
-    opacity: 0;
-  }
-}
-
-.animate-drizzle {
-  animation: drizzle linear infinite;
-}
-
 /* Custom Scrollbar */
 .overflow-y-auto::-webkit-scrollbar {
   width: 6px;

@@ -92,15 +92,10 @@
                     class="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2"
                     >Default Currency</label
                   >
-                  <select
+                  <UiSelect
                     v-model="profileForm.defaultCurrency"
-                    class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-slate-950 outline-none bg-white transition-all">
-                    <option value="USD">USD ($)</option>
-                    <option value="EUR">EUR (€)</option>
-                    <option value="GBP">GBP (£)</option>
-                    <option value="IDR">IDR (Rp)</option>
-                    <option value="MYR">MYR (RM)</option>
-                  </select>
+                    :options="currencyOptions"
+                    placeholder="Select currency" />
                 </div>
                 <div class="sm:col-span-3">
                   <label
@@ -125,13 +120,13 @@
               v-if="!authStore.isPro"
               class="absolute inset-0 z-10 backdrop-blur-[6px] bg-white/40 flex flex-col items-center justify-center p-8 text-center">
               <div
-                class="w-16 h-16 bg-white rounded-2xl shadow-sm border border-slate-200 flex items-center justify-center mb-6 text-emerald-600">
-                <UiIcon icon="heroicons:lock-closed" class="w-8 h-8" />
+                class="w-16 h-16 bg-white rounded-2xl shadow-sm border border-slate-200 flex items-center justify-center mb-4 text-emerald-600">
+                <UiIcon icon="heroicons:lock-closed" custom-class="w-6 h-6" />
               </div>
-              <h3 class="text-xl font-bold text-slate-900 mb-2">
+              <h3 class="text-xl font-bold text-slate-900 mb-1">
                 WhatsApp & Reminders are Pro Features
               </h3>
-              <p class="text-sm text-slate-500 mb-8 max-w-sm leading-relaxed">
+              <p class="text-sm text-slate-500 mb-4 max-w-sm leading-relaxed">
                 Connect your own Twilio, customize automated reminder templates,
                 and more by upgrading to a business plan.
               </p>
@@ -583,6 +578,21 @@ const tabs = [
 
 const activeTab = ref(route.query.tab || "general");
 const toast = ref({ message: "", type: "success" });
+const currencyOptions = ref([]);
+
+const fetchCurrencies = async () => {
+  try {
+    const response = await $fetch("http://localhost:3002/api/currencies");
+    currencyOptions.value = response;
+  } catch (err) {
+    console.error("Failed to fetch currencies:", err);
+    // Fallback if API fails
+    currencyOptions.value = [
+      { value: "MYR", label: "MYR (RM)" },
+      { value: "USD", label: "USD ($)" },
+    ];
+  }
+};
 
 // Sync with route changes
 watch(
@@ -593,7 +603,7 @@ watch(
     } else if (!newTab) {
       activeTab.value = "general";
     }
-  }
+  },
 );
 
 const switchTab = (tabId) => {
@@ -619,6 +629,7 @@ const settingsForm = ref({
 });
 
 onMounted(async () => {
+  fetchCurrencies();
   await authStore.fetchProfile();
   if (authStore.user) {
     profileForm.value = {

@@ -111,7 +111,7 @@
         </td>
         <td
           class="whitespace-nowrap px-3 py-4 text-sm font-semibold text-slate-900">
-          ${{ invoice?.amount?.toLocaleString() || "0" }}
+          {{ invoice?.currency === 'MYR' ? 'RM' : '$' }}{{ invoice?.amount?.toLocaleString() || "0" }}
         </td>
         <td class="whitespace-nowrap px-3 py-4 text-sm">
           <span
@@ -191,7 +191,7 @@
           class="relative whitespace-nowrap py-4 pl-3 pr-6 text-right text-sm font-semibold flex items-center justify-end gap-3 h-full">
           <div class="flex items-center justify-end gap-2">
             <button
-              v-if="invoice?.status !== 'Paid'"
+              v-if="invoice?.status !== 'Paid' && authStore.user?.plan !== 'FREE'"
               @click="openWhatsAppModal(invoice)"
               class="p-2 text-slate-400 hover:text-[#25D366] hover:bg-emerald-50 rounded-lg transition-all"
               title="Send WhatsApp Reminder">

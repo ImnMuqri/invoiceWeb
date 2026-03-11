@@ -148,54 +148,48 @@
           </div>
         </td>
         <td class="whitespace-nowrap px-3 py-4 text-sm font-semibold relative">
-          <!-- Lock for FREE users -->
-          <div
-            v-if="!authStore.isPro"
-            class="absolute inset-0 z-10 bg-white/60 flex items-center justify-center cursor-not-allowed"
-            title="Upgrade to Pro to enable chasers">
+          <div class="flex items-center gap-2">
+            <!-- Whatsapp Chaser -->
+            <label
+              class="relative inline-flex items-center cursor-pointer"
+              :class="{ 'opacity-50 pointer-events-none': !authStore.isPro }"
+              title="Whatsapp Chaser">
+              <input
+                type="checkbox"
+                :disabled="!authStore.isPro"
+                :checked="client.autoChaser"
+                @change="toggleChaser(client, 'autoChaser')"
+                class="sr-only peer" />
+              <div
+                class="w-8 h-4 bg-slate-200 rounded-full peer peer-checked:bg-emerald-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:after:translate-x-4" />
+            </label>
             <UiIcon
+              v-if="!authStore.isPro"
               icon="heroicons:lock-closed"
               class="w-3 h-3 text-slate-400" />
           </div>
-          <!-- Whatsapp Chaser -->
-          <label
-            class="relative inline-flex items-center cursor-pointer"
-            :class="{ 'opacity-50 pointer-events-none': !authStore.isPro }"
-            title="Whatsapp Chaser">
-            <input
-              type="checkbox"
-              :disabled="!authStore.isPro"
-              :checked="client.autoChaser"
-              @change="toggleChaser(client, 'autoChaser')"
-              class="sr-only peer" />
-            <div
-              class="w-8 h-4 bg-slate-200 rounded-full peer peer-checked:bg-emerald-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:after:translate-x-4" />
-          </label>
         </td>
         <td class="whitespace-nowrap px-3 py-4 text-sm font-semibold relative">
-          <!-- Lock for FREE users -->
-          <div
-            v-if="!authStore.isPro"
-            class="absolute inset-0 z-10 bg-white/60 flex items-center justify-center cursor-not-allowed"
-            title="Upgrade to Pro to enable chasers">
+          <div class="flex items-center gap-2">
+            <!-- Email Chaser -->
+            <label
+              class="relative inline-flex items-center cursor-pointer"
+              :class="{ 'opacity-50 pointer-events-none': !authStore.isPro }"
+              title="Email Chaser">
+              <input
+                type="checkbox"
+                :disabled="!authStore.isPro"
+                :checked="client.autoEmailChaser"
+                @change="toggleChaser(client, 'autoEmailChaser')"
+                class="sr-only peer" />
+              <div
+                class="w-8 h-4 bg-slate-200 rounded-full peer peer-checked:bg-blue-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:after:translate-x-4"></div>
+            </label>
             <UiIcon
+              v-if="!authStore.isPro"
               icon="heroicons:lock-closed"
               class="w-3 h-3 text-slate-400" />
           </div>
-          <!-- Email Chaser -->
-          <label
-            class="relative inline-flex items-center cursor-pointer"
-            :class="{ 'opacity-50 pointer-events-none': !authStore.isPro }"
-            title="Email Chaser">
-            <input
-              type="checkbox"
-              :disabled="!authStore.isPro"
-              :checked="client.autoEmailChaser"
-              @change="toggleChaser(client, 'autoEmailChaser')"
-              class="sr-only peer" />
-            <div
-              class="w-8 h-4 bg-slate-200 rounded-full peer peer-checked:bg-blue-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:after:translate-x-4"></div>
-          </label>
         </td>
 
         <td
@@ -333,22 +327,6 @@
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div
                   class="flex items-center gap-3 p-3 rounded-lg border border-slate-100 bg-slate-50 relative overflow-hidden group">
-                  <!-- Lock Overlay -->
-                  <div
-                    v-if="!authStore.isPro"
-                    class="absolute inset-0 z-10 bg-white/60 backdrop-blur-[2px] flex items-center justify-center cursor-not-allowed">
-                    <div
-                      class="flex items-center gap-1.5 px-2 py-1 bg-white border border-slate-200 rounded-md shadow-sm">
-                      <UiIcon
-                        icon="heroicons:lock-closed"
-                        class="w-3 h-3 text-slate-400" />
-                      <span
-                        class="text-[8px] font-bold text-slate-500 uppercase tracking-tighter"
-                        >Pro Feature</span
-                      >
-                    </div>
-                  </div>
-
                   <label
                     class="relative inline-flex items-center cursor-pointer"
                     :class="{
@@ -362,31 +340,19 @@
                     <div
                       class="w-9 h-5 bg-slate-200 rounded-full peer peer-checked:bg-emerald-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"></div>
                   </label>
-                  <div class="flex flex-col">
+                  <div class="flex items-center gap-2">
                     <span
                       class="text-[10px] font-semibold text-slate-700 uppercase tracking-tight"
                       >Whatsapp Chaser</span
                     >
+                    <UiIcon
+                      v-if="!authStore.isPro"
+                      icon="heroicons:lock-closed"
+                      class="w-3 h-3 text-slate-400" />
                   </div>
                 </div>
                 <div
                   class="flex items-center gap-3 p-3 rounded-lg border border-slate-100 bg-slate-50 relative overflow-hidden group">
-                  <!-- Lock Overlay -->
-                  <div
-                    v-if="!authStore.isPro"
-                    class="absolute inset-0 z-10 bg-white/60 backdrop-blur-[2px] flex items-center justify-center cursor-not-allowed">
-                    <div
-                      class="flex items-center gap-1.5 px-2 py-1 bg-white border border-slate-200 rounded-md shadow-sm">
-                      <UiIcon
-                        icon="heroicons:lock-closed"
-                        class="w-3 h-3 text-slate-400" />
-                      <span
-                        class="text-[8px] font-bold text-slate-500 uppercase tracking-tighter"
-                        >Pro Feature</span
-                      >
-                    </div>
-                  </div>
-
                   <label
                     class="relative inline-flex items-center cursor-pointer"
                     :class="{
@@ -400,11 +366,15 @@
                     <div
                       class="w-9 h-5 bg-slate-200 rounded-full peer peer-checked:bg-blue-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"></div>
                   </label>
-                  <div class="flex flex-col">
+                  <div class="flex items-center gap-2">
                     <span
                       class="text-[10px] font-semibold text-slate-700 uppercase tracking-tight"
                       >Email Chaser</span
                     >
+                    <UiIcon
+                      v-if="!authStore.isPro"
+                      icon="heroicons:lock-closed"
+                      class="w-3 h-3 text-slate-400" />
                   </div>
                 </div>
               </div>

@@ -60,7 +60,10 @@ const props = defineProps({
 
 const chartData = computed(() => {
   return {
-    labels: props.data.map(item => item[props.index]),
+    labels: props.data.map(item => {
+      const date = new Date(item[props.index])
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+    }),
     datasets: props.categories.map(category => ({
       label: category.charAt(0).toUpperCase() + category.slice(1),
       data: props.data.map(item => item[category]),
@@ -76,8 +79,9 @@ const chartData = computed(() => {
       } : 'transparent',
       fill: props.gradient,
       tension: 0.4,
-      pointRadius: 0,
-      pointHoverRadius: 4,
+      pointRadius: 4,
+      pointBackgroundColor: '#059669',
+      pointHoverRadius: 6,
       borderWidth: 2,
     }))
   }

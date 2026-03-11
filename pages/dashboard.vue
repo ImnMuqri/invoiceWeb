@@ -190,13 +190,10 @@
               <h2 class="text-lg font-semibold text-slate-900 tracking-tight">
                 Monthly Revenue Forecast
               </h2>
-              <select
+              <UiSelect
                 v-model="forecastRange"
-                class="text-xs font-semibold bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none">
-                <option :value="30">Next 30 Days</option>
-                <option :value="60">Next 60 Days</option>
-                <option :value="90">Next 90 Days</option>
-              </select>
+                :options="forecastOptions"
+                custom-class="!w-40 !py-1.5 !text-xs !font-semibold !bg-slate-50" />
             </div>
             <div class="p-6 h-[350px]">
               <ClientOnly>
@@ -204,8 +201,7 @@
                   v-if="chartData.length > 0"
                   :data="chartData"
                   index="date"
-                  :categories="['amount']"
-                />
+                  :categories="['amount']" />
                 <div
                   v-else
                   class="w-full h-full flex flex-col items-center justify-center text-slate-400 text-sm italic gap-2">
@@ -308,12 +304,22 @@
               v-if="!authStore.isPro"
               class="absolute inset-0 z-10 backdrop-blur-[4px] bg-white/40 flex items-center justify-center border border-emerald-100/50">
               <div class="text-center p-4">
-                <h3 class="text-xs font-bold text-slate-900 mb-1">
-                  AI Insights Locked
-                </h3>
+                <div class="flex items-center justify-center gap-1 mb-2">
+                  <h3 class="text-[13px] font-bold text-slate-900">
+                    AI Insights Locked
+                  </h3>
+                  <UiIcon
+                    icon="heroicons:lock-closed"
+                    class="w-3 h-3 text-black/70" />
+                </div>
+                <p class="text-[12px] text-slate-500 mb-4 px-2 leading-relaxed">
+                  Get real-time AI analysis of overdue invoices and automated
+                  payment chaser recommendations.
+                </p>
+
                 <NuxtLink
                   to="/settings"
-                  class="text-[9px] font-bold text-emerald-600 hover:text-emerald-800 uppercase tracking-widest"
+                  class="text-[10px] font-bold border border-emerald-200 py-2 px-4 rounded-md text-emerald-600 hover:text-emerald-800 uppercase tracking-widest"
                   >Upgrade to Pro →</NuxtLink
                 >
               </div>
@@ -464,5 +470,11 @@ const profitabilityFilter = ref("top5");
 const rankOptions = [
   { label: "Top 5", value: "top5" },
   { label: "Bottom 5", value: "bottom5" },
+];
+
+const forecastOptions = [
+  { label: "Next 30 Days", value: 30 },
+  { label: "Next 60 Days", value: 60 },
+  { label: "Next 90 Days", value: 90 },
 ];
 </script>
