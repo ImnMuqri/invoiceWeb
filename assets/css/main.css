@@ -4,7 +4,14 @@
 
 @layer base {
   body {
-    @apply bg-slate-50 text-slate-900 font-sans;
-    font-family: 'Inter', system-ui, sans-serif;
+    @apply bg-slate-50 text-slate-900;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Standardize weights: limit bold to semibold as per user request */
+  .font-bold, font-bold {
+    font-weight: 600 !important; /* Semibold */
   }
 }

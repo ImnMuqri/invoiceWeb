@@ -12,10 +12,7 @@ export const useInvoiceStore = defineStore("invoice", {
       this.loading = true;
       try {
         const { data } = await $api.get("/invoices");
-        this.invoices = data.map((inv) => ({
-          ...inv,
-          client: inv.client?.name || inv.client,
-        }));
+        this.invoices = data;
       } catch (err) {
         this.error = err.response?.data?.message || err.message;
         console.error("Error fetching invoices:", err);
@@ -28,10 +25,7 @@ export const useInvoiceStore = defineStore("invoice", {
       this.loading = true;
       try {
         const { data } = await $api.get(`/invoices/${id}`);
-        return {
-          ...data,
-          client: data.client?.name || data.client,
-        };
+        return data;
       } catch (err) {
         this.error = err.response?.data?.message || err.message;
         console.error("Error fetching invoice:", err);
@@ -40,43 +34,96 @@ export const useInvoiceStore = defineStore("invoice", {
         this.loading = false;
       }
     },
-    async addInvoice(invoice) {
-      const { $api } = useNuxtApp();
+    async addInvoice(payload) {
       this.loading = true;
       try {
-        const { data } = await $api.post("/invoices", invoice);
-        this.invoices.unshift({
-          ...data,
-          client: data.client?.name || data.client,
-        });
-      } catch (err) {
-        this.error = err.response?.data?.message || err.message;
-        console.error("Error adding invoice:", err);
+        const { $api } = useNuxtApp();
+        const response = await $api.post("/invoices", payload);
+        this.invoices.unshift(response.data);
+        return response.data;
+      } catch (error) {
+        this.error = error.message;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async updateInvoice(id, payload) {
+      this.loading = true;
+      try {
+        const { $api } = useNuxtApp();
+        const response = await $api.put(`/invoices/${id}`, payload);
+        const index = this.invoices.findIndex((i) => i.id === id);
+        if (index !== -1) {
+          this.invoices[index] = response.data;
+        }
+        return response.data;
+      } catch (error) {
+        this.error = error.message;
+        throw error;
       } finally {
         this.loading = false;
       }
     },
     async deleteInvoice(id) {
       const { $api } = useNuxtApp();
-      this.loading = true;
       try {
         await $api.delete(`/invoices/${id}`);
         this.invoices = this.invoices.filter((i) => i.id !== id);
       } catch (err) {
         this.error = err.response?.data?.message || err.message;
         console.error("Error deleting invoice:", err);
-      } finally {
-        this.loading = false;
+        throw err;
       }
     },
     async sendWhatsAppReminder(id) {
+      const { $api } = useNuxtApp();
       const invoice = this.invoices.find((i) => i.id === id);
       if (invoice) {
         invoice.whatsappStatus = "Sending...";
-        // Mocking API call for WhatsApp for now as backend doesn't have it yet
-        setTimeout(() => {
+      }
+      try {
+        await $api.post(`/whatsapp/remind/${id}`);
+        if (invoice) {
           invoice.whatsappStatus = "Sent";
-        }, 1000);
+        }
+      } catch (err) {
+        if (invoice) {
+          invoice.whatsappStatus = "Not Sent";
+        }
+        this.error = err.response?.data?.message || err.message;
+        console.error("Error sending WhatsApp reminder:", err);
+        throw err;
+      }
+    },
+    async downloadPdf(id, filename = "invoice.pdf") {
+      const { $api } = useNuxtApp();
+      try {
+        const response = await $api.get(`/invoices/${id}/pdf`, {
+          responseType: "blob",
+        });
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", filename);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+      } catch (err) {
+        console.error("Error downloading PDF:", err);
+        throw err;
+      }
+    },
+    async whatsappInvoice(id) {
+      const { $api } = useNuxtApp();
+      try {
+        const { data } = await $api.post(`/whatsapp/send/${id}`);
+        return data;
+      } catch (err) {
+        this.error = err.response?.data?.message || err.message;
+        console.error("Error sending WhatsApp message:", err);
+        throw err;
       }
     },
   },

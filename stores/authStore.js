@@ -11,6 +11,9 @@ export const useAuthStore = defineStore("auth", () => {
   const isReady = ref(false);
 
   const token = computed(() => accessToken.value);
+  const isPro = computed(() => {
+    return user.value?.plan === "PRO" || user.value?.plan === "MAX";
+  });
 
   // Function to sync from cookies to store (SSR safe)
   function syncFromCookies() {
@@ -205,6 +208,55 @@ export const useAuthStore = defineStore("auth", () => {
     }
   }
 
+  async function fetchSettings() {
+    const { $api } = useNuxtApp();
+    loading.value = true;
+    error.value = null;
+    try {
+      const { data } = await $api.get("/users/settings");
+      return data;
+    } catch (err) {
+      error.value = err.response?.data?.message || err.message;
+      return null;
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  async function updateSettings(settingsData) {
+    const { $api } = useNuxtApp();
+    loading.value = true;
+    error.value = null;
+    try {
+      const { data } = await $api.put("/users/settings", settingsData);
+      return true;
+    } catch (err) {
+      error.value = err.response?.data?.message || err.message;
+      return false;
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  async function updatePlan(plan) {
+    const { $api } = useNuxtApp();
+    loading.value = true;
+    error.value = null;
+    try {
+      const { data } = await $api.post("/users/update-plan", { plan });
+      if (user.value) {
+        user.value.plan = data.plan;
+      }
+      return true;
+    } catch (err) {
+      error.value = err.response?.data?.message || err.message;
+      console.error("Error updating plan:", err);
+      return false;
+    } finally {
+      loading.value = false;
+    }
+  }
+
   return {
     user,
     accessToken,
@@ -212,11 +264,15 @@ export const useAuthStore = defineStore("auth", () => {
     loading,
     error,
     token,
+    isPro,
     login,
     register,
     logout,
     fetchProfile,
     updateProfile,
+    fetchSettings,
+    updateSettings,
+    updatePlan,
     syncFromCookies,
     refreshAccessToken,
   };

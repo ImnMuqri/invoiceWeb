@@ -8,241 +8,23 @@
       <div class="px-4 sm:px-6 pt-6 pb-4 border-b border-slate-200">
         <h1
           class="text-xl sm:text-2xl font-semibold tracking-tight text-slate-900">
-          Create Invoice
+          Edit Invoice
         </h1>
         <p class="text-xs sm:text-sm text-slate-500 mt-1">
-          Generate a new invoice manually or with AI.
+          Modify the details for invoice {{ form.invoiceNumber }}.
         </p>
       </div>
 
-      <!-- Input Mode Tabs -->
-      <div
-        class="flex flex-wrap border-b border-slate-200 bg-slate-50/50 px-4 sm:px-6 pt-3 gap-4 sm:gap-6">
-        <button
-          type="button"
-          @click="inputMode = 'manual'"
-          class="pb-3 text-sm font-semibold border-b-2 transition-colors flex items-center gap-2"
-          :class="
-            inputMode === 'manual'
-              ? 'border-slate-900 text-slate-900'
-              : 'border-transparent text-slate-500 hover:text-slate-700'
-          ">
-          <svg
-            class="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-          </svg>
-          Manual Entry
-        </button>
-        <button
-          type="button"
-          @click="inputMode = 'ai'"
-          class="pb-3 text-sm font-semibold border-b-2 transition-colors flex items-center gap-2"
-          :class="
-            inputMode === 'ai'
-              ? 'border-emerald-600 text-emerald-600'
-              : 'border-transparent text-slate-500 hover:text-slate-700'
-          ">
-          <svg
-            class="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-          </svg>
-          AI Builder Chat
-        </button>
-      </div>
-
-      <!-- AI Chat Interface (replaces form when active) -->
-      <div
-        v-if="inputMode === 'ai'"
-        class="flex-1 flex flex-col bg-slate-50 overflow-hidden relative min-h-0">
-        <!-- Clear Chat Action -->
-        <div
-          class="absolute top-4 right-4 z-10"
-          v-if="chatHistory.length > 0 && userPlan !== 'Basic'">
-          <button
-            @click="clearChat"
-            type="button"
-            class="text-xs font-medium text-slate-500 hover:text-red-600 flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm transition-colors">
-            <svg
-              class="w-3.5 h-3.5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-            </svg>
-            Clear Chat
-          </button>
-        </div>
-
-        <!-- Premium Lock Screen Overlay -->
-        <div
-          v-if="!authStore.isPro"
-          class="absolute inset-0 z-20 flex flex-col items-center justify-center bg-slate-50/80 backdrop-blur-sm p-6 text-center">
-          <div
-            class="w-16 h-16 bg-white rounded-2xl shadow-sm border border-slate-200 flex items-center justify-center mb-6 text-slate-400">
-            <UiIcon icon="heroicons:lock-closed" class="w-8 h-8" />
-          </div>
-          <h3 class="text-xl font-semibold text-slate-900 mb-2">
-            AI Builder is a Premium Feature
-          </h3>
-          <p class="text-slate-600 mb-8 max-w-sm">
-            Upgrade to the Pro or Max plan to generate complete, accurate
-            invoices instantly using natural language commands.
-          </p>
-          <button
-            type="button"
-            @click="$router.push('/settings')"
-            class="inline-flex items-center justify-center rounded-xl bg-emerald-600 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-emerald-600 transition-colors">
-            Upgrade Plan
-          </button>
-        </div>
-
-        <!-- Form Content -->
-        <div class="flex-1 overflow-y-auto p-4 sm:p-6 min-h-0 space-y-8">
-          <!-- General Details -->
-          <!-- Initial greeting -->
-          <div class="flex items-start gap-3">
-            <div
-              class="w-7 h-7 rounded-full bg-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm">
-              <svg
-                class="w-4 h-4 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
-              </svg>
-            </div>
-            <div
-              class="bg-white border border-slate-200 rounded-2xl rounded-tl-sm px-4 py-3 text-slate-700 leading-relaxed max-w-[85%] shadow-sm">
-              Hi! I can help you draft this invoice instantly. Try typing:
-              <br /><br />
-              <span class="text-emerald-600 font-medium italic"
-                >"create invoice for Wayne, software RM1200"</span
-              ><br />
-              <span class="text-emerald-600 font-medium italic mt-1 block"
-                >"due on 15 Nov, currency USD, subject: Web Design"</span
-              >
-            </div>
-          </div>
-
-          <!-- Dynamic Messages -->
-          <div
-            v-for="(msg, index) in chatHistory"
-            :key="index"
-            class="flex items-start gap-3"
-            :class="msg.role === 'user' ? 'flex-row-reverse' : ''">
-            <div
-              v-if="msg.role === 'ai'"
-              class="w-7 h-7 rounded-full bg-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm">
-              <svg
-                class="w-4 h-4 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
-              </svg>
-            </div>
-            <div
-              :class="
-                msg.role === 'user'
-                  ? 'bg-emerald-600 text-white rounded-2xl rounded-tr-sm'
-                  : 'bg-white border border-slate-200 text-slate-700 rounded-2xl rounded-tl-sm'
-              "
-              class="px-4 py-3 leading-relaxed max-w-[85%] break-words shadow-sm mt-1">
-              <!-- Use v-html for basic bold rendering -->
-              <span
-                v-html="
-                  msg.content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                "></span>
-            </div>
-          </div>
-
-          <div v-if="isAiTyping" class="flex items-start gap-3">
-            <div
-              class="w-7 h-7 rounded-full bg-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm">
-              <svg
-                class="w-4 h-4 text-white animate-spin"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-              </svg>
-            </div>
-            <div
-              class="bg-white border border-slate-200 rounded-2xl rounded-tl-sm px-4 py-3 text-slate-500 shadow-sm mt-1">
-              Drafting...
-            </div>
-          </div>
-        </div>
-
-        <!-- Chat Input Area -->
-        <div class="p-4 bg-white border-t border-slate-200">
-          <form @submit.prevent="handleChatSubmit" class="relative group">
-            <input
-              v-model="chatInput"
-              type="text"
-              placeholder="Message AI Builder..."
-              :disabled="userPlan === 'Basic'"
-              class="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 pl-4 pr-12 text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:bg-white transition-all disabled:opacity-50 disabled:cursor-not-allowed" />
-            <button
-              type="submit"
-              :disabled="!chatInput.trim() || userPlan === 'Basic'"
-              class="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-white transition-colors"
-              :class="
-                chatInput.trim() && userPlan !== 'Basic'
-                  ? 'bg-emerald-600 hover:bg-emerald-700'
-                  : 'bg-slate-300 cursor-not-allowed'
-              ">
-              <svg
-                class="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
-              </svg>
-            </button>
-          </form>
-        </div>
-      </div>
-
       <!-- Manual Form -->
-      <div
-        v-show="inputMode === 'manual'"
-        class="flex-1 overflow-y-auto px-8 py-6">
-        <form class="space-y-8" @submit.prevent="submitInvoice">
+      <div class="flex-1 overflow-y-auto px-8 py-6">
+        <div
+          v-if="loadingInvoice"
+          class="flex items-center justify-center h-64">
+          <UiIcon
+            icon="heroicons:arrow-path"
+            class="w-8 h-8 animate-spin text-slate-400" />
+        </div>
+        <form v-else class="space-y-8" @submit.prevent="submitInvoice">
           <!-- Invoice Details Section -->
           <section>
             <h2
@@ -250,13 +32,12 @@
               Invoice Details
             </h2>
             <div class="space-y-6">
-              <!-- People Input (Placeholder for styling) -->
+              <!-- People Input -->
               <div>
                 <label class="block text-sm font-medium text-slate-700 mb-2"
                   >People <span class="text-red-500">*</span></label
                 >
                 <div
-                  v-if="!showManualClient"
                   class="flex items-center justify-between p-3 border border-slate-200 rounded-lg bg-white shadow-sm gap-4">
                   <div class="flex items-center gap-3 flex-1 min-w-0">
                     <div
@@ -286,81 +67,6 @@
                     </div>
                   </div>
                 </div>
-
-                <!-- Manual Input Fields -->
-                <div
-                  v-else
-                  class="space-y-4 p-4 border border-emerald-100 rounded-lg bg-emerald-50/30">
-                  <div class="grid grid-cols-2 gap-4">
-                    <div class="col-span-2">
-                      <label
-                        class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1"
-                        >Name</label
-                      >
-                      <input
-                        v-model="manualClient.name"
-                        type="text"
-                        placeholder="Client Name"
-                        class="w-full border border-slate-200 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-600 outline-none" />
-                    </div>
-                    <div>
-                      <label
-                        class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1"
-                        >Email</label
-                      >
-                      <input
-                        v-model="manualClient.email"
-                        type="email"
-                        placeholder="Email"
-                        class="w-full border border-slate-200 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-600 outline-none" />
-                    </div>
-                    <div>
-                      <label
-                        class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1"
-                        >Phone</label
-                      >
-                      <input
-                        v-model="manualClient.phone"
-                        type="text"
-                        placeholder="Phone"
-                        class="w-full border border-slate-200 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-600 outline-none" />
-                    </div>
-                    <div class="col-span-2">
-                      <label
-                        class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1"
-                        >Company (Optional)</label
-                      >
-                      <input
-                        v-model="manualClient.company"
-                        type="text"
-                        placeholder="Company Name"
-                        class="w-full border border-slate-200 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-600 outline-none" />
-                    </div>
-                    <div class="col-span-2">
-                      <label
-                        class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1"
-                        >Address</label
-                      >
-                      <textarea
-                        v-model="manualClient.address"
-                        rows="2"
-                        placeholder="Address"
-                        class="w-full border border-slate-200 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"></textarea>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Toggle Button -->
-                <button
-                  type="button"
-                  @click="showManualClient = !showManualClient"
-                  class="mt-2 text-xs font-semibold text-emerald-600 hover:text-emerald-800 transition-colors flex items-center gap-1 uppercase tracking-wider">
-                  {{
-                    showManualClient
-                      ? "← Select Existing Client"
-                      : "+ Add New Client Instead"
-                  }}
-                </button>
               </div>
 
               <!-- Invoice Name Input -->
@@ -395,6 +101,7 @@
 
               <UiDatePicker v-model="form.dueDate" label="Due date" />
 
+              <!-- Currency Selection -->
               <UiSelect
                 v-model="form.currency"
                 label="Currency"
@@ -403,7 +110,6 @@
                   { label: 'USD - US Dollar', value: 'USD' },
                 ]"
                 placeholder="Select Currency" />
-
               <UiSelect
                 v-model="form.status"
                 label="Status"
@@ -413,7 +119,6 @@
                   { label: 'Overdue', value: 'Overdue' },
                 ]"
                 placeholder="Select Status" />
-
               <!-- Theme Selection -->
               <div>
                 <label class="block text-sm font-medium text-slate-700 mb-3"
@@ -433,7 +138,6 @@
                     ">
                     <div
                       class="w-full aspect-[4/5] rounded-lg bg-white border border-slate-200 overflow-hidden shadow-sm flex items-center justify-center relative">
-                      <!-- Visual indicators for themes -->
                       <div
                         v-if="theme === 'professional'"
                         class="p-2 w-full h-full flex flex-col gap-1">
@@ -442,21 +146,16 @@
                         <div class="h-1 w-full bg-slate-100 rounded-full"></div>
                         <div class="mt-2 h-1 w-full bg-slate-50"></div>
                         <div class="h-1 w-full bg-slate-50"></div>
-                        <div class="mt-auto h-2 w-full bg-slate-100"></div>
                       </div>
                       <div
                         v-else-if="theme === 'modern'"
                         class="flex w-full h-full">
                         <div class="w-1/3 bg-slate-800 h-full"></div>
                         <div class="flex-1 p-2 flex flex-col gap-1">
-                          <div
-                            class="h-1.5 w-full bg-slate-200 rounded-full"></div>
-                          <div
-                            class="h-1 w-2/3 bg-slate-100 rounded-full"></div>
-                          <div class="mt-2 h-1 w-full bg-slate-50"></div>
+                          <div class="h-1.5 w-full bg-slate-200"></div>
+                          <div class="h-1 w-2/3 bg-slate-100"></div>
                         </div>
                       </div>
-                      <!-- Active Check -->
                       <div
                         v-if="form.template === theme"
                         class="absolute inset-0 bg-slate-900/10 flex items-center justify-center">
@@ -468,7 +167,6 @@
                     </div>
                     <span
                       class="text-[10px] font-semibold uppercase tracking-widest text-slate-500"
-                      :class="form.template === theme ? 'text-slate-900' : ''"
                       >{{ theme }}</span
                     >
                   </button>
@@ -486,7 +184,6 @@
               Product
             </h2>
 
-            <!-- Line Items Header -->
             <div
               class="hidden sm:flex items-center text-xs font-semibold text-slate-500 mb-2 px-1 uppercase tracking-wider">
               <div class="flex-1">Item</div>
@@ -540,7 +237,6 @@
 
                 <div
                   class="flex items-center gap-2 w-full sm:w-auto mt-2 sm:mt-0 pt-3 sm:pt-0 border-t sm:border-0 border-slate-100">
-                  <!-- Qty -->
                   <div class="w-20 flex-shrink-0">
                     <!-- Mobile label -->
                     <span
@@ -639,7 +335,7 @@
       <div
         class="p-4 border-t border-slate-200 flex items-center justify-between bg-white z-10 flex-shrink-0">
         <div class="text-xs font-medium text-slate-500 tracking-wide">
-          Last saved: Today at 4:30 PM
+          Editing Mode
         </div>
         <div class="flex items-center gap-4">
           <button
@@ -651,8 +347,13 @@
           <button
             type="submit"
             @click="submitInvoice"
-            class="inline-flex items-center gap-2 justify-center rounded-md border border-transparent bg-slate-900 py-2 px-4 text-sm font-medium text-white shadow hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2 transition-colors">
-            Process Invoice
+            :disabled="isProcessing"
+            class="inline-flex items-center gap-2 justify-center rounded-md border border-transparent bg-slate-900 py-2 px-4 text-sm font-medium text-white shadow hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2 transition-colors disabled:opacity-50">
+            <UiIcon
+              v-if="isProcessing"
+              icon="heroicons:arrow-path"
+              class="w-4 h-4 animate-spin" />
+            Update Invoice
           </button>
         </div>
       </div>
@@ -666,6 +367,7 @@
           <div class="flex items-center gap-4">
             <button
               type="button"
+              @click="$router.push('/invoices')"
               class="w-10 h-10 rounded-md bg-white border border-slate-200 shadow-sm flex items-center justify-center text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-950">
               <svg
                 class="w-5 h-5"
@@ -683,14 +385,6 @@
               <h2 class="text-lg font-semibold text-slate-900 tracking-tight">
                 Preview
               </h2>
-              <button type="button" class="text-slate-400 hover:text-slate-600">
-                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path
-                    fill-rule="evenodd"
-                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                    clip-rule="evenodd"></path>
-                </svg>
-              </button>
             </div>
           </div>
 
@@ -700,33 +394,24 @@
             class="flex items-center gap-3 text-sm font-medium">
             <button
               class="flex items-center gap-2 px-3 py-1.5 rounded-md bg-white shadow-sm border border-slate-200 text-slate-900 opacity-50 cursor-not-allowed">
-              <svg
-                class="w-4 h-4 text-slate-500"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-              </svg>
+              <UiIcon
+                icon="heroicons:document-text"
+                class="w-4 h-4 text-slate-500" />
               PDF
             </button>
             <button
               class="flex items-center gap-2 px-3 py-1.5 rounded-md text-slate-700 opacity-50 cursor-not-allowed border border-transparent">
-              <svg
-                class="w-4 h-4 text-slate-500"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-              </svg>
+              <UiIcon
+                icon="heroicons:envelope"
+                class="w-4 h-4 text-slate-500" />
               Email
+            </button>
+            <button
+              class="flex items-center gap-2 px-3 py-1.5 rounded-md text-slate-700 opacity-50 cursor-not-allowed border border-transparent">
+              <UiIcon
+                icon="simple-icons:whatsapp"
+                class="w-4 h-4 text-slate-500" />
+              WhatsApp
             </button>
           </div>
           <div
@@ -790,13 +475,29 @@
 
         <!-- The Invoice Paper -->
         <div class="relative mt-6 group">
+          <!-- Drizzle Animation Overlay -->
           <div
             v-if="isProcessing"
-            class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/60 backdrop-blur-[2px] rounded-xl transition-all duration-300">
-            <div
-              class="w-12 h-12 border-4 border-emerald-100 border-t-emerald-600 rounded-full animate-spin mb-4"></div>
-            <p
-              class="text-lg font-semibold text-slate-900 tracking-tight animate-pulse">
+            class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/40 backdrop-blur-[2px] rounded-xl">
+            <div class="relative w-24 h-24 mb-6">
+              <!-- The "Drizzle" effect -->
+              <div
+                v-for="n in 8"
+                :key="n"
+                class="absolute w-1 bg-emerald-500/60 rounded-full animate-drizzle"
+                :style="{
+                  left: Math.random() * 100 + '%',
+                  top: '-20px',
+                  height: 12 + Math.random() * 20 + 'px',
+                  animationDelay: Math.random() * 1.5 + 's',
+                  animationDuration: 0.8 + Math.random() * 0.4 + 's',
+                }"></div>
+              <div
+                class="absolute inset-0 border-4 border-slate-100 rounded-full"></div>
+              <div
+                class="absolute inset-0 border-4 border-emerald-500 rounded-full border-t-transparent animate-spin"></div>
+            </div>
+            <p class="text-lg font-semibold text-slate-900 tracking-tight">
               {{ processingStatus }}
             </p>
             <p class="text-sm text-slate-500 mt-1">
@@ -812,13 +513,13 @@
               class="w-20 h-20 rounded-full bg-emerald-100 border-4 border-white shadow-xl flex items-center justify-center mb-4">
               <UiIcon
                 icon="heroicons:check-badge"
-                customClass="w-12 h-12 text-emerald-600" />
+                class="w-12 h-12 text-emerald-600" />
             </div>
             <h3 class="text-xl font-semibold text-slate-900">
-              Invoice Processed!
+              Invoice Updated!
             </h3>
             <p class="text-sm text-slate-500 mt-1">
-              Your invoice is ready for delivery.
+              Changes have been saved successfully.
             </p>
             <button
               @click="processingComplete = false"
@@ -839,7 +540,7 @@
                 <h1
                   class="text-2xl font-semibold text-slate-900 tracking-tight mb-8">
                   <span v-if="form.invoiceName">{{ form.invoiceName }} - </span
-                  >{{ form.invoiceNumber || "INVM-#" }}
+                  >{{ form.invoiceNumber }}
                 </h1>
 
                 <div class="grid grid-cols-2 gap-y-8 gap-x-12 mb-12">
@@ -858,26 +559,12 @@
                   <div>
                     <div class="text-xs text-slate-500 mb-1">Billed to</div>
                     <div class="text-sm font-semibold text-slate-900">
-                      {{
-                        showManualClient
-                          ? manualClient.name || "Client Name"
-                          : selectedClient?.name || "Select Client"
-                      }}
+                      {{ selectedClient?.name || "Select Client" }}
                     </div>
                     <div
                       class="text-sm text-slate-500 mt-0.5 whitespace-pre-line">
-                      {{
-                        showManualClient
-                          ? manualClient.email
-                          : selectedClient?.email
-                      }}
-                      <p>
-                        {{
-                          showManualClient
-                            ? manualClient.address
-                            : selectedClient?.address
-                        }}
-                      </p>
+                      {{ selectedClient?.email }}
+                      <p>{{ selectedClient?.address }}</p>
                     </div>
                   </div>
                   <div>
@@ -977,12 +664,12 @@
                       </div>
                     </div>
                   </div>
-                </div>
-                <div
-                  class="mt-24 pt-8 border-t border-slate-100 flex justify-end items-center">
                   <div
-                    class="text-[10px] text-right text-slate-400 font-medium uppercase tracking-widest">
-                    Generated by <UiLogo class="h-6 opacity-30 grayscale" />
+                    class="mt-8 pt-8 border-t border-slate-100 flex justify-end items-center">
+                    <div
+                      class="text-[10px] text-right text-slate-400 font-medium uppercase tracking-widest">
+                      Generated by <UiLogo class="h-6 opacity-30 grayscale" />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -990,18 +677,19 @@
 
             <!-- PREVIEW: MODERN THEME -->
             <template v-else-if="form.template === 'modern'">
-              <div class="flex flex-col bg-slate-50 overflow-hidden">
+              <div
+                class="flex flex-col min-h-[800px] bg-slate-50 overflow-hidden">
                 <!-- Modern Header Preview -->
                 <div
                   class="bg-slate-900 text-white p-8 relative overflow-hidden">
                   <div
-                    class="absolute top-0 right-0 w-32 h-32 bg-emerald-600/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl"></div>
+                    class="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl"></div>
                   <div class="relative z-10 flex justify-between items-start">
                     <div>
                       <UiLogo class="h-6 mb-6 brightness-0 invert opacity-90" />
                       <h1
                         class="text-2xl font-extrabold tracking-tight text-white mb-1">
-                        {{ form.invoiceName || "New Project" }}
+                        {{ form.invoiceName || "Project Revision" }}
                       </h1>
                       <div class="flex items-center gap-2 text-[10px]">
                         <span class="text-slate-400 font-medium"
@@ -1009,14 +697,14 @@
                         >
                         <span class="w-1 h-1 bg-slate-600 rounded-full"></span>
                         <span
-                          class="px-1.5 py-0.5 bg-emerald-600/20 text-emerald-400 font-bold uppercase tracking-wider rounded border border-emerald-600/20">
+                          class="px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 font-semibold uppercase tracking-wider rounded border border-emerald-500/20">
                           {{ form.status }}
                         </span>
                       </div>
                     </div>
                     <div class="text-right">
                       <div
-                        class="text-[8px] font-bold text-slate-500 uppercase tracking-widest mb-1">
+                        class="text-[8px] font-semibold text-slate-500 uppercase tracking-widest mb-1">
                         Amount Due
                       </div>
                       <div class="text-2xl font-black text-emerald-400">
@@ -1032,10 +720,10 @@
                   <div class="grid grid-cols-2 gap-8 mb-10">
                     <div>
                       <div
-                        class="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-3 border-b border-slate-100 pb-1">
+                        class="text-[8px] font-semibold text-slate-400 uppercase tracking-widest mb-3 border-b border-slate-100 pb-1">
                         From
                       </div>
-                      <div class="text-xs font-bold text-slate-900">
+                      <div class="text-xs font-semibold text-slate-900">
                         {{ form.from.companyName }}
                       </div>
                       <div
@@ -1046,30 +734,16 @@
                     </div>
                     <div>
                       <div
-                        class="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-3 border-b border-slate-100 pb-1">
+                        class="text-[8px] font-semibold text-slate-400 uppercase tracking-widest mb-3 border-b border-slate-100 pb-1">
                         Billed To
                       </div>
-                      <div class="text-xs font-bold text-slate-900">
-                        {{
-                          showManualClient
-                            ? manualClient.name
-                            : selectedClient?.name || "Client Name"
-                        }}
+                      <div class="text-xs font-semibold text-slate-900">
+                        {{ selectedClient?.name || "Client Name" }}
                       </div>
                       <div
                         class="text-[10px] text-slate-500 mt-1 whitespace-pre-line leading-relaxed">
-                        {{
-                          showManualClient
-                            ? manualClient.email
-                            : selectedClient?.email
-                        }}
-                        <p>
-                          {{
-                            showManualClient
-                              ? manualClient.address
-                              : selectedClient?.address
-                          }}
-                        </p>
+                        {{ selectedClient?.email }}
+                        <p>{{ selectedClient?.address }}</p>
                       </div>
                     </div>
                   </div>
@@ -1078,28 +752,29 @@
                     class="grid grid-cols-3 gap-4 mb-10 p-4 bg-slate-50 rounded-lg">
                     <div>
                       <div
-                        class="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-1">
+                        class="text-[8px] font-semibold text-slate-400 uppercase tracking-widest mb-1">
                         Issued Date
                       </div>
-                      <div class="text-xs font-bold text-slate-900">
+                      <div class="text-xs font-semibold text-slate-900">
                         {{ new Date().toLocaleDateString() }}
                       </div>
                     </div>
                     <div>
                       <div
-                        class="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-1">
+                        class="text-[8px] font-semibold text-slate-400 uppercase tracking-widest mb-1">
                         Due Date
                       </div>
-                      <div class="text-xs font-bold text-emerald-600">
+                      <div class="text-xs font-semibold text-emerald-600">
                         {{ form.dueDate || "N/A" }}
                       </div>
                     </div>
                     <div>
                       <div
-                        class="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-1">
+                        class="text-[8px] font-semibold text-slate-400 uppercase tracking-widest mb-1">
                         Subject
                       </div>
-                      <div class="text-xs font-bold text-slate-900 truncate">
+                      <div
+                        class="text-xs font-semibold text-slate-900 truncate">
                         {{ form.subject || "N/A" }}
                       </div>
                     </div>
@@ -1111,15 +786,15 @@
                       <thead>
                         <tr class="border-b border-slate-100">
                           <th
-                            class="pb-3 text-[8px] font-bold text-slate-400 uppercase tracking-widest">
+                            class="pb-3 text-[8px] font-semibold text-slate-400 uppercase tracking-widest">
                             Description
                           </th>
                           <th
-                            class="pb-3 text-[8px] font-bold text-slate-400 uppercase tracking-widest text-center w-12">
+                            class="pb-3 text-[8px] font-semibold text-slate-400 uppercase tracking-widest text-center w-12">
                             Qty
                           </th>
                           <th
-                            class="pb-3 text-[8px] font-bold text-slate-400 uppercase tracking-widest text-right">
+                            class="pb-3 text-[8px] font-semibold text-slate-400 uppercase tracking-widest text-right">
                             Total
                           </th>
                         </tr>
@@ -1127,7 +802,7 @@
                       <tbody class="divide-y divide-slate-50">
                         <tr v-for="(item, idx) in form.lineItems" :key="idx">
                           <td class="py-4">
-                            <div class="text-xs font-bold text-slate-900">
+                            <div class="text-xs font-semibold text-slate-900">
                               {{ item.name || "Item" }}
                             </div>
                           </td>
@@ -1158,13 +833,6 @@
                       </div>
                     </div>
                   </div>
-                  <div
-                    class="mt-16 pt-8 border-t border-slate-100 flex justify-end items-center">
-                    <div
-                      class="text-[10px] text-right text-slate-400 font-medium uppercase tracking-widest">
-                      Generated by <UiLogo class="h-6 opacity-30 grayscale" />
-                    </div>
-                  </div>
                 </div>
               </div>
             </template>
@@ -1178,75 +846,101 @@
 
 <script setup>
 import { computed, ref, onMounted, nextTick, toRaw } from "vue";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import { useInvoiceStore } from "~/stores/invoiceStore";
 import { useClientStore } from "~/stores/clientStore";
 import { useAuthStore } from "~/stores/authStore";
 import { formatDate } from "~/utils/date";
 
 const router = useRouter();
+const route = useRoute();
+const invoiceId = route.params.id;
 
 const invoiceStore = useInvoiceStore();
 const clientStore = useClientStore();
 const authStore = useAuthStore();
 const toast = ref({ message: "", type: "success" });
 
-onMounted(async () => {
-  clientStore.fetchClients();
-
-  // Populate "From" info from user profile
-  if (authStore.user) {
-    form.value.from = {
-      companyName:
-        authStore.user.companyName || authStore.user.name || "My Company",
-      companyEmail: authStore.user.companyEmail || authStore.user.email || "",
-      companyAddress: authStore.user.address || "",
-    };
-  }
-});
-
-const userPlan = ref("Basic"); // Mock plan state for UI demo
-const showAiPreview = ref(false);
-const showManualClient = ref(false);
-const manualClient = ref({
-  name: "",
-  email: "",
-  phone: "",
-  company: "",
-  address: "",
-});
-
-const showActionButtons = ref(false);
-const lastInvoiceId = ref(null);
-const processingStatus = ref("Preparing Invoice...");
+const loadingInvoice = ref(true);
 const isProcessing = ref(false);
 const processingComplete = ref(false);
+const showActionButtons = ref(false);
+const processingStatus = ref("Preparing Invoice...");
+const isSending = ref(false);
 
 const form = ref({
   clientId: "",
-  invoiceName: "Website Overhaul",
-  subject: "Service per June 2023",
-  dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
-    .toISOString()
-    .split("T")[0],
+  invoiceNumber: "",
+  invoiceName: "",
+  subject: "",
+  dueDate: "",
   currency: "MYR",
   addDiscount: false,
   discountPercentage: 0,
+  template: "professional",
   status: "Pending",
   from: {
-    companyName: "Acme Inc.",
-    companyEmail: "billing@acme.com",
-    companyAddress: "123 Business St, Suite 100\nNew York, NY 10001",
+    companyName: "",
+    companyEmail: "",
+    companyAddress: "",
   },
-  template: "professional",
-  lineItems: [
-    {
-      name: "Summer 2K23 T-shirt",
-      priceStr: "125,000",
-      priceNum: 125000,
-      qty: 1,
-    },
-  ],
+  lineItems: [],
+});
+
+onMounted(async () => {
+  await clientStore.fetchClients();
+
+  try {
+    const data = await invoiceStore.fetchInvoiceById(invoiceId);
+    if (data) {
+      form.value = {
+        clientId: data.clientId,
+        invoiceNumber: data.invoiceNumber,
+        invoiceName: data.invoiceName,
+        subject: data.subject,
+        dueDate: data.dueDate
+          ? new Date(data.dueDate).toISOString().split("T")[0]
+          : "",
+        currency: data.currency || "MYR",
+        status: data.status || "Pending",
+        addDiscount: false,
+        discountPercentage: 0,
+        from: {
+          companyName: data.fromName || "",
+          companyEmail: data.fromEmail || "",
+          companyAddress: data.fromAddress || "",
+        },
+        lineItems: data.items.map((item) => ({
+          name: item.name,
+          priceNum: item.price,
+          priceStr: item.price.toLocaleString(),
+          qty: item.quantity,
+          tax: "0",
+        })),
+        template: data.template || "professional",
+      };
+
+      // Calculate discount percentage if amount is different from subtotal
+      const subtotal = data.items.reduce(
+        (sum, i) => sum + i.price * i.quantity,
+        0,
+      );
+      if (subtotal > data.amount && subtotal > 0) {
+        form.value.addDiscount = true;
+        form.value.discountPercentage = Math.round(
+          ((subtotal - data.amount) / subtotal) * 100,
+        );
+      }
+
+      // Enable actions by default on edit
+      showActionButtons.value = true;
+    }
+  } catch (err) {
+    console.error("Failed to fetch invoice:", err);
+    router.push("/invoices");
+  } finally {
+    loadingInvoice.value = false;
+  }
 });
 
 const selectedClient = computed(() => {
@@ -1259,83 +953,6 @@ const clientOptions = computed(() => {
     value: c.id,
   }));
 });
-
-// UI State
-const inputMode = ref("manual");
-
-// AI Chat Logic
-const chatInput = ref("");
-const isAiTyping = ref(false);
-const chatHistory = ref([]);
-const chatContainer = ref(null);
-
-const clearChat = () => {
-  chatHistory.value = [];
-};
-
-const scrollToBottom = async () => {
-  await nextTick();
-  setTimeout(() => {
-    if (chatContainer.value) {
-      chatContainer.value.scrollTop = chatContainer.value.scrollHeight;
-    }
-  }, 50);
-};
-
-const submitChatPrompt = async () => {
-  const prompt = chatInput.value.trim();
-  if (!prompt) return;
-
-  chatHistory.value.push({ role: "user", content: prompt });
-  chatInput.value = "";
-  isAiTyping.value = true;
-  scrollToBottom();
-
-  try {
-    const { $api } = useNuxtApp();
-    // Send the current reactive state and the user's prompt to the Backend API
-    const response = await $api.post("/ai/parse-invoice", {
-      currentFormState: toRaw(form.value),
-      instruction: prompt,
-    });
-
-    const data = response.data;
-
-    if (data.status === "success" && data.update) {
-      if (data.update.error) {
-        // Groq flagged the prompt as unrelated to invoices
-        chatHistory.value.push({
-          role: "ai",
-          content: `⚠️ ${data.update.error}`,
-        });
-      } else {
-        // Merge the JSON diff returned by Groq into our reactive Vue form state
-        Object.assign(form.value, data.update);
-
-        chatHistory.value.push({
-          role: "ai",
-          content:
-            "Draft updated! I've applied those changes to the invoice based on your instructions.",
-        });
-      }
-    } else {
-      console.error("Groq Parse Error:", data.message);
-      chatHistory.value.push({
-        role: "ai",
-        content: `⚠️ API Error: ${data.message || "I couldn't process that request."}`,
-      });
-    }
-  } catch (err) {
-    console.error("Fetch Error:", err);
-    chatHistory.value.push({
-      role: "ai",
-      content: "⚠️ Connection Error: Failed to reach the AI parsing engine.",
-    });
-  } finally {
-    isAiTyping.value = false;
-    scrollToBottom();
-  }
-};
 
 const addLineItem = () => {
   form.value.lineItems.push({
@@ -1350,39 +967,41 @@ const removeLineItem = (index) => {
   form.value.lineItems.splice(index, 1);
 };
 
+const updatePriceNum = (item) => {
+  const cleanStr = item.priceStr.replace(/,/g, "");
+  const num = parseFloat(cleanStr);
+  item.priceNum = isNaN(num) ? 0 : num;
+};
+
+const calculateSubtotal = () => {
+  return form.value.lineItems.reduce(
+    (acc, obj) => acc + obj.priceNum * obj.qty,
+    0,
+  );
+};
+
+const calculateDiscount = () => {
+  if (!form.value.addDiscount) return 0;
+  return calculateSubtotal() * (form.value.discountPercentage / 100);
+};
+
+const calculateTotal = () => {
+  return calculateSubtotal() - calculateDiscount();
+};
+
 const submitInvoice = async () => {
-  let clientId = form.value.clientId;
-
-  if (showManualClient.value) {
-    if (!manualClient.value.name || !manualClient.value.email) {
-      toast.value = {
-        message: "Please fill in the client name and email",
-        type: "warning",
-      };
-      return;
-    }
-    const newClient = await clientStore.addClient({ ...manualClient.value });
-    if (newClient && newClient.id) {
-      clientId = newClient.id;
-    } else {
-      toast.value = { message: "Failed to create client", type: "error" };
-      return;
-    }
-  }
-
-  if (!clientId) {
-    toast.value = { message: "Please select or add a client", type: "warning" };
+  if (!form.value.clientId) {
+    toast.value = { message: "Please select a client", type: "warning" };
     return;
   }
 
   const payload = {
-    clientId: clientId,
+    clientId: form.value.clientId,
     invoiceName: form.value.invoiceName,
     subject: form.value.subject,
     fromName: form.value.from.companyName,
     fromEmail: form.value.from.companyEmail,
     fromAddress: form.value.from.companyAddress,
-    date: new Date().toISOString(),
     dueDate: new Date(form.value.dueDate).toISOString(),
     currency: form.value.currency,
     status: form.value.status,
@@ -1395,49 +1014,43 @@ const submitInvoice = async () => {
     })),
   };
 
-  const data = await invoiceStore.addInvoice(payload);
-
-  // Transition to processing state
   isProcessing.value = true;
-  processingStatus.value = "Saving Invoice...";
+  processingStatus.value = "Updating Invoice...";
 
-  // Simulate heavy processing/PDF generation
-  setTimeout(async () => {
-    processingStatus.value = "Generating PDF...";
-
-    if (data && data.id) {
-      lastInvoiceId.value = data.id;
-      // Update form with response data (includes invoiceNumber from backend)
+  try {
+    const data = await invoiceStore.updateInvoice(invoiceId, payload);
+    if (data) {
       Object.assign(form.value, data);
     }
 
     setTimeout(() => {
-      isProcessing.value = false;
-      processingComplete.value = true;
-      showActionButtons.value = true;
-
-      // Auto-dismiss success badge after 5 seconds
+      processingStatus.value = "Regenerating PDF...";
       setTimeout(() => {
-        processingComplete.value = false;
+        isProcessing.value = false;
+        processingComplete.value = true;
+        showActionButtons.value = true;
+        setTimeout(() => {
+          processingComplete.value = false;
+        }, 5000);
       }, 1500);
-    }, 1500);
-  }, 1000);
+    }, 1000);
+  } catch (err) {
+    toast.value = { message: "Failed to update invoice", type: "error" };
+    isProcessing.value = false;
+  }
 };
 
 const downloadInvoice = async () => {
-  if (!lastInvoiceId.value) return;
   await invoiceStore.downloadPdf(
-    lastInvoiceId.value,
+    invoiceId,
     `Invoice-${form.value.invoiceNumber}.pdf`,
   );
 };
 
-const isSending = ref(false);
 const emailInvoice = async () => {
-  if (!lastInvoiceId.value) return;
   isSending.value = true;
   try {
-    await invoiceStore.sendInvoice(lastInvoiceId.value, "email");
+    await invoiceStore.sendInvoice(invoiceId, "email");
     toast.value = { message: "Invoice sent to client email!", type: "success" };
   } catch (err) {
     toast.value = { message: "Failed to send email", type: "error" };
@@ -1447,9 +1060,8 @@ const emailInvoice = async () => {
 };
 
 const whatsappInvoice = async () => {
-  if (!lastInvoiceId.value) return;
   try {
-    const result = await invoiceStore.whatsappInvoice(lastInvoiceId.value);
+    const result = await invoiceStore.whatsappInvoice(invoiceId);
     toast.value = {
       message: result.message || "WhatsApp message sent successfully!",
       type: "success",
@@ -1463,59 +1075,42 @@ const whatsappInvoice = async () => {
     };
   }
 };
-
-// Calculations for Preview
-const calculateSubtotal = () => {
-  return form.value.lineItems.reduce(
-    (acc, obj) => acc + obj.priceNum * obj.qty,
-    0,
-  );
-};
-
-const calculateDiscount = () => {
-  if (!form.value.addDiscount) return 0;
-  return calculateSubtotal() * (form.value.discountPercentage / 100);
-};
-
-const updatePriceNum = (item) => {
-  // Remove commas or dots used as thousands separators and convert to number
-  const cleanStr = item.priceStr.replace(/,/g, "");
-  const num = parseFloat(cleanStr);
-  item.priceNum = isNaN(num) ? 0 : num;
-};
-
-const calculateTotal = () => {
-  return calculateSubtotal() - calculateDiscount();
-};
 </script>
 
 <style scoped>
-@keyframes fade-in-up {
-  from {
+@keyframes drizzle {
+  0% {
+    transform: translateY(0) scaleY(1);
     opacity: 0;
-    transform: translateY(10px);
   }
-  to {
+  20% {
     opacity: 1;
-    transform: translateY(0);
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(120px) scaleY(0.5);
+    opacity: 0;
   }
 }
 
-/* Custom Scrollbar for scrollable containers */
+.animate-drizzle {
+  animation: drizzle linear infinite;
+}
+
+/* Custom Scrollbar */
 .overflow-y-auto::-webkit-scrollbar {
   width: 6px;
 }
-
 .overflow-y-auto::-webkit-scrollbar-track {
   background: transparent;
 }
-
 .overflow-y-auto::-webkit-scrollbar-thumb {
-  background-color: #cbd5e1; /* slate-300 */
+  background-color: #cbd5e1;
   border-radius: 20px;
 }
-
 .overflow-y-auto::-webkit-scrollbar-thumb:hover {
-  background-color: #94a3b8; /* slate-400 */
+  background-color: #94a3b8;
 }
 </style>

@@ -6,21 +6,7 @@
       <aside
         class="hidden w-[280px] md:flex flex-col bg-[#f7f7f9] border-r border-[#e5e5e5] flex-shrink-0 z-10 transition-colors">
         <div class="h-20 flex items-center px-6 mt-2">
-          <div
-            class="flex items-center gap-2 text-[22px] tracking-tight font-semibold text-slate-900">
-            <svg
-              class="w-6 h-6 text-indigo-600"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5" />
-            </svg>
-            InvoMate
-          </div>
+          <UiLogo size="md" />
         </div>
         <nav class="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
           <!-- Search -->
@@ -168,17 +154,7 @@
         <!-- Header (Mobile) -->
         <header
           class="md:hidden h-16 flex items-center justify-between px-4 bg-white border-b border-slate-200">
-          <div
-            class="flex items-center gap-1 text-lg font-extrabold text-slate-800">
-            <svg
-              class="w-5 h-5 text-slate-900"
-              viewBox="0 0 24 24"
-              fill="currentColor">
-              <path
-                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z" />
-            </svg>
-            InvoMate
-          </div>
+          <UiLogo size="sm" />
           <button
             @click="isMobileMenuOpen = true"
             class="p-2 text-slate-500 hover:bg-gray-50 rounded-md">
@@ -226,22 +202,7 @@
                   <!-- Close Button Header -->
                   <div
                     class="h-16 flex items-center justify-between px-6 border-b border-[#e5e5e5]">
-                    <div
-                      class="flex items-center gap-2 text-[22px] tracking-tight font-semibold text-slate-900">
-                      <svg
-                        class="w-6 h-6 text-slate-900"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path
-                          d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z" />
-                        <path d="M7 7h.01" />
-                      </svg>
-                      InvoMate
-                    </div>
+                    <UiLogo size="md" />
                     <button
                       type="button"
                       @click="isMobileMenuOpen = false"

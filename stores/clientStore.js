@@ -47,5 +47,22 @@ export const useClientStore = defineStore("client", {
         this.loading = false;
       }
     },
+    async updateClient(id, clientData) {
+      const { $api } = useNuxtApp();
+      this.loading = true;
+      try {
+        const { data } = await $api.put(`/clients/${id}`, clientData);
+        const index = this.clients.findIndex((c) => c.id === id);
+        if (index !== -1) {
+          this.clients[index] = data;
+        }
+        return data;
+      } catch (err) {
+        this.error = err.response?.data?.message || err.message;
+        console.error("Error updating client:", err);
+      } finally {
+        this.loading = false;
+      }
+    },
   },
 });

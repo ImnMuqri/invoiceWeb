@@ -49,7 +49,7 @@
           </span>
           <span
             v-if="modelValue === option.value"
-            class="absolute inset-y-0 right-0 flex items-center pr-4 text-indigo-600">
+            class="absolute inset-y-0 right-0 flex items-center pr-4 text-emerald-600">
             <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
               <path
                 fill-rule="evenodd"

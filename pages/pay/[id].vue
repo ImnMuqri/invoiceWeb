@@ -5,21 +5,7 @@
     <div class="w-full max-w-2xl mx-auto">
       <!-- Brand Header (Outside Card) -->
       <div class="mb-6 flex flex-col items-center text-center px-2">
-        <div
-          class="inline-flex items-center gap-2 text-slate-900 font-bold tracking-tight text-xl">
-          <svg
-            class="w-6 h-6 text-indigo-600"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5" />
-          </svg>
-          InvoMate
-        </div>
+        <UiLogo size="lg" :showText="true" containerClass="flex-col" />
         <p class="text-slate-500 font-medium text-sm mt-1 max-w-sm">
           A secure, fast, and transparent platform for managing your
           professional invoices and payments.
@@ -90,7 +76,7 @@
                 <div
                   class="w-2 h-2 rounded-full"
                   :class="{
-                    'bg-emerald-500': invoice.status === 'Paid',
+                    'bg-emerald-600': invoice.status === 'Paid',
                     'bg-red-500': invoice.status === 'Overdue',
                     'bg-amber-400':
                       invoice.status !== 'Paid' && invoice.status !== 'Overdue',
@@ -107,7 +93,7 @@
                 </span>
                 <span class="text-xs text-slate-300 px-1">•</span>
                 <span class="text-xs font-medium text-slate-500"
-                  >Invoice {{ invoice.id }}</span
+                  >INVM - {{ invoice.id }}</span
                 >
               </div>
 
@@ -116,13 +102,14 @@
                 Amount Due
               </p>
               <h1 class="text-4xl font-semibold text-slate-900 tracking-tight">
-                ${{ invoice.amount.toLocaleString() }}
+                {{ invoice.currency === "IDR" ? "Rp" : "$"
+                }}{{ invoice.amount.toLocaleString() }}
               </h1>
             </div>
 
             <div class="mt-6 sm:mt-0 text-left sm:text-right">
               <p class="text-sm text-slate-500 font-medium">
-                Due {{ invoice.date }} (Net 30)
+                Due {{ formatDate(invoice.dueDate) }}
               </p>
             </div>
           </div>
@@ -135,11 +122,13 @@
                 Billed To
               </p>
               <p class="text-sm font-medium text-slate-900 mt-3">
-                {{ invoice.client }}
+                {{ invoice.client?.name }}
               </p>
-              <p class="text-sm text-slate-500 mt-1">client@example.com</p>
               <p class="text-sm text-slate-500 mt-1">
-                123 Client Address, City, State
+                {{ invoice.client?.email }}
+              </p>
+              <p class="text-sm text-slate-500 mt-1">
+                {{ invoice.client?.address }}
               </p>
             </div>
             <div>
@@ -148,11 +137,11 @@
                 From
               </p>
               <p class="text-sm font-medium text-slate-900 mt-3">
-                Your Company Name
+                {{ invoice.fromName || "Our Company" }}
               </p>
-              <p class="text-sm text-slate-500 mt-1">hello@yourcompany.com</p>
+              <p class="text-sm text-slate-500 mt-1">{{ invoice.fromEmail }}</p>
               <p class="text-sm text-slate-500 mt-1">
-                456 Business Rd, Suite 100
+                {{ invoice.fromAddress }}
               </p>
             </div>
           </div>
@@ -172,26 +161,19 @@
                 </tr>
               </thead>
               <tbody class="divide-y divide-slate-100">
-                <tr>
+                <tr v-for="item in invoice.items" :key="item.id">
                   <td class="py-4 text-slate-900 font-medium">
-                    Professional Services<br /><span
-                      class="text-slate-500 text-xs font-normal"
-                      >Consulting and development work as agreed.</span
+                    {{ item.name }}<br />
+                    <span class="text-slate-400 text-[11px] font-normal"
+                      >Qty: {{ item.quantity }} ×
+                      {{ invoice.currency === "IDR" ? "Rp" : "$"
+                      }}{{ item.price.toLocaleString() }}</span
                     >
                   </td>
-                  <td class="py-4 text-slate-900 text-right align-top">
-                    ${{ (invoice.amount * 0.8).toLocaleString() }}
-                  </td>
-                </tr>
-                <tr>
-                  <td class="py-4 text-slate-900 font-medium">
-                    Platform Licensing<br /><span
-                      class="text-slate-500 text-xs font-normal"
-                      >Annual software license fee.</span
-                    >
-                  </td>
-                  <td class="py-4 text-slate-900 text-right align-top">
-                    ${{ (invoice.amount * 0.2).toLocaleString() }}
+                  <td
+                    class="py-4 text-slate-900 text-right align-top font-medium">
+                    {{ invoice.currency === "IDR" ? "Rp" : "$"
+                    }}{{ item.total.toLocaleString() }}
                   </td>
                 </tr>
               </tbody>
@@ -205,15 +187,13 @@
                 <tr>
                   <td class="py-2 text-slate-500 text-right">Tax (0%)</td>
                   <td class="py-2 text-slate-900 font-medium text-right">
-                    $0.00
+                    {{ invoice.currency === "IDR" ? "Rp" : "$" }}0.00
                   </td>
                 </tr>
                 <tr>
                   <td class="pt-4 text-slate-900 font-semibold text-right">
-                    Total Due
-                  </td>
-                  <td class="pt-4 text-slate-900 font-semibold text-right">
-                    ${{ invoice.amount.toLocaleString() }}
+                    {{ invoice.currency === "IDR" ? "Rp" : "$"
+                    }}{{ invoice.amount.toLocaleString() }}
                   </td>
                 </tr>
               </tfoot>
@@ -236,7 +216,8 @@
                   stroke-width="2"
                   d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
               </svg>
-              Pay ${{ invoice.amount.toLocaleString() }}
+              Pay {{ invoice.currency === "IDR" ? "Rp" : "$"
+              }}{{ invoice.amount.toLocaleString() }}
             </button>
             <p
               class="text-center text-[10px] text-slate-400 uppercase tracking-widest mt-4">
@@ -268,6 +249,7 @@
         </div>
       </div>
     </div>
+    <UiToast v-model="toast" />
   </div>
 </template>
 
@@ -286,11 +268,11 @@ const invoiceId = route.params.id;
 
 const loading = ref(true);
 const invoice = ref(null);
+const toast = ref({ message: "", type: "success" });
 
 onMounted(async () => {
-  // Try fetching from store first, if not found fetch from API
-  const invId = invoiceId.startsWith("INV-") ? invoiceId : `INV-${invoiceId}`;
-  invoice.value = await invoiceStore.fetchInvoiceById(invId);
+  // Fetch from API directly using the numeric ID
+  invoice.value = await invoiceStore.fetchInvoiceById(invoiceId);
   loading.value = false;
 });
 
@@ -298,8 +280,17 @@ const markAsPaid = async () => {
   if (invoice.value) {
     // In a real app we would trigger Stripe/FPX checkout here
     // For demo, we just alert. In the future we should call an API to mark as paid.
-    alert("Payment successful! Thank you.");
+    toast.value = { message: "Payment successful! Thank you.", type: "success" };
     invoice.value.status = "Paid";
   }
+};
+
+const formatDate = (dateStr) => {
+  if (!dateStr) return "";
+  return new Date(dateStr).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
 };
 </script>

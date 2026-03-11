@@ -6,10 +6,21 @@ export default defineNuxtRouteMiddleware((to, from) => {
 
   const publicRoutes = ["/login", "/register", "/", "/pay"];
   const isPublicRoute = publicRoutes.some(
-    (route) => to.path === route || to.path.startsWith("/pay/"),
+    (route) =>
+      to.path === route ||
+      to.path.startsWith("/pay/") ||
+      (to.path.startsWith("/invoices/") && to.path.endsWith("/export")) ||
+      to.path === "/pay" ||
+      to.name === "pay-id",
   );
 
   const isAuthenticated = !!authStore.accessToken;
+  // Reduced logging to avoid terminal clutter, but kept essential for debugging
+  if (!isPublicRoute) {
+    console.log(
+      `[Middleware] Protected Path: ${to.path}, Auth: ${isAuthenticated}`,
+    );
+  }
 
   // If user is not authenticated and trying to access a protected route
   if (!isAuthenticated && !isPublicRoute) {

@@ -23,7 +23,7 @@
               type="text"
               autocomplete="name"
               required
-              class="appearance-none block w-full px-4 py-3 border border-slate-200 rounded-xl shadow-sm placeholder-slate-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white transition-shadow" />
+              class="appearance-none block w-full px-4 py-3 border border-slate-200 rounded-xl shadow-sm placeholder-slate-400 focus:outline-none focus:ring-emerald-600 focus:border-emerald-600 sm:text-sm bg-white transition-shadow" />
           </div>
         </div>
         <div>
@@ -38,7 +38,7 @@
               type="email"
               autocomplete="email"
               required
-              class="appearance-none block w-full px-4 py-3 border border-slate-200 rounded-xl shadow-sm placeholder-slate-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white transition-shadow" />
+              class="appearance-none block w-full px-4 py-3 border border-slate-200 rounded-xl shadow-sm placeholder-slate-400 focus:outline-none focus:ring-emerald-600 focus:border-emerald-600 sm:text-sm bg-white transition-shadow" />
           </div>
         </div>
         <div>
@@ -55,13 +55,13 @@
               type="password"
               autocomplete="new-password"
               required
-              class="appearance-none block w-full px-4 py-3 border border-slate-200 rounded-xl shadow-sm placeholder-slate-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white transition-shadow" />
+              class="appearance-none block w-full px-4 py-3 border border-slate-200 rounded-xl shadow-sm placeholder-slate-400 focus:outline-none focus:ring-emerald-600 focus:border-emerald-600 sm:text-sm bg-white transition-shadow" />
           </div>
         </div>
         <div>
           <button
             type="submit"
-            class="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-bold text-white bg-slate-900 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-900 transition-colors">
+            class="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-semibold text-white bg-slate-900 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-900 transition-colors">
             Start Free Trial
           </button>
         </div>
@@ -79,7 +79,7 @@
       </div>
       <div class="mt-6">
         <button
-          class="w-full flex justify-center items-center py-3 px-4 border border-slate-200 rounded-xl shadow-sm text-sm font-bold text-slate-600 bg-white hover:bg-slate-50 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-200 transition-all">
+          class="w-full flex justify-center items-center py-3 px-4 border border-slate-200 rounded-xl shadow-sm text-sm font-semibold text-slate-600 bg-white hover:bg-slate-50 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-200 transition-all">
           <svg class="w-5 h-5 mr-3" viewBox="0 0 24 24" fill="currentColor">
             <path
               d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.543,6.477,2.543,12s4.478,10,10.002,10c8.396,0,10.249-7.85,9.426-11.748L12.545,10.239z" />
@@ -91,11 +91,12 @@
         Already have an account?
         <NuxtLink
           to="/login"
-          class="font-bold text-indigo-600 hover:text-indigo-500 transition-colors"
+          class="font-semibold text-emerald-600 hover:text-emerald-700 transition-colors"
           >Log in</NuxtLink
         >
       </div>
     </div>
+    <UiToast v-model="toast" />
   </div>
 </template>
 
@@ -107,6 +108,7 @@ import { useAuthStore } from "~/stores/authStore";
 
 const router = useRouter();
 const authStore = useAuthStore();
+const toast = ref({ message: "", type: "success" });
 
 const name = ref("");
 const email = ref("");
@@ -121,7 +123,7 @@ const handleRegister = async () => {
   if (success) {
     router.push("/dashboard");
   } else {
-    alert(authStore.error);
+    toast.value = { message: authStore.error, type: "error" };
   }
 };
 </script>
