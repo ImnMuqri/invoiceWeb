@@ -5,13 +5,12 @@ export default defineNuxtConfig({
   modules: [
     '@nuxtjs/tailwindcss',
     '@pinia/nuxt',
-    '@pinia/nuxt',
     '@nuxt/icon'
   ],
   css: ['~/assets/css/main.css'],
   runtimeConfig: {
     public: {
-      apiBase: process.env.VITE_API_URL || 'http://localhost:3001'
+      apiBase: 'http://localhost:3001'
     }
   }
 })
