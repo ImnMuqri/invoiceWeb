@@ -1187,6 +1187,7 @@ const invoiceStore = useInvoiceStore();
 const clientStore = useClientStore();
 const authStore = useAuthStore();
 const toast = ref({ message: "", type: "success" });
+const { $api } = useNuxtApp();
 
 onMounted(async () => {
   fetchCurrencies();
@@ -1270,8 +1271,8 @@ const currencyOptions = ref([]);
 
 const fetchCurrencies = async () => {
   try {
-    const response = await $fetch("http://localhost:3002/api/currencies");
-    currencyOptions.value = response;
+    const response = await $api.get("/currencies");
+    currencyOptions.value = response.data;
   } catch (err) {
     console.error("Failed to fetch currencies:", err);
     currencyOptions.value = [

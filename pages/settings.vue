@@ -561,6 +561,7 @@ import { useAuthStore } from "~/stores/authStore";
 const authStore = useAuthStore();
 const route = useRoute();
 const router = useRouter();
+const { $api } = useNuxtApp();
 
 const tabs = [
   {
@@ -582,8 +583,8 @@ const currencyOptions = ref([]);
 
 const fetchCurrencies = async () => {
   try {
-    const response = await $fetch("http://localhost:3002/api/currencies");
-    currencyOptions.value = response;
+    const response = await $api.get("/currencies");
+    currencyOptions.value = response.data;
   } catch (err) {
     console.error("Failed to fetch currencies:", err);
     // Fallback if API fails
