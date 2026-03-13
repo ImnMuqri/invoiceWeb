@@ -333,7 +333,7 @@
                 AI Chaser Insights
               </h3>
             </div>
-            <div class="space-y-4">
+            <div class="space-y-4 min-h-[100px]">
               <div
                 v-for="insight in dashboardStore.insights"
                 :key="insight.id || insight.title"
@@ -433,13 +433,24 @@ const toast = ref({ message: "", type: "success" });
 
 const forecastRange = ref(30);
 
+const fetchDashboardData = async (range) => {
+  try {
+    await dashboardStore.fetchDashboardData(range);
+  } catch (err) {
+    toast.value = {
+      message: err.response?.data?.message || "Failed to load dashboard data",
+      type: "error",
+    };
+  }
+};
+
 // Watch for range changes to fetch new data
 watch(forecastRange, (newRange) => {
-  dashboardStore.fetchDashboardData(newRange);
+  fetchDashboardData(newRange);
 });
 
 onMounted(() => {
-  dashboardStore.fetchDashboardData(forecastRange.value);
+  fetchDashboardData(forecastRange.value);
   authStore.fetchProfile();
 });
 

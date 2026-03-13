@@ -131,7 +131,7 @@
         </nav>
         <div class="p-4 border-t border-[#e5e5e5]">
           <button
-            @click.prevent="authStore.logout()"
+            @click.prevent="isLogoutModalOpen = true"
             class="w-full flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:text-slate-900 hover:bg-[#ebebec] transition-colors text-left border-none bg-transparent">
             <svg
               class="w-[18px] h-[18px] mr-3 opacity-70"
@@ -325,7 +325,7 @@
                   <!-- Bottom Sidebar Action -->
                   <div class="p-4 border-t border-[#e5e5e5]">
                     <button
-                      @click.prevent="authStore.logout()"
+                      @click.prevent="isLogoutModalOpen = true"
                       class="w-full flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:text-slate-900 hover:bg-[#ebebec] transition-colors text-left border-none bg-transparent">
                       <svg
                         class="w-[18px] h-[18px] mr-3 opacity-70"
@@ -348,6 +348,44 @@
         </div>
       </div>
     </div>
+
+    <!-- Logout Confirmation Modal -->
+    <UiModal v-model="isLogoutModalOpen" maxWidth="sm">
+      <div class="p-6">
+        <div
+          class="flex items-center justify-center w-12 h-12 mx-auto bg-slate-100 rounded-full mb-4">
+          <svg
+            class="w-6 h-6 text-slate-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+          </svg>
+        </div>
+        <div class="text-center">
+          <h3 class="text-lg font-semibold text-slate-900">Sign Out?</h3>
+          <p class="mt-2 text-sm text-slate-500 font-medium">
+            Are you sure you want to sign out of your account?
+          </p>
+        </div>
+        <div class="mt-6 flex flex-col gap-3">
+          <button
+            @click="authStore.logout()"
+            class="w-full inline-flex justify-center items-center rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 transition-colors">
+            Yes, Sign Out
+          </button>
+          <button
+            @click="isLogoutModalOpen = false"
+            class="w-full inline-flex justify-center rounded-lg bg-white px-4 py-2.5 text-sm font-semibold text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50 transition-colors">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </UiModal>
   </div>
 </template>
 
@@ -359,6 +397,7 @@ import { useAuthStore } from "~/stores/authStore";
 const route = useRoute();
 const authStore = useAuthStore();
 const isMobileMenuOpen = ref(false);
+const isLogoutModalOpen = ref(false);
 
 watch(isMobileMenuOpen, (isOpen) => {
   if (process.client) {

@@ -185,17 +185,9 @@
           <div v-if="isAiTyping" class="flex items-start gap-3">
             <div
               class="w-7 h-7 rounded-full bg-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm">
-              <svg
-                class="w-4 h-4 text-white animate-spin"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-              </svg>
+              <UiIcon
+                icon="heroicons:arrow-path"
+                custom-class="w-4 h-4 text-white animate-spin" />
             </div>
             <div
               class="bg-white border border-slate-200 rounded-2xl rounded-tl-sm px-4 py-3 text-slate-500 shadow-sm mt-1">
@@ -752,7 +744,7 @@
                 <UiIcon
                   v-else
                   icon="heroicons:arrow-path"
-                  class="w-4 h-4 animate-spin" />
+                  custom-class="w-4 h-4 animate-spin text-slate-500" />
                 <span :class="{ 'opacity-50': !authStore.isPro }"
                   >Email client</span
                 >
@@ -809,7 +801,7 @@
               class="w-20 h-20 rounded-full bg-emerald-100 border-4 border-white shadow-xl flex items-center justify-center mb-4">
               <UiIcon
                 icon="heroicons:check-badge"
-                customClass="w-12 h-12 text-emerald-600" />
+                customClass="w-8 h-8 text-emerald-600" />
             </div>
             <h3 class="text-xl font-semibold text-slate-900">
               Invoice Processed!
@@ -1374,11 +1366,19 @@ const submitInvoice = async () => {
       };
       return;
     }
-    const newClient = await clientStore.addClient({ ...manualClient.value });
-    if (newClient && newClient.id) {
-      clientId = newClient.id;
-    } else {
-      toast.value = { message: "Failed to create client", type: "error" };
+    try {
+      const newClient = await clientStore.addClient({ ...manualClient.value });
+      if (newClient && newClient.id) {
+        clientId = newClient.id;
+      } else {
+        toast.value = { message: "Failed to create client", type: "error" };
+        return;
+      }
+    } catch (err) {
+      toast.value = {
+        message: err.response?.data?.message || "Failed to create client",
+        type: "error",
+      };
       return;
     }
   }
@@ -1408,33 +1408,40 @@ const submitInvoice = async () => {
     })),
   };
 
-  const data = await invoiceStore.addInvoice(payload);
+  try {
+    const data = await invoiceStore.addInvoice(payload);
 
-  // Transition to processing state
-  isProcessing.value = true;
-  processingStatus.value = "Saving Invoice...";
+    // Transition to processing state
+    isProcessing.value = true;
+    processingStatus.value = "Saving Invoice...";
 
-  // Simulate heavy processing/PDF generation
-  setTimeout(async () => {
-    processingStatus.value = "Generating PDF...";
+    // Simulate heavy processing/PDF generation
+    setTimeout(async () => {
+      processingStatus.value = "Generating PDF...";
 
-    if (data && data.id) {
-      lastInvoiceId.value = data.id;
-      // Update form with response data (includes invoiceNumber from backend)
-      Object.assign(form.value, data);
-    }
+      if (data && data.id) {
+        lastInvoiceId.value = data.id;
+        // Update form with response data (includes invoiceNumber from backend)
+        Object.assign(form.value, data);
+      }
 
-    setTimeout(() => {
-      isProcessing.value = false;
-      processingComplete.value = true;
-      showActionButtons.value = true;
-
-      // Auto-dismiss success badge after 5 seconds
       setTimeout(() => {
-        processingComplete.value = false;
+        isProcessing.value = false;
+        processingComplete.value = true;
+        showActionButtons.value = true;
+
+        // Auto-dismiss success badge after 1.5 seconds
+        setTimeout(() => {
+          processingComplete.value = false;
+        }, 1500);
       }, 1500);
-    }, 1500);
-  }, 1000);
+    }, 1000);
+  } catch (err) {
+    toast.value = {
+      message: err.response?.data?.message || "Failed to save invoice",
+      type: "error",
+    };
+  }
 };
 
 const downloadInvoice = async () => {
@@ -1450,10 +1457,13 @@ const emailInvoice = async () => {
   if (!lastInvoiceId.value) return;
   isSending.value = true;
   try {
-    await invoiceStore.sendInvoice(lastInvoiceId.value, "email");
-    toast.value = { message: "Invoice sent to client email!", type: "success" };
+    const res = await invoiceStore.sendInvoice(lastInvoiceId.value, "email");
+    toast.value = { message: res?.message || "Invoice sent to client email!", type: "success" };
   } catch (err) {
-    toast.value = { message: "Failed to send email", type: "error" };
+    toast.value = {
+      message: err.response?.data?.message || "Failed to send email",
+      type: "error",
+    };
   } finally {
     isSending.value = false;
   }
@@ -1464,14 +1474,12 @@ const whatsappInvoice = async () => {
   try {
     const result = await invoiceStore.whatsappInvoice(lastInvoiceId.value);
     toast.value = {
-      message: result.message || "WhatsApp message sent successfully!",
+      message: result?.message || "WhatsApp message sent successfully!",
       type: "success",
     };
   } catch (err) {
     toast.value = {
-      message:
-        "Failed to send WhatsApp message: " +
-        (err.response?.data?.message || err.message),
+      message: err.response?.data?.message || err.message,
       type: "error",
     };
   }

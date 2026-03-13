@@ -104,7 +104,7 @@ export const useAuthStore = defineStore("auth", () => {
       return true;
     } catch (err) {
       error.value = err.response?.data?.message || err.message;
-      return false;
+      throw err;
     } finally {
       loading.value = false;
     }
@@ -153,7 +153,7 @@ export const useAuthStore = defineStore("auth", () => {
       return true;
     } catch (err) {
       error.value = err.response?.data?.message || err.message;
-      return false;
+      throw err;
     } finally {
       loading.value = false;
     }
@@ -185,7 +185,7 @@ export const useAuthStore = defineStore("auth", () => {
       return true;
     } catch (err) {
       error.value = err.response?.data?.message || err.message;
-      return false;
+      throw err;
     } finally {
       loading.value = false;
     }
@@ -232,7 +232,7 @@ export const useAuthStore = defineStore("auth", () => {
       return true;
     } catch (err) {
       error.value = err.response?.data?.message || err.message;
-      return false;
+      throw err;
     } finally {
       loading.value = false;
     }
@@ -251,7 +251,7 @@ export const useAuthStore = defineStore("auth", () => {
     } catch (err) {
       error.value = err.response?.data?.message || err.message;
       console.error("Error updating plan:", err);
-      return false;
+      throw err;
     } finally {
       loading.value = false;
     }

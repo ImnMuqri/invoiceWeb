@@ -156,9 +156,8 @@
               title="Whatsapp Chaser">
               <input
                 type="checkbox"
-                :disabled="!authStore.isPro"
+                disabled
                 :checked="client.autoChaser"
-                @change="toggleChaser(client, 'autoChaser')"
                 class="sr-only peer" />
               <div
                 class="w-8 h-4 bg-slate-200 rounded-full peer peer-checked:bg-emerald-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:after:translate-x-4" />
@@ -178,9 +177,8 @@
               title="Email Chaser">
               <input
                 type="checkbox"
-                :disabled="!authStore.isPro"
+                disabled
                 :checked="client.autoEmailChaser"
-                @change="toggleChaser(client, 'autoEmailChaser')"
                 class="sr-only peer" />
               <div
                 class="w-8 h-4 bg-slate-200 rounded-full peer peer-checked:bg-blue-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:after:translate-x-4"></div>
@@ -381,13 +379,27 @@
               <div class="mt-8 sm:mt-10 sm:grid sm:grid-cols-2 sm:gap-4">
                 <button
                   type="submit"
-                  class="inline-flex w-full justify-center rounded-md border border-transparent bg-slate-900 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-950 transition-colors">
-                  {{ isEditMode ? "Update Client" : "Add Client" }}
+                  :disabled="isSaving"
+                  class="inline-flex w-full justify-center items-center rounded-md border border-transparent bg-slate-900 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-950 transition-colors disabled:opacity-50">
+                  <UiIcon
+                    v-if="isSaving"
+                    icon="heroicons:arrow-path"
+                    custom-class="w-4 h-4 mr-2 animate-spin text-white" />
+                  {{
+                    isEditMode
+                      ? isSaving
+                        ? "Updating..."
+                        : "Update Client"
+                      : isSaving
+                        ? "Adding..."
+                        : "Add Client"
+                  }}
                 </button>
                 <button
                   type="button"
                   @click="showModal = false"
-                  class="mt-3 inline-flex w-full justify-center rounded-md border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-950 sm:mt-0 transition-colors">
+                  :disabled="isSaving"
+                  class="mt-3 inline-flex w-full justify-center rounded-md border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-950 sm:mt-0 transition-colors disabled:opacity-50">
                   Cancel
                 </button>
               </div>
@@ -426,7 +438,7 @@
             <UiIcon
               v-if="isDeleting"
               icon="heroicons:arrow-path"
-              class="w-4 h-4 mr-2 animate-spin" />
+              custom-class="w-4 h-4 mr-2 animate-spin text-white" />
             {{ isDeleting ? "Deleting..." : "Yes, Delete Client" }}
           </button>
           <button
@@ -469,6 +481,7 @@ const form = ref({
 const isDeleteModalOpen = ref(false);
 const clientToDelete = ref(null);
 const isDeleting = ref(false);
+const isSaving = ref(false);
 const toast = ref({ message: "", type: "success" });
 
 const openAddModal = () => {
@@ -503,9 +516,12 @@ const confirmDelete = async () => {
 
   isDeleting.value = true;
   try {
-    await clientStore.deleteClient(clientToDelete.value.id);
+    const res = await clientStore.deleteClient(clientToDelete.value.id);
     isDeleteModalOpen.value = false;
-    toast.value = { message: "Client deleted successfully", type: "success" };
+    toast.value = {
+      message: res?.message || "Client deleted successfully",
+      type: "success",
+    };
   } catch (err) {
     console.error("Failed to delete client:", err);
     toast.value = {
@@ -533,13 +549,30 @@ const filteredClients = computed(() => {
 });
 
 const submitClient = async () => {
+  if (!form.value.name || !form.value.email) {
+    toast.value = {
+      message: "Name and Email are required",
+      type: "error",
+    };
+    return;
+  }
+  isSaving.value = true;
   try {
     if (isEditMode.value) {
-      await clientStore.updateClient(editingClientId.value, { ...form.value });
-      toast.value = { message: "Client updated successfully", type: "success" };
+      const res = await clientStore.updateClient(editingClientId.value, {
+        ...form.value,
+      });
+      console.log(res);
+      toast.value = {
+        message: res?.message || "Client updated successfully",
+        type: "success",
+      };
     } else {
-      await clientStore.addClient({ ...form.value });
-      toast.value = { message: "Client added successfully", type: "success" };
+      const res = await clientStore.addClient({ ...form.value });
+      toast.value = {
+        message: res?.message || "Client added successfully",
+        type: "success",
+      };
     }
     form.value = {
       name: "",
@@ -557,23 +590,25 @@ const submitClient = async () => {
       message: err.response?.data?.message || "Failed to save client.",
       type: "error",
     };
+  } finally {
+    isSaving.value = false;
   }
 };
 const toggleChaser = async (client, field) => {
   try {
     const newValue = !client[field];
-    await clientStore.updateClient(client.id, {
+    const res = await clientStore.updateClient(client.id, {
       [field]: newValue,
     });
-    const type = field === "autoChaser" ? "WhatsApp" : "Email";
     toast.value = {
-      message: `${type} Chaser ${newValue ? "enabled" : "disabled"} for ${client.name}`,
+      message: res?.message || "Chaser setting updated",
       type: "success",
     };
   } catch (err) {
     console.error("Failed to toggle autoChaser:", err);
     toast.value = {
-      message: "Failed to update Chaser setting.",
+      message:
+        err.response?.data?.message || "Failed to update Chaser setting.",
       type: "error",
     };
   }

@@ -16,6 +16,7 @@ export const useInvoiceStore = defineStore("invoice", {
       } catch (err) {
         this.error = err.response?.data?.message || err.message;
         console.error("Error fetching invoices:", err);
+        throw err;
       } finally {
         this.loading = false;
       }
@@ -29,7 +30,7 @@ export const useInvoiceStore = defineStore("invoice", {
       } catch (err) {
         this.error = err.response?.data?.message || err.message;
         console.error("Error fetching invoice:", err);
-        return null;
+        throw err;
       } finally {
         this.loading = false;
       }
@@ -41,8 +42,9 @@ export const useInvoiceStore = defineStore("invoice", {
         const response = await $api.post("/invoices", payload);
         this.invoices.unshift(response.data);
         return response.data;
-      } catch (error) {
-        this.error = error.message;
+      } catch (err) {
+        this.error = err.response?.data?.message || err.message;
+        throw err;
       } finally {
         this.loading = false;
       }
@@ -58,9 +60,9 @@ export const useInvoiceStore = defineStore("invoice", {
           this.invoices[index] = response.data;
         }
         return response.data;
-      } catch (error) {
-        this.error = error.message;
-        throw error;
+      } catch (err) {
+        this.error = err.response?.data?.message || err.message;
+        throw err;
       } finally {
         this.loading = false;
       }
@@ -68,8 +70,9 @@ export const useInvoiceStore = defineStore("invoice", {
     async deleteInvoice(id) {
       const { $api } = useNuxtApp();
       try {
-        await $api.delete(`/invoices/${id}`);
+        const { data } = await $api.delete(`/invoices/${id}`);
         this.invoices = this.invoices.filter((i) => i.id !== id);
+        return data;
       } catch (err) {
         this.error = err.response?.data?.message || err.message;
         console.error("Error deleting invoice:", err);
@@ -115,10 +118,28 @@ export const useInvoiceStore = defineStore("invoice", {
         throw err;
       }
     },
+    async sendInvoice(id, method, email = null) {
+      const { $api } = useNuxtApp();
+      this.loading = true;
+      try {
+        const { data } = await $api.post(`/invoices/${id}/send`, {
+          method,
+          email,
+        });
+        return data;
+      } catch (err) {
+        this.error = err.response?.data?.message || err.message;
+        throw err;
+      } finally {
+        this.loading = false;
+      }
+    },
     async whatsappInvoice(id) {
       const { $api } = useNuxtApp();
       try {
-        const { data } = await $api.post(`/whatsapp/send/${id}`);
+        const { data } = await $api.post(`/invoices/${id}/send`, {
+          method: "whatsapp",
+        });
         return data;
       } catch (err) {
         this.error = err.response?.data?.message || err.message;

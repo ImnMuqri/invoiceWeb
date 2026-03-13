@@ -19,10 +19,10 @@
       <div class="flex-1 overflow-y-auto px-8 py-6">
         <div
           v-if="loadingInvoice"
-          class="flex items-center justify-center h-64">
+          class="flex items-center justify-center h-full">
           <UiIcon
             icon="heroicons:arrow-path"
-            class="w-8 h-8 animate-spin text-slate-400" />
+            custom-class="w-6 h-6 animate-spin text-slate-400" />
         </div>
         <form v-else class="space-y-8" @submit.prevent="submitInvoice">
           <!-- Invoice Details Section -->
@@ -349,7 +349,7 @@
             <UiIcon
               v-if="isProcessing"
               icon="heroicons:arrow-path"
-              class="w-4 h-4 animate-spin" />
+              custom-class="w-4 h-4 animate-spin text-white" />
             Update Invoice
           </button>
         </div>
@@ -437,7 +437,7 @@
                 <UiIcon
                   v-else
                   icon="heroicons:arrow-path"
-                  class="w-4 h-4 animate-spin" />
+                  custom-class="w-4 h-4 animate-spin text-slate-500" />
                 <span :class="{ 'opacity-50': !authStore.isPro }"
                   >Email client</span
                 >
@@ -1035,7 +1035,10 @@ const submitInvoice = async () => {
       }, 1500);
     }, 1000);
   } catch (err) {
-    toast.value = { message: "Failed to update invoice", type: "error" };
+    toast.value = {
+      message: err.response?.data?.message || "Failed to update invoice",
+      type: "error",
+    };
     isProcessing.value = false;
   }
 };
@@ -1050,10 +1053,13 @@ const downloadInvoice = async () => {
 const emailInvoice = async () => {
   isSending.value = true;
   try {
-    await invoiceStore.sendInvoice(invoiceId, "email");
-    toast.value = { message: "Invoice sent to client email!", type: "success" };
+    const res = await invoiceStore.sendInvoice(invoiceId, "email");
+    toast.value = { message: res?.message || "Invoice sent to client email!", type: "success" };
   } catch (err) {
-    toast.value = { message: "Failed to send email", type: "error" };
+    toast.value = {
+      message: err.response?.data?.message || "Failed to send email",
+      type: "error",
+    };
   } finally {
     isSending.value = false;
   }
@@ -1063,14 +1069,12 @@ const whatsappInvoice = async () => {
   try {
     const result = await invoiceStore.whatsappInvoice(invoiceId);
     toast.value = {
-      message: result.message || "WhatsApp message sent successfully!",
+      message: result?.message || "WhatsApp message sent successfully!",
       type: "success",
     };
   } catch (err) {
     toast.value = {
-      message:
-        "Failed to send WhatsApp message: " +
-        (err.response?.data?.message || err.message),
+      message: err.response?.data?.message || err.message,
       type: "error",
     };
   }

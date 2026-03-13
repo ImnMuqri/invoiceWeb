@@ -172,17 +172,9 @@
           <span
             v-else-if="invoice?.whatsappStatus === 'Sending...'"
             class="inline-flex items-center text-amber-500 font-medium text-xs">
-            <svg
-              class="w-4 h-4 mr-1 animate-spin"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-            </svg>
+            <UiIcon
+              icon="heroicons:arrow-path"
+              custom-class="w-4 h-4 mr-1 animate-spin text-amber-500" />
             Sending...
           </span>
           <span v-else class="text-slate-400 font-medium text-xs">-</span>
@@ -252,7 +244,7 @@
             <UiIcon
               v-if="isDeleting"
               icon="heroicons:arrow-path"
-              class="w-4 h-4 mr-2 animate-spin" />
+              custom-class="w-4 h-4 mr-2 animate-spin text-white" />
             {{ isDeleting ? "Deleting..." : "Yes, Delete Invoice" }}
           </button>
           <button
@@ -353,8 +345,15 @@ const invoiceStore = useInvoiceStore();
 const authStore = useAuthStore();
 
 
-onMounted(() => {
-  invoiceStore.fetchInvoices();
+onMounted(async () => {
+  try {
+    await invoiceStore.fetchInvoices();
+  } catch (err) {
+    toast.value = {
+      message: err.response?.data?.message || "Failed to fetch invoices",
+      type: "error",
+    };
+  }
 });
 
 const emit = defineEmits(["invoice-updated"]);
@@ -400,9 +399,9 @@ const confirmDelete = async () => {
 
   isDeleting.value = true;
   try {
-    await invoiceStore.deleteInvoice(invoiceToDelete.value.id);
+    const res = await invoiceStore.deleteInvoice(invoiceToDelete.value.id);
     isDeleteModalOpen.value = false;
-    toast.value = { message: "Invoice deleted successfully", type: "success" };
+    toast.value = { message: res?.message || "Invoice deleted successfully", type: "success" };
   } catch (err) {
     console.error("Failed to delete invoice:", err);
     toast.value = {
@@ -463,9 +462,17 @@ const previewMessage = computed(() => {
 });
 
 
-const confirmSend = () => {
+const confirmSend = async () => {
   if (selectedInvoice.value) {
-    invoiceStore.sendWhatsAppReminder(selectedInvoice.value.id);
+    try {
+      await invoiceStore.sendWhatsAppReminder(selectedInvoice.value.id);
+      toast.value = { message: "WhatsApp reminder sent!", type: "success" };
+    } catch (err) {
+      toast.value = {
+        message: err.response?.data?.message || err.message,
+        type: "error",
+      };
+    }
   }
   closeModal();
 };

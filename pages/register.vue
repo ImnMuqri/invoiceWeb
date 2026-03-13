@@ -61,8 +61,13 @@
         <div>
           <button
             type="submit"
-            class="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-semibold text-white bg-slate-900 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-900 transition-colors">
-            Start Free Trial
+            :disabled="authStore.loading"
+            class="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-semibold text-white bg-slate-900 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-900 transition-colors disabled:opacity-50">
+            <UiIcon
+              v-if="authStore.loading"
+              icon="heroicons:arrow-path"
+              custom-class="w-4 h-4 mr-2 animate-spin text-white" />
+            {{ authStore.loading ? "Starting..." : "Start Free Trial" }}
           </button>
         </div>
       </form>
@@ -115,15 +120,15 @@ const email = ref("");
 const password = ref("");
 
 const handleRegister = async () => {
-  const success = await authStore.register(
-    name.value,
-    email.value,
-    password.value,
-  );
-  if (success) {
+  try {
+    await authStore.register(name.value, email.value, password.value);
     router.push("/dashboard");
-  } else {
-    toast.value = { message: authStore.error, type: "error" };
+  } catch (err) {
+    toast.value = {
+      message:
+        err.response?.data?.message || authStore.error || "Registration failed",
+      type: "error",
+    };
   }
 };
 </script>

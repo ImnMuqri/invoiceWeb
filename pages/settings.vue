@@ -542,7 +542,11 @@
               type="button"
               @click="saveSettings"
               :disabled="authStore.loading"
-              class="inline-flex justify-center rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 transition-all disabled:opacity-50">
+              class="inline-flex justify-center items-center rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 transition-all disabled:opacity-50">
+              <UiIcon
+                v-if="authStore.loading"
+                icon="heroicons:arrow-path"
+                custom-class="w-4 h-4 mr-2 animate-spin text-white" />
               {{ authStore.loading ? "Saving..." : "Save Settings" }}
             </button>
           </div>
@@ -657,36 +661,37 @@ onMounted(async () => {
 });
 
 const saveSettings = async () => {
-  let success = false;
-  if (activeTab.value === "general") {
-    success = await authStore.updateProfile(profileForm.value);
-  } else if (activeTab.value === "whatsapp") {
-    success = await authStore.updateSettings(settingsForm.value);
-  } else {
-    // Billing doesn't have a save action yet
-    return;
-  }
-
-  if (success) {
-    toast.value = { message: "Settings saved successfully!", type: "success" };
-  } else {
+  try {
+    let res;
+    if (activeTab.value === "general") {
+      res = await authStore.updateProfile(profileForm.value);
+    } else if (activeTab.value === "whatsapp") {
+      res = await authStore.updateSettings(settingsForm.value);
+    } else {
+      return;
+    }
     toast.value = {
-      message: "Failed to save settings: " + authStore.error,
+      message: res?.message || "Settings saved successfully!",
+      type: "success",
+    };
+  } catch (err) {
+    toast.value = {
+      message: err.response?.data?.message || authStore.error || "Failed to save settings",
       type: "error",
     };
   }
 };
 
 const updatePlan = async (plan) => {
-  const success = await authStore.updatePlan(plan);
-  if (success) {
+  try {
+    const res = await authStore.updatePlan(plan);
     toast.value = {
-      message: `Successfully switched to ${plan} plan!`,
+      message: res?.message || `Successfully switched to ${plan} plan!`,
       type: "success",
     };
-  } else {
+  } catch (err) {
     toast.value = {
-      message: "Failed to update plan: " + authStore.error,
+      message: err.response?.data?.message || authStore.error || "Failed to update plan",
       type: "error",
     };
   }

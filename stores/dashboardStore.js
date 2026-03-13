@@ -37,6 +37,7 @@ export const useDashboardStore = defineStore("dashboard", {
       } catch (err) {
         this.error = err.response?.data?.message || err.message;
         console.error("Dashboard Fetch Error:", err);
+        throw err;
       } finally {
         this.loading = false;
       }
