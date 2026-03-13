@@ -11,7 +11,7 @@ export default defineNuxtConfig({
   css: ['~/assets/css/main.css'],
   runtimeConfig: {
     public: {
-      apiBase: process.env.VITE_API_URl || 'http://localhost:3001'
+      apiBase: process.env.VITE_API_URL || 'http://localhost:3001'
     }
   }
 })
