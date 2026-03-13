@@ -238,25 +238,6 @@ export const useAuthStore = defineStore("auth", () => {
     }
   }
 
-  async function updatePlan(plan) {
-    const { $api } = useNuxtApp();
-    loading.value = true;
-    error.value = null;
-    try {
-      const { data } = await $api.post("/users/update-plan", { plan });
-      if (user.value) {
-        user.value.plan = data.plan;
-      }
-      return true;
-    } catch (err) {
-      error.value = err.response?.data?.message || err.message;
-      console.error("Error updating plan:", err);
-      throw err;
-    } finally {
-      loading.value = false;
-    }
-  }
-
   return {
     user,
     accessToken,
@@ -272,7 +253,6 @@ export const useAuthStore = defineStore("auth", () => {
     updateProfile,
     fetchSettings,
     updateSettings,
-    updatePlan,
     syncFromCookies,
     refreshAccessToken,
   };

@@ -52,7 +52,7 @@
       <!-- Invoice View State -->
       <div
         v-else
-        class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden relative">
         <div class="p-8 sm:p-10">
           <!-- Header Grid: Status & Amount -->
           <div
@@ -84,13 +84,18 @@
                 >
               </div>
 
+              <div class="mb-4" v-if="invoice.invoiceName">
+                <h2 class="text-lg font-bold text-slate-900 tracking-tight">
+                  {{ invoice.invoiceName }}
+                </h2>
+              </div>
+
               <p
                 class="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-1">
                 Amount Due
               </p>
               <h1 class="text-4xl font-semibold text-slate-900 tracking-tight">
-                {{ invoice.currency === "IDR" ? "Rp" : "$"
-                }}{{ invoice.amount.toLocaleString() }}
+                {{ currencySymbol }}{{ invoice.amount.toLocaleString() }}
               </h1>
             </div>
 
@@ -108,10 +113,15 @@
                 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 border-b border-slate-100 pb-2">
                 Billed To
               </p>
-              <p class="text-sm font-medium text-slate-900 mt-3">
+              <p class="text-sm font-bold text-slate-900 mt-3">
                 {{ invoice.client?.name }}
               </p>
-              <p class="text-sm text-slate-500 mt-1">
+              <p
+                class="text-xs font-semibold text-slate-600 mt-0.5"
+                v-if="invoice.client?.company">
+                {{ invoice.client.company }}
+              </p>
+              <p class="text-sm text-slate-500 mt-2">
                 {{ invoice.client?.email }}
               </p>
               <p class="text-sm text-slate-500 mt-1">
@@ -123,10 +133,15 @@
                 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 border-b border-slate-100 pb-2">
                 From
               </p>
-              <p class="text-sm font-medium text-slate-900 mt-3">
+              <p class="text-sm font-bold text-slate-900 mt-3">
                 {{ invoice.fromName || "Our Company" }}
               </p>
-              <p class="text-sm text-slate-500 mt-1">{{ invoice.fromEmail }}</p>
+              <p
+                class="text-xs font-semibold text-slate-600 mt-0.5"
+                v-if="invoice.fromCompanyName">
+                {{ invoice.fromCompanyName }}
+              </p>
+              <p class="text-sm text-slate-500 mt-2">{{ invoice.fromEmail }}</p>
               <p class="text-sm text-slate-500 mt-1">
                 {{ invoice.fromAddress }}
               </p>
@@ -150,17 +165,22 @@
               <tbody class="divide-y divide-slate-100">
                 <tr v-for="item in invoice.items" :key="item.id">
                   <td class="py-4 text-slate-900 font-medium">
-                    {{ item.name }}<br />
-                    <span class="text-slate-400 text-[11px] font-normal"
-                      >Qty: {{ item.quantity }} ×
-                      {{ invoice.currency === "IDR" ? "Rp" : "$"
-                      }}{{ item.price.toLocaleString() }}</span
-                    >
+                    <div class="flex items-start gap-2">
+                      <UiIcon
+                        icon="heroicons:cube"
+                        class="w-4 h-4 text-teal-600 mt-0.5 flex-shrink-0" />
+                      <div>
+                        {{ item.name }}<br />
+                        <span class="text-slate-400 text-[11px] font-normal"
+                          >Qty: {{ item.quantity }} × {{ currencySymbol
+                          }}{{ item.price.toLocaleString() }}</span
+                        >
+                      </div>
+                    </div>
                   </td>
                   <td
                     class="py-4 text-slate-900 text-right align-top font-medium">
-                    {{ invoice.currency === "IDR" ? "Rp" : "$"
-                    }}{{ item.total.toLocaleString() }}
+                    {{ currencySymbol }}{{ item.total.toLocaleString() }}
                   </td>
                 </tr>
               </tbody>
@@ -168,19 +188,21 @@
                 <tr>
                   <td class="pt-4 pb-2 text-slate-500 text-right">Subtotal</td>
                   <td class="pt-4 pb-2 text-slate-900 font-medium text-right">
-                    ${{ invoice.amount.toLocaleString() }}
+                    {{ currencySymbol }}{{ invoice.amount.toLocaleString() }}
                   </td>
                 </tr>
                 <tr>
                   <td class="py-2 text-slate-500 text-right">Tax (0%)</td>
                   <td class="py-2 text-slate-900 font-medium text-right">
-                    {{ invoice.currency === "IDR" ? "Rp" : "$" }}0.00
+                    {{ currencySymbol }}0.00
                   </td>
                 </tr>
                 <tr>
-                  <td class="pt-4 text-slate-900 font-semibold text-right">
-                    {{ invoice.currency === "IDR" ? "Rp" : "$"
-                    }}{{ invoice.amount.toLocaleString() }}
+                  <td class="pt-4 text-slate-900 font-bold text-right">
+                    Total Amount
+                  </td>
+                  <td class="pt-4 text-slate-900 font-bold text-right">
+                    {{ currencySymbol }}{{ invoice.amount.toLocaleString() }}
                   </td>
                 </tr>
               </tfoot>
@@ -203,8 +225,7 @@
                   stroke-width="2"
                   d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
               </svg>
-              Pay {{ invoice.currency === "IDR" ? "Rp" : "$"
-              }}{{ invoice.amount.toLocaleString() }}
+              Pay {{ currencySymbol }}{{ invoice.amount.toLocaleString() }}
             </button>
             <p
               class="text-center text-[10px] text-slate-400 uppercase tracking-widest mt-4">
@@ -235,13 +256,22 @@
           </div>
         </div>
       </div>
+
+      <!-- Watermark -->
+      <div class="mt-8 text-center pb-12">
+        <p
+          class="text-[10px] font-bold text-slate-300 uppercase tracking-[0.2em] flex items-center justify-center gap-2">
+          <span>Generated by</span>
+          <span class="text-slate-400">InvoKita</span>
+        </p>
+      </div>
     </div>
     <UiToast v-model="toast" />
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import { useRoute } from "vue-router";
 import { useInvoiceStore } from "~/stores/invoiceStore";
 
@@ -257,6 +287,12 @@ const loading = ref(true);
 const invoice = ref(null);
 const toast = ref({ message: "", type: "success" });
 
+const currencySymbol = computed(() => {
+  if (!invoice.value) return "$";
+  const curr = invoice.value.currency;
+  return curr === "IDR" || curr === "MYR" ? "RM" : "$";
+});
+
 onMounted(async () => {
   // Fetch from API directly using the numeric ID
   invoice.value = await invoiceStore.fetchInvoiceById(invoiceId);
@@ -267,7 +303,10 @@ const markAsPaid = async () => {
   if (invoice.value) {
     // In a real app we would trigger Stripe/FPX checkout here
     // For demo, we just alert. In the future we should call an API to mark as paid.
-    toast.value = { message: "Payment successful! Thank you.", type: "success" };
+    toast.value = {
+      message: "Payment successful! Thank you.",
+      type: "success",
+    };
     invoice.value.status = "Paid";
   }
 };

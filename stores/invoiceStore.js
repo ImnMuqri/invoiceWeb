@@ -118,13 +118,14 @@ export const useInvoiceStore = defineStore("invoice", {
         throw err;
       }
     },
-    async sendInvoice(id, method, email = null) {
+    async sendInvoice(id, method, email = null, isReminder = false) {
       const { $api } = useNuxtApp();
       this.loading = true;
       try {
         const { data } = await $api.post(`/invoices/${id}/send`, {
           method,
           email,
+          isReminder,
         });
         return data;
       } catch (err) {

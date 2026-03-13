@@ -423,12 +423,16 @@
             <div class="relative group">
               <button
                 @click="emailInvoice"
-                :disabled="isSending || !authStore.isPro"
+                :disabled="
+                  isSending || !authStore.isPro || form.status === 'Paid'
+                "
                 class="flex items-center gap-2 px-3 py-1.5 rounded-md bg-white shadow-sm border border-slate-200 text-slate-900 hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 :title="
                   !authStore.isPro
                     ? 'Upgrade to Pro to email invoices'
-                    : 'Email client'
+                    : form.status === 'Paid'
+                      ? 'Cannot email paid invoice'
+                      : 'Email client'
                 ">
                 <UiIcon
                   v-if="!isSending"
@@ -438,7 +442,10 @@
                   v-else
                   icon="heroicons:arrow-path"
                   custom-class="w-4 h-4 animate-spin text-slate-500" />
-                <span :class="{ 'opacity-50': !authStore.isPro }"
+                <span
+                  :class="{
+                    'opacity-50': !authStore.isPro || form.status === 'Paid',
+                  }"
                   >Email client</span
                 >
                 <UiIcon
@@ -450,12 +457,14 @@
             <div class="relative group">
               <button
                 @click="whatsappInvoice"
-                :disabled="!authStore.isPro"
+                :disabled="!authStore.isPro || form.status === 'Paid'"
                 class="flex items-center gap-2 px-3 py-1.5 rounded-md bg-[#25D366] text-white shadow-sm hover:bg-[#128C7E] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 :title="
                   !authStore.isPro
                     ? 'Upgrade to Pro to send via WhatsApp'
-                    : 'WhatsApp'
+                    : form.status === 'Paid'
+                      ? 'Cannot WhatsApp paid invoice'
+                      : 'WhatsApp'
                 ">
                 <UiIcon icon="simple-icons:whatsapp" class="w-4 h-4" />
                 <span :class="{ 'opacity-50': !authStore.isPro }"
@@ -520,105 +529,157 @@
             }">
             <!-- PREVIEW: PROFESSIONAL THEME -->
             <template v-if="form.template === 'professional'">
-              <div class="p-8 flex flex-col h-full">
-                <h1
-                  class="text-2xl font-semibold text-slate-900 tracking-tight mb-8">
-                  <span v-if="form.invoiceName">{{ form.invoiceName }} - </span
-                  >{{ form.invoiceNumber }}
-                </h1>
+              <div
+                class="p-12 flex flex-col min-h-[900px] relative pb-20 font-inter">
+                <div class="flex justify-between items-start mb-12">
+                  <div>
+                    <h1
+                      class="text-3xl font-semibold text-slate-900 tracking-tight mb-1">
+                      INVOICE
+                    </h1>
+                    <p class="text-lg text-slate-500">{{ form.invoiceName }}</p>
+                  </div>
+                  <div class="text-right">
+                    <div
+                      class="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1">
+                      Invoice Number
+                    </div>
+                    <div class="text-xl font-semibold text-slate-900">
+                      {{ form.invoiceNumber || "0000" }}
+                    </div>
+                  </div>
+                </div>
 
-                <div class="grid grid-cols-2 gap-y-8 gap-x-12 mb-12">
+                <div class="grid grid-cols-2 gap-y-10 gap-x-12 mb-12">
                   <div>
-                    <div class="text-xs text-slate-500 mb-1">Due date</div>
-                    <div class="text-sm font-semibold text-slate-900">
-                      {{ form.dueDate || "No date set" }}
+                    <div
+                      class="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2 border-b border-slate-100 pb-1">
+                      Billed To
                     </div>
-                  </div>
-                  <div>
-                    <div class="text-xs text-slate-500 mb-1">Subject</div>
-                    <div class="text-sm font-semibold text-slate-900">
-                      {{ form.subject || "No subject set" }}
-                    </div>
-                  </div>
-                  <div>
-                    <div class="text-xs text-slate-500 mb-1">Billed to</div>
                     <div class="text-sm font-semibold text-slate-900">
                       {{ selectedClient?.name || "Select Client" }}
                     </div>
                     <div
-                      class="text-sm text-slate-500 mt-0.5 whitespace-pre-line">
+                      class="text-sm text-slate-500 mt-1 whitespace-pre-line">
+                      <p
+                        v-if="selectedClient?.company"
+                        class="font-medium text-slate-700">
+                        {{ selectedClient?.company }}
+                      </p>
                       {{ selectedClient?.email }}
                       <p>{{ selectedClient?.address }}</p>
                     </div>
                   </div>
                   <div>
-                    <div class="text-xs text-slate-500 mb-1">Currency</div>
+                    <div
+                      class="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2 border-b border-slate-100 pb-1">
+                      From
+                    </div>
                     <div class="text-sm font-semibold text-slate-900">
-                      {{ form.currency }} -
                       {{
-                        form.currency === "MYR"
-                          ? "Malaysian Ringgit"
-                          : "US Dollar"
+                        form.from.name || form.from.companyName || "Our Company"
                       }}
                     </div>
-                  </div>
-                  <div>
-                    <div class="text-xs text-slate-500 mb-1">From</div>
-                    <div class="text-sm font-semibold text-slate-900">
-                      {{ form.from.companyName }}
-                    </div>
                     <div
-                      class="text-sm text-slate-500 mt-0.5 whitespace-pre-line">
+                      class="text-sm text-slate-500 mt-1 whitespace-pre-line">
+                      <p
+                        v-if="
+                          form.from.companyName &&
+                          form.from.name &&
+                          form.from.companyName !== form.from.name
+                        "
+                        class="font-medium text-slate-700">
+                        {{ form.from.companyName }}
+                      </p>
                       {{ form.from.companyEmail }}
                       <p>{{ form.from.companyAddress }}</p>
                     </div>
                   </div>
+                  <div>
+                    <div
+                      class="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2 border-b border-slate-100 pb-1">
+                      Dates
+                    </div>
+                    <div class="flex flex-col gap-1">
+                      <div class="flex justify-between text-xs">
+                        <span class="text-slate-500">Issued:</span
+                        ><span class="font-semibold text-slate-900">{{
+                          new Date(
+                            form.createdAt || Date.now(),
+                          ).toLocaleDateString()
+                        }}</span>
+                      </div>
+                      <div class="flex justify-between text-xs">
+                        <span class="text-slate-500">Due:</span
+                        ><span class="font-semibold text-slate-900">{{
+                          form.dueDate || "No date set"
+                        }}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <div
+                      class="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2 border-b border-slate-100 pb-1">
+                      Details
+                    </div>
+                    <div class="flex flex-col gap-1 text-xs">
+                      <div class="flex justify-between font-semibold">
+                        <span class="text-slate-500">Subject:</span
+                        ><span class="text-slate-900 ml-2 font-semibold">{{
+                          form.subject || "N/A"
+                        }}</span>
+                      </div>
+                      <div class="flex justify-between">
+                        <span class="text-slate-500">Currency:</span
+                        ><span class="text-slate-900 font-semibold">{{
+                          form.currency
+                        }}</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
-                <div class="flex-1">
+                <div class="flex-1 mt-4">
                   <div
-                    class="flex items-center text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-4 border-b border-slate-200 pb-2">
-                    <div class="flex-[2]">Description</div>
-                    <div class="flex-1 text-center">Qty</div>
-                    <div class="flex-1 text-right">Unit Price</div>
-                    <div class="flex-1 text-right">Amount</div>
+                    class="flex items-center text-[10px] font-semibold text-slate-500 uppercase tracking-widest mb-4 border-b border-slate-900 pb-2">
+                    <div class="flex-[3]">Description</div>
+                    <div class="w-20 text-center">Qty</div>
+                    <div class="w-32 text-right">Unit Price</div>
+                    <div class="w-32 text-right">Amount</div>
                   </div>
                   <div class="space-y-4">
                     <div
                       v-for="(item, idx) in form.lineItems"
                       :key="idx"
-                      class="flex items-center text-sm">
-                      <div class="flex-[2] flex items-center gap-3">
+                      class="flex items-center text-sm py-1 border-b border-slate-50 last:border-0 pb-3">
+                      <div class="flex-[3] flex items-center gap-3">
                         <div
                           class="w-6 h-6 rounded bg-teal-50 flex items-center justify-center border border-teal-100 flex-shrink-0">
                           <UiIcon
                             icon="heroicons:cube"
                             class="w-4 h-4 text-teal-600" />
                         </div>
-                        <span class="font-medium text-slate-900">{{
+                        <span class="font-semibold text-slate-900">{{
                           item.name || "Unnamed Item"
                         }}</span>
                       </div>
-                      <div
-                        class="flex-1 text-center font-medium text-slate-900">
+                      <div class="w-20 text-center font-medium text-slate-700">
                         {{ item.qty }}
                       </div>
-                      <div
-                        class="flex-1 text-right font-medium text-slate-900 whitespace-nowrap">
+                      <div class="w-32 text-right font-medium text-slate-700">
                         {{ item.priceNum.toLocaleString() }} {{ form.currency }}
                       </div>
-                      <div
-                        class="flex-1 text-right font-semibold text-slate-900 whitespace-nowrap">
+                      <div class="w-32 text-right font-semibold text-slate-900">
                         {{ (item.priceNum * item.qty).toLocaleString() }}
                         {{ form.currency }}
                       </div>
                     </div>
                   </div>
                   <div
-                    class="mt-8 border-t border-slate-200 pt-6 flex justify-end">
-                    <div class="w-64 space-y-3">
+                    class="mt-12 border-t border-slate-200 pt-6 flex justify-end">
+                    <div class="w-72 space-y-3">
                       <div class="flex justify-between text-sm">
-                        <span class="font-medium text-slate-600">Subtotal</span
+                        <span class="font-medium text-slate-500">Subtotal</span
                         ><span class="font-semibold text-slate-900"
                           >{{ calculateSubtotal().toLocaleString() }}
                           {{ form.currency }}</span
@@ -626,21 +687,16 @@
                       </div>
                       <div
                         v-if="form.addDiscount"
-                        class="flex justify-between text-sm">
-                        <span class="font-medium text-slate-600"
-                          >Discount
-                          <span class="text-xs"
-                            >{{ form.discountPercentage }}%</span
-                          ></span
-                        ><span class="font-semibold text-slate-900"
-                          >{{ calculateDiscount().toLocaleString() }}
+                        class="flex justify-between text-sm text-red-600 font-semibold">
+                        <span>Discount</span
+                        ><span
+                          >-{{ calculateDiscount().toLocaleString() }}
                           {{ form.currency }}</span
                         >
                       </div>
                       <div
                         class="flex justify-between text-base pt-4 border-t border-slate-900 font-semibold">
-                        <span class="text-slate-900 font-semibold"
-                          >Amount Due</span
+                        <span class="text-slate-900">Amount Due</span
                         ><span class="text-slate-900"
                           >{{ calculateTotal().toLocaleString() }}
                           {{ form.currency }}</span
@@ -648,11 +704,13 @@
                       </div>
                     </div>
                   </div>
+
+                  <!-- Footer Branding -->
                   <div
-                    class="mt-8 pt-8 border-t border-slate-100 flex justify-end items-center">
+                    class="mt-10 pt-6 border-t border-slate-100 flex justify-end text-end opacity-50">
                     <div
-                      class="text-[10px] text-right text-slate-400 font-medium uppercase tracking-widest">
-                      Generated by <UiLogo class="h-6 opacity-30 grayscale" />
+                      class="text-[8px] text-slate-400 font-medium uppercase tracking-[0.2em]">
+                      Generated by <UiLogo class="h-4 grayscale"></UiLogo>
                     </div>
                   </div>
                 </div>
@@ -708,10 +766,23 @@
                         From
                       </div>
                       <div class="text-xs font-semibold text-slate-900">
-                        {{ form.from.companyName }}
+                        {{
+                          form.from.name ||
+                          form.from.companyName ||
+                          "Our Company"
+                        }}
                       </div>
                       <div
                         class="text-[10px] text-slate-500 mt-1 whitespace-pre-line leading-relaxed">
+                        <p
+                          v-if="
+                            form.from.companyName &&
+                            form.from.name &&
+                            form.from.companyName !== form.from.name
+                          "
+                          class="font-medium text-slate-700">
+                          {{ form.from.companyName }}
+                        </p>
                         {{ form.from.companyEmail }}
                         <p>{{ form.from.companyAddress }}</p>
                       </div>
@@ -724,8 +795,14 @@
                       <div class="text-xs font-semibold text-slate-900">
                         {{ selectedClient?.name || "Client Name" }}
                       </div>
+
                       <div
                         class="text-[10px] text-slate-500 mt-1 whitespace-pre-line leading-relaxed">
+                        <p
+                          v-if="selectedClient?.company"
+                          class="font-medium text-slate-700">
+                          {{ selectedClient?.company }}
+                        </p>
                         {{ selectedClient?.email }}
                         <p>{{ selectedClient?.address }}</p>
                       </div>
@@ -879,6 +956,7 @@ const form = ref({
   template: "professional",
   status: "Pending",
   from: {
+    name: "",
     companyName: "",
     companyEmail: "",
     companyAddress: "",
@@ -906,9 +984,15 @@ onMounted(async () => {
         addDiscount: false,
         discountPercentage: 0,
         from: {
-          companyName: data.fromName || "",
-          companyEmail: data.fromEmail || "",
-          companyAddress: data.fromAddress || "",
+          name: authStore.user?.name || data.fromName || "",
+          companyName:
+            authStore.user?.companyName || data.fromCompanyName || "",
+          companyEmail:
+            authStore.user?.companyEmail ||
+            authStore.user?.email ||
+            data.fromEmail ||
+            "",
+          companyAddress: authStore.user?.address || data.fromAddress || "",
         },
         lineItems: data.items.map((item) => ({
           name: item.name,
@@ -999,7 +1083,8 @@ const submitInvoice = async () => {
     clientId: form.value.clientId,
     invoiceName: form.value.invoiceName,
     subject: form.value.subject,
-    fromName: form.value.from.companyName,
+    fromName: form.value.from.name,
+    fromCompanyName: form.value.from.companyName,
     fromEmail: form.value.from.companyEmail,
     fromAddress: form.value.from.companyAddress,
     dueDate: new Date(form.value.dueDate).toISOString(),
@@ -1054,7 +1139,10 @@ const emailInvoice = async () => {
   isSending.value = true;
   try {
     const res = await invoiceStore.sendInvoice(invoiceId, "email");
-    toast.value = { message: res?.message || "Invoice sent to client email!", type: "success" };
+    toast.value = {
+      message: res?.message || "Invoice sent to client email!",
+      type: "success",
+    };
   } catch (err) {
     toast.value = {
       message: err.response?.data?.message || "Failed to send email",

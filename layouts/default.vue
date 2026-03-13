@@ -129,12 +129,54 @@
             Settings
           </NuxtLink>
         </nav>
-        <div class="p-4 border-t border-[#e5e5e5]">
+        <div v-if="!authStore.isPro" class="px-4 mb-4">
+          <div
+            class="bg-white rounded-2xl p-5 border border-[#e5e5e5] shadow-[0_2px_12px_rgba(0,0,0,0.03)] relative transition-all hover:bg-slate-50/50">
+            <div class="relative">
+              <div class="flex items-center gap-2 mb-2">
+                <h5
+                  class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.1em]">
+                  Limited Plan
+                </h5>
+              </div>
+              <p class="text-[14px] font-bold text-slate-900 mb-1">
+                Upgrade to Pro
+              </p>
+              <p
+                class="text-[12px] text-slate-500 font-medium leading-relaxed mb-4">
+                Get unlimited invoices, WhatsApp reminders and AI drafts.
+              </p>
+              <NuxtLink
+                to="/settings?tab=billing"
+                class="block w-full text-center py-2.5 bg-slate-900 text-white text-[12px] font-bold rounded-xl hover:bg-slate-800 transition-all shadow-sm">
+                Upgrade Now
+              </NuxtLink>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-6 border-t border-[#e5e5e5]">
+          <p
+            class="text-[11px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center">
+            invokita v1.0.0
+          </p>
+          <p
+            class="text-[11px] font-bold text-slate-400 capitalize tracking-[0.2em] text-center">
+            powered by Bsyx
+          </p>
+        </div>
+      </aside>
+
+      <!-- Main Content -->
+      <div class="flex-1 flex flex-col min-w-0">
+        <!-- Top Navbar (Desktop) -->
+        <header
+          class="hidden md:flex h-16 items-end justify-end px-8 gap-6 flex-shrink-0">
+          <!-- Notifications -->
           <button
-            @click.prevent="isLogoutModalOpen = true"
-            class="w-full flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:text-slate-900 hover:bg-[#ebebec] transition-colors text-left border-none bg-transparent">
+            class="relative p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-xl transition-all group">
             <svg
-              class="w-[18px] h-[18px] mr-3 opacity-70"
+              class="w-6 h-6"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24">
@@ -142,15 +184,104 @@
                 stroke-linecap="round"
                 stroke-linejoin="round"
                 stroke-width="2"
-                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
             </svg>
-            Sign Out
+            <span
+              class="absolute top-2.5 right-2.5 w-2 h-2 bg-indigo-500 border-2 border-white rounded-full"></span>
           </button>
-        </div>
-      </aside>
 
-      <!-- Main Content -->
-      <div class="flex-1 flex flex-col min-w-0">
+          <!-- Divider -->
+          <div class="h-6 w-px bg-[#e5e5e5]"></div>
+
+          <!-- User Profile -->
+          <UiPopover placement="bottom-end">
+            <template #trigger="{ isOpen }">
+              <div class="flex items-center gap-3 group cursor-pointer">
+                <div class="text-right hidden sm:block">
+                  <p class="text-sm font-bold text-slate-900 leading-none mb-1">
+                    {{ authStore.user?.name || "User" }}
+                  </p>
+                  <div class="flex items-center justify-end gap-1.5">
+                    <span class="relative flex h-2 w-2">
+                      <span
+                        class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span
+                        class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                    <p
+                      class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                      {{ authStore.user?.plan || "Free" }} Plan
+                    </p>
+                  </div>
+                </div>
+                <div
+                  :class="[
+                    'w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center text-white text-sm font-bold shadow-sm border transition-all',
+                    isOpen
+                      ? 'border-indigo-500 ring-4 ring-indigo-50'
+                      : 'border-slate-700 group-hover:border-slate-500',
+                  ]">
+                  {{ (authStore.user?.name || "U").charAt(0).toUpperCase() }}
+                </div>
+              </div>
+            </template>
+            <template #default="{ close }">
+              <!-- Category Header -->
+              <div class="px-2 py-1.5 border-b border-slate-100 bg-slate-50/50">
+                <span
+                  class="text-[10px] font-bold text-slate-400 uppercase tracking-wider"
+                  >Account</span
+                >
+              </div>
+
+              <div class="p-2">
+                <NuxtLink
+                  to="/settings"
+                  @click="close"
+                  class="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-600 hover:text-green-600 hover:bg-green-50 rounded-md transition-all">
+                  <svg
+                    class="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                  </svg>
+                  User Settings
+                </NuxtLink>
+                <div class="h-px bg-slate-100 my-1 mx-2"></div>
+                <button
+                  @click="
+                    isLogoutModalOpen = true;
+                    close();
+                  "
+                  class="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 rounded-md transition-all text-left border-none bg-transparent">
+                  <svg
+                    class="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                  </svg>
+                  Sign Out
+                </button>
+              </div>
+            </template>
+          </UiPopover>
+        </header>
+
         <!-- Header (Mobile) -->
         <header
           class="md:hidden h-16 flex items-center justify-between px-4 bg-white border-b border-slate-200">
@@ -172,7 +303,8 @@
           </button>
         </header>
 
-        <main class="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 relative min-h-0">
+        <main
+          class="flex-1 overflow-y-auto p-4 md:px-6 lg:px-8 relative min-h-0">
           <div class="w-full h-full">
             <slot />
           </div>
@@ -322,24 +454,40 @@
                     </NuxtLink>
                   </nav>
 
+                  <div v-if="!authStore.isPro" class="px-4 mb-8">
+                    <div
+                      class="bg-white rounded-2xl p-5 border border-[#e5e5e5] shadow-[0_2px_12px_rgba(0,0,0,0.03)] relative">
+                      <div class="relative">
+                        <div class="flex items-center gap-2 mb-2">
+                          <h5
+                            class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.1em]">
+                            Limited Plan
+                          </h5>
+                        </div>
+                        <p class="text-[14px] font-bold text-slate-900 mb-1">
+                          Upgrade to Pro
+                        </p>
+                        <p
+                          class="text-[12px] text-slate-500 font-medium leading-relaxed mb-4">
+                          Get unlimited invoices, WhatsApp reminders and AI
+                          drafts.
+                        </p>
+                        <NuxtLink
+                          to="/settings?tab=billing"
+                          @click="isMobileMenuOpen = false"
+                          class="block w-full text-center py-2.5 bg-slate-900 text-white text-[12px] font-bold rounded-xl hover:bg-slate-800 transition-all shadow-sm">
+                          Upgrade Now
+                        </NuxtLink>
+                      </div>
+                    </div>
+                  </div>
+
                   <!-- Bottom Sidebar Action -->
-                  <div class="p-4 border-t border-[#e5e5e5]">
-                    <button
-                      @click.prevent="isLogoutModalOpen = true"
-                      class="w-full flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:text-slate-900 hover:bg-[#ebebec] transition-colors text-left border-none bg-transparent">
-                      <svg
-                        class="w-[18px] h-[18px] mr-3 opacity-70"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24">
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-                      </svg>
-                      Sign Out
-                    </button>
+                  <div class="p-6 border-t border-[#e5e5e5]">
+                    <p
+                      class="text-[11px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center">
+                      invokita v1.0.0
+                    </p>
                   </div>
                 </div>
               </div>
@@ -388,6 +536,26 @@
     </UiModal>
   </div>
 </template>
+
+<style scoped>
+/* Custom Scrollbar for scrollable containers */
+.overflow-y-auto::-webkit-scrollbar {
+  width: 6px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1; /* slate-300 */
+  border-radius: 20px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background-color: #94a3b8; /* slate-400 */
+}
+</style>
 
 <script setup>
 import { ref, watch } from "vue";

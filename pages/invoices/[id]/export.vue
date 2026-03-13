@@ -4,6 +4,7 @@
     <!-- Selected Template -->
     <div
       v-if="invoice"
+      id="invoice-content"
       class="w-full max-w-4xl bg-white shadow-none border-none animate-in fade-in duration-700">
       <!-- 1. PROFESSIONAL THEME (Clean & Formal) -->
       <div
@@ -38,6 +39,11 @@
               {{ invoice.client?.name }}
             </div>
             <div class="text-sm text-slate-500 mt-1 whitespace-pre-line">
+              <p
+                v-if="invoice.client?.company"
+                class="font-medium text-slate-700">
+                {{ invoice.client?.company }}
+              </p>
               {{ invoice.client?.email }}
               <p>{{ invoice.client?.address }}</p>
             </div>
@@ -48,9 +54,18 @@
               From
             </div>
             <div class="text-sm font-semibold text-slate-900">
-              {{ invoice.fromName || "Our Company" }}
+              {{ invoice.fromName || invoice.fromCompanyName || "Our Company" }}
             </div>
             <div class="text-sm text-slate-500 mt-1 whitespace-pre-line">
+              <p
+                v-if="
+                  invoice.fromCompanyName &&
+                  invoice.fromName &&
+                  invoice.fromCompanyName !== invoice.fromName
+                "
+                class="font-medium text-slate-700">
+                {{ invoice.fromCompanyName }}
+              </p>
               {{ invoice.fromEmail }}
               <p>{{ invoice.fromAddress }}</p>
             </div>
@@ -108,7 +123,11 @@
               v-for="(item, idx) in invoice.items"
               :key="idx"
               class="flex items-center text-sm py-1 border-b border-slate-50 last:border-0 pb-3">
-              <div class="flex-[3]">
+              <div class="flex-[3] flex items-center gap-3">
+                <div
+                  class="w-6 h-6 rounded bg-teal-50 flex items-center justify-center border border-teal-100 flex-shrink-0">
+                  <UiIcon icon="heroicons:cube" class="w-4 h-4 text-teal-600" />
+                </div>
                 <span class="font-semibold text-slate-900">{{
                   item.name || "Unnamed Item"
                 }}</span>
@@ -211,10 +230,21 @@
                 From
               </div>
               <div class="text-sm font-semibold text-slate-900 mb-1">
-                {{ invoice.fromName || "Our Company" }}
+                {{
+                  invoice.fromName || invoice.fromCompanyName || "Our Company"
+                }}
               </div>
               <div
                 class="text-xs text-slate-500 leading-relaxed whitespace-pre-line">
+                <p
+                  v-if="
+                    invoice.fromCompanyName &&
+                    invoice.fromName &&
+                    invoice.fromCompanyName !== invoice.fromName
+                  "
+                  class="font-medium text-slate-700">
+                  {{ invoice.fromCompanyName }}
+                </p>
                 {{ invoice.fromEmail }}
                 <p>{{ invoice.fromAddress }}</p>
               </div>
@@ -229,6 +259,11 @@
               </div>
               <div
                 class="text-xs text-slate-500 leading-relaxed whitespace-pre-line">
+                <p
+                  v-if="invoice.client?.company"
+                  class="font-medium text-slate-700">
+                  {{ invoice.client?.company }}
+                </p>
                 {{ invoice.client?.email }}
                 <p>{{ invoice.client?.address }}</p>
               </div>

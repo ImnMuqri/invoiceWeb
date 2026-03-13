@@ -21,6 +21,29 @@
         </div>
       </div>
 
+      <!-- Currency Note -->
+      <div
+        class="bg-indigo-50 border border-indigo-100 rounded-xl p-4 flex gap-4 items-start">
+        <div class="mt-0.5">
+          <UiIcon
+            icon="heroicons:information-circle-solid"
+            custom-class="w-5 h-5 text-indigo-600" />
+        </div>
+        <div>
+          <h4 class="text-sm font-bold text-indigo-900">
+            Multi-Currency standardisation
+          </h4>
+          <p class="text-xs text-indigo-700/80 mt-1 leading-relaxed">
+            All amounts are automatically converted and standardised to your
+            default currency (<strong>{{
+              dashboardStore.stats.currency || "MYR"
+            }}</strong
+            >) based on your preferences. This ensures accurate tracking across
+            global clients.
+          </p>
+        </div>
+      </div>
+
       <!-- Stats -->
       <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
         <!-- Revenue Card -->
@@ -30,7 +53,8 @@
             Total Revenue
           </dt>
           <dd class="text-2xl font-semibold text-indigo-950 tracking-tight">
-            {{ (dashboardStore.stats.totalRevenue || 0).toLocaleString() }} MYR
+            {{ (dashboardStore.stats.totalRevenue || 0).toLocaleString() }}
+            {{ dashboardStore.stats.currency }}
           </dd>
         </div>
         <!-- Outstanding Card -->
@@ -41,7 +65,7 @@
           </dt>
           <dd class="text-2xl font-semibold text-amber-950 tracking-tight">
             {{ (dashboardStore.stats.outstandingAmount || 0).toLocaleString() }}
-            MYR
+            {{ dashboardStore.stats.currency }}
           </dd>
         </div>
         <!-- Active Clients Card -->
@@ -216,7 +240,33 @@
 
           <!-- Client Profitability Insights -->
           <div
-            class="bg-white shadow-sm rounded-xl border border-slate-200 flex flex-col overflow-hidden">
+            class="bg-white shadow-sm rounded-xl border border-slate-200 flex flex-col overflow-hidden relative">
+            <!-- Blur Overlay for Client Profitability -->
+            <div
+              v-if="!authStore.isPro"
+              class="absolute inset-0 z-10 backdrop-blur-[4px] bg-white/40 flex items-center justify-center border border-slate-100/50">
+              <div class="text-center p-4">
+                <div class="flex items-center justify-center gap-1 mb-2">
+                  <h3 class="text-[13px] font-bold text-slate-900">
+                    Profitability Insights Locked
+                  </h3>
+                  <UiIcon
+                    icon="heroicons:lock-closed"
+                    class="w-3 h-3 text-black/70" />
+                </div>
+                <p class="text-[12px] text-slate-500 mb-4 px-2 leading-relaxed">
+                  Identify your most high-value clients with automated margin
+                  analysis and payment behavior tracking.
+                </p>
+
+                <NuxtLink
+                  to="/settings?tab=billing"
+                  class="text-[10px] font-bold border border-emerald-200 py-2 px-4 rounded-md text-emerald-600 hover:text-emerald-800 uppercase tracking-widest"
+                  >Upgrade to Pro →</NuxtLink
+                >
+              </div>
+            </div>
+
             <div
               class="p-6 border-b border-slate-200 flex items-center justify-between bg-white">
               <div>
@@ -265,7 +315,8 @@
                       </div>
                     </td>
                     <td class="px-6 py-4 text-sm font-medium text-slate-600">
-                      {{ (client.totalRevenue || 0).toLocaleString() }} MYR
+                      {{ (client.totalRevenue || 0).toLocaleString() }}
+                      {{ dashboardStore.stats.currency }}
                     </td>
                     <td class="px-6 py-4">
                       <span
@@ -318,7 +369,7 @@
                 </p>
 
                 <NuxtLink
-                  to="/settings"
+                  to="/settings?tab=billing"
                   class="text-[10px] font-bold border border-emerald-200 py-2 px-4 rounded-md text-emerald-600 hover:text-emerald-800 uppercase tracking-widest"
                   >Upgrade to Pro →</NuxtLink
                 >
@@ -404,6 +455,7 @@
                 </div>
                 <p class="text-sm font-semibold text-slate-900 shrink-0">
                   {{ (invoice.amount || 0).toLocaleString() }}
+                  {{ invoice.currency }}
                 </p>
               </li>
               <li

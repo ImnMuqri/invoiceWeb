@@ -51,6 +51,16 @@
                 <div class="sm:col-span-4">
                   <label
                     class="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2"
+                    >Full Name</label
+                  >
+                  <input
+                    type="text"
+                    v-model="profileForm.name"
+                    class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-slate-950 outline-none transition-all" />
+                </div>
+                <div class="sm:col-span-4">
+                  <label
+                    class="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2"
                     >Company Name</label
                   >
                   <input
@@ -396,8 +406,16 @@
                   </li>
                 </ul>
                 <button
-                  disabled
-                  class="w-full py-2.5 rounded-xl text-sm font-semibold border border-slate-200 bg-slate-50 text-slate-400 cursor-not-allowed">
+                  @click="
+                    authStore.user?.plan !== 'FREE' ? updatePlan('FREE') : null
+                  "
+                  :disabled="authStore.user?.plan === 'FREE'"
+                  class="w-full py-2.5 rounded-xl text-sm font-semibold transition-all border"
+                  :class="
+                    authStore.user?.plan === 'FREE'
+                      ? 'border-slate-100 bg-slate-50 text-slate-400 cursor-not-allowed'
+                      : 'bg-slate-900 text-white border-slate-900 hover:bg-slate-800'
+                  ">
                   {{
                     authStore.user?.plan === "FREE"
                       ? "Current Plan"
@@ -563,6 +581,7 @@ import { useRoute, useRouter } from "vue-router";
 import { useAuthStore } from "~/stores/authStore";
 
 const authStore = useAuthStore();
+const subscribeStore = useSubscribeStore();
 const route = useRoute();
 const router = useRouter();
 const { $api } = useNuxtApp();
@@ -684,14 +703,16 @@ const saveSettings = async () => {
 
 const updatePlan = async (plan) => {
   try {
-    const res = await authStore.updatePlan(plan);
+    const res = await subscribeStore.subscribe(plan);
+    // Refetch profile to get new usage limits
+    await authStore.fetchProfile();
     toast.value = {
       message: res?.message || `Successfully switched to ${plan} plan!`,
       type: "success",
     };
   } catch (err) {
     toast.value = {
-      message: err.response?.data?.message || authStore.error || "Failed to update plan",
+      message: err.response?.data?.message || subscribeStore.error || "Failed to update plan",
       type: "error",
     };
   }
