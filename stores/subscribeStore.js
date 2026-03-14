@@ -29,7 +29,7 @@ export const useSubscribeStore = defineStore("subscribe", () => {
       return data;
     } catch (err) {
       error.value = err.response?.data?.message || err.message || "Failed to subscribe to plan";
-      console.error("[subscribeStore] Error subscribing to plan:", err);
+
       throw err;
     } finally {
       loading.value = false;

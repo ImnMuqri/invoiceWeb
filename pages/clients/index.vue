@@ -1,16 +1,11 @@
 <template>
   <div>
-    <div class="sm:flex sm:items-center justify-between mb-8">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
       <div>
-        <h1 class="text-2xl font-semibold text-slate-900 tracking-tight">
-          Clients
-        </h1>
-        <p class="mt-2 text-sm text-slate-500 font-medium">
-          Manage your client list, their contact information, and billing
-          details.
-        </p>
+        <h2 class="text-2xl font-bold text-slate-900 tracking-tight">Clients</h2>
+        <p class="text-xs font-medium text-slate-500 mt-1">Manage your client list and billing details.</p>
       </div>
-      <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none flex items-center gap-4">
+      <div class="flex items-center gap-4">
         <!-- Search Input -->
         <div class="relative rounded-md shadow-sm w-full sm:w-64">
           <div
@@ -456,9 +451,11 @@
 import { ref, computed, onMounted } from "vue";
 import { useClientStore } from "~/stores/clientStore";
 import { useAuthStore } from "~/stores/authStore";
+import { useUiStore } from "~/stores/uiStore";
 
 const clientStore = useClientStore();
 const authStore = useAuthStore();
+const uiStore = useUiStore();
 
 onMounted(() => {
   clientStore.fetchClients();
@@ -523,7 +520,7 @@ const confirmDelete = async () => {
       type: "success",
     };
   } catch (err) {
-    console.error("Failed to delete client:", err);
+
     toast.value = {
       message: err.response?.data?.message || "Failed to delete client.",
       type: "error",
@@ -562,7 +559,7 @@ const submitClient = async () => {
       const res = await clientStore.updateClient(editingClientId.value, {
         ...form.value,
       });
-      console.log(res);
+
       toast.value = {
         message: res?.message || "Client updated successfully",
         type: "success",
@@ -585,7 +582,7 @@ const submitClient = async () => {
     };
     showModal.value = false;
   } catch (err) {
-    console.error("Failed to submit client:", err);
+
     toast.value = {
       message: err.response?.data?.message || "Failed to save client.",
       type: "error",
@@ -605,7 +602,7 @@ const toggleChaser = async (client, field) => {
       type: "success",
     };
   } catch (err) {
-    console.error("Failed to toggle autoChaser:", err);
+
     toast.value = {
       message:
         err.response?.data?.message || "Failed to update Chaser setting.",

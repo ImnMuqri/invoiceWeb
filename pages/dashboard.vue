@@ -1,24 +1,16 @@
 <template>
   <div class="dashboard-page max-w-[1400px] mx-auto font-sans pb-8">
     <div class="flex flex-col gap-8">
-      <!-- Header Section -->
-      <div
-        class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 class="text-2xl font-semibold text-slate-900 tracking-tight">
-            Dashboard
-          </h1>
-          <p class="mt-1 text-sm text-slate-500 font-medium">
-            Here's your financial overview for today.
-          </p>
+          <h2 class="text-2xl font-bold text-slate-900 tracking-tight">Dashboard</h2>
+          <p class="text-xs font-medium text-slate-500 mt-1">Deep insights into platform growth and system performance.</p>
         </div>
-        <div class="flex items-center gap-3">
-          <NuxtLink
-            to="/invoices/create"
-            class="inline-flex items-center rounded-md bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 transition-all">
-            New Invoice
-          </NuxtLink>
-        </div>
+        <NuxtLink
+          to="/invoices/create"
+          class="inline-flex items-center rounded-md bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 transition-all w-fit">
+          New Invoice
+        </NuxtLink>
       </div>
 
       <!-- Currency Note -->
@@ -478,9 +470,11 @@
 import { onMounted, ref, computed, watch } from "vue";
 import { useDashboardStore } from "~/stores/dashboardStore";
 import { useAuthStore } from "~/stores/authStore";
+import { useUiStore } from "~/stores/uiStore";
 
 const dashboardStore = useDashboardStore();
 const authStore = useAuthStore();
+const uiStore = useUiStore();
 const toast = ref({ message: "", type: "success" });
 
 const forecastRange = ref(30);
@@ -502,6 +496,7 @@ watch(forecastRange, (newRange) => {
 });
 
 onMounted(() => {
+
   fetchDashboardData(forecastRange.value);
   authStore.fetchProfile();
 });
@@ -524,7 +519,7 @@ const chartData = computed(() => {
 watch(
   chartData,
   (newData) => {
-    console.log("Dashboard Chart Data:", newData);
+
   },
   { immediate: true },
 );

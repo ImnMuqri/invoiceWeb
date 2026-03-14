@@ -1,11 +1,9 @@
 <template>
   <div class="max-w-[1300px]">
     <div class="mb-8">
-      <h1 class="text-2xl font-semibold text-slate-900 tracking-tight">
-        Settings
-      </h1>
-      <p class="mt-2 text-sm text-slate-500 font-medium">
-        Manage your company profile, WhatsApp configurations, and preferences.
+      <h2 class="text-2xl font-bold text-slate-900 tracking-tight">Settings</h2>
+      <p class="text-xs font-medium text-slate-500 mt-1">
+        Manage your profile and platform preferences.
       </p>
     </div>
 
@@ -579,8 +577,10 @@
 import { ref, onMounted, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useAuthStore } from "~/stores/authStore";
+import { useUiStore } from "~/stores/uiStore";
 
 const authStore = useAuthStore();
+const uiStore = useUiStore();
 const subscribeStore = useSubscribeStore();
 const route = useRoute();
 const router = useRouter();
@@ -609,7 +609,6 @@ const fetchCurrencies = async () => {
     const response = await $api.get("/currencies");
     currencyOptions.value = response.data;
   } catch (err) {
-    console.error("Failed to fetch currencies:", err);
     // Fallback if API fails
     currencyOptions.value = [
       { value: "MYR", label: "MYR (RM)" },
@@ -695,7 +694,10 @@ const saveSettings = async () => {
     };
   } catch (err) {
     toast.value = {
-      message: err.response?.data?.message || authStore.error || "Failed to save settings",
+      message:
+        err.response?.data?.message ||
+        authStore.error ||
+        "Failed to save settings",
       type: "error",
     };
   }
@@ -712,7 +714,10 @@ const updatePlan = async (plan) => {
     };
   } catch (err) {
     toast.value = {
-      message: err.response?.data?.message || subscribeStore.error || "Failed to update plan",
+      message:
+        err.response?.data?.message ||
+        subscribeStore.error ||
+        "Failed to update plan",
       type: "error",
     };
   }

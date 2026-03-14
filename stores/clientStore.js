@@ -15,7 +15,7 @@ export const useClientStore = defineStore("client", {
         this.clients = data;
       } catch (err) {
         this.error = err.response?.data?.message || err.message;
-        console.error("Error fetching clients:", err);
+
       } finally {
         this.loading = false;
       }
@@ -29,7 +29,7 @@ export const useClientStore = defineStore("client", {
         return data;
       } catch (err) {
         this.error = err.response?.data?.message || err.message;
-        console.error("Error adding client:", err);
+
         throw err;
       } finally {
         this.loading = false;
@@ -44,7 +44,7 @@ export const useClientStore = defineStore("client", {
         return data;
       } catch (err) {
         this.error = err.response?.data?.message || err.message;
-        console.error("Error deleting client:", err);
+
         throw err;
       } finally {
         this.loading = false;
@@ -59,11 +59,11 @@ export const useClientStore = defineStore("client", {
         if (index !== -1) {
           this.clients[index] = data;
         }
-        console.log("Data", data);
+
         return data;
       } catch (err) {
         this.error = err.response?.data?.message || err.message;
-        console.error("Error updating client:", err);
+
         throw err;
       } finally {
         this.loading = false;

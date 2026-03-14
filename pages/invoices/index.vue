@@ -1,15 +1,11 @@
 <template>
   <div class="invoices-page">
-    <div class="sm:flex sm:items-center justify-between mb-8">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
       <div>
-        <h1 class="text-2xl font-semibold text-slate-900 tracking-tight">
-          Invoices
-        </h1>
-        <p class="mt-2 text-sm text-slate-500 font-medium">
-          A list of all the invoices including their status, client, and amount.
-        </p>
+        <h2 class="text-2xl font-bold text-slate-900 tracking-tight">Invoices</h2>
+        <p class="text-xs font-medium text-slate-500 mt-1">Manage and track your client billings.</p>
       </div>
-      <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none flex items-center gap-4">
+      <div class="flex items-center gap-4">
         <!-- Search Input -->
         <div class="relative rounded-md shadow-sm w-full sm:w-64">
           <div
@@ -344,11 +340,15 @@
 import { computed, ref, onMounted } from "vue";
 import { useInvoiceStore } from "~/stores/invoiceStore";
 import { useAuthStore } from "~/stores/authStore";
+import { useUiStore } from "~/stores/uiStore";
 import { formatDate } from "~/utils/date";
+
 const invoiceStore = useInvoiceStore();
 const authStore = useAuthStore();
+const uiStore = useUiStore();
 
 onMounted(async () => {
+
   try {
     await invoiceStore.fetchInvoices();
   } catch (err) {
@@ -409,7 +409,7 @@ const confirmDelete = async () => {
       type: "success",
     };
   } catch (err) {
-    console.error("Failed to delete invoice:", err);
+
     toast.value = {
       message:
         err.response?.data?.message ||

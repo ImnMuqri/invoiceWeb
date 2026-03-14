@@ -15,7 +15,7 @@ export const useInvoiceStore = defineStore("invoice", {
         this.invoices = data;
       } catch (err) {
         this.error = err.response?.data?.message || err.message;
-        console.error("Error fetching invoices:", err);
+
         throw err;
       } finally {
         this.loading = false;
@@ -29,7 +29,7 @@ export const useInvoiceStore = defineStore("invoice", {
         return data;
       } catch (err) {
         this.error = err.response?.data?.message || err.message;
-        console.error("Error fetching invoice:", err);
+
         throw err;
       } finally {
         this.loading = false;
@@ -75,7 +75,7 @@ export const useInvoiceStore = defineStore("invoice", {
         return data;
       } catch (err) {
         this.error = err.response?.data?.message || err.message;
-        console.error("Error deleting invoice:", err);
+
         throw err;
       }
     },
@@ -95,7 +95,7 @@ export const useInvoiceStore = defineStore("invoice", {
           invoice.whatsappStatus = "Not Sent";
         }
         this.error = err.response?.data?.message || err.message;
-        console.error("Error sending WhatsApp reminder:", err);
+
         throw err;
       }
     },
@@ -114,7 +114,7 @@ export const useInvoiceStore = defineStore("invoice", {
         link.remove();
         window.URL.revokeObjectURL(url);
       } catch (err) {
-        console.error("Error downloading PDF:", err);
+
         throw err;
       }
     },
@@ -144,7 +144,7 @@ export const useInvoiceStore = defineStore("invoice", {
         return data;
       } catch (err) {
         this.error = err.response?.data?.message || err.message;
-        console.error("Error sending WhatsApp message:", err);
+
         throw err;
       }
     },

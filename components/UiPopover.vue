@@ -1,5 +1,5 @@
 <template>
-  <div class="inline-block" ref="containerRef">
+  <div :class="props.class" ref="containerRef">
     <div @click.stop="toggle" ref="triggerRef" class="cursor-pointer">
       <slot name="trigger" :is-open="isOpen"></slot>
     </div>
@@ -33,8 +33,12 @@ import { ref, onMounted, onUnmounted, nextTick, watch } from "vue";
 const props = defineProps({
   placement: {
     type: String,
-    default: "bottom-end", // bottom-start, bottom-end
+    default: "bottom-end", // bottom-start, bottom-end, top-start
   },
+  class: {
+    type: String,
+    default: "inline-block"
+  }
 });
 
 const isOpen = ref(false);
@@ -53,10 +57,40 @@ const updatePosition = () => {
   let left = rect.left;
 
   if (props.placement === "bottom-end") {
-    // We'll need the popover width for bottom-end, so we use nextTick in toggle
     if (popoverRef.value) {
       const popoverRect = popoverRef.value.getBoundingClientRect();
       left = rect.right - popoverRect.width;
+    }
+  } else if (props.placement === "top-start") {
+    if (popoverRef.value) {
+      const popoverRect = popoverRef.value.getBoundingClientRect();
+      top = rect.top - popoverRect.height - offset;
+      left = rect.left;
+    }
+  } else if (props.placement === "right-start") {
+    top = rect.top;
+    left = rect.right + offset;
+  } else if (props.placement === "right-end") {
+    if (popoverRef.value) {
+      const popoverRect = popoverRef.value.getBoundingClientRect();
+      top = rect.bottom - popoverRect.height;
+      left = rect.right + offset;
+    }
+  }
+
+  // Viewport Collision Detection (Basic)
+  if (popoverRef.value) {
+    const popoverRect = popoverRef.value.getBoundingClientRect();
+    const viewportHeight = window.innerHeight;
+    
+    // If it goes off the bottom, shift it up
+    if (top + popoverRect.height > viewportHeight) {
+      top = viewportHeight - popoverRect.height - offset;
+    }
+    
+    // Ensure it doesn't go off the top
+    if (top < offset) {
+      top = offset;
     }
   }
 
@@ -71,8 +105,8 @@ const toggle = async () => {
   if (isOpen.value) {
     await nextTick();
     updatePosition();
-    // Second call to handle placement logic after width is known
-    if (props.placement === "bottom-end") {
+    // Second call to handle placement logic after width/height is known
+    if (props.placement === "bottom-end" || props.placement === "top-start") {
       updatePosition();
     }
   }
