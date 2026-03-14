@@ -14,6 +14,9 @@ export const useAuthStore = defineStore("auth", () => {
   const isPro = computed(() => {
     return user.value?.plan === "PRO" || user.value?.plan === "MAX";
   });
+  const isAdmin = computed(() => {
+    return user.value?.role === "ADMIN";
+  });
 
   // Function to sync from cookies to store (SSR safe)
   function syncFromCookies() {
@@ -42,7 +45,7 @@ export const useAuthStore = defineStore("auth", () => {
 
       // If we have NO state but have LS, restore from LS
       else if (!accessToken.value && localStorage.getItem("accessToken")) {
-        console.log("[authStore] Restoring from LocalStorage...");
+
         accessToken.value = localStorage.getItem("accessToken");
         refreshToken.value = localStorage.getItem("refreshToken");
         const savedUser = localStorage.getItem("user");
@@ -63,7 +66,7 @@ export const useAuthStore = defineStore("auth", () => {
       ([u, at, rt]) => {
         if (!isReady.value) return;
 
-        console.log(`[authStore] State change detected: AT=${!!at}`);
+
         const uCookie = useCookie("user", { path: "/" });
         const atCookie = useCookie("accessToken", { path: "/" });
         const rtCookie = useCookie("refreshToken", { path: "/" });
@@ -87,7 +90,7 @@ export const useAuthStore = defineStore("auth", () => {
   }
 
   async function login(email, password) {
-    console.log("[authStore] login() called");
+
     const { $api } = useNuxtApp();
     loading.value = true;
     try {
@@ -104,7 +107,7 @@ export const useAuthStore = defineStore("auth", () => {
       return true;
     } catch (err) {
       error.value = err.response?.data?.message || err.message;
-      return false;
+      throw err;
     } finally {
       loading.value = false;
     }
@@ -115,7 +118,7 @@ export const useAuthStore = defineStore("auth", () => {
     try {
       await $api.post("/auth/logout");
     } catch (err) {
-      console.error("Backend logout failed:", err);
+
     } finally {
       user.value = null;
       accessToken.value = null;
@@ -153,7 +156,7 @@ export const useAuthStore = defineStore("auth", () => {
       return true;
     } catch (err) {
       error.value = err.response?.data?.message || err.message;
-      return false;
+      throw err;
     } finally {
       loading.value = false;
     }
@@ -185,7 +188,7 @@ export const useAuthStore = defineStore("auth", () => {
       return true;
     } catch (err) {
       error.value = err.response?.data?.message || err.message;
-      return false;
+      throw err;
     } finally {
       loading.value = false;
     }
@@ -203,7 +206,7 @@ export const useAuthStore = defineStore("auth", () => {
       useCookie("accessToken", { path: "/" }).value = data.accessToken;
       return true;
     } catch (err) {
-      console.error("Failed to refresh access token:", err);
+
       return false;
     }
   }
@@ -232,26 +235,7 @@ export const useAuthStore = defineStore("auth", () => {
       return true;
     } catch (err) {
       error.value = err.response?.data?.message || err.message;
-      return false;
-    } finally {
-      loading.value = false;
-    }
-  }
-
-  async function updatePlan(plan) {
-    const { $api } = useNuxtApp();
-    loading.value = true;
-    error.value = null;
-    try {
-      const { data } = await $api.post("/users/update-plan", { plan });
-      if (user.value) {
-        user.value.plan = data.plan;
-      }
-      return true;
-    } catch (err) {
-      error.value = err.response?.data?.message || err.message;
-      console.error("Error updating plan:", err);
-      return false;
+      throw err;
     } finally {
       loading.value = false;
     }
@@ -265,6 +249,7 @@ export const useAuthStore = defineStore("auth", () => {
     error,
     token,
     isPro,
+    isAdmin,
     login,
     register,
     logout,
@@ -272,7 +257,6 @@ export const useAuthStore = defineStore("auth", () => {
     updateProfile,
     fetchSettings,
     updateSettings,
-    updatePlan,
     syncFromCookies,
     refreshAccessToken,
   };

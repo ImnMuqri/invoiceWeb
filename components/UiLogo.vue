@@ -6,30 +6,10 @@
         'relative flex items-center justify-center shrink-0',
       ]">
       <!-- Logo Mark -->
-      <svg
-        viewBox="0 0 24 24"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        class="w-full h-full">
-        <!-- Background Leaf/Paper Shape -->
-        <path
-          d="M7 3C4.23858 3 2 5.23858 2 8V18C2 19.1046 2.89543 20 4 20H14C15.1046 20 16 19.1046 16 18V10L11 3H7Z"
-          fill="currentColor"
-          class="text-slate-900" />
-        <!-- Accent Dot (The "Mate" or Spark) -->
-        <circle
-          cx="18"
-          cy="7"
-          r="4"
-          fill="currentColor"
-          class="text-emerald-600" />
-        <!-- Inner Line (Invoicing feel) -->
-        <path
-          d="M6 10H10M6 14H12"
-          stroke="white"
-          stroke-width="2"
-          stroke-linecap="round" />
-      </svg>
+      <img
+        src="/InvoKitaLogo.png"
+        alt="InvoKita Logo"
+        class="w-full h-full object-contain" />
     </div>
     <span
       v-if="showText"

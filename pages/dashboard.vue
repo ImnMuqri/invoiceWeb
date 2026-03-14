@@ -1,23 +1,38 @@
 <template>
   <div class="dashboard-page max-w-[1400px] mx-auto font-sans pb-8">
     <div class="flex flex-col gap-8">
-      <!-- Header Section -->
-      <div
-        class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 class="text-2xl font-semibold text-slate-900 tracking-tight">
-            Dashboard
-          </h1>
-          <p class="mt-1 text-sm text-slate-500 font-medium">
-            Here's your financial overview for today.
-          </p>
+          <h2 class="text-2xl font-bold text-slate-900 tracking-tight">Dashboard</h2>
+          <p class="text-xs font-medium text-slate-500 mt-1">Deep insights into platform growth and system performance.</p>
         </div>
-        <div class="flex items-center gap-3">
-          <NuxtLink
-            to="/invoices/create"
-            class="inline-flex items-center rounded-md bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 transition-all">
-            New Invoice
-          </NuxtLink>
+        <NuxtLink
+          to="/invoices/create"
+          class="inline-flex items-center rounded-md bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 transition-all w-fit">
+          New Invoice
+        </NuxtLink>
+      </div>
+
+      <!-- Currency Note -->
+      <div
+        class="bg-indigo-50 border border-indigo-100 rounded-xl p-4 flex gap-4 items-start">
+        <div class="mt-0.5">
+          <UiIcon
+            icon="heroicons:information-circle-solid"
+            custom-class="w-5 h-5 text-indigo-600" />
+        </div>
+        <div>
+          <h4 class="text-sm font-bold text-indigo-900">
+            Multi-Currency standardisation
+          </h4>
+          <p class="text-xs text-indigo-700/80 mt-1 leading-relaxed">
+            All amounts are automatically converted and standardised to your
+            default currency (<strong>{{
+              dashboardStore.stats.currency || "MYR"
+            }}</strong
+            >) based on your preferences. This ensures accurate tracking across
+            global clients.
+          </p>
         </div>
       </div>
 
@@ -30,7 +45,8 @@
             Total Revenue
           </dt>
           <dd class="text-2xl font-semibold text-indigo-950 tracking-tight">
-            {{ (dashboardStore.stats.totalRevenue || 0).toLocaleString() }} MYR
+            {{ (dashboardStore.stats.totalRevenue || 0).toLocaleString() }}
+            {{ dashboardStore.stats.currency }}
           </dd>
         </div>
         <!-- Outstanding Card -->
@@ -41,7 +57,7 @@
           </dt>
           <dd class="text-2xl font-semibold text-amber-950 tracking-tight">
             {{ (dashboardStore.stats.outstandingAmount || 0).toLocaleString() }}
-            MYR
+            {{ dashboardStore.stats.currency }}
           </dd>
         </div>
         <!-- Active Clients Card -->
@@ -216,7 +232,33 @@
 
           <!-- Client Profitability Insights -->
           <div
-            class="bg-white shadow-sm rounded-xl border border-slate-200 flex flex-col overflow-hidden">
+            class="bg-white shadow-sm rounded-xl border border-slate-200 flex flex-col overflow-hidden relative">
+            <!-- Blur Overlay for Client Profitability -->
+            <div
+              v-if="!authStore.isPro"
+              class="absolute inset-0 z-10 backdrop-blur-[4px] bg-white/40 flex items-center justify-center border border-slate-100/50">
+              <div class="text-center p-4">
+                <div class="flex items-center justify-center gap-1 mb-2">
+                  <h3 class="text-[13px] font-bold text-slate-900">
+                    Profitability Insights Locked
+                  </h3>
+                  <UiIcon
+                    icon="heroicons:lock-closed"
+                    class="w-3 h-3 text-black/70" />
+                </div>
+                <p class="text-[12px] text-slate-500 mb-4 px-2 leading-relaxed">
+                  Identify your most high-value clients with automated margin
+                  analysis and payment behavior tracking.
+                </p>
+
+                <NuxtLink
+                  to="/settings?tab=billing"
+                  class="text-[10px] font-bold border border-emerald-200 py-2 px-4 rounded-md text-emerald-600 hover:text-emerald-800 uppercase tracking-widest"
+                  >Upgrade to Pro →</NuxtLink
+                >
+              </div>
+            </div>
+
             <div
               class="p-6 border-b border-slate-200 flex items-center justify-between bg-white">
               <div>
@@ -265,7 +307,8 @@
                       </div>
                     </td>
                     <td class="px-6 py-4 text-sm font-medium text-slate-600">
-                      {{ (client.totalRevenue || 0).toLocaleString() }} MYR
+                      {{ (client.totalRevenue || 0).toLocaleString() }}
+                      {{ dashboardStore.stats.currency }}
                     </td>
                     <td class="px-6 py-4">
                       <span
@@ -318,7 +361,7 @@
                 </p>
 
                 <NuxtLink
-                  to="/settings"
+                  to="/settings?tab=billing"
                   class="text-[10px] font-bold border border-emerald-200 py-2 px-4 rounded-md text-emerald-600 hover:text-emerald-800 uppercase tracking-widest"
                   >Upgrade to Pro →</NuxtLink
                 >
@@ -333,7 +376,7 @@
                 AI Chaser Insights
               </h3>
             </div>
-            <div class="space-y-4">
+            <div class="space-y-4 min-h-[100px]">
               <div
                 v-for="insight in dashboardStore.insights"
                 :key="insight.id || insight.title"
@@ -404,6 +447,7 @@
                 </div>
                 <p class="text-sm font-semibold text-slate-900 shrink-0">
                   {{ (invoice.amount || 0).toLocaleString() }}
+                  {{ invoice.currency }}
                 </p>
               </li>
               <li
@@ -426,20 +470,34 @@
 import { onMounted, ref, computed, watch } from "vue";
 import { useDashboardStore } from "~/stores/dashboardStore";
 import { useAuthStore } from "~/stores/authStore";
+import { useUiStore } from "~/stores/uiStore";
 
 const dashboardStore = useDashboardStore();
 const authStore = useAuthStore();
+const uiStore = useUiStore();
 const toast = ref({ message: "", type: "success" });
 
 const forecastRange = ref(30);
 
+const fetchDashboardData = async (range) => {
+  try {
+    await dashboardStore.fetchDashboardData(range);
+  } catch (err) {
+    toast.value = {
+      message: err.response?.data?.message || "Failed to load dashboard data",
+      type: "error",
+    };
+  }
+};
+
 // Watch for range changes to fetch new data
 watch(forecastRange, (newRange) => {
-  dashboardStore.fetchDashboardData(newRange);
+  fetchDashboardData(newRange);
 });
 
 onMounted(() => {
-  dashboardStore.fetchDashboardData(forecastRange.value);
+
+  fetchDashboardData(forecastRange.value);
   authStore.fetchProfile();
 });
 
@@ -461,7 +519,7 @@ const chartData = computed(() => {
 watch(
   chartData,
   (newData) => {
-    console.log("Dashboard Chart Data:", newData);
+
   },
   { immediate: true },
 );

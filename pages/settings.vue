@@ -1,11 +1,9 @@
 <template>
   <div class="max-w-[1300px]">
     <div class="mb-8">
-      <h1 class="text-2xl font-semibold text-slate-900 tracking-tight">
-        Settings
-      </h1>
-      <p class="mt-2 text-sm text-slate-500 font-medium">
-        Manage your company profile, WhatsApp configurations, and preferences.
+      <h2 class="text-2xl font-bold text-slate-900 tracking-tight">Settings</h2>
+      <p class="text-xs font-medium text-slate-500 mt-1">
+        Manage your profile and platform preferences.
       </p>
     </div>
 
@@ -48,6 +46,16 @@
                 Company Information
               </h3>
               <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                <div class="sm:col-span-4">
+                  <label
+                    class="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2"
+                    >Full Name</label
+                  >
+                  <input
+                    type="text"
+                    v-model="profileForm.name"
+                    class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-slate-950 outline-none transition-all" />
+                </div>
                 <div class="sm:col-span-4">
                   <label
                     class="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2"
@@ -396,8 +404,16 @@
                   </li>
                 </ul>
                 <button
-                  disabled
-                  class="w-full py-2.5 rounded-xl text-sm font-semibold border border-slate-200 bg-slate-50 text-slate-400 cursor-not-allowed">
+                  @click="
+                    authStore.user?.plan !== 'FREE' ? updatePlan('FREE') : null
+                  "
+                  :disabled="authStore.user?.plan === 'FREE'"
+                  class="w-full py-2.5 rounded-xl text-sm font-semibold transition-all border"
+                  :class="
+                    authStore.user?.plan === 'FREE'
+                      ? 'border-slate-100 bg-slate-50 text-slate-400 cursor-not-allowed'
+                      : 'bg-slate-900 text-white border-slate-900 hover:bg-slate-800'
+                  ">
                   {{
                     authStore.user?.plan === "FREE"
                       ? "Current Plan"
@@ -542,7 +558,11 @@
               type="button"
               @click="saveSettings"
               :disabled="authStore.loading"
-              class="inline-flex justify-center rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 transition-all disabled:opacity-50">
+              class="inline-flex justify-center items-center rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 transition-all disabled:opacity-50">
+              <UiIcon
+                v-if="authStore.loading"
+                icon="heroicons:arrow-path"
+                custom-class="w-4 h-4 mr-2 animate-spin text-white" />
               {{ authStore.loading ? "Saving..." : "Save Settings" }}
             </button>
           </div>
@@ -557,10 +577,14 @@
 import { ref, onMounted, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useAuthStore } from "~/stores/authStore";
+import { useUiStore } from "~/stores/uiStore";
 
 const authStore = useAuthStore();
+const uiStore = useUiStore();
+const subscribeStore = useSubscribeStore();
 const route = useRoute();
 const router = useRouter();
+const { $api } = useNuxtApp();
 
 const tabs = [
   {
@@ -582,10 +606,9 @@ const currencyOptions = ref([]);
 
 const fetchCurrencies = async () => {
   try {
-    const response = await $fetch("http://localhost:3002/api/currencies");
-    currencyOptions.value = response;
+    const response = await $api.get("/currencies");
+    currencyOptions.value = response.data;
   } catch (err) {
-    console.error("Failed to fetch currencies:", err);
     // Fallback if API fails
     currencyOptions.value = [
       { value: "MYR", label: "MYR (RM)" },
@@ -656,36 +679,45 @@ onMounted(async () => {
 });
 
 const saveSettings = async () => {
-  let success = false;
-  if (activeTab.value === "general") {
-    success = await authStore.updateProfile(profileForm.value);
-  } else if (activeTab.value === "whatsapp") {
-    success = await authStore.updateSettings(settingsForm.value);
-  } else {
-    // Billing doesn't have a save action yet
-    return;
-  }
-
-  if (success) {
-    toast.value = { message: "Settings saved successfully!", type: "success" };
-  } else {
+  try {
+    let res;
+    if (activeTab.value === "general") {
+      res = await authStore.updateProfile(profileForm.value);
+    } else if (activeTab.value === "whatsapp") {
+      res = await authStore.updateSettings(settingsForm.value);
+    } else {
+      return;
+    }
     toast.value = {
-      message: "Failed to save settings: " + authStore.error,
+      message: res?.message || "Settings saved successfully!",
+      type: "success",
+    };
+  } catch (err) {
+    toast.value = {
+      message:
+        err.response?.data?.message ||
+        authStore.error ||
+        "Failed to save settings",
       type: "error",
     };
   }
 };
 
 const updatePlan = async (plan) => {
-  const success = await authStore.updatePlan(plan);
-  if (success) {
+  try {
+    const res = await subscribeStore.subscribe(plan);
+    // Refetch profile to get new usage limits
+    await authStore.fetchProfile();
     toast.value = {
-      message: `Successfully switched to ${plan} plan!`,
+      message: res?.message || `Successfully switched to ${plan} plan!`,
       type: "success",
     };
-  } else {
+  } catch (err) {
     toast.value = {
-      message: "Failed to update plan: " + authStore.error,
+      message:
+        err.response?.data?.message ||
+        subscribeStore.error ||
+        "Failed to update plan",
       type: "error",
     };
   }

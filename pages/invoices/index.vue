@@ -1,15 +1,11 @@
 <template>
   <div class="invoices-page">
-    <div class="sm:flex sm:items-center justify-between mb-8">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
       <div>
-        <h1 class="text-2xl font-semibold text-slate-900 tracking-tight">
-          Invoices
-        </h1>
-        <p class="mt-2 text-sm text-slate-500 font-medium">
-          A list of all the invoices including their status, client, and amount.
-        </p>
+        <h2 class="text-2xl font-bold text-slate-900 tracking-tight">Invoices</h2>
+        <p class="text-xs font-medium text-slate-500 mt-1">Manage and track your client billings.</p>
       </div>
-      <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none flex items-center gap-4">
+      <div class="flex items-center gap-4">
         <!-- Search Input -->
         <div class="relative rounded-md shadow-sm w-full sm:w-64">
           <div
@@ -111,7 +107,8 @@
         </td>
         <td
           class="whitespace-nowrap px-3 py-4 text-sm font-semibold text-slate-900">
-          {{ invoice?.currency === 'MYR' ? 'RM' : '$' }}{{ invoice?.amount?.toLocaleString() || "0" }}
+          {{ invoice?.currency === "MYR" ? "RM" : "$"
+          }}{{ invoice?.amount?.toLocaleString() || "0" }}
         </td>
         <td class="whitespace-nowrap px-3 py-4 text-sm">
           <span
@@ -172,55 +169,128 @@
           <span
             v-else-if="invoice?.whatsappStatus === 'Sending...'"
             class="inline-flex items-center text-amber-500 font-medium text-xs">
-            <svg
-              class="w-4 h-4 mr-1 animate-spin"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-            </svg>
+            <UiIcon
+              icon="heroicons:arrow-path"
+              custom-class="w-4 h-4 mr-1 animate-spin text-amber-500" />
             Sending...
           </span>
           <span v-else class="text-slate-400 font-medium text-xs">-</span>
         </td>
         <td
-          class="relative whitespace-nowrap py-4 pl-3 pr-6 text-right text-sm font-semibold flex items-center justify-end gap-3 h-full">
-          <div class="flex items-center justify-end gap-2">
-            <button
-              v-if="invoice?.status !== 'Paid' && authStore.user?.plan !== 'FREE'"
-              @click="openWhatsAppModal(invoice)"
-              class="p-2 text-slate-400 hover:text-[#25D366] hover:bg-emerald-50 rounded-lg transition-all"
-              title="Send WhatsApp Reminder">
-              <UiIcon icon="simple-icons:whatsapp" custom-class="w-4 h-4" />
-            </button>
-            <NuxtLink
-              v-if="invoice?.id"
-              :to="`/pay/${invoice.id}`"
-              target="_blank"
-              class="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all"
-              title="View Public Invoice">
-              <UiIcon
-                icon="heroicons:arrow-top-right-on-square"
-                custom-class="w-4 h-4" />
-            </NuxtLink>
-            <NuxtLink
-              v-if="invoice?.id"
-              :to="`/invoices/edit/${invoice.id}`"
-              class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
-              title="Edit Invoice">
-              <UiIcon icon="heroicons:pencil-square" custom-class="w-4 h-4" />
-            </NuxtLink>
-            <button
-              @click="openDeleteModal(invoice)"
-              class="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
-              title="Delete Invoice">
-              <UiIcon icon="heroicons:trash" custom-class="w-4 h-4" />
-            </button>
-          </div>
+          class="relative whitespace-nowrap py-4 pl-3 pr-6 text-right text-sm font-semibold flex items-center justify-end gap-1.5 h-full">
+          <!-- Always visible: Public Preview -->
+          <NuxtLink
+            v-if="invoice?.id"
+            :to="`/pay/${invoice.id}`"
+            target="_blank"
+            class="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all"
+            title="View Public Invoice">
+            <UiIcon
+              icon="heroicons:arrow-top-right-on-square"
+              custom-class="w-4 h-4" />
+          </NuxtLink>
+
+          <!-- Popover for other actions -->
+          <UiPopover placement="bottom-end">
+            <template #trigger>
+              <button
+                class="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-all"
+                title="More Actions">
+                <UiIcon
+                  icon="heroicons:ellipsis-horizontal"
+                  custom-class="w-5 h-5" />
+              </button>
+            </template>
+
+            <template #default="{ close }">
+              <!-- Actions Group: Communications -->
+              <div class="px-2 py-1.5 border-b border-slate-100 bg-slate-50/50">
+                <span
+                  class="text-[10px] font-bold text-slate-400 uppercase tracking-wider"
+                  >Communications</span
+                >
+              </div>
+
+              <div class="p-1">
+                <button
+                  @click="
+                    close();
+                    handleSendAction(invoice, 'email', false);
+                  "
+                  :disabled="invoice?.status === 'Paid'"
+                  class="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-600 hover:text-green-600 hover:bg-green-50 rounded-md transition-all text-left disabled:opacity-50 disabled:cursor-not-allowed">
+                  <UiIcon icon="heroicons:envelope" custom-class="w-4 h-4" />
+                  Send Email
+                </button>
+                <button
+                  @click="
+                    close();
+                    handleSendAction(invoice, 'email', true);
+                  "
+                  :disabled="invoice?.status === 'Paid'"
+                  class="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-600 hover:text-green-600 hover:bg-green-50 rounded-md transition-all text-left disabled:opacity-50 disabled:cursor-not-allowed">
+                  <UiIcon icon="heroicons:bell" custom-class="w-4 h-4" />
+                  Send Reminder Email
+                </button>
+                <div class="h-px bg-slate-100 my-1 mx-2"></div>
+                <button
+                  v-if="authStore.user?.plan !== 'FREE'"
+                  @click="
+                    close();
+                    handleSendAction(invoice, 'whatsapp', false);
+                  "
+                  :disabled="invoice?.status === 'Paid'"
+                  class="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-600 hover:text-[#25D366] hover:bg-emerald-50 rounded-md transition-all text-left disabled:opacity-50 disabled:cursor-not-allowed">
+                  <UiIcon icon="simple-icons:whatsapp" custom-class="w-4 h-4" />
+                  Send WhatsApp
+                </button>
+                <button
+                  v-if="authStore.user?.plan !== 'FREE'"
+                  @click="
+                    close();
+                    handleSendAction(invoice, 'whatsapp', true);
+                  "
+                  :disabled="invoice?.status === 'Paid'"
+                  class="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-600 hover:text-[#25D366] hover:bg-emerald-50 rounded-md transition-all text-left disabled:opacity-50 disabled:cursor-not-allowed">
+                  <UiIcon
+                    icon="heroicons:chat-bubble-left-right"
+                    custom-class="w-4 h-4" />
+                  Send Reminder WA
+                </button>
+              </div>
+
+              <!-- Actions Group: Management -->
+              <div
+                class="px-2 py-1.5 border-t border-b border-slate-100 bg-slate-50/50">
+                <span
+                  class="text-[10px] font-bold text-slate-400 uppercase tracking-wider"
+                  >Management</span
+                >
+              </div>
+
+              <div class="p-1">
+                <NuxtLink
+                  v-if="invoice?.id"
+                  :to="`/invoices/edit/${invoice.id}`"
+                  class="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-all">
+                  <UiIcon
+                    icon="heroicons:pencil-square"
+                    custom-class="w-4 h-4" />
+                  Edit Invoice
+                </NuxtLink>
+
+                <button
+                  @click="
+                    close();
+                    openDeleteModal(invoice);
+                  "
+                  class="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-md transition-all text-left">
+                  <UiIcon icon="heroicons:trash" custom-class="w-4 h-4" />
+                  Delete Invoice
+                </button>
+              </div>
+            </template>
+          </UiPopover>
         </td>
       </tr>
     </UiTable>
@@ -252,7 +322,7 @@
             <UiIcon
               v-if="isDeleting"
               icon="heroicons:arrow-path"
-              class="w-4 h-4 mr-2 animate-spin" />
+              custom-class="w-4 h-4 mr-2 animate-spin text-white" />
             {{ isDeleting ? "Deleting..." : "Yes, Delete Invoice" }}
           </button>
           <button
@@ -263,84 +333,6 @@
         </div>
       </div>
     </UiModal>
-
-    <!-- WhatsApp Sandbox Modal -->
-    <div v-if="showModal" class="relative z-50">
-      <div
-        class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity"
-        @click="closeModal"></div>
-
-      <div class="fixed inset-0 z-10 overflow-y-auto">
-        <div
-          class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-          <div
-            class="relative transform overflow-hidden rounded-2xl bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6 border border-slate-200">
-            <div>
-              <div
-                class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100">
-                <svg
-                  class="h-6 w-6 text-emerald-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24">
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
-                </svg>
-              </div>
-              <div class="mt-3 sm:mt-5">
-                <h3
-                  class="text-lg font-semibold leading-6 text-slate-900 text-center">
-                  Send WhatsApp Auto-Chaser
-                </h3>
-                <div class="mt-2 text-center text-sm text-slate-500 mb-6">
-                  Review the drafted message before the AI sends it to
-                  <span class="font-semibold text-slate-800">{{
-                    selectedInvoice?.client?.name ||
-                    selectedInvoice?.client ||
-                    "Untitled"
-                  }}</span
-                  >.
-                </div>
-
-                <div
-                  class="bg-[#f0f2f5] rounded-xl p-4 relative mb-6 border border-[#e5e5e5]">
-                  <!-- WhatsApp Tail -->
-                  <div
-                    class="absolute -left-2 top-4 w-4 h-4 bg-[#f0f2f5] rotate-45 border-l border-b border-[#e5e5e5]"></div>
-                  <p
-                    class="text-[15px] text-slate-800 leading-relaxed font-sans relative z-10 whitespace-pre-wrap">
-                    {{ previewMessage }}
-                  </p>
-                  <div
-                    class="mt-2 text-right text-[11px] font-medium text-slate-400">
-                    {{ new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }}
-                  </div>
-                </div>
-
-              </div>
-            </div>
-            <div
-              class="mt-5 sm:mt-6 sm:grid sm:grid-flow-row-dense sm:grid-cols-2 sm:gap-3">
-              <button
-                @click="confirmSend"
-                type="button"
-                class="inline-flex w-full justify-center rounded-xl bg-slate-900 px-3 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 sm:col-start-2 transition-colors">
-                Confirm & Send
-              </button>
-              <button
-                @click="closeModal"
-                type="button"
-                class="mt-3 inline-flex w-full justify-center rounded-xl bg-white px-3 py-2.5 text-sm font-semibold text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50 sm:col-start-1 sm:mt-0 transition-colors">
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -348,13 +340,23 @@
 import { computed, ref, onMounted } from "vue";
 import { useInvoiceStore } from "~/stores/invoiceStore";
 import { useAuthStore } from "~/stores/authStore";
+import { useUiStore } from "~/stores/uiStore";
 import { formatDate } from "~/utils/date";
+
 const invoiceStore = useInvoiceStore();
 const authStore = useAuthStore();
+const uiStore = useUiStore();
 
+onMounted(async () => {
 
-onMounted(() => {
-  invoiceStore.fetchInvoices();
+  try {
+    await invoiceStore.fetchInvoices();
+  } catch (err) {
+    toast.value = {
+      message: err.response?.data?.message || "Failed to fetch invoices",
+      type: "error",
+    };
+  }
 });
 
 const emit = defineEmits(["invoice-updated"]);
@@ -400,11 +402,14 @@ const confirmDelete = async () => {
 
   isDeleting.value = true;
   try {
-    await invoiceStore.deleteInvoice(invoiceToDelete.value.id);
+    const res = await invoiceStore.deleteInvoice(invoiceToDelete.value.id);
     isDeleteModalOpen.value = false;
-    toast.value = { message: "Invoice deleted successfully", type: "success" };
+    toast.value = {
+      message: res?.message || "Invoice deleted successfully",
+      type: "success",
+    };
   } catch (err) {
-    console.error("Failed to delete invoice:", err);
+
     toast.value = {
       message:
         err.response?.data?.message ||
@@ -417,57 +422,29 @@ const confirmDelete = async () => {
   }
 };
 
-const showModal = ref(false);
-const selectedInvoice = ref(null);
-
-const openWhatsAppModal = (invoice) => {
-  selectedInvoice.value = invoice;
-  showModal.value = true;
-};
-
-const closeModal = () => {
-  showModal.value = false;
-  setTimeout(() => {
-    selectedInvoice.value = null;
-  }, 200);
-};
-
-const previewMessage = computed(() => {
-  if (!selectedInvoice.value) return "";
-  const template =
-    authStore.user?.whatsappReminderTemplate ||
-    "Hi boss! Just a gentle reminder regarding invoice {{invoiceNumber}} for {{currency}} {{totalAmount}}. We noted there is an outstanding amount and wanted to provide an easy payment option via our secure FPX / DuitNow gateway: {{invoiceUrl}}\n\nLet us know if you have any questions. Thank you for your business! 🙏";
-
-  const frontendUrl = "https://pay.invokita.my"; // Or use runtime config
-
-  return template
-    .replace(/{{userName}}/g, authStore.user?.name || "")
-    .replace(/{{companyName}}/g, authStore.user?.companyName || "InvoKita User")
-    .replace(
-      /{{clientName}}/g,
-      selectedInvoice.value.client?.name ||
-        selectedInvoice.value.client ||
-        "Valued Client",
-    )
-    .replace(/{{invoiceNumber}}/g, selectedInvoice.value.id || "N/A")
-    .replace(
-      /{{totalAmount}}/g,
-      selectedInvoice.value.amount?.toLocaleString() || "0",
-    )
-    .replace(/{{currency}}/g, selectedInvoice.value.currency || "$")
-    .replace(
-      /{{invoiceUrl}}/g,
-      `${frontendUrl}/pay/${selectedInvoice.value.id}`,
-    )
-    .replace(/{{dueDate}}/g, formatDate(selectedInvoice.value.dueDate));
-});
-
-
-const confirmSend = () => {
-  if (selectedInvoice.value) {
-    invoiceStore.sendWhatsAppReminder(selectedInvoice.value.id);
+const handleSendAction = async (invoice, method, isReminder) => {
+  try {
+    const res = await invoiceStore.sendInvoice(
+      invoice.id,
+      method,
+      null,
+      isReminder,
+    );
+    if (method === "whatsapp" && res.waLink) {
+      window.open(res.waLink, "_blank");
+      toast.value = { message: "WhatsApp message prepared!", type: "success" };
+    } else {
+      toast.value = {
+        message: res.message || "Message sent successfully!",
+        type: "success",
+      };
+    }
+  } catch (err) {
+    toast.value = {
+      message: err.response?.data?.message || err.message,
+      type: "error",
+    };
   }
-  closeModal();
 };
 </script>
 

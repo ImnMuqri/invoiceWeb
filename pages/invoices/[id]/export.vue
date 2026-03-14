@@ -4,6 +4,7 @@
     <!-- Selected Template -->
     <div
       v-if="invoice"
+      id="invoice-content"
       class="w-full max-w-4xl bg-white shadow-none border-none animate-in fade-in duration-700">
       <!-- 1. PROFESSIONAL THEME (Clean & Formal) -->
       <div
@@ -38,6 +39,11 @@
               {{ invoice.client?.name }}
             </div>
             <div class="text-sm text-slate-500 mt-1 whitespace-pre-line">
+              <p
+                v-if="invoice.client?.company"
+                class="font-medium text-slate-700">
+                {{ invoice.client?.company }}
+              </p>
               {{ invoice.client?.email }}
               <p>{{ invoice.client?.address }}</p>
             </div>
@@ -48,9 +54,18 @@
               From
             </div>
             <div class="text-sm font-semibold text-slate-900">
-              {{ invoice.fromName || "Our Company" }}
+              {{ invoice.fromName || invoice.fromCompanyName || "Our Company" }}
             </div>
             <div class="text-sm text-slate-500 mt-1 whitespace-pre-line">
+              <p
+                v-if="
+                  invoice.fromCompanyName &&
+                  invoice.fromName &&
+                  invoice.fromCompanyName !== invoice.fromName
+                "
+                class="font-medium text-slate-700">
+                {{ invoice.fromCompanyName }}
+              </p>
               {{ invoice.fromEmail }}
               <p>{{ invoice.fromAddress }}</p>
             </div>
@@ -108,7 +123,11 @@
               v-for="(item, idx) in invoice.items"
               :key="idx"
               class="flex items-center text-sm py-1 border-b border-slate-50 last:border-0 pb-3">
-              <div class="flex-[3]">
+              <div class="flex-[3] flex items-center gap-3">
+                <div
+                  class="w-6 h-6 rounded bg-teal-50 flex items-center justify-center border border-teal-100 flex-shrink-0">
+                  <UiIcon icon="heroicons:cube" class="w-4 h-4 text-teal-600" />
+                </div>
                 <span class="font-semibold text-slate-900">{{
                   item.name || "Unnamed Item"
                 }}</span>
@@ -211,10 +230,21 @@
                 From
               </div>
               <div class="text-sm font-semibold text-slate-900 mb-1">
-                {{ invoice.fromName || "Our Company" }}
+                {{
+                  invoice.fromName || invoice.fromCompanyName || "Our Company"
+                }}
               </div>
               <div
                 class="text-xs text-slate-500 leading-relaxed whitespace-pre-line">
+                <p
+                  v-if="
+                    invoice.fromCompanyName &&
+                    invoice.fromName &&
+                    invoice.fromCompanyName !== invoice.fromName
+                  "
+                  class="font-medium text-slate-700">
+                  {{ invoice.fromCompanyName }}
+                </p>
                 {{ invoice.fromEmail }}
                 <p>{{ invoice.fromAddress }}</p>
               </div>
@@ -229,6 +259,11 @@
               </div>
               <div
                 class="text-xs text-slate-500 leading-relaxed whitespace-pre-line">
+                <p
+                  v-if="invoice.client?.company"
+                  class="font-medium text-slate-700">
+                  {{ invoice.client?.company }}
+                </p>
                 {{ invoice.client?.email }}
                 <p>{{ invoice.client?.address }}</p>
               </div>
@@ -358,22 +393,9 @@
       v-else-if="loading"
       class="p-20 text-slate-400 animate-pulse font-medium text-center w-full">
       <div class="mb-4">
-        <svg
-          class="w-12 h-12 mx-auto animate-spin text-slate-200"
-          fill="none"
-          viewBox="0 0 24 24">
-          <circle
-            class="opacity-25"
-            cx="12"
-            cy="12"
-            r="10"
-            stroke="currentColor"
-            stroke-width="4"></circle>
-          <path
-            class="opacity-75"
-            fill="currentColor"
-            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
+        <UiIcon
+          icon="heroicons:arrow-path"
+          custom-class="w-12 h-12 mx-auto animate-spin text-slate-200" />
       </div>
       Preparing your specialized template...
     </div>
