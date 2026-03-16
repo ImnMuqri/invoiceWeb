@@ -1,11 +1,4 @@
 export default defineNuxtRouteMiddleware((to, from) => {
-  // Path normalization: redirect /path/ to /path
-  if (to.path !== "/" && to.path.endsWith("/")) {
-    const cleanPath = to.path.replace(/\/+$/, "");
-    const query = to.query;
-    return navigateTo({ path: cleanPath, query }, { redirectCode: 301 });
-  }
-
   const authStore = useAuthStore();
 
   // Ensure store is synced with cookies on every route change
