@@ -144,8 +144,22 @@ export const useInvoiceStore = defineStore("invoice", {
         return data;
       } catch (err) {
         this.error = err.response?.data?.message || err.message;
-
         throw err;
+      }
+    },
+    async createPaymentBill(invoiceId, providerId) {
+      const { $api } = useNuxtApp();
+      this.loading = true;
+      try {
+        const { data } = await $api.post(`/pay/invoice/${invoiceId}/create-bill`, {
+          providerId,
+        });
+        return data;
+      } catch (err) {
+        this.error = err.response?.data?.message || err.message;
+        throw err;
+      } finally {
+        this.loading = false;
       }
     },
   },

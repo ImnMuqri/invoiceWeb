@@ -210,7 +210,7 @@
           </div>
 
           <!-- Payment Action -->
-          <div v-if="invoice.status !== 'Paid'" class="mt-12">
+          <div v-if="invoice.status !== 'Paid' && activeProvider" class="mt-12">
             <button
               @click="markAsPaid"
               class="w-full py-3 px-4 bg-slate-900 hover:bg-slate-800 text-white rounded-lg font-medium text-sm transition-colors flex items-center justify-center gap-2">
@@ -227,14 +227,17 @@
               </svg>
               Pay {{ currencySymbol }}{{ invoice.amount.toLocaleString() }}
             </button>
-            <p
-              class="text-center text-[10px] text-slate-400 uppercase tracking-widest mt-4">
-              Secure Processing by Stripe
-            </p>
+            <div class="flex items-center justify-center gap-2 mt-4 opacity-70">
+              <img :src="activeProviderLogo" class="w-4 h-4 object-contain grayscale hover:grayscale-0 transition-all" :alt="activeProviderName" v-if="activeProviderLogo" />
+              <p
+                class="text-center text-[10px] text-slate-400 uppercase tracking-widest">
+                Secure Processing by {{ activeProviderName }}
+              </p>
+            </div>
           </div>
 
           <!-- Paid Footer -->
-          <div v-else class="mt-12 text-center border-t border-slate-100 pt-8">
+          <div v-else-if="invoice.status === 'Paid'" class="mt-12 text-center border-t border-slate-100 pt-8">
             <p class="text-sm font-medium text-emerald-600 mb-2">
               This invoice has been paid.
             </p>
@@ -299,15 +302,49 @@ onMounted(async () => {
   loading.value = false;
 });
 
+const activeProvider = computed(() => {
+  return invoice.value?.user?.paymentProviders?.[0];
+});
+
+const activeProviderName = computed(() => {
+  if (!activeProvider.value) return "Secure Server";
+  return activeProvider.value.provider === "TOYYIBPAY" ? "ToyyibPay" : "Billplz";
+});
+
+const activeProviderLogo = computed(() => {
+  if (!activeProvider.value) return null;
+  return activeProvider.value.provider === "TOYYIBPAY" 
+    ? 'https://toyyibpay.com/wp-content/uploads/2022/07/logo-tp.png' 
+    : 'https://avatars.githubusercontent.com/u/1206144?s=280&v=4';
+});
+
 const markAsPaid = async () => {
-  if (invoice.value) {
-    // In a real app we would trigger Stripe/FPX checkout here
-    // For demo, we just alert. In the future we should call an API to mark as paid.
+  if (!invoice.value) return;
+
+  const provider = activeProvider.value;
+  if (!provider) {
     toast.value = {
-      message: "Payment successful! Thank you.",
-      type: "success",
+      message: "Online payment is currently unavailable for this invoice.",
+      type: "error",
     };
-    invoice.value.status = "Paid";
+    return;
+  }
+
+  try {
+    loading.value = true;
+    const { paymentUrl } = await invoiceStore.createPaymentBill(invoice.value.id, provider.id);
+    if (paymentUrl) {
+      window.location.href = paymentUrl;
+    } else {
+      throw new Error("Payment link not generated");
+    }
+  } catch (err) {
+    toast.value = {
+      message: "Failed to initiate payment. Please contact the sender.",
+      type: "error",
+    };
+  } finally {
+    loading.value = false;
   }
 };
 

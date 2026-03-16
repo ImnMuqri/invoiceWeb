@@ -241,6 +241,62 @@ export const useAuthStore = defineStore("auth", () => {
     }
   }
 
+  async function fetchPaymentProviders() {
+    const { $api } = useNuxtApp();
+    loading.value = true;
+    try {
+      const { data } = await $api.get("/users/payments");
+      return data;
+    } catch (err) {
+      error.value = err.response?.data?.message || err.message;
+      return [];
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  async function updatePaymentProvider(providerData) {
+    const { $api } = useNuxtApp();
+    loading.value = true;
+    try {
+      const { data } = await $api.post("/users/payments", providerData);
+      return data;
+    } catch (err) {
+      error.value = err.response?.data?.message || err.message;
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  async function deletePaymentProvider(id) {
+    const { $api } = useNuxtApp();
+    loading.value = true;
+    try {
+      const { data } = await $api.delete(`/users/payments/${id}`);
+      return data;
+    } catch (err) {
+      error.value = err.response?.data?.message || err.message;
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  async function setPreferredPaymentProvider(id) {
+    const { $api } = useNuxtApp();
+    loading.value = true;
+    try {
+      const { data } = await $api.patch(`/users/payments/${id}/prefer`);
+      return data;
+    } catch (err) {
+      error.value = err.response?.data?.message || err.message;
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  }
+
   return {
     user,
     accessToken,
@@ -257,6 +313,10 @@ export const useAuthStore = defineStore("auth", () => {
     updateProfile,
     fetchSettings,
     updateSettings,
+    fetchPaymentProviders,
+    updatePaymentProvider,
+    deletePaymentProvider,
+    setPreferredPaymentProvider,
     syncFromCookies,
     refreshAccessToken,
   };

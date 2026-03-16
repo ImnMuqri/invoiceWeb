@@ -245,6 +245,7 @@
                     type="password"
                     v-model="settingsForm.twilioAuthToken"
                     placeholder="••••••••"
+                    autocomplete="off"
                     class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-slate-950 outline-none bg-white transition-all" />
                 </div>
                 <div>
@@ -316,6 +317,179 @@
                       {{ tag }}
                     </span>
                   </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Payments Tab -->
+          <div
+            v-if="activeTab === 'payments'"
+            class="divide-y divide-slate-100 p-6">
+            <div class="mb-8 text-left">
+              <h3
+                class="text-base font-semibold text-slate-900 tracking-tight text-left">
+                Accept payments from your invoices
+              </h3>
+              <p class="text-sm text-slate-500 mt-1 text-left">
+                Connect a payment provider so your clients can pay your invoices
+                online using FPX, DuitNow QR, or card payments.
+              </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8 pt-8">
+              <!-- ToyyibPay -->
+              <div
+                class="border border-slate-200 rounded-2xl p-6 bg-white shadow-sm flex flex-col hover:border-slate-300 transition-all">
+                <div class="flex items-center gap-4 mb-6">
+                  <div
+                    class="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100 overflow-hidden">
+                    <img
+                      src="https://images.crunchbase.com/image/upload/c_pad,h_256,w_256,f_auto,q_auto:eco,dpr_1/e2hhr8kgl2hq5bkkqueq?ik-sanitizeSvg=true"
+                      class="w-10 h-10 object-contain"
+                      alt="ToyyibPay" />
+                  </div>
+                  <div class="text-left">
+                    <h4 class="text-sm font-bold text-slate-900 text-left">
+                      ToyyibPay
+                    </h4>
+                    <p class="text-[10px] text-slate-500 font-medium text-left">
+                      Accepts FPX, DuitNow, and Card payments
+                    </p>
+                  </div>
+                </div>
+
+                <div v-if="isProviderConnected('TOYYIBPAY')" class="mt-auto">
+                  <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-2">
+                      <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
+                      <span
+                        class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest"
+                        >Connected</span
+                      >
+                    </div>
+                    <div
+                      v-if="isProviderPreferred('TOYYIBPAY')"
+                      class="bg-blue-50 text-blue-600 text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider border border-blue-100 italic">
+                      Preferred
+                    </div>
+                  </div>
+                  <div class="flex gap-2">
+                    <button
+                      @click="openConnectModal('TOYYIBPAY')"
+                      class="flex-1 py-2 text-xs font-bold text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 transition-all">
+                      Edit
+                    </button>
+                    <button
+                      @click="disconnectProvider('TOYYIBPAY')"
+                      class="px-3 py-2 text-xs font-bold text-red-600 border border-red-100 rounded-lg hover:bg-red-50 transition-all">
+                      Disconnect
+                    </button>
+                  </div>
+                  <button
+                    v-if="
+                      !isProviderPreferred('TOYYIBPAY') &&
+                      paymentProviders.length > 1
+                    "
+                    @click="setPreferred('TOYYIBPAY')"
+                    class="w-full mt-3 py-1.5 text-[10px] font-bold text-blue-600 border border-blue-100 rounded-lg hover:bg-blue-50 transition-all uppercase tracking-widest">
+                    Set Preferred
+                  </button>
+                </div>
+                <button
+                  v-else
+                  @click="openConnectModal('TOYYIBPAY')"
+                  class="mt-auto w-full py-2.5 bg-slate-900 text-white text-xs font-bold rounded-xl hover:bg-slate-800 transition-all uppercase tracking-widest">
+                  Connect
+                </button>
+              </div>
+
+              <!-- Billplz -->
+              <div
+                class="border border-slate-200 rounded-2xl p-6 bg-white shadow-sm flex flex-col hover:border-slate-300 transition-all">
+                <div class="flex items-center gap-4 mb-6">
+                  <div
+                    class="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100 overflow-hidden">
+                    <img
+                      src="https://make-cxp-documentation.ams3.digitaloceanspaces.com/apps-center-icons/billplz.png"
+                      class="w-10 h-10 object-contain"
+                      alt="Billplz" />
+                  </div>
+                  <div class="text-left">
+                    <h4 class="text-sm font-bold text-slate-900 text-left">
+                      Billplz
+                    </h4>
+                    <p class="text-[10px] text-slate-500 font-medium text-left">
+                      Accepts FPX and Card payments
+                    </p>
+                  </div>
+                </div>
+
+                <div v-if="isProviderConnected('BILLPLZ')" class="mt-auto">
+                  <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-2">
+                      <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
+                      <span
+                        class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest"
+                        >Connected</span
+                      >
+                    </div>
+                    <div
+                      v-if="isProviderPreferred('BILLPLZ')"
+                      class="bg-blue-50 text-blue-600 text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider border border-blue-100 italic">
+                      Preferred
+                    </div>
+                  </div>
+                  <div class="flex gap-2">
+                    <button
+                      @click="openConnectModal('BILLPLZ')"
+                      class="flex-1 py-2 text-xs font-bold text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 transition-all">
+                      Edit
+                    </button>
+                    <button
+                      @click="disconnectProvider('BILLPLZ')"
+                      class="px-3 py-2 text-xs font-bold text-red-600 border border-red-100 rounded-lg hover:bg-red-50 transition-all">
+                      Disconnect
+                    </button>
+                  </div>
+                  <button
+                    v-if="
+                      !isProviderPreferred('BILLPLZ') &&
+                      paymentProviders.length > 1
+                    "
+                    @click="setPreferred('BILLPLZ')"
+                    class="w-full mt-3 py-1.5 text-[10px] font-bold text-blue-600 border border-blue-100 rounded-lg hover:bg-blue-50 transition-all uppercase tracking-widest">
+                    Set Preferred
+                  </button>
+                </div>
+                <button
+                  v-else
+                  @click="openConnectModal('BILLPLZ')"
+                  class="mt-auto w-full py-2.5 bg-slate-900 text-white text-xs font-bold rounded-xl hover:bg-slate-800 transition-all uppercase tracking-widest">
+                  Connect
+                </button>
+              </div>
+            </div>
+
+            <div
+              class="mt-12 p-6 bg-slate-50 rounded-xl border border-slate-200">
+              <div class="flex gap-4">
+                <div
+                  class="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm border border-slate-100 text-slate-600">
+                  <UiIcon
+                    name="heroicons:shield-check"
+                    custom-class="w-4 h-4" />
+                </div>
+                <div class="flex-1">
+                  <h4 class="text-sm font-bold text-slate-900 mb-1 text-left">
+                    Your Security is Our Priority
+                  </h4>
+                  <p class="text-xs text-slate-500 leading-relaxed text-left">
+                    We use military-grade encryption to store your payment
+                    credentials. InvoKita only uses them to generate payment
+                    bills for your invoices. We never store or have access to
+                    your bank account's login information.
+                  </p>
                 </div>
               </div>
             </div>
@@ -570,6 +744,13 @@
       </div>
     </div>
     <UiToast v-model="toast" />
+    <PaymentConnectModal
+      v-model="connectModal"
+      :provider="selectedProvider"
+      :existing-data="
+        paymentProviders.find((p) => p.provider === selectedProvider) || {}
+      "
+      @save="saveConnection" />
   </div>
 </template>
 
@@ -578,6 +759,7 @@ import { ref, onMounted, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useAuthStore } from "~/stores/authStore";
 import { useUiStore } from "~/stores/uiStore";
+import { useSubscribeStore } from "~/stores/subscribeStore";
 
 const authStore = useAuthStore();
 const uiStore = useUiStore();
@@ -597,7 +779,12 @@ const tabs = [
     name: "WhatsApp Configuration",
     icon: "heroicons:chat-bubble-left-right",
   },
-  { id: "billing", name: "Billing", icon: "heroicons:credit-card" },
+  {
+    id: "payments",
+    name: "Payments",
+    icon: "heroicons:credit-card",
+  },
+  { id: "billing", name: "Billing", icon: "heroicons:receipt-percent" },
 ];
 
 const activeTab = ref(route.query.tab || "general");
@@ -676,7 +863,77 @@ onMounted(async () => {
       twilioPhoneNumber: settings.twilioPhoneNumber || "",
     };
   }
+
+  fetchProviders();
 });
+
+const paymentProviders = ref([]);
+const connectModal = ref(false);
+const selectedProvider = ref(null);
+
+const fetchProviders = async () => {
+  paymentProviders.value = await authStore.fetchPaymentProviders();
+};
+
+const isProviderConnected = (p) => {
+  return paymentProviders.value.some((pr) => pr.provider === p);
+};
+
+const openConnectModal = (p) => {
+  selectedProvider.value = p;
+  connectModal.value = true;
+};
+
+const isProviderPreferred = (p) => {
+  return paymentProviders.value.some(
+    (pr) => pr.provider === p && pr.isPreferred,
+  );
+};
+
+const setPreferred = async (p) => {
+  try {
+    const provider = paymentProviders.value.find((pr) => pr.provider === p);
+    if (provider) {
+      await authStore.setPreferredPaymentProvider(provider.id);
+      await fetchProviders();
+      toast.value = {
+        message: `${
+          p === "TOYYIBPAY" ? "ToyyibPay" : "Billplz"
+        } set as preferred`,
+        type: "success",
+      };
+    }
+  } catch (err) {
+    toast.value = { message: "Failed to set preferred provider", type: "error" };
+  }
+};
+
+const saveConnection = async (data) => {
+  try {
+    await authStore.updatePaymentProvider(data);
+    await fetchProviders();
+    toast.value = {
+      message: "Payment provider connected successfully!",
+      type: "success",
+    };
+  } catch (err) {
+    toast.value = { message: "Failed to connect provider", type: "error" };
+  }
+};
+
+const disconnectProvider = async (p) => {
+  if (!confirm("Are you sure you want to disconnect this provider?")) return;
+  try {
+    const provider = paymentProviders.value.find((pr) => pr.provider === p);
+    if (provider) {
+      await authStore.deletePaymentProvider(provider.id);
+      await fetchProviders();
+      toast.value = { message: "Provider disconnected", type: "success" };
+    }
+  } catch (err) {
+    toast.value = { message: "Failed to disconnect", type: "error" };
+  }
+};
 
 const saveSettings = async () => {
   try {
