@@ -8,7 +8,7 @@ export const useAuthStore = defineStore("auth", () => {
   const refreshToken = ref(null);
   const loading = ref(false);
   const error = ref(null);
-  const isReady = ref(false);
+  const isHydrated = ref(false);
 
   const token = computed(() => accessToken.value);
   const isPro = computed(() => {
@@ -18,11 +18,18 @@ export const useAuthStore = defineStore("auth", () => {
     return user.value?.role === "ADMIN";
   });
 
+  const COOKIE_OPTIONS = {
+    path: "/",
+    maxAge: 60 * 60 * 24 * 7, // 7 days
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+  };
+
   // Function to sync from cookies to store (SSR safe)
   function syncFromCookies() {
-    const u = useCookie("user", { path: "/" }).value;
-    const at = useCookie("accessToken", { path: "/" }).value;
-    const rt = useCookie("refreshToken", { path: "/" }).value;
+    const u = useCookie("user", COOKIE_OPTIONS).value;
+    const at = useCookie("accessToken", COOKIE_OPTIONS).value;
+    const rt = useCookie("refreshToken", COOKIE_OPTIONS).value;
 
     if (at) {
       accessToken.value = at;
@@ -52,24 +59,24 @@ export const useAuthStore = defineStore("auth", () => {
         if (savedUser) user.value = JSON.parse(savedUser);
 
         // Push back to cookies
-        useCookie("user").value = user.value;
-        useCookie("accessToken").value = accessToken.value;
-        useCookie("refreshToken").value = refreshToken.value;
+        useCookie("user", COOKIE_OPTIONS).value = user.value;
+        useCookie("accessToken", COOKIE_OPTIONS).value = accessToken.value;
+        useCookie("refreshToken", COOKIE_OPTIONS).value = refreshToken.value;
       }
 
-      isReady.value = true;
+      isHydrated.value = true;
     });
 
     // Update cookies and LS when state changes
     watch(
       [user, accessToken, refreshToken],
       ([u, at, rt]) => {
-        if (!isReady.value) return;
+        if (!isHydrated.value) return;
 
 
-        const uCookie = useCookie("user", { path: "/" });
-        const atCookie = useCookie("accessToken", { path: "/" });
-        const rtCookie = useCookie("refreshToken", { path: "/" });
+        const uCookie = useCookie("user", COOKIE_OPTIONS);
+        const atCookie = useCookie("accessToken", COOKIE_OPTIONS);
+        const rtCookie = useCookie("refreshToken", COOKIE_OPTIONS);
 
         uCookie.value = u;
         atCookie.value = at;
@@ -100,9 +107,9 @@ export const useAuthStore = defineStore("auth", () => {
       refreshToken.value = data.refreshToken;
 
       // Explicitly set cookies immediately for middleware
-      useCookie("user", { path: "/" }).value = data.user;
-      useCookie("accessToken", { path: "/" }).value = data.accessToken;
-      useCookie("refreshToken", { path: "/" }).value = data.refreshToken;
+      useCookie("user", COOKIE_OPTIONS).value = data.user;
+      useCookie("accessToken", COOKIE_OPTIONS).value = data.accessToken;
+      useCookie("refreshToken", COOKIE_OPTIONS).value = data.refreshToken;
 
       return true;
     } catch (err) {
@@ -125,9 +132,9 @@ export const useAuthStore = defineStore("auth", () => {
       refreshToken.value = null;
 
       // Clear cookies immediately
-      useCookie("user", { path: "/" }).value = null;
-      useCookie("accessToken", { path: "/" }).value = null;
-      useCookie("refreshToken", { path: "/" }).value = null;
+      useCookie("user", COOKIE_OPTIONS).value = null;
+      useCookie("accessToken", COOKIE_OPTIONS).value = null;
+      useCookie("refreshToken", COOKIE_OPTIONS).value = null;
 
       if (process.client) {
         window.location.href = "/login";
@@ -149,9 +156,9 @@ export const useAuthStore = defineStore("auth", () => {
       accessToken.value = data.accessToken;
       refreshToken.value = data.refreshToken;
 
-      useCookie("user", { path: "/" }).value = data.user;
-      useCookie("accessToken", { path: "/" }).value = data.accessToken;
-      useCookie("refreshToken", { path: "/" }).value = data.refreshToken;
+      useCookie("user", COOKIE_OPTIONS).value = data.user;
+      useCookie("accessToken", COOKIE_OPTIONS).value = data.accessToken;
+      useCookie("refreshToken", COOKIE_OPTIONS).value = data.refreshToken;
 
       return true;
     } catch (err) {
@@ -306,6 +313,7 @@ export const useAuthStore = defineStore("auth", () => {
     token,
     isPro,
     isAdmin,
+    isHydrated,
     login,
     register,
     logout,
