@@ -1,5 +1,5 @@
 import { defineStore, skipHydrate } from "pinia";
-import { ref, computed, watch, onMounted, useState } from "vue";
+import { ref, computed, watch, onMounted } from "vue";
 
 export const useAuthStore = defineStore("auth", () => {
   // Use Nuxt useState to ensure state is synced from server to client
