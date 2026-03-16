@@ -1,11 +1,11 @@
 import { defineStore, skipHydrate } from "pinia";
-import { ref, computed, watch, onMounted } from "vue";
+import { ref, computed, watch, onMounted, useState } from "vue";
 
 export const useAuthStore = defineStore("auth", () => {
-  // Use simple refs for state to ensure better Pinia hydration
-  const user = ref(null);
-  const accessToken = ref(null);
-  const refreshToken = ref(null);
+  // Use Nuxt useState to ensure state is synced from server to client
+  const user = useState("auth_user", () => null);
+  const accessToken = useState("auth_accessToken", () => null);
+  const refreshToken = useState("auth_refreshToken", () => null);
   const loading = ref(false);
   const error = ref(null);
   const isHydrated = ref(false);
@@ -22,6 +22,8 @@ export const useAuthStore = defineStore("auth", () => {
     path: "/",
     maxAge: 60 * 60 * 24 * 7, // 7 days
     sameSite: "lax",
+    // Only use secure cookies if on HTTPS (localhost usually isn't)
+    secure: process.client ? window.location.protocol === "https:" : true,
   };
 
   // Function to sync from cookies to store (SSR safe)
@@ -175,7 +177,7 @@ export const useAuthStore = defineStore("auth", () => {
     try {
       const { data } = await $api.get("/users/me");
       user.value = { ...user.value, ...data };
-      useCookie("user", { path: "/" }).value = user.value;
+      useCookie("user", COOKIE_OPTIONS).value = user.value;
     } catch (err) {
       error.value = err.response?.data?.message || err.message;
     } finally {
@@ -190,7 +192,7 @@ export const useAuthStore = defineStore("auth", () => {
     try {
       const { data } = await $api.put("/users/me", profileData);
       user.value = { ...user.value, ...data };
-      useCookie("user", { path: "/" }).value = user.value;
+      useCookie("user", COOKIE_OPTIONS).value = user.value;
       return true;
     } catch (err) {
       error.value = err.response?.data?.message || err.message;
@@ -209,7 +211,7 @@ export const useAuthStore = defineStore("auth", () => {
         refreshToken: refreshToken.value,
       });
       accessToken.value = data.accessToken;
-      useCookie("accessToken", { path: "/" }).value = data.accessToken;
+      useCookie("accessToken", COOKIE_OPTIONS).value = data.accessToken;
       return true;
     } catch (err) {
 

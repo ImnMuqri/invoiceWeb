@@ -4,13 +4,16 @@ export default defineNuxtRouteMiddleware((to, from) => {
   // Ensure store is synced with cookies on every route change
   authStore.syncFromCookies();
 
+  // Normalize path to ignore trailing slashes
+  const normalizedPath = to.path.replace(/\/$/, "") || "/";
+
   const publicRoutes = ["/login", "/register", "/", "/pay"];
   const isPublicRoute = publicRoutes.some(
     (route) =>
-      to.path === route ||
-      to.path.startsWith("/pay/") ||
-      (to.path.startsWith("/invoices/") && to.path.endsWith("/export")) ||
-      to.path === "/pay" ||
+      normalizedPath === route ||
+      normalizedPath.startsWith("/pay/") ||
+      (normalizedPath.startsWith("/invoices/") && normalizedPath.endsWith("/export")) ||
+      normalizedPath === "/pay" ||
       to.name === "pay-id",
   );
 
@@ -24,11 +27,12 @@ export default defineNuxtRouteMiddleware((to, from) => {
 
   // If user is not authenticated and trying to access a protected route
   if (!isAuthenticated && !isPublicRoute) {
-    // One last check on client: if we aren't hydrated yet, don't kick out
-    if (process.client && !authStore.isHydrated) {
-      return;
+    // Only redirect to login on the client and ONLY after we are certain hydration/LS check is done
+    if (process.client && authStore.isHydrated) {
+      return navigateTo("/login");
     }
-    return navigateTo("/login");
+    // If we are on the server or not hydrated yet, we stay silent and let the client handle it
+    return;
   }
 
   // If user is authenticated and trying to access login/register
