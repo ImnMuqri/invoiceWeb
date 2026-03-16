@@ -20,9 +20,9 @@ export const useAuthStore = defineStore("auth", () => {
 
   // Function to sync from cookies to store (SSR safe)
   function syncFromCookies() {
-    const u = useCookie("user").value;
-    const at = useCookie("accessToken").value;
-    const rt = useCookie("refreshToken").value;
+    const u = useCookie("user", { path: "/" }).value;
+    const at = useCookie("accessToken", { path: "/" }).value;
+    const rt = useCookie("refreshToken", { path: "/" }).value;
 
     if (at) {
       accessToken.value = at;
@@ -125,9 +125,9 @@ export const useAuthStore = defineStore("auth", () => {
       refreshToken.value = null;
 
       // Clear cookies immediately
-      useCookie("user").value = null;
-      useCookie("accessToken").value = null;
-      useCookie("refreshToken").value = null;
+      useCookie("user", { path: "/" }).value = null;
+      useCookie("accessToken", { path: "/" }).value = null;
+      useCookie("refreshToken", { path: "/" }).value = null;
 
       if (process.client) {
         window.location.href = "/login";
