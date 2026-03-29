@@ -557,8 +557,7 @@
                   <li
                     v-for="feature in [
                       '5 Invoices/mo',
-                      'Email Delivery',
-                      'Manual Reminders',
+                      '5 Email Deliveries/mo',
                     ]"
                     :key="feature"
                     class="flex items-center text-sm font-medium text-slate-600">
@@ -569,8 +568,9 @@
                   </li>
                   <li
                     v-for="limit in [
+                      'No Reminders',
                       'No AI Drafts',
-                      'No WhatsApp',
+                      'No WhatsApp Features',
                       'No Auto-Chasers',
                     ]"
                     :key="limit"
@@ -629,11 +629,10 @@
                   <li
                     v-for="feature in [
                       '30 Invoices/mo',
-                      '10 WhatsApp Sends',
-                      '30 WhatsApp Reminders',
-                      'Unlimited Email Delivery',
-                      'Unlimited Reminders',
+                      '30 WhatsApp Sends & Reminders',
+                      '50 Email Deliveries & Reminders',
                       '20 AI Drafts/mo',
+                      'Auto-Chaser',
                     ]"
                     :key="feature"
                     class="flex items-center text-sm font-medium text-slate-600">
@@ -696,11 +695,10 @@
                   <li
                     v-for="feature in [
                       '100 Invoices/mo',
-                      'Unlimited WhatsApp Sends',
-                      '100 WhatsApp Reminders',
-                      'Unlimited Email Delivery',
-                      'Unlimited Reminders',
+                      '100 WhatsApp Sends & Reminders',
+                      '100 Email Deliveries & Reminders',
                       '50 AI Drafts/mo',
+                      'Auto-Chaser',
                       'White Labelling',
                     ]"
                     :key="feature"
@@ -729,6 +727,10 @@
                   }}
                 </button>
               </div>
+            </div>
+
+            <div class="mt-8 text-center border-t border-slate-100 pt-8">
+              <p class="text-sm font-medium text-slate-500">Want more power? <a href="mailto:contact@invokita.com" class="text-emerald-600 hover:text-emerald-700 underline underline-offset-2">Contact us for enquiry</a></p>
             </div>
           </div>
 

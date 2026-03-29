@@ -711,40 +711,78 @@
                   <div class="flex-1 overflow-y-auto px-4 py-4 space-y-4">
                     <!-- AI Greeting -->
                     <div class="flex items-start gap-2">
-                      <div class="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm">
-                        <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
+                      <div
+                        class="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm">
+                        <svg
+                          class="w-3.5 h-3.5 text-white"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24">
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
+                        </svg>
                       </div>
-                      <div class="bg-white border border-slate-200 rounded-2xl rounded-tl-sm px-3 py-2 text-[10px] text-slate-700 leading-relaxed max-w-[85%] shadow-sm">
+                      <div
+                        class="bg-white border border-slate-200 rounded-2xl rounded-tl-sm px-3 py-2 text-[10px] text-slate-700 leading-relaxed max-w-[85%] shadow-sm">
                         Hi! I can help you draft this invoice instantly.
                       </div>
                     </div>
 
                     <!-- User Message -->
                     <div class="flex items-start gap-2 flex-row-reverse">
-                      <div class="bg-emerald-600 text-white rounded-2xl rounded-tr-sm px-3 py-2 text-[10px] leading-relaxed max-w-[85%] shadow-sm break-words">
+                      <div
+                        class="bg-emerald-600 text-white rounded-2xl rounded-tr-sm px-3 py-2 text-[10px] leading-relaxed max-w-[85%] shadow-sm break-words">
                         Create invoice for Batman, UGC videos RM2000
                       </div>
                     </div>
 
                     <!-- AI Response / Draft Output Mock -->
                     <div class="flex items-start gap-2">
-                      <div class="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm">
-                        <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
+                      <div
+                        class="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm">
+                        <svg
+                          class="w-3.5 h-3.5 text-white"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24">
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
+                        </svg>
                       </div>
-                      <div class="bg-white border border-emerald-100 rounded-xl rounded-tl-sm p-3 shadow-md relative overflow-hidden w-full max-w-[85%]">
-                        <div class="absolute top-0 left-0 w-1 h-full bg-emerald-600"></div>
+                      <div
+                        class="bg-white border border-emerald-100 rounded-xl rounded-tl-sm p-3 shadow-md relative overflow-hidden w-full max-w-[85%]">
+                        <div
+                          class="absolute top-0 left-0 w-1 h-full bg-emerald-600"></div>
                         <div class="flex justify-between items-start mb-3">
                           <div>
-                            <div class="text-[8px] font-semibold text-emerald-600 uppercase tracking-widest mb-0.5">Draft Ready</div>
-                            <div class="text-[10px] font-semibold text-slate-900">Wayne Enterprises</div>
+                            <div
+                              class="text-[8px] font-semibold text-emerald-600 uppercase tracking-widest mb-0.5">
+                              Draft Ready
+                            </div>
+                            <div
+                              class="text-[10px] font-semibold text-slate-900">
+                              Wayne Enterprises
+                            </div>
                           </div>
-                          <div class="text-[10px] font-black text-slate-900">RM 2,000.00</div>
+                          <div class="text-[10px] font-black text-slate-900">
+                            RM 2,000.00
+                          </div>
                         </div>
-                        <div class="bg-slate-50 rounded p-1.5 flex justify-between items-center border border-slate-100 mb-2">
+                        <div
+                          class="bg-slate-50 rounded p-1.5 flex justify-between items-center border border-slate-100 mb-2">
                           <div class="text-[8px] text-slate-600">UGC Video</div>
-                          <div class="text-[8px] font-semibold text-slate-900">RM 2,000</div>
+                          <div class="text-[8px] font-semibold text-slate-900">
+                            RM 2,000
+                          </div>
                         </div>
-                        <div class="h-6 w-full bg-slate-900 rounded-lg flex items-center justify-center text-[8px] font-semibold text-white uppercase tracking-wider shadow-sm">
+                        <div
+                          class="h-6 w-full bg-slate-900 rounded-lg flex items-center justify-center text-[8px] font-semibold text-white uppercase tracking-wider shadow-sm">
                           Send via WhatsApp
                         </div>
                       </div>
@@ -754,11 +792,26 @@
                   <!-- Chat Input Area -->
                   <div class="p-3 bg-white border-t border-slate-100 mt-auto">
                     <div class="relative">
-                      <div class="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 pl-3 pr-8 text-[10px] text-slate-400">
-                        Message AI Builder... <span class="animate-pulse font-bold text-emerald-500">|</span>
+                      <div
+                        class="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 pl-3 pr-8 text-[10px] text-slate-400">
+                        Message AI Builder...
+                        <span class="animate-pulse font-bold text-emerald-500"
+                          >|</span
+                        >
                       </div>
-                      <div class="absolute right-1.5 top-1/2 -translate-y-1/2 p-1 rounded bg-slate-300 text-white">
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                      <div
+                        class="absolute right-1.5 top-1/2 -translate-y-1/2 p-1 rounded bg-slate-300 text-white">
+                        <svg
+                          class="w-3 h-3"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24">
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                        </svg>
                       </div>
                     </div>
                   </div>
@@ -796,11 +849,7 @@
               </div>
               <ul class="space-y-4 mb-8 flex-1">
                 <li
-                  v-for="feature in [
-                    '5 Invoices/mo',
-                    'Email Delivery',
-                    'Manual Reminders',
-                  ]"
+                  v-for="feature in ['5 Invoices/mo', '5 Email Deliveries/mo']"
                   :key="feature"
                   class="flex items-center gap-2 text-sm text-slate-700">
                   <svg
@@ -818,8 +867,9 @@
                 </li>
                 <li
                   v-for="limit in [
+                    'No Reminders',
                     'No AI Drafts',
-                    'No WhatsApp',
+                    'No WhatsApp Features',
                     'No Auto-Chasers',
                   ]"
                   :key="limit"
@@ -863,11 +913,10 @@
                 <li
                   v-for="feature in [
                     '30 Invoices/mo',
-                    '10 WhatsApp Sends',
-                    '30 WhatsApp Reminders',
-                    'Unlimited Email Delivery',
-                    'Unlimited Reminders',
+                    '30 WhatsApp Sends & Reminders',
+                    '50 Email Deliveries & Reminders',
                     '20 AI Drafts/mo',
+                    'Auto-Chaser',
                   ]"
                   :key="feature"
                   class="flex items-center gap-2 text-sm text-slate-300">
@@ -883,21 +932,6 @@
                       d="M5 13l4 4L19 7"></path>
                   </svg>
                   {{ feature }}
-                </li>
-                <li
-                  class="flex items-center gap-2 text-sm text-slate-500 line-through">
-                  <svg
-                    class="w-4 h-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor">
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M6 18L18 6M6 6l12 12"></path>
-                  </svg>
-                  White Labelling
                 </li>
               </ul>
               <button
@@ -921,11 +955,10 @@
                 <li
                   v-for="feature in [
                     '100 Invoices/mo',
-                    'Unlimited WhatsApp Sends',
-                    '100 WhatsApp Reminders',
-                    'Unlimited Email Delivery',
-                    'Unlimited Reminders',
+                    'Unlimited WhatsApp Sends & Reminders',
+                    'Unlimited Email Deliveries & Reminders',
                     '50 AI Drafts/mo',
+                    'Auto-Chaser',
                     'White Labelling',
                   ]"
                   :key="feature"
@@ -949,6 +982,17 @@
                 Get Max
               </button>
             </div>
+          </div>
+
+          <div class="mt-12 text-center">
+            <p class="text-sm font-medium text-slate-500">
+              Want more power?
+              <a
+                href="mailto:contact@invokita.bsyx.my"
+                class="text-emerald-600 hover:text-emerald-700 underline underline-offset-2"
+                >Contact us for enquiry</a
+              >
+            </p>
           </div>
         </div>
       </section>
