@@ -40,13 +40,24 @@
           class="bg-white shadow-sm rounded-xl border border-slate-200 overflow-hidden">
           <!-- General Tab -->
           <div v-if="activeTab === 'general'" class="divide-y divide-slate-100">
-            <div class="p-6">
+            <div class="p-6 border-b border-slate-100">
               <h3
                 class="text-base font-semibold text-slate-900 tracking-tight mb-6">
-                Company Information
+                User Profile
               </h3>
               <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
-                <div class="sm:col-span-4">
+                <div class="sm:col-span-3">
+                  <label
+                    class="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2"
+                    >Login Email</label
+                  >
+                  <input
+                    type="email"
+                    disabled
+                    :value="authStore.user?.email"
+                    class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm bg-slate-50 text-slate-500 cursor-not-allowed outline-none transition-all" />
+                </div>
+                <div class="sm:col-span-3">
                   <label
                     class="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2"
                     >Full Name</label
@@ -56,17 +67,39 @@
                     v-model="profileForm.name"
                     class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-slate-950 outline-none transition-all" />
                 </div>
-                <div class="sm:col-span-4">
+                <div class="sm:col-span-3">
                   <label
                     class="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2"
-                    >Phone Number</label
+                    >Personal Phone</label
                   >
                   <input
                     type="tel"
                     v-model="profileForm.phoneNumber"
                     class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-slate-950 outline-none transition-all" />
                 </div>
-                <div class="sm:col-span-4">
+              </div>
+            </div>
+
+            <div class="p-6 border-b border-slate-100">
+              <div class="flex items-center justify-between mb-6">
+                <h3
+                  class="text-base font-semibold text-slate-900 tracking-tight">
+                  Company Profile
+                </h3>
+                <label class="flex items-center gap-2 cursor-pointer group">
+                  <input
+                    type="checkbox"
+                    v-model="useSameAsUser"
+                    @change="syncCompanyInfo"
+                    class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-600 w-4 h-4 cursor-pointer" />
+                  <span
+                    class="text-xs font-semibold text-slate-500 group-hover:text-slate-900 transition-colors"
+                    >Use same as user's</span
+                  >
+                </label>
+              </div>
+              <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                <div class="sm:col-span-6">
                   <label
                     class="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2"
                     >Company Name</label
@@ -76,14 +109,24 @@
                     v-model="profileForm.companyName"
                     class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-slate-950 outline-none transition-all" />
                 </div>
-                <div class="sm:col-span-4">
+                <div class="sm:col-span-3">
                   <label
                     class="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2"
-                    >Billing Email</label
+                    >Business Email</label
                   >
                   <input
                     type="email"
                     v-model="profileForm.companyEmail"
+                    class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-slate-950 outline-none transition-all" />
+                </div>
+                <div class="sm:col-span-3">
+                  <label
+                    class="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2"
+                    >Company Phone</label
+                  >
+                  <input
+                    type="tel"
+                    v-model="profileForm.companyPhone"
                     class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-slate-950 outline-none transition-all" />
                 </div>
                 <div class="sm:col-span-6">
@@ -322,6 +365,176 @@
             </div>
           </div>
 
+          <!-- Email Configuration Tab -->
+          <div
+            v-if="activeTab === 'email'"
+            class="divide-y divide-slate-100 relative overflow-hidden min-h-[400px]">
+            <!-- Lock Overlay -->
+            <div
+              v-if="!authStore.isPro"
+              class="absolute inset-0 z-10 backdrop-blur-[6px] bg-white/40 flex flex-col items-center justify-center p-8 text-center">
+              <div
+                class="w-16 h-16 bg-white rounded-2xl shadow-sm border border-slate-200 flex items-center justify-center mb-4 text-emerald-600">
+                <UiIcon icon="heroicons:lock-closed" custom-class="w-6 h-6" />
+              </div>
+              <h3 class="text-xl font-bold text-slate-900 mb-1">
+                Email Reminders are a Pro Feature
+              </h3>
+              <p class="text-sm text-slate-500 mb-4 max-w-sm leading-relaxed">
+                Customize your completely automated email reminder pacing
+                settings by upgrading to a business plan.
+              </p>
+              <button
+                @click="switchTab('billing')"
+                class="inline-flex items-center px-6 py-3 bg-slate-900 text-white text-sm font-bold rounded-xl hover:bg-slate-800 transition-all uppercase tracking-widest shadow-lg">
+                Upgrade to Pro
+              </button>
+            </div>
+
+            <div class="p-6">
+              <h3
+                class="text-base font-semibold text-slate-900 tracking-tight mb-2">
+                Automated Email Reminders
+              </h3>
+              <p class="text-sm text-slate-500 mb-6 font-medium">
+                Control exactly how frequently your clients realistically
+                receive polite, automated email reminders chasing unpaid
+                invoices.
+              </p>
+
+              <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Controls -->
+                <div>
+                  <label
+                    class="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2"
+                    >Reminder Interval</label
+                  >
+                  <UiSelect
+                    v-model="profileForm.reminderInterval"
+                    :options="reminderIntervalOptions"
+                    placeholder="Select interval" />
+                  <p class="text-[12px] text-slate-500 mt-4 leading-relaxed">
+                    <span v-if="profileForm.reminderInterval === 0">
+                      Automated email reminders are currently disabled. Your
+                      clients will only receive the initial invoice email.
+                    </span>
+                    <span v-else-if="profileForm.reminderInterval < 0">
+                      The platform will automatically email your client a polite
+                      reminder exactly
+                      {{ Math.abs(profileForm.reminderInterval) }} days before
+                      the invoice's strict due date to ensure timely payment.
+                    </span>
+                    <span v-else>
+                      Once an invoice passes its due date without being fully
+                      paid, the platform will automatically email your client a
+                      polite reminder precisely following this spacing interval
+                      until it is marked as Paid.
+                    </span>
+                  </p>
+                </div>
+                <!-- Preview Canvas -->
+                <div
+                  class="bg-slate-50 rounded-xl border border-slate-200 p-5 col-span-2">
+                  <div
+                    class="mb-4 flex flex-col sm:flex-row justify-between sm:items-center gap-2">
+                    <div class="flex flex-col">
+                      <span
+                        class="text-[12px] font-bold text-slate-400 uppercase tracking-widest"
+                        >Client View Simulator</span
+                      >
+                      <span class="text-[11px] font-noprmal text-slate-400"
+                        >This is an example of what your client will see</span
+                      >
+                    </div>
+                    <span
+                      class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded-md text-[9px] font-bold tracking-widest uppercase border border-blue-200 w-fit"
+                      >Email Layout</span
+                    >
+                  </div>
+                  <!-- Mini stylized email container -->
+                  <div
+                    class="bg-white rounded-xl border border-slate-200 shadow-sm p-8 w-full mx-auto font-sans"
+                    style="max-width: 480px">
+                    <!-- Header Logo -->
+                    <div class="flex items-center justify-center gap-1.5 mb-4">
+                      <UiLogo class="text-slate-900 relative" />
+                    </div>
+
+                    <!-- Intro Text -->
+                    <div
+                      class="text-[13px] text-slate-600 space-y-2 mb-4 leading-relaxed">
+                      <p>Hi <strong>Iman Muqri</strong>,</p>
+                      <p>
+                        You have received an invoice from
+                        <strong>{{
+                          profileForm.companyName ||
+                          profileForm.name ||
+                          "Client Name"
+                        }}</strong>
+                        via
+                        <span
+                          class="px-1.5 py-0.5 bg-[#fef08a] rounded font-medium text-slate-900"
+                          >InvoKita</span
+                        >.
+                      </p>
+                    </div>
+
+                    <!-- Invoice Card -->
+                    <div
+                      class="bg-[#f8fafc] rounded-xl p-8 text-center mb-8 border border-slate-100">
+                      <span
+                        class="inline-flex items-center justify-center px-3 py-1 bg-[#eff6ff] text-blue-600 text-[10px] font-bold uppercase tracking-widest rounded-full mb-5">
+                        PENDING
+                      </span>
+                      <p class="text-xs text-slate-500 font-medium mb-1">
+                        INV-0005
+                      </p>
+                      <p
+                        class="text-[11px] text-slate-400 font-medium tracking-wide mb-3">
+                        Amount Due
+                      </p>
+                      <h2
+                        class="text-3xl font-black text-slate-900 mb-8 tracking-tight">
+                        {{ profileForm.defaultCurrency }} 20.99
+                      </h2>
+
+                      <div class="h-px bg-slate-200 w-full mb-5"></div>
+
+                      <p class="text-[11px] text-slate-500 font-medium">
+                        Due April 11, 2026
+                      </p>
+                    </div>
+
+                    <!-- CTA Button -->
+                    <div class="w-full flex justify-center mb-8">
+                      <div
+                        class="bg-[#0f172a] text-white rounded-lg px-8 py-3 text-xs font-bold shadow-sm cursor-not-allowed">
+                        View Invoice
+                      </div>
+                    </div>
+
+                    <!-- Footer -->
+                    <p class="text-[11px] text-slate-500 text-center mb-4">
+                      A PDF copy of your invoice is also attached to this email.
+                    </p>
+
+                    <div
+                      class="text-center text-[10px] font-medium text-slate-400 space-y-1">
+                      <p>
+                        This email was sent via
+                        <span
+                          class="px-1 py-0.5 bg-[#fef08a] rounded text-slate-700"
+                          >InvoKita</span
+                        >.
+                      </p>
+                      <p>Accurate & Professional Invoicing.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- Payments Tab -->
           <div
             v-if="activeTab === 'payments'"
@@ -513,7 +726,7 @@
                     Your Current Plan
                   </p>
                   <h4
-                    class="text-sm font-semibold text-slate-900 leading-none capitalize">
+                    class="text-sm font-semibold text-slate-900 leading-none capitalize pt-1">
                     {{ authStore.user?.plan || "Free" }}
                   </h4>
                   <p
@@ -521,7 +734,7 @@
                       authStore.user?.subscriptions?.length &&
                       authStore.user.subscriptions[0].status === 'ACTIVE'
                     "
-                    class="text-[10px] text-slate-500 mt-1.5 font-medium flex items-center gap-1">
+                    class="text-[10px] text-slate-500 mt-1 font-medium flex items-center gap-1">
                     <UiIcon
                       icon="solar:calendar-date-bold"
                       class="w-3 h-3 text-slate-400" />
@@ -813,6 +1026,11 @@ const tabs = [
     icon: "heroicons:chat-bubble-left-right",
   },
   {
+    id: "email",
+    name: "Email Configuration",
+    icon: "heroicons:envelope",
+  },
+  {
     id: "payments",
     name: "Payments",
     icon: "heroicons:credit-card",
@@ -823,6 +1041,14 @@ const tabs = [
 const activeTab = ref(route.query.tab || "general");
 const toast = ref({ message: "", type: "success" });
 const currencyOptions = ref([]);
+
+const reminderIntervalOptions = [
+  { value: 0, label: "None (Disabled)" },
+  { value: -3, label: "3 Days Before Due" },
+  { value: 3, label: "Every 3 Days (Aggressive)" },
+  { value: 7, label: "Every 7 Days (Standard)" },
+  { value: 14, label: "Every 14 Days (Relaxed)" },
+];
 
 const fetchCurrencies = async () => {
   try {
@@ -857,10 +1083,22 @@ const profileForm = ref({
   name: "",
   companyName: "",
   companyEmail: "",
+  companyPhone: "",
   address: "",
   phoneNumber: "",
   defaultCurrency: "MYR",
+  reminderInterval: 0,
 });
+
+const useSameAsUser = ref(false);
+const syncCompanyInfo = () => {
+  if (useSameAsUser.value) {
+    profileForm.value.companyName =
+      profileForm.value.name || authStore.user?.name || "";
+    profileForm.value.companyEmail = authStore.user?.email || "";
+    profileForm.value.companyPhone = profileForm.value.phoneNumber || "";
+  }
+};
 
 const settingsForm = ref({
   whatsappSendTemplate: "",
@@ -898,9 +1136,11 @@ onMounted(async () => {
       name: authStore.user.name || "",
       companyName: authStore.user.companyName || "",
       companyEmail: authStore.user.companyEmail || "",
+      companyPhone: authStore.user.companyPhone || "",
       address: authStore.user.address || "",
       phoneNumber: authStore.user.phoneNumber || "",
       defaultCurrency: authStore.user.defaultCurrency || "MYR",
+      reminderInterval: authStore.user.reminderInterval || 3,
     };
   }
 
@@ -993,7 +1233,7 @@ const disconnectProvider = async (p) => {
 const saveSettings = async () => {
   try {
     let res;
-    if (activeTab.value === "general") {
+    if (activeTab.value === "general" || activeTab.value === "email") {
       res = await authStore.updateProfile(profileForm.value);
     } else if (activeTab.value === "whatsapp") {
       res = await authStore.updateSettings(settingsForm.value);
