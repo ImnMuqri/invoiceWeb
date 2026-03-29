@@ -39,4 +39,19 @@ export default defineNuxtRouteMiddleware((to, from) => {
   if (isAuthenticated && (to.path === "/login" || to.path === "/register")) {
     return navigateTo("/dashboard");
   }
+
+  // Enforce onboarding
+  if (isAuthenticated) {
+    const isCompleted = authStore.user?.onboardingCompleted === true;
+    if (!isCompleted && normalizedPath !== "/onboarding" && !isPublicRoute) {
+      if (process.client && authStore.isHydrated) {
+        return navigateTo("/onboarding");
+      }
+    }
+    
+    // Don't let completed users go back to onboarding
+    if (isCompleted && normalizedPath === "/onboarding") {
+      return navigateTo("/dashboard");
+    }
+  }
 });

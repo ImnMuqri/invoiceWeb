@@ -1,9 +1,14 @@
 <template>
   <div>
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+    <div
+      class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
       <div>
-        <h2 class="text-2xl font-bold text-slate-900 tracking-tight">Clients</h2>
-        <p class="text-xs font-medium text-slate-500 mt-1">Manage your client list and billing details.</p>
+        <h2 class="text-2xl font-bold text-slate-900 tracking-tight">
+          Clients
+        </h2>
+        <p class="text-xs font-medium text-slate-500 mt-1">
+          Manage your client list and billing details.
+        </p>
       </div>
       <div class="flex items-center gap-4">
         <!-- Search Input -->
@@ -276,7 +281,7 @@
                   v-model="form.email"
                   required
                   class="block w-full rounded-md border border-slate-200 px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-950 sm:text-sm bg-white"
-                  placeholder="john@example.com" />
+                  placeholder="example@email.com" />
               </div>
               <div>
                 <label
@@ -520,7 +525,6 @@ const confirmDelete = async () => {
       type: "success",
     };
   } catch (err) {
-
     toast.value = {
       message: err.response?.data?.message || "Failed to delete client.",
       type: "error",
@@ -582,7 +586,6 @@ const submitClient = async () => {
     };
     showModal.value = false;
   } catch (err) {
-
     toast.value = {
       message: err.response?.data?.message || "Failed to save client.",
       type: "error",
@@ -602,7 +605,6 @@ const toggleChaser = async (client, field) => {
       type: "success",
     };
   } catch (err) {
-
     toast.value = {
       message:
         err.response?.data?.message || "Failed to update Chaser setting.",

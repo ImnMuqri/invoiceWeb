@@ -59,6 +59,16 @@
                 <div class="sm:col-span-4">
                   <label
                     class="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2"
+                    >Phone Number</label
+                  >
+                  <input
+                    type="tel"
+                    v-model="profileForm.phoneNumber"
+                    class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-slate-950 outline-none transition-all" />
+                </div>
+                <div class="sm:col-span-4">
+                  <label
+                    class="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2"
                     >Company Name</label
                   >
                   <input
@@ -104,16 +114,6 @@
                     v-model="profileForm.defaultCurrency"
                     :options="currencyOptions"
                     placeholder="Select currency" />
-                </div>
-                <div class="sm:col-span-3">
-                  <label
-                    class="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2"
-                    >Default Tax Rate (%)</label
-                  >
-                  <input
-                    type="number"
-                    v-model.number="profileForm.defaultTaxRate"
-                    class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-slate-950 outline-none transition-all" />
                 </div>
               </div>
             </div>
@@ -629,7 +629,7 @@
                     </span>
                   </div>
                   <p class="text-sm text-slate-500 font-medium">
-                    Growing businesses
+                    Perfect for freelancers
                   </p>
                 </div>
                 <div class="mb-8 flex items-baseline">
@@ -858,8 +858,8 @@ const profileForm = ref({
   companyName: "",
   companyEmail: "",
   address: "",
+  phoneNumber: "",
   defaultCurrency: "MYR",
-  defaultTaxRate: 0,
 });
 
 const settingsForm = ref({
@@ -899,8 +899,8 @@ onMounted(async () => {
       companyName: authStore.user.companyName || "",
       companyEmail: authStore.user.companyEmail || "",
       address: authStore.user.address || "",
+      phoneNumber: authStore.user.phoneNumber || "",
       defaultCurrency: authStore.user.defaultCurrency || "MYR",
-      defaultTaxRate: authStore.user.defaultTaxRate || 0,
     };
   }
 

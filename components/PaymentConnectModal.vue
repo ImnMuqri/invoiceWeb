@@ -1,5 +1,5 @@
 <template>
-  <UiModal v-model="isOpen" :title="title" max-width="max-w-xl">
+  <UiModal v-model="isOpen" title="Connect to" max-width="max-w-xl">
     <div class="p-6">
       <div v-if="step === 1">
         <div class="flex items-center gap-3 mb-4">
@@ -40,7 +40,9 @@
       <div v-else>
         <div class="space-y-4 relative">
           <!-- Decoy inputs to trap browser autofill -->
-          <div aria-hidden="true" class="absolute -top-[1000px] left-0 opacity-0 pointer-events-none h-0 w-0 overflow-hidden">
+          <div
+            aria-hidden="true"
+            class="absolute -top-[1000px] left-0 opacity-0 pointer-events-none h-0 w-0 overflow-hidden">
             <input type="text" name="decoy_user" tabIndex="-1" />
             <input type="password" name="decoy_pass" tabIndex="-1" />
           </div>
@@ -57,7 +59,9 @@
               :name="`payment_gateway_${field.key}`"
               class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-slate-950 outline-none transition-all"
               :placeholder="field.placeholder"
-              :autocomplete="field.type === 'password' ? 'new-password' : 'off'" />
+              :autocomplete="
+                field.type === 'password' ? 'new-password' : 'off'
+              " />
           </div>
         </div>
 

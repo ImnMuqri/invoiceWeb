@@ -2,7 +2,7 @@
   <Transition name="toast">
     <div v-if="modelValue?.message" class="fixed bottom-8 right-8 z-[100]">
       <div
-        class="bg-white px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3 border-2"
+        class="bg-gradient-to-r px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3 border-2"
         :class="containerClass">
         <UiIcon :icon="iconName" :custom-class="iconClass" />
         <span class="text-sm font-semibold text-slate-900">{{
@@ -34,11 +34,11 @@ const type = computed(() => props.modelValue?.type || "success");
 const containerClass = computed(() => {
   switch (type.value) {
     case "error":
-      return "border-red-100 shadow-red-100/50";
+      return "from-rose-50 to-rose-100 border-rose-100 shadow-rose-100/50";
     case "warning":
-      return "border-amber-100 shadow-amber-100/50";
+      return "from-amber-50 to-amber-100 border-amber-100 shadow-amber-100/50";
     default:
-      return "border-slate-100 shadow-slate-100/50";
+      return "from-emerald-50 to-emerald-100 border-emerald-100 shadow-emerald-100/50";
   }
 });
 

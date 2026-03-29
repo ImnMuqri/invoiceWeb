@@ -16,13 +16,13 @@
           class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-2xl transition-all sm:my-8 w-full pointer-events-auto border border-slate-200"
           :class="maxWidthClass">
           <!-- Close Button -->
+
           <button
             v-if="showClose"
             @click="$emit('update:modelValue', false)"
             class="absolute right-4 top-4 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-full transition-all z-10">
             <UiIcon icon="heroicons:x-mark" class="w-5 h-5" />
           </button>
-
           <!-- Content Slot -->
           <slot></slot>
         </div>

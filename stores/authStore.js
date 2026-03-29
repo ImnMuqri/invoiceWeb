@@ -43,17 +43,15 @@ export const useAuthStore = defineStore("auth", () => {
   syncFromCookies();
 
   if (process.client) {
-    onMounted(() => {
+    const initStore = () => {
       // If we have state but no LS, backup to LS
       if (accessToken.value && !localStorage.getItem("accessToken")) {
         localStorage.setItem("user", JSON.stringify(user.value));
         localStorage.setItem("accessToken", accessToken.value);
         localStorage.setItem("refreshToken", refreshToken.value);
       }
-
       // If we have NO state but have LS, restore from LS
       else if (!accessToken.value && localStorage.getItem("accessToken")) {
-
         accessToken.value = localStorage.getItem("accessToken");
         refreshToken.value = localStorage.getItem("refreshToken");
         const savedUser = localStorage.getItem("user");
@@ -66,14 +64,24 @@ export const useAuthStore = defineStore("auth", () => {
       }
 
       isHydrated.value = true;
-    });
+    };
+
+    // Run initialization
+    if (
+      document.readyState === "complete" ||
+      document.readyState === "interactive"
+    ) {
+      // Add slight delay to ensure Vue gives the right hydration signal safely if needed
+      setTimeout(initStore, 0);
+    } else {
+      window.addEventListener("DOMContentLoaded", initStore);
+    }
 
     // Update cookies and LS when state changes
     watch(
       [user, accessToken, refreshToken],
       ([u, at, rt]) => {
         if (!isHydrated.value) return;
-
 
         const uCookie = useCookie("user", COOKIE_OPTIONS);
         const atCookie = useCookie("accessToken", COOKIE_OPTIONS);
@@ -98,7 +106,6 @@ export const useAuthStore = defineStore("auth", () => {
   }
 
   async function login(email, password) {
-
     const { $api } = useNuxtApp();
     loading.value = true;
     try {
@@ -126,7 +133,6 @@ export const useAuthStore = defineStore("auth", () => {
     try {
       await $api.post("/auth/logout");
     } catch (err) {
-
     } finally {
       user.value = null;
       accessToken.value = null;
@@ -214,7 +220,6 @@ export const useAuthStore = defineStore("auth", () => {
       useCookie("accessToken", COOKIE_OPTIONS).value = data.accessToken;
       return true;
     } catch (err) {
-
       return false;
     }
   }
