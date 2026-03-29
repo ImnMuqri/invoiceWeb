@@ -516,6 +516,10 @@
                     class="text-sm font-semibold text-slate-900 leading-none capitalize">
                     {{ authStore.user?.plan || "Free" }}
                   </h4>
+                  <p v-if="authStore.user?.subscriptions?.length && authStore.user.subscriptions[0].status === 'ACTIVE'" class="text-[10px] text-slate-500 mt-1.5 font-medium flex items-center gap-1">
+                    <UiIcon icon="solar:calendar-date-bold" class="w-3 h-3 text-slate-400" />
+                    Renews {{ new Date(authStore.user.subscriptions[0].subscriptionEnds).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) }}
+                  </p>
                 </div>
               </div>
               <div
@@ -543,7 +547,7 @@
                 <div class="mb-8 flex items-baseline">
                   <span
                     class="text-4xl font-semibold text-slate-900 tracking-tight"
-                    >$0</span
+                    >RM 0</span
                   >
                   <span class="text-slate-400 text-sm ml-1 font-medium"
                     >/month</span
@@ -615,7 +619,7 @@
                 <div class="mb-8 flex items-baseline">
                   <span
                     class="text-4xl font-semibold text-slate-900 tracking-tight"
-                    >$29</span
+                    >RM 59</span
                   >
                   <span class="text-slate-400 text-sm ml-1 font-medium"
                     >/month</span
@@ -625,8 +629,10 @@
                   <li
                     v-for="feature in [
                       '30 Invoices/mo',
-                      '10 WhatsApp channels',
-                      '30 Reminders/mo',
+                      '10 WhatsApp Sends',
+                      '30 WhatsApp Reminders',
+                      'Unlimited Email Delivery',
+                      'Unlimited Reminders',
                       '20 AI Drafts/mo',
                     ]"
                     :key="feature"
@@ -680,7 +686,7 @@
                 <div class="mb-8 flex items-baseline">
                   <span
                     class="text-4xl font-semibold text-slate-900 tracking-tight"
-                    >$99</span
+                    >RM 99</span
                   >
                   <span class="text-slate-400 text-sm ml-1 font-medium"
                     >/month</span
@@ -690,8 +696,10 @@
                   <li
                     v-for="feature in [
                       '100 Invoices/mo',
-                      'Unlimited Channels',
-                      '100 Reminders/mo',
+                      'Unlimited WhatsApp Sends',
+                      '100 WhatsApp Reminders',
+                      'Unlimited Email Delivery',
+                      'Unlimited Reminders',
                       '50 AI Drafts/mo',
                       'White Labelling',
                     ]"
@@ -839,6 +847,19 @@ const settingsForm = ref({
 });
 
 onMounted(async () => {
+  // Handle Xendit payment redirects
+  if (route.query.success === 'true') {
+    toast.value = { message: "Payment setup successful! Your plan is active.", type: "success" };
+    const newQuery = { ...route.query };
+    delete newQuery.success;
+    router.replace({ query: newQuery });
+  } else if (route.query.failed === 'true') {
+    toast.value = { message: "Payment setup failed or was cancelled.", type: "error" };
+    const newQuery = { ...route.query };
+    delete newQuery.failed;
+    router.replace({ query: newQuery });
+  }
+
   fetchCurrencies();
   await authStore.fetchProfile();
   if (authStore.user) {
@@ -963,7 +984,20 @@ const saveSettings = async () => {
 const updatePlan = async (plan) => {
   try {
     const res = await subscribeStore.subscribe(plan);
-    // Refetch profile to get new usage limits
+    
+    if (res?.checkoutUrl) {
+      toast.value = {
+        message: "Redirecting to payment gateway...",
+        type: "success",
+      };
+      // Give the toast a moment to show, then redirect
+      setTimeout(() => {
+        window.location.href = res.checkoutUrl;
+      }, 500);
+      return; 
+    }
+
+    // Refetch profile to get new usage limits only if no checkout redirect
     await authStore.fetchProfile();
     toast.value = {
       message: res?.message || `Successfully switched to ${plan} plan!`,

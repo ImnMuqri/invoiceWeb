@@ -21,8 +21,11 @@ export const useSubscribeStore = defineStore("subscribe", () => {
     try {
       const { data } = await $api.post("/users/subscribe", { plan });
       
-      // Update the user plan in authStore instantly
-      if (authStore.user) {
+      if (data.checkoutUrl) {
+        // Return without updating the store so the UI doesn't glitch while redirecting
+        return data;
+      } else if (authStore.user) {
+        // Upgrade/downgrade instant success without checkout
         authStore.user.plan = data.plan;
       }
       

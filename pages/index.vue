@@ -96,9 +96,7 @@
                 class="w-full h-full object-cover opacity-90" />
             </div>
             <div>
-              <div class="text-sm font-semibold text-slate-800">
-                Sarah Jenkins
-              </div>
+              <div class="text-sm font-semibold text-slate-800">Iman Muqri</div>
               <div class="text-[10px] text-slate-500">New Client Added</div>
             </div>
           </div>
@@ -545,53 +543,224 @@
             </div>
             <!-- Mock up overlay graphic -->
             <div
-              class="absolute bottom-[-10%] right-[-10%] w-[90%] md:w-[80%] bg-white rounded-2xl shadow-2xl border border-slate-200 p-6 rotate-[-2deg] flex flex-col gap-4">
-              <!-- Context input mock -->
+              class="absolute w-[90%] md:w-[85%] bg-white rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden">
+              <!-- Input Mode Tabs -->
               <div
-                class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-center gap-3">
-                <span class="flex h-2 w-2 relative shrink-0">
-                  <span
-                    class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span
-                    class="relative inline-flex rounded-full h-2 w-2 bg-emerald-600"></span>
-                </span>
-                <span class="text-xs text-slate-500 font-medium"
-                  >Create invoice for Batman, UGC videos RM2000|</span
-                >
+                class="flex border-b border-slate-200 bg-slate-50/50 px-4 pt-4 gap-4 relative z-20">
+                <button
+                  type="button"
+                  @click="previewTab = 'manual'"
+                  class="pb-2 text-[10px] font-semibold border-b-2 transition-colors flex items-center gap-1.5"
+                  :class="
+                    previewTab === 'manual'
+                      ? 'border-slate-900 text-slate-900'
+                      : 'border-transparent text-slate-500 hover:text-slate-700'
+                  ">
+                  <svg
+                    class="w-3 h-3"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                  </svg>
+                  Manual Entry
+                </button>
+                <button
+                  type="button"
+                  @click="previewTab = 'ai'"
+                  class="pb-2 text-[10px] font-semibold border-b-2 transition-colors flex items-center gap-1.5"
+                  :class="
+                    previewTab === 'ai'
+                      ? 'border-emerald-600 text-emerald-600'
+                      : 'border-transparent text-slate-500 hover:text-slate-700'
+                  ">
+                  <svg
+                    class="w-3 h-3"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                  </svg>
+                  AI Builder Chat
+                </button>
               </div>
 
-              <!-- Generated Draft mock -->
+              <!-- Content Mockups -->
               <div
-                class="w-full bg-white border border-emerald-100 rounded-xl p-4 shadow-sm relative overflow-hidden">
+                class="p-5 flex flex-col gap-4 relative min-h-[300px] bg-slate-50/30">
+                <!-- Manual Entry Mockup -->
                 <div
-                  class="absolute top-0 left-0 w-1 h-full bg-emerald-600"></div>
-                <div class="flex justify-between items-start mb-4">
-                  <div>
-                    <div
-                      class="text-[10px] font-semibold text-emerald-600 uppercase tracking-widest mb-1">
-                      Draft Ready
+                  v-show="previewTab === 'manual'"
+                  class="absolute inset-x-0 top-0 bottom-0 p-5">
+                  <div
+                    class="w-full bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col gap-3">
+                    <!-- Header -->
+                    <div class="border-b border-slate-100 pb-2 mb-1">
+                      <div
+                        class="text-xs font-semibold tracking-tight text-slate-900">
+                        Create Invoice
+                      </div>
                     </div>
-                    <div class="text-sm font-semibold text-slate-900">
-                      Wayne Enterprises (Batman)
+
+                    <!-- Invoice Details Section -->
+                    <div>
+                      <div
+                        class="text-[10px] font-semibold text-slate-900 mb-2 tracking-tight">
+                        Invoice Details
+                      </div>
+                      <div class="space-y-2">
+                        <!-- People Input -->
+                        <div>
+                          <div
+                            class="text-[8px] font-medium text-slate-700 mb-1">
+                            People <span class="text-red-500">*</span>
+                          </div>
+                          <div
+                            class="flex items-center justify-between p-2 border border-slate-200 rounded-md bg-white shadow-sm gap-2">
+                            <div
+                              class="flex items-center gap-2 flex-1 relative z-10">
+                              <div
+                                class="w-6 h-6 rounded-full bg-slate-200 flex-shrink-0 flex items-center justify-center"></div>
+                              <div class="flex-1">
+                                <div
+                                  class="h-1.5 w-20 bg-slate-300 rounded"></div>
+                                <div
+                                  class="h-1.5 w-12 bg-slate-200 rounded mt-1"></div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <!-- Invoice Name & Subject -->
+                        <div class="flex gap-2">
+                          <div class="flex-1">
+                            <div
+                              class="text-[8px] font-medium text-slate-700 mb-1">
+                              Invoice Name
+                            </div>
+                            <div
+                              class="h-7 w-full border border-slate-200 rounded-md bg-white shadow-sm flex items-center px-2">
+                              <div
+                                class="h-1.5 w-16 bg-slate-300 rounded"></div>
+                            </div>
+                          </div>
+                          <div class="flex-1">
+                            <div
+                              class="text-[8px] font-medium text-slate-700 mb-1">
+                              Subject
+                            </div>
+                            <div
+                              class="h-7 w-full border border-slate-200 rounded-md bg-white shadow-sm flex items-center px-2">
+                              <div
+                                class="h-1.5 w-20 bg-slate-300 rounded"></div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  <div class="text-sm font-black text-slate-900">
-                    RM 2,000.00
-                  </div>
-                </div>
-                <!-- Line items -->
-                <div
-                  class="bg-slate-50 rounded-lg p-2 flex justify-between items-center border border-slate-100">
-                  <div class="text-xs text-slate-600">UGC Video Campaign</div>
-                  <div class="text-xs font-semibold text-slate-900">
-                    RM 2,000
+
+                    <hr class="border-slate-100 my-1" />
+
+                    <!-- Product Section -->
+                    <div>
+                      <div
+                        class="text-[10px] font-semibold text-slate-900 mb-2 tracking-tight">
+                        Product
+                      </div>
+                      <!-- Line Item -->
+                      <div
+                        class="flex items-center gap-2 p-2 border border-slate-200 rounded-lg bg-white shadow-sm">
+                        <div
+                          class="w-6 h-6 rounded bg-slate-50 border border-slate-200 flex-shrink-0 flex items-center justify-center"></div>
+                        <div class="flex-1 flex flex-col gap-1">
+                          <div
+                            class="text-[6px] font-semibold text-slate-400 uppercase tracking-wider hidden sm:block">
+                            Product Description
+                          </div>
+                          <div class="h-1.5 w-24 bg-slate-300 rounded"></div>
+                          <div
+                            class="h-1.5 w-12 bg-slate-200 rounded mt-0.5"></div>
+                        </div>
+                        <div class="w-10">
+                          <div
+                            class="text-[6px] font-semibold text-slate-400 uppercase tracking-wider text-center hidden sm:block mb-1">
+                            Qty
+                          </div>
+                          <div
+                            class="h-6 w-full border border-slate-200 rounded-md bg-white flex items-center justify-center shadow-sm">
+                            <div class="h-1.5 w-3 bg-slate-900 rounded"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                <div class="mt-4 flex gap-2">
-                  <div
-                    class="h-8 flex-1 bg-slate-900 rounded-lg flex items-center justify-center text-[10px] font-semibold text-white uppercase tracking-wider">
-                    Send via WhatsApp
+                <!-- AI Mode Mockup -->
+                <div
+                  v-show="previewTab === 'ai'"
+                  class="absolute inset-x-0 top-0 bottom-0 flex flex-col bg-slate-50/50">
+                  <!-- Chat messages area -->
+                  <div class="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+                    <!-- AI Greeting -->
+                    <div class="flex items-start gap-2">
+                      <div class="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm">
+                        <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
+                      </div>
+                      <div class="bg-white border border-slate-200 rounded-2xl rounded-tl-sm px-3 py-2 text-[10px] text-slate-700 leading-relaxed max-w-[85%] shadow-sm">
+                        Hi! I can help you draft this invoice instantly.
+                      </div>
+                    </div>
+
+                    <!-- User Message -->
+                    <div class="flex items-start gap-2 flex-row-reverse">
+                      <div class="bg-emerald-600 text-white rounded-2xl rounded-tr-sm px-3 py-2 text-[10px] leading-relaxed max-w-[85%] shadow-sm break-words">
+                        Create invoice for Batman, UGC videos RM2000
+                      </div>
+                    </div>
+
+                    <!-- AI Response / Draft Output Mock -->
+                    <div class="flex items-start gap-2">
+                      <div class="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm">
+                        <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
+                      </div>
+                      <div class="bg-white border border-emerald-100 rounded-xl rounded-tl-sm p-3 shadow-md relative overflow-hidden w-full max-w-[85%]">
+                        <div class="absolute top-0 left-0 w-1 h-full bg-emerald-600"></div>
+                        <div class="flex justify-between items-start mb-3">
+                          <div>
+                            <div class="text-[8px] font-semibold text-emerald-600 uppercase tracking-widest mb-0.5">Draft Ready</div>
+                            <div class="text-[10px] font-semibold text-slate-900">Wayne Enterprises</div>
+                          </div>
+                          <div class="text-[10px] font-black text-slate-900">RM 2,000.00</div>
+                        </div>
+                        <div class="bg-slate-50 rounded p-1.5 flex justify-between items-center border border-slate-100 mb-2">
+                          <div class="text-[8px] text-slate-600">UGC Video</div>
+                          <div class="text-[8px] font-semibold text-slate-900">RM 2,000</div>
+                        </div>
+                        <div class="h-6 w-full bg-slate-900 rounded-lg flex items-center justify-center text-[8px] font-semibold text-white uppercase tracking-wider shadow-sm">
+                          Send via WhatsApp
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Chat Input Area -->
+                  <div class="p-3 bg-white border-t border-slate-100 mt-auto">
+                    <div class="relative">
+                      <div class="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 pl-3 pr-8 text-[10px] text-slate-400">
+                        Message AI Builder... <span class="animate-pulse font-bold text-emerald-500">|</span>
+                      </div>
+                      <div class="absolute right-1.5 top-1/2 -translate-y-1/2 p-1 rounded bg-slate-300 text-white">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -626,7 +795,14 @@
                 <span class="text-4xl font-black text-slate-900">RM 0</span>
               </div>
               <ul class="space-y-4 mb-8 flex-1">
-                <li class="flex items-center gap-2 text-sm text-slate-700">
+                <li
+                  v-for="feature in [
+                    '5 Invoices/mo',
+                    'Email Delivery',
+                    'Manual Reminders',
+                  ]"
+                  :key="feature"
+                  class="flex items-center gap-2 text-sm text-slate-700">
                   <svg
                     class="w-4 h-4 text-emerald-600"
                     fill="none"
@@ -638,23 +814,16 @@
                       stroke-width="2"
                       d="M5 13l4 4L19 7"></path>
                   </svg>
-                  Manual PDF Export
+                  {{ feature }}
                 </li>
-                <li class="flex items-center gap-2 text-sm text-slate-700">
-                  <svg
-                    class="w-4 h-4 text-emerald-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor">
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M5 13l4 4L19 7"></path>
-                  </svg>
-                  5 Clients Management
-                </li>
-                <li class="flex items-center gap-2 text-sm text-slate-400">
+                <li
+                  v-for="limit in [
+                    'No AI Drafts',
+                    'No WhatsApp',
+                    'No Auto-Chasers',
+                  ]"
+                  :key="limit"
+                  class="flex items-center gap-2 text-sm text-slate-400">
                   <svg
                     class="w-4 h-4"
                     fill="none"
@@ -666,7 +835,7 @@
                       stroke-width="2"
                       d="M6 18L18 6M6 6l12 12"></path>
                   </svg>
-                  No In-app Sending
+                  {{ limit }}
                 </li>
               </ul>
               <button
@@ -691,7 +860,17 @@
                 ><span class="text-slate-400 font-medium">/mo</span>
               </div>
               <ul class="space-y-4 mb-8 flex-1">
-                <li class="flex items-center gap-2 text-sm text-slate-300">
+                <li
+                  v-for="feature in [
+                    '30 Invoices/mo',
+                    '10 WhatsApp Sends',
+                    '30 WhatsApp Reminders',
+                    'Unlimited Email Delivery',
+                    'Unlimited Reminders',
+                    '20 AI Drafts/mo',
+                  ]"
+                  :key="feature"
+                  class="flex items-center gap-2 text-sm text-slate-300">
                   <svg
                     class="w-4 h-4 text-emerald-400"
                     fill="none"
@@ -703,11 +882,12 @@
                       stroke-width="2"
                       d="M5 13l4 4L19 7"></path>
                   </svg>
-                  Unlimited Invoices
+                  {{ feature }}
                 </li>
-                <li class="flex items-center gap-2 text-sm text-slate-300">
+                <li
+                  class="flex items-center gap-2 text-sm text-slate-500 line-through">
                   <svg
-                    class="w-4 h-4 text-emerald-400"
+                    class="w-4 h-4"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor">
@@ -715,37 +895,9 @@
                       stroke-linecap="round"
                       stroke-linejoin="round"
                       stroke-width="2"
-                      d="M5 13l4 4L19 7"></path>
+                      d="M6 18L18 6M6 6l12 12"></path>
                   </svg>
-                  30 WhatsApp/Email Sends
-                </li>
-                <li class="flex items-center gap-2 text-sm text-slate-300">
-                  <svg
-                    class="w-4 h-4 text-emerald-400"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor">
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M5 13l4 4L19 7"></path>
-                  </svg>
-                  10 AI Invoice Drafts
-                </li>
-                <li class="flex items-center gap-2 text-sm text-slate-300">
-                  <svg
-                    class="w-4 h-4 text-emerald-400"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor">
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M5 13l4 4L19 7"></path>
-                  </svg>
-                  Automated Reminders
+                  White Labelling
                 </li>
               </ul>
               <button
@@ -767,7 +919,17 @@
               </div>
               <ul class="space-y-4 mb-8 flex-1">
                 <li
-                  class="flex items-center gap-2 text-sm text-slate-700 font-semibold text-emerald-600">
+                  v-for="feature in [
+                    '100 Invoices/mo',
+                    'Unlimited WhatsApp Sends',
+                    '100 WhatsApp Reminders',
+                    'Unlimited Email Delivery',
+                    'Unlimited Reminders',
+                    '50 AI Drafts/mo',
+                    'White Labelling',
+                  ]"
+                  :key="feature"
+                  class="flex items-center gap-2 text-sm text-slate-700">
                   <svg
                     class="w-4 h-4 text-emerald-600"
                     fill="none"
@@ -779,35 +941,7 @@
                       stroke-width="2"
                       d="M5 13l4 4L19 7"></path>
                   </svg>
-                  White-label (No Branding)
-                </li>
-                <li class="flex items-center gap-2 text-sm text-slate-700">
-                  <svg
-                    class="w-4 h-4 text-emerald-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor">
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M5 13l4 4L19 7"></path>
-                  </svg>
-                  100 WhatsApp/Email Sends
-                </li>
-                <li class="flex items-center gap-2 text-sm text-slate-700">
-                  <svg
-                    class="w-4 h-4 text-emerald-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor">
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M5 13l4 4L19 7"></path>
-                  </svg>
-                  50 AI Invoice Drafts
+                  {{ feature }}
                 </li>
               </ul>
               <button
@@ -987,6 +1121,10 @@
 </template>
 
 <script setup>
+import { ref } from "vue";
+
+const previewTab = ref("ai");
+
 definePageMeta({
   layout: false,
 });
