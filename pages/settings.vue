@@ -516,9 +516,25 @@
                     class="text-sm font-semibold text-slate-900 leading-none capitalize">
                     {{ authStore.user?.plan || "Free" }}
                   </h4>
-                  <p v-if="authStore.user?.subscriptions?.length && authStore.user.subscriptions[0].status === 'ACTIVE'" class="text-[10px] text-slate-500 mt-1.5 font-medium flex items-center gap-1">
-                    <UiIcon icon="solar:calendar-date-bold" class="w-3 h-3 text-slate-400" />
-                    Renews {{ new Date(authStore.user.subscriptions[0].subscriptionEnds).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) }}
+                  <p
+                    v-if="
+                      authStore.user?.subscriptions?.length &&
+                      authStore.user.subscriptions[0].status === 'ACTIVE'
+                    "
+                    class="text-[10px] text-slate-500 mt-1.5 font-medium flex items-center gap-1">
+                    <UiIcon
+                      icon="solar:calendar-date-bold"
+                      class="w-3 h-3 text-slate-400" />
+                    Renews
+                    {{
+                      new Date(
+                        authStore.user.subscriptions[0].subscriptionEnds,
+                      ).toLocaleDateString("en-GB", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      })
+                    }}
                   </p>
                 </div>
               </div>
@@ -729,8 +745,15 @@
               </div>
             </div>
 
-            <div class="mt-8 text-center border-t border-slate-100 pt-8">
-              <p class="text-sm font-medium text-slate-500">Want more power? <a href="mailto:contact@invokita.com" class="text-emerald-600 hover:text-emerald-700 underline underline-offset-2">Contact us for enquiry</a></p>
+            <div class="text-center border-t border-slate-100 pt-8">
+              <p class="text-sm font-medium text-slate-500">
+                Want more power?
+                <a
+                  href="mailto:contact@invokita.com"
+                  class="text-emerald-600 hover:text-emerald-700 underline underline-offset-2"
+                  >Contact us for enquiry</a
+                >
+              </p>
             </div>
           </div>
 
@@ -850,13 +873,19 @@ const settingsForm = ref({
 
 onMounted(async () => {
   // Handle Xendit payment redirects
-  if (route.query.success === 'true') {
-    toast.value = { message: "Payment setup successful! Your plan is active.", type: "success" };
+  if (route.query.success === "true") {
+    toast.value = {
+      message: "Payment setup successful! Your plan is active.",
+      type: "success",
+    };
     const newQuery = { ...route.query };
     delete newQuery.success;
     router.replace({ query: newQuery });
-  } else if (route.query.failed === 'true') {
-    toast.value = { message: "Payment setup failed or was cancelled.", type: "error" };
+  } else if (route.query.failed === "true") {
+    toast.value = {
+      message: "Payment setup failed or was cancelled.",
+      type: "error",
+    };
     const newQuery = { ...route.query };
     delete newQuery.failed;
     router.replace({ query: newQuery });
@@ -927,7 +956,10 @@ const setPreferred = async (p) => {
       };
     }
   } catch (err) {
-    toast.value = { message: "Failed to set preferred provider", type: "error" };
+    toast.value = {
+      message: "Failed to set preferred provider",
+      type: "error",
+    };
   }
 };
 
@@ -986,7 +1018,7 @@ const saveSettings = async () => {
 const updatePlan = async (plan) => {
   try {
     const res = await subscribeStore.subscribe(plan);
-    
+
     if (res?.checkoutUrl) {
       toast.value = {
         message: "Redirecting to payment gateway...",
@@ -996,7 +1028,7 @@ const updatePlan = async (plan) => {
       setTimeout(() => {
         window.location.href = res.checkoutUrl;
       }, 500);
-      return; 
+      return;
     }
 
     // Refetch profile to get new usage limits only if no checkout redirect
