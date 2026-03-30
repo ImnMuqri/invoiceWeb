@@ -1,5 +1,5 @@
 <template>
-  <div class="admin-dashboard space-y-8">
+  <div class="admin-dashboard">
     <!-- Page Header -->
     <div
       class="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -248,7 +248,8 @@
     <UiModal
       v-model="editBillingModal.isOpen"
       title="Edit Billing Date"
-      max-width="max-w-md">
+      description="Upgrade or extend this user's subscription access by selecting a new expiration date below."
+      maxWidth="md">
       <div class="p-6">
         <div class="space-y-4">
           <div>

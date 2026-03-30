@@ -1,10 +1,15 @@
 <template>
   <div class="dashboard-page max-w-[1400px] mx-auto font-sans pb-8">
     <div class="flex flex-col gap-8">
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div
+        class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 class="text-2xl font-bold text-slate-900 tracking-tight">Dashboard</h2>
-          <p class="text-xs font-medium text-slate-500 mt-1">Deep insights into platform growth and system performance.</p>
+          <h2 class="text-2xl font-bold text-slate-900 tracking-tight">
+            Dashboard
+          </h2>
+          <p class="text-xs font-medium text-slate-500 mt-1">
+            Deep insights into platform growth and system performance.
+          </p>
         </div>
         <NuxtLink
           to="/invoices/create"
@@ -206,10 +211,81 @@
               <h2 class="text-lg font-semibold text-slate-900 tracking-tight">
                 Monthly Revenue Forecast
               </h2>
-              <UiSelect
-                v-model="forecastRange"
-                :options="forecastOptions"
-                custom-class="!w-40 !py-1.5 !text-xs !font-semibold !bg-slate-50" />
+              <div
+                class="flex items-center gap-1 bg-slate-50/50 p-1 rounded-xl border border-slate-100">
+                <!-- Range Selector Group -->
+                <div class="flex items-center">
+                  <button
+                    @click="toggleFilterMode('range')"
+                    class="p-2 rounded-lg transition-all duration-200 flex items-center justify-center"
+                    :class="[
+                      activeFilterMode === 'range'
+                        ? 'bg-white shadow-sm text-emerald-600 ring-1 ring-slate-200'
+                        : 'text-slate-400 hover:bg-white hover:text-slate-600',
+                      activeFilterMode && activeFilterMode !== 'range'
+                        ? 'opacity-60'
+                        : '',
+                    ]"
+                    :title="
+                      activeFilterMode === 'range'
+                        ? 'Close Filter'
+                        : 'Filter by Range'
+                    ">
+                    <UiIcon icon="heroicons:clock" class="w-4 h-4" />
+                  </button>
+
+                  <transition name="filter-grow">
+                    <div
+                      v-if="activeFilterMode === 'range'"
+                      class="flex items-center gap-2 px-2 overflow-hidden whitespace-nowrap">
+                      <UiSelect
+                        v-model="forecastRange"
+                        :options="forecastOptions"
+                        custom-class="!w-36 !py-1 !text-[11px] !font-semibold !bg-white !border-slate-200 shadow-sm !ring-0" />
+                    </div>
+                  </transition>
+                </div>
+
+                <div class="h-4 w-px bg-slate-200 mx-0.5"></div>
+
+                <!-- Calendar Selector Group -->
+                <div class="flex items-center">
+                  <button
+                    @click="toggleFilterMode('calendar')"
+                    class="p-2 rounded-lg transition-all duration-200 flex items-center justify-center"
+                    :class="[
+                      activeFilterMode === 'calendar'
+                        ? 'bg-white shadow-sm text-emerald-600 ring-1 ring-slate-200'
+                        : 'text-slate-400 hover:bg-white hover:text-slate-600',
+                      activeFilterMode && activeFilterMode !== 'calendar'
+                        ? 'opacity-60'
+                        : '',
+                    ]"
+                    :title="
+                      activeFilterMode === 'calendar'
+                        ? 'Close Filter'
+                        : 'Filter by Calendar'
+                    ">
+                    <UiIcon icon="heroicons:calendar" class="w-4 h-4" />
+                  </button>
+
+                  <transition name="filter-grow">
+                    <div
+                      v-if="activeFilterMode === 'calendar'"
+                      class="flex items-center gap-1.5 mx-2 overflow-hidden whitespace-nowrap">
+                      <UiSelect
+                        v-model="selectedMonth"
+                        :options="monthOptions"
+                        custom-class="!w-32 !py-1 !text-[11px] !font-semibold !bg-white !border-slate-200 shadow-sm !ring-0" />
+                      <UiSelect
+                        v-if="selectedMonth"
+                        v-model="selectedYear"
+                        :options="yearOptions"
+                        custom-class="!w-24 !py-1 !text-[11px] !font-semibold !bg-white !border-slate-200 shadow-sm !ring-0" />
+                    </div>
+                  </transition>
+                </div>
+              </div>
             </div>
             <div class="p-6 h-[350px]">
               <ClientOnly>
@@ -434,7 +510,7 @@
                         ? 'bg-rose-50 text-rose-600 border border-rose-100'
                         : 'bg-amber-50 text-amber-600 border border-amber-100'
                   ">
-                  INV
+                  INVK
                 </div>
                 <div class="min-w-0 flex-1">
                   <p class="text-sm font-semibold text-slate-900 truncate">
@@ -478,53 +554,85 @@ const uiStore = useUiStore();
 const toast = ref({ message: "", type: "success" });
 
 const forecastRange = ref(30);
+const selectedMonth = ref("");
+const selectedYear = ref(new Date().getFullYear());
 
-const fetchDashboardData = async (range) => {
+const fetchCoreData = async () => {
   try {
-    await dashboardStore.fetchDashboardData(range);
+    await dashboardStore.fetchCoreData();
   } catch (err) {
     toast.value = {
-      message: err.response?.data?.message || "Failed to load dashboard data",
+      message: err.response?.data?.message || "Failed to load dashboard stats",
       type: "error",
     };
   }
 };
 
-// Watch for range changes to fetch new data
-watch(forecastRange, (newRange) => {
-  fetchDashboardData(newRange);
+const fetchForecastData = async () => {
+  try {
+    const params = {};
+    if (selectedMonth.value) {
+      params.month = selectedMonth.value;
+      params.year = selectedYear.value;
+    } else {
+      params.range = forecastRange.value;
+    }
+    await dashboardStore.fetchForecastData(params);
+  } catch (err) {
+    toast.value = {
+      message: err.response?.data?.message || "Failed to load forecast data",
+      type: "error",
+    };
+  }
+};
+
+// Watch for any forecast filter changes
+watch([forecastRange, selectedMonth, selectedYear], () => {
+  fetchForecastData();
 });
 
 onMounted(() => {
-
-  fetchDashboardData(forecastRange.value);
+  fetchCoreData();
+  fetchForecastData();
   authStore.fetchProfile();
 });
 
 // Chart Data mapping
 const chartData = computed(() => {
-  // Combine history and forecast into a continuous series
   const history = dashboardStore.cashflow?.history || [];
   const forecast = dashboardStore.cashflow?.forecast || [];
 
-  const combined = [...history, ...forecast].map((item) => ({
+  const combined = [...history, ...forecast];
+
+  const mapped = combined.map((item) => ({
     date: item.date,
-    amount: item.amount,
+    amount: item.amount || 0,
+    details: Array.isArray(item.details) ? item.details : [],
   }));
 
-  // Sort by date to ensure continuity
-  return combined.sort((a, b) => new Date(a.date) - new Date(b.date));
+  return mapped.sort(
+    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+  );
 });
 
-watch(
-  chartData,
-  (newData) => {
-
-  },
-  { immediate: true },
-);
+watch(chartData, (newData) => {}, { immediate: true });
 
 const profitabilityFilter = ref("top5");
+const activeFilterMode = ref(null); // 'range' or 'calendar'
+
+const toggleFilterMode = (mode) => {
+  if (activeFilterMode.value === mode) {
+    activeFilterMode.value = null;
+  } else {
+    activeFilterMode.value = mode;
+    if (mode === "range") {
+      selectedMonth.value = "";
+    } else if (mode === "calendar") {
+      forecastRange.value = 30;
+    }
+  }
+};
+
 const rankOptions = [
   { label: "Top 5", value: "top5" },
   { label: "Bottom 5", value: "bottom5" },
@@ -534,5 +642,27 @@ const forecastOptions = [
   { label: "Next 30 Days", value: 30 },
   { label: "Next 60 Days", value: 60 },
   { label: "Next 90 Days", value: 90 },
+  { label: "All Time", value: "all" },
 ];
+
+const monthOptions = [
+  { label: "Rolling Range", value: "" },
+  { label: "January", value: 1 },
+  { label: "February", value: 2 },
+  { label: "March", value: 3 },
+  { label: "April", value: 4 },
+  { label: "May", value: 5 },
+  { label: "June", value: 6 },
+  { label: "July", value: 7 },
+  { label: "August", value: 8 },
+  { label: "September", value: 9 },
+  { label: "October", value: 10 },
+  { label: "November", value: 11 },
+  { label: "December", value: 12 },
+];
+
+const yearOptions = Array.from({ length: 4 }, (_, i) => ({
+  label: String(new Date().getFullYear() - 1 + i),
+  value: new Date().getFullYear() - 1 + i,
+}));
 </script>

@@ -223,12 +223,16 @@
                       v-model="item.name"
                       class="text-sm font-semibold text-slate-900 bg-transparent outline-none w-full p-0 border-none focus:ring-0 cursor-text"
                       placeholder="Item name" />
-                    <input
-                      type="text"
-                      v-model="item.priceStr"
-                      @input="updatePriceNum(item)"
-                      class="text-xs text-slate-500 bg-transparent outline-none w-full p-0 border-none focus:ring-0 cursor-text"
-                      placeholder="Price (e.g. 1,200)" />
+                    <div
+                      class="flex items-center gap-1.5 bg-slate-50 rounded-lg px-2.5 py-1.5 border border-slate-200 mt-0.5 focus-within:ring-2 focus-within:ring-slate-950 focus-within:bg-white transition-all shadow-sm">
+                      <span class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">{{ form.currency }}</span>
+                      <input
+                        type="text"
+                        v-model="item.priceStr"
+                        @input="updatePriceNum(item)"
+                        class="text-sm font-bold text-slate-900 bg-transparent outline-none w-full p-0 border-none focus:ring-0 cursor-text"
+                        placeholder="0.00" />
+                    </div>
                   </div>
                 </div>
 
@@ -604,15 +608,13 @@
                       <div class="flex justify-between text-xs">
                         <span class="text-slate-500">Issued:</span
                         ><span class="font-semibold text-slate-900">{{
-                          new Date(
-                            form.createdAt || Date.now(),
-                          ).toLocaleDateString()
+                          formatDate(form.createdAt || Date.now())
                         }}</span>
                       </div>
                       <div class="flex justify-between text-xs">
                         <span class="text-slate-500">Due:</span
                         ><span class="font-semibold text-slate-900">{{
-                          form.dueDate || "No date set"
+                          formatDate(form.dueDate)
                         }}</span>
                       </div>
                     </div>
@@ -813,20 +815,20 @@
                     class="grid grid-cols-3 gap-4 mb-10 p-4 bg-slate-50 rounded-lg">
                     <div>
                       <div
-                        class="text-[8px] font-semibold text-slate-400 uppercase tracking-widest mb-1">
+                        class="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-1">
                         Issued Date
                       </div>
-                      <div class="text-xs font-semibold text-slate-900">
-                        {{ new Date().toLocaleDateString() }}
+                      <div class="text-xs font-bold text-slate-900">
+                        {{ formatDate(form.createdAt || Date.now()) }}
                       </div>
                     </div>
                     <div>
                       <div
-                        class="text-[8px] font-semibold text-slate-400 uppercase tracking-widest mb-1">
+                        class="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-1">
                         Due Date
                       </div>
-                      <div class="text-xs font-semibold text-emerald-600">
-                        {{ form.dueDate || "N/A" }}
+                      <div class="text-xs font-bold text-emerald-600">
+                        {{ formatDate(form.dueDate) }}
                       </div>
                     </div>
                     <div>

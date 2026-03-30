@@ -17,7 +17,7 @@
 
     <div
       class="mt-8 sm:mx-auto px-6 transition-all duration-500"
-      :class="{ 'sm:max-w-lg w-full': step !== 4, '!w-fit': step === 4 }">
+      :class="{ 'sm:max-w-xl w-full': step !== 4, '!w-fit': step === 4 }">
       <div
         class="bg-white py-8 px-4 shadow-sm shadow-slate-200/40 rounded-2xl sm:px-10 border border-slate-100 relative transition-all duration-500">
         <!-- Progress Bar -->
@@ -139,54 +139,124 @@
           <!-- Step 3: Contact Info -->
           <div
             v-show="step === 3"
-            class="space-y-4 animate-in fade-in slide-in-from-right-4 duration-500">
-            <p class="text-[12px] text-slate-500 mb-2">
-              The information below is required to generate an invoice.
-            </p>
-            <div>
-              <label class="block text-sm font-semibold text-slate-900 mb-1"
-                >Full Name</label
-              >
-              <input
-                type="text"
-                v-model="form.name"
-                required
-                placeholder="John Doe"
-                class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-slate-950 outline-none transition-all" />
+            class="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
+            <!-- User Details Section -->
+            <div class="space-y-4">
+              <h3
+                class="text-sm font-bold text-slate-900 border-b border-slate-100 pb-2">
+                User Details
+              </h3>
+              <div>
+                <label
+                  class="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1"
+                  >Full Name</label
+                >
+                <input
+                  type="text"
+                  v-model="form.name"
+                  required
+                  placeholder="John Doe"
+                  class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-slate-950 outline-none transition-all" />
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label
+                    class="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1"
+                    >Login Email</label
+                  >
+                  <input
+                    type="email"
+                    :value="authStore.user?.email"
+                    disabled
+                    class="block w-full rounded-md border border-slate-100 bg-slate-50 px-3 py-2 text-sm text-slate-500 cursor-not-allowed outline-none" />
+                </div>
+                <div>
+                  <label
+                    class="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1"
+                    >Phone Number</label
+                  >
+                  <input
+                    type="tel"
+                    v-model="form.phoneNumber"
+                    required
+                    placeholder="+60 12-345 6789"
+                    class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-slate-950 outline-none transition-all" />
+                </div>
+              </div>
             </div>
-            <div>
-              <label class="block text-sm font-semibold text-slate-900 mb-1"
-                >Company / Business Name</label
-              >
-              <input
-                type="text"
-                v-model="form.companyName"
-                required
-                placeholder="Acme Corp"
-                class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-slate-950 outline-none transition-all" />
-            </div>
-            <div>
-              <label class="block text-sm font-semibold text-slate-900 mb-1"
-                >Billing Email</label
-              >
-              <input
-                type="email"
-                v-model="form.companyEmail"
-                required
-                placeholder="example@email.com"
-                class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-slate-950 outline-none transition-all" />
-            </div>
-            <div>
-              <label class="block text-sm font-semibold text-slate-900 mb-1"
-                >WhatsApp / Phone Number</label
-              >
 
-              <input
-                type="tel"
-                v-model="form.phoneNumber"
-                required
-                placeholder="+60 12-345 6789"
-                class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-slate-950 outline-none transition-all" />
+            <!-- Company Details Section -->
+            <div class="space-y-4 pt-2">
+              <div class="space-y-1 pb-2 border-b border-slate-100">
+                <h3 class="text-sm font-bold text-slate-900">
+                  Company Details
+                </h3>
+                <div class="text-[11px] text-slate-500">
+                  This details will be displayed on your invoices.
+                </div>
+              </div>
+              <div>
+                <label
+                  class="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1"
+                  >Company / Business Name</label
+                >
+                <input
+                  type="text"
+                  v-model="form.companyName"
+                  required
+                  placeholder="Acme Corp"
+                  class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-slate-950 outline-none transition-all" />
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label
+                    class="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1"
+                    >Company Email</label
+                  >
+                  <input
+                    type="email"
+                    v-model="form.companyEmail"
+                    required
+                    placeholder="billing@acme.com"
+                    class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-slate-950 outline-none transition-all" />
+                  <label
+                    class="flex items-center gap-2 mt-2 cursor-pointer group">
+                    <input
+                      type="checkbox"
+                      v-model="useUserEmail"
+                      @change="syncEmail"
+                      class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-600 w-3.5 h-3.5" />
+                    <span
+                      class="text-[11px] font-medium text-slate-500 group-hover:text-slate-700 transition-colors"
+                      >Use same as user's</span
+                    >
+                  </label>
+                </div>
+                <div>
+                  <label
+                    class="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1"
+                    >Company Phone</label
+                  >
+                  <input
+                    type="tel"
+                    v-model="form.companyPhone"
+                    required
+                    placeholder="+60 12-345 6789"
+                    class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-slate-950 outline-none transition-all" />
+                  <label
+                    class="flex items-center gap-2 mt-2 cursor-pointer group">
+                    <input
+                      type="checkbox"
+                      v-model="useUserPhone"
+                      @change="syncPhone"
+                      class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-600 w-3.5 h-3.5" />
+                    <span
+                      class="text-[11px] font-medium text-slate-500 group-hover:text-slate-700 transition-colors"
+                      >Use same as user's</span
+                    >
+                  </label>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -481,8 +551,28 @@ const form = reactive({
   name: "",
   companyName: "",
   companyEmail: "",
+  companyPhone: "",
   phoneNumber: "",
 });
+
+const useUserEmail = ref(false);
+const useUserPhone = ref(false);
+
+const syncEmail = () => {
+  if (useUserEmail.value) {
+    form.companyEmail = authStore.user?.email || "";
+  } else {
+    form.companyEmail = "";
+  }
+};
+
+const syncPhone = () => {
+  if (useUserPhone.value) {
+    form.companyPhone = form.phoneNumber || "";
+  } else {
+    form.companyPhone = "";
+  }
+};
 
 // Autofill fields explicitly on mount
 onMounted(() => {
@@ -491,6 +581,8 @@ onMounted(() => {
     if (authStore.user.email) form.companyEmail = authStore.user.email;
     if (authStore.user.companyName)
       form.companyName = authStore.user.companyName;
+    if (authStore.user.companyPhone)
+      form.companyPhone = authStore.user.companyPhone;
     if (authStore.user.phoneNumber)
       form.phoneNumber = authStore.user.phoneNumber;
   }
@@ -511,6 +603,7 @@ const nextStep = () => {
       !form.name ||
       !form.companyName ||
       !form.companyEmail ||
+      !form.companyPhone ||
       !form.phoneNumber
     ) {
       error.value = "Please fill out all contact fields to continue.";

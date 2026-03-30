@@ -15,3 +15,21 @@
     font-weight: 600 !important; /* Semibold */
   }
 }
+
+/* Filter Expansion Transition */
+.filter-grow-enter-active,
+.filter-grow-leave-active {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  max-width: 400px;
+  overflow: hidden;
+}
+
+.filter-grow-enter-from,
+.filter-grow-leave-to {
+  max-width: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  opacity: 0;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}

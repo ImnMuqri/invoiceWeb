@@ -518,12 +518,19 @@
                       v-model="item.name"
                       class="text-sm font-semibold text-slate-900 bg-transparent outline-none w-full p-0 border-none focus:ring-0 cursor-text"
                       placeholder="Item name" />
-                    <input
-                      type="text"
-                      v-model="item.priceStr"
-                      @input="updatePriceNum(item)"
-                      class="text-xs text-slate-500 bg-transparent outline-none w-full p-0 border-none focus:ring-0 cursor-text"
-                      placeholder="Price (e.g. 1,200)" />
+                    <div
+                      class="flex items-center gap-1.5 bg-slate-50 rounded-md px-2.5 py-1.5 border border-slate-200 mt-0.5 focus-within:ring-2 focus-within:ring-slate-950 focus-within:bg-white transition-all shadow-sm">
+                      <span
+                        class="text-[10px] font-bold text-slate-400 uppercase tracking-tight"
+                        >{{ form.currency }}</span
+                      >
+                      <input
+                        type="text"
+                        v-model="item.priceStr"
+                        @input="updatePriceNum(item)"
+                        class="text-sm font-bold text-slate-900 bg-transparent outline-none w-full p-0 border-none focus:ring-0 cursor-text"
+                        placeholder="0.00" />
+                    </div>
                   </div>
                 </div>
 
@@ -571,7 +578,7 @@
             <button
               type="button"
               @click="addLineItem"
-              class="mt-4 flex items-center gap-2 text-sm font-semibold text-emerald-600 hover:text-emerald-800 transition-colors px-1 py-2 rounded-md hover:bg-emerald-50">
+              class="mt-4 px-2 flex items-center gap-2 text-sm font-semibold text-emerald-600 hover:text-emerald-800 transition-colors px-1 py-2 rounded-md hover:bg-emerald-50">
               <svg
                 class="w-4 h-4"
                 fill="none"
@@ -655,6 +662,7 @@
           <div class="flex items-center gap-4">
             <button
               type="button"
+              @click="$router.push('/invoices')"
               class="w-10 h-10 rounded-md bg-white border border-slate-200 shadow-sm flex items-center justify-center text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-950">
               <svg
                 class="w-5 h-5"
@@ -922,13 +930,13 @@
                       <div class="flex justify-between text-xs">
                         <span class="text-slate-500">Issued:</span
                         ><span class="font-semibold text-slate-900">{{
-                          new Date().toLocaleDateString()
+                          formatDate(new Date())
                         }}</span>
                       </div>
                       <div class="flex justify-between text-xs">
                         <span class="text-slate-500">Due:</span
                         ><span class="font-semibold text-slate-900">{{
-                          form.dueDate || "No date set"
+                          formatDate(form.dueDate)
                         }}</span>
                       </div>
                     </div>
@@ -1139,7 +1147,7 @@
                         Issued Date
                       </div>
                       <div class="text-xs font-bold text-slate-900">
-                        {{ new Date().toLocaleDateString() }}
+                        {{ formatDate(new Date()) }}
                       </div>
                     </div>
                     <div>
@@ -1148,7 +1156,7 @@
                         Due Date
                       </div>
                       <div class="text-xs font-bold text-emerald-600">
-                        {{ form.dueDate || "N/A" }}
+                        {{ formatDate(form.dueDate) }}
                       </div>
                     </div>
                     <div>

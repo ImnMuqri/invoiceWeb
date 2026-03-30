@@ -1,5 +1,5 @@
 <template>
-  <UiModal v-model="isOpen" title="Connect to" max-width="max-w-xl">
+  <UiModal v-model="isOpen" :title="title" max-width="max-w-xl">
     <div class="p-6">
       <div v-if="step === 1">
         <div class="flex items-center gap-3 mb-4">
@@ -39,14 +39,6 @@
 
       <div v-else>
         <div class="space-y-4 relative">
-          <!-- Decoy inputs to trap browser autofill -->
-          <div
-            aria-hidden="true"
-            class="absolute -top-[1000px] left-0 opacity-0 pointer-events-none h-0 w-0 overflow-hidden">
-            <input type="text" name="decoy_user" tabIndex="-1" />
-            <input type="password" name="decoy_pass" tabIndex="-1" />
-          </div>
-
           <div v-for="field in fields" :key="field.key">
             <label
               class="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2"
@@ -127,7 +119,7 @@ const providerLogo = computed(() => {
     ? "https://images.crunchbase.com/image/upload/c_pad,h_256,w_256,f_auto,q_auto:eco,dpr_1/e2hhr8kgl2hq5bkkqueq?ik-sanitizeSvg=true"
     : "https://make-cxp-documentation.ams3.digitaloceanspaces.com/apps-center-icons/billplz.png";
 });
-const title = computed(() => `Connect ${providerName.value}`);
+const title = computed(() => `Connect to ${providerName.value}`);
 
 const instructions = computed(() => {
   if (props.provider === "TOYYIBPAY") {

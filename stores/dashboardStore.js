@@ -20,26 +20,29 @@ export const useDashboardStore = defineStore("dashboard", {
     error: null,
   }),
   actions: {
-    async fetchDashboardData(range = 30) {
+    async fetchCoreData() {
       const { $api } = useNuxtApp();
       this.loading = true;
-      this.error = null;
       try {
-        const { data } = await $api.get("/dashboard", {
-          params: { range },
-        });
+        const { data } = await $api.get("/dashboard/core");
         this.stats = data.stats;
         this.recentInvoices = data.recentInvoices;
         this.topClients = data.topClients;
-        this.cashflow = data.cashflow;
         this.insights = data.insights || [];
         this.usageLimits = data.usageLimits || null;
       } catch (err) {
         this.error = err.response?.data?.message || err.message;
-
-        throw err;
       } finally {
         this.loading = false;
+      }
+    },
+    async fetchForecastData(params = { range: 30 }) {
+      const { $api } = useNuxtApp();
+      try {
+        const { data } = await $api.get("/dashboard/forecast", { params });
+        this.cashflow = data.cashflow;
+      } catch (err) {
+        this.error = err.response?.data?.message || err.message;
       }
     },
   },

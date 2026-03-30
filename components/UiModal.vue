@@ -15,10 +15,30 @@
         <div
           class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-2xl transition-all sm:my-8 w-full pointer-events-auto border border-slate-200"
           :class="maxWidthClass">
-          <!-- Close Button -->
+          <div
+            v-if="title"
+            class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+            <div class="flex-1 pr-8">
+              <h3 class="text-base font-bold text-slate-900 tracking-tight">
+                {{ title }}
+              </h3>
+              <p
+                v-if="description"
+                class="mt-1 text-[12px] text-slate-500 font-medium leading-relaxed">
+                {{ description }}
+              </p>
+            </div>
+            <button
+              v-if="showClose"
+              @click="$emit('update:modelValue', false)"
+              class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-200 rounded-full transition-all">
+              <UiIcon icon="heroicons:x-mark" class="w-5 h-5" />
+            </button>
+          </div>
 
+          <!-- Close Button (Absolute if no title) -->
           <button
-            v-if="showClose"
+            v-else-if="showClose"
             @click="$emit('update:modelValue', false)"
             class="absolute right-4 top-4 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-full transition-all z-10">
             <UiIcon icon="heroicons:x-mark" class="w-5 h-5" />
@@ -38,6 +58,14 @@ const props = defineProps({
   modelValue: {
     type: Boolean,
     required: true,
+  },
+  title: {
+    type: String,
+    default: "",
+  },
+  description: {
+    type: String,
+    default: "",
   },
   maxWidth: {
     type: String,

@@ -40,7 +40,7 @@
     <UiTable
       :loading="invoiceStore.loading"
       :is-empty="filteredInvoices.length === 0"
-      :column-count="8">
+      :column-count="10">
       <template #header>
         <th
           scope="col"
@@ -65,6 +65,26 @@
         <th
           scope="col"
           class="px-3 py-4 text-left text-[10px] font-semibold text-slate-400 tracking-wider uppercase whitespace-nowrap">
+          Issued Date
+        </th>
+        <th
+          scope="col"
+          class="px-3 py-4 text-left text-[10px] font-semibold text-slate-400 tracking-wider uppercase whitespace-nowrap">
+          Due Date
+        </th>
+        <th
+          scope="col"
+          class="px-3 py-4 text-left text-[10px] font-semibold text-slate-400 tracking-wider uppercase whitespace-nowrap">
+          Email Sent
+        </th>
+        <th
+          scope="col"
+          class="px-3 py-4 text-left text-[10px] font-semibold text-slate-400 tracking-wider uppercase whitespace-nowrap">
+          WhatsApp Sent
+        </th>
+        <th
+          scope="col"
+          class="px-3 py-4 text-left text-[10px] font-semibold text-slate-400 tracking-wider uppercase whitespace-nowrap">
           Late Risk
           <svg
             class="w-3 h-3 inline-block ml-1 text-emerald-600"
@@ -78,16 +98,6 @@
               d="M13 10V3L4 14h7v7l9-11h-7z"></path>
           </svg>
         </th>
-        <th
-          scope="col"
-          class="px-3 py-4 text-left text-[10px] font-semibold text-slate-400 tracking-wider uppercase">
-          Date
-        </th>
-        <th
-          scope="col"
-          class="px-3 py-4 text-left text-[10px] font-semibold text-slate-400 tracking-wider uppercase">
-          WhatsApp
-        </th>
         <th scope="col" class="relative py-4 pl-3 pr-6">
           <span class="sr-only">Actions</span>
         </th>
@@ -99,7 +109,7 @@
         class="hover:bg-slate-50 transition-colors">
         <td
           class="whitespace-nowrap py-4 pl-6 pr-3 text-sm font-semibold text-slate-900">
-          INVM - {{ invoice?.id || "N/A" }}
+          INVK - {{ invoice?.id || "N/A" }}
         </td>
         <td
           class="whitespace-nowrap px-3 py-4 text-sm font-semibold text-slate-700">
@@ -122,10 +132,31 @@
             >Overdue</span
           >
           <span
+            v-else-if="invoice?.status === 'Cancelled'"
+            class="inline-flex items-center rounded-md bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-700 border border-slate-200"
+            >Cancelled</span
+          >
+          <span
             v-else
             class="inline-flex items-center rounded-md bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-700 border border-amber-100"
             >Pending</span
           >
+        </td>
+        <td
+          class="whitespace-nowrap px-3 py-4 text-sm font-medium text-slate-500">
+          {{ formatDate(invoice?.date) }}
+        </td>
+        <td
+          class="whitespace-nowrap px-3 py-4 text-sm font-medium text-slate-500">
+          {{ formatDate(invoice?.dueDate) }}
+        </td>
+        <td
+          class="whitespace-nowrap px-3 py-4 text-sm font-medium text-slate-500">
+          {{ invoice?.emailLastSent ? formatDate(invoice.emailLastSent) : "-" }}
+        </td>
+        <td
+          class="whitespace-nowrap px-3 py-4 text-sm font-medium text-slate-500">
+          {{ invoice?.whatsappLastSent ? formatDate(invoice.whatsappLastSent) : "-" }}
         </td>
         <td class="whitespace-nowrap px-3 py-4 text-sm">
           <div
@@ -146,37 +177,6 @@
           <span v-else class="text-slate-400 font-medium text-xs">-</span>
         </td>
         <td
-          class="whitespace-nowrap px-3 py-4 text-sm font-medium text-slate-500">
-          {{ formatDate(invoice?.date) }}
-        </td>
-        <td class="whitespace-nowrap px-3 py-4 text-sm">
-          <span
-            v-if="invoice?.whatsappStatus === 'Sent'"
-            class="inline-flex items-center text-emerald-600 font-medium text-xs">
-            <svg
-              class="w-4 h-4 mr-1"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M5 13l4 4L19 7"></path>
-            </svg>
-            Sent
-          </span>
-          <span
-            v-else-if="invoice?.whatsappStatus === 'Sending...'"
-            class="inline-flex items-center text-amber-500 font-medium text-xs">
-            <UiIcon
-              icon="heroicons:arrow-path"
-              custom-class="w-4 h-4 mr-1 animate-spin text-amber-500" />
-            Sending...
-          </span>
-          <span v-else class="text-slate-400 font-medium text-xs">-</span>
-        </td>
-        <td
           class="relative whitespace-nowrap py-4 pl-3 pr-6 text-right text-sm font-semibold flex items-center justify-end gap-1.5 h-full">
           <!-- Always visible: Public Preview -->
           <NuxtLink
@@ -189,6 +189,50 @@
               icon="heroicons:arrow-top-right-on-square"
               custom-class="w-4 h-4" />
           </NuxtLink>
+
+          <!-- Quick Status Update Popover -->
+          <UiPopover placement="bottom-end">
+            <template #trigger>
+              <button
+                class="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all"
+                title="Update Status">
+                <UiIcon icon="heroicons:check-badge" custom-class="w-4 h-4" />
+              </button>
+            </template>
+
+            <template #default="{ close }">
+              <div class="px-3 py-2 border-b border-slate-100 bg-slate-50/50">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Update Status</span>
+              </div>
+              <div class="p-1 min-w-[160px]">
+                <button
+                  @click="close(); updateStatus(invoice, 'Paid')"
+                  class="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 rounded-md transition-all text-left">
+                  <div class="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+                  Mark as Paid
+                </button>
+                <button
+                  @click="close(); updateStatus(invoice, 'Overdue')"
+                  class="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-md transition-all text-left">
+                  <div class="w-1.5 h-1.5 rounded-full bg-red-500"></div>
+                  Mark as Overdue
+                </button>
+                <button
+                  @click="close(); updateStatus(invoice, 'Pending')"
+                  class="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-600 hover:text-amber-600 hover:bg-amber-50 rounded-md transition-all text-left">
+                  <div class="w-1.5 h-1.5 rounded-full bg-amber-500"></div>
+                  Mark as Pending
+                </button>
+                <div class="h-px bg-slate-100 my-1 mx-2"></div>
+                <button
+                  @click="close(); updateStatus(invoice, 'Cancelled')"
+                  class="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-md transition-all text-left">
+                  <div class="w-1.5 h-1.5 rounded-full bg-slate-400"></div>
+                  Cancelled
+                </button>
+              </div>
+            </template>
+          </UiPopover>
 
           <!-- Popover for other actions -->
           <UiPopover placement="bottom-end">
@@ -299,18 +343,21 @@
     <UiToast v-model="toast" />
 
     <!-- Delete Confirmation Modal -->
-    <UiModal v-model="isDeleteModalOpen" maxWidth="md">
+    <UiModal 
+      v-model="isDeleteModalOpen" 
+      maxWidth="md" 
+      title="Delete Invoice?"
+      description="Are you sure you want to delete this invoice? This action cannot be undone.">
       <div class="p-6">
         <div
           class="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full mb-4">
           <UiIcon icon="heroicons:trash" class="w-6 h-6 text-red-600" />
         </div>
         <div class="text-center">
-          <h3 class="text-lg font-semibold text-slate-900">Delete Invoice?</h3>
           <p class="mt-2 text-sm text-slate-500">
             Are you sure you want to delete invoice
             <span class="font-semibold text-slate-900"
-              >INVM-{{ invoiceToDelete?.id }}</span
+              >INVK-{{ invoiceToDelete?.id }}</span
             >? This action cannot be undone.
           </p>
         </div>
@@ -419,6 +466,23 @@ const confirmDelete = async () => {
   } finally {
     isDeleting.value = false;
     invoiceToDelete.value = null;
+  }
+};
+
+const updateStatus = async (invoice, newStatus) => {
+  try {
+    const res = await invoiceStore.updateInvoice(invoice.id, {
+      status: newStatus,
+    });
+    toast.value = {
+      message: res?.message || `Invoice marked as ${newStatus}`,
+      type: "success",
+    };
+  } catch (err) {
+    toast.value = {
+      message: err.response?.data?.message || "Failed to update status",
+      type: "error",
+    };
   }
 };
 

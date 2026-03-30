@@ -156,7 +156,7 @@
 
           <p
             class="text-lg md:text-xl text-slate-600 max-w-2xl mx-auto mb-12 leading-relaxed font-medium">
-            Create, send, and track beautiful invoices in seconds. Let the AI
+            Create, send, and track beautiful invoices in seconds. Let InvoKita
             handle the heavy lifting while you focus on your craft. We'll update
             you.
           </p>
@@ -266,7 +266,7 @@
                     Sent
                   </div>
                   <div class="text-xs font-semibold text-emerald-900">
-                    Invoice #INV-2024
+                    Invoice #INVK-2024
                   </div>
                 </div>
               </div>
@@ -595,7 +595,7 @@
 
               <!-- Content Mockups -->
               <div
-                class="p-5 flex flex-col gap-4 relative min-h-[300px] bg-slate-50/30">
+                class="p-5 flex flex-col gap-4 relative min-h-[350px] bg-slate-50/30">
                 <!-- Manual Entry Mockup -->
                 <div
                   v-show="previewTab === 'manual'"
@@ -708,7 +708,7 @@
                   v-show="previewTab === 'ai'"
                   class="absolute inset-x-0 top-0 bottom-0 flex flex-col bg-slate-50/50">
                   <!-- Chat messages area -->
-                  <div class="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+                  <div class="flex-1 overflow-y-auto px-4 py-6 space-y-4">
                     <!-- AI Greeting -->
                     <div class="flex items-start gap-2">
                       <div

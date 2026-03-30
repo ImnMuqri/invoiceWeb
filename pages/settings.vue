@@ -42,9 +42,12 @@
           <div v-if="activeTab === 'general'" class="divide-y divide-slate-100">
             <div class="p-6 border-b border-slate-100">
               <h3
-                class="text-base font-semibold text-slate-900 tracking-tight mb-6">
+                class="text-base font-semibold text-slate-900 tracking-tight mb-1">
                 User Profile
               </h3>
+              <p class="text-sm text-slate-500 mb-6">
+                Manage your preferences, personal and business information.
+              </p>
               <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
                 <div class="sm:col-span-3">
                   <label
@@ -86,17 +89,6 @@
                   class="text-base font-semibold text-slate-900 tracking-tight">
                   Company Profile
                 </h3>
-                <label class="flex items-center gap-2 cursor-pointer group">
-                  <input
-                    type="checkbox"
-                    v-model="useSameAsUser"
-                    @change="syncCompanyInfo"
-                    class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-600 w-4 h-4 cursor-pointer" />
-                  <span
-                    class="text-xs font-semibold text-slate-500 group-hover:text-slate-900 transition-colors"
-                    >Use same as user's</span
-                  >
-                </label>
               </div>
               <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
                 <div class="sm:col-span-6">
@@ -190,10 +182,10 @@
 
             <div class="p-6">
               <h3
-                class="text-base font-semibold text-slate-900 tracking-tight mb-2">
+                class="text-base font-semibold text-slate-900 tracking-tight mb-1">
                 WhatsApp Connection
               </h3>
-              <p class="text-sm text-slate-500 mb-6 font-medium">
+              <p class="text-sm text-slate-500 mb-6">
                 Choose how you want to connect to WhatsApp.
               </p>
 
@@ -305,6 +297,42 @@
               </div>
             </div>
 
+            <div class="p-6 border-t border-slate-100">
+              <h3
+                class="text-base font-semibold text-slate-900 tracking-tight mb-2">
+                Automated WhatsApp Reminders
+              </h3>
+              <p class="text-sm text-slate-500 mb-6 font-medium">
+                Set how frequently your clients receive automated WhatsApp
+                notifications for overdue invoices.
+              </p>
+
+              <div class="max-w-xs">
+                <label
+                  class="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2"
+                  >WhatsApp Reminder Interval</label
+                >
+                <UiSelect
+                  v-model="settingsForm.whatsappReminderInterval"
+                  :options="reminderIntervalOptions"
+                  placeholder="Select interval" />
+                <p class="text-[12px] text-slate-500 mt-4 leading-relaxed">
+                  <span v-if="settingsForm.whatsappReminderInterval === 0">
+                    WhatsApp reminders are currently disabled.
+                  </span>
+                  <span v-else-if="settingsForm.whatsappReminderInterval < 0">
+                    A WhatsApp reminder will be sent
+                    {{ Math.abs(settingsForm.whatsappReminderInterval) }} days
+                    before the due date.
+                  </span>
+                  <span v-else>
+                    After the due date, a WhatsApp reminder will be sent every
+                    {{ settingsForm.whatsappReminderInterval }} days.
+                  </span>
+                </p>
+              </div>
+            </div>
+
             <div class="p-6">
               <h3
                 class="text-base font-semibold text-slate-900 tracking-tight mb-2">
@@ -393,10 +421,10 @@
 
             <div class="p-6">
               <h3
-                class="text-base font-semibold text-slate-900 tracking-tight mb-2">
+                class="text-base font-semibold text-slate-900 tracking-tight mb-1">
                 Automated Email Reminders
               </h3>
-              <p class="text-sm text-slate-500 mb-6 font-medium">
+              <p class="text-sm text-slate-500 mb-6">
                 Control exactly how frequently your clients realistically
                 receive polite, automated email reminders chasing unpaid
                 invoices.
@@ -472,8 +500,7 @@
                           "Client Name"
                         }}</strong>
                         via
-                        <span
-                          class="px-1.5 py-0.5 bg-[#fef08a] rounded font-medium text-slate-900"
+                        <span class="py-0.5 rounded font-medium text-slate-900"
                           >InvoKita</span
                         >.
                       </p>
@@ -487,7 +514,7 @@
                         PENDING
                       </span>
                       <p class="text-xs text-slate-500 font-medium mb-1">
-                        INV-0005
+                        INVK-0005
                       </p>
                       <p
                         class="text-[11px] text-slate-400 font-medium tracking-wide mb-3">
@@ -520,13 +547,7 @@
 
                     <div
                       class="text-center text-[10px] font-medium text-slate-400 space-y-1">
-                      <p>
-                        This email was sent via
-                        <span
-                          class="px-1 py-0.5 bg-[#fef08a] rounded text-slate-700"
-                          >InvoKita</span
-                        >.
-                      </p>
+                      <p>This email was sent via InvoKita.</p>
                       <p>Accurate & Professional Invoicing.</p>
                     </div>
                   </div>
@@ -681,6 +702,123 @@
                   class="mt-auto w-full py-2.5 bg-slate-900 text-white text-xs font-bold rounded-xl hover:bg-slate-800 transition-all uppercase tracking-widest">
                   Connect
                 </button>
+              </div>
+            </div>
+
+            <!-- Manual Payment Section -->
+            <div class="mt-8 pt-8 border-t border-slate-100">
+              <div class="mb-8 text-left">
+                <div class="flex items-center gap-2 mb-4 text-left">
+                  <div class="h-px bg-slate-200 flex-1"></div>
+                  <span
+                    class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] px-3"
+                    >Or manual fallback</span
+                  >
+                  <div class="h-px bg-slate-200 flex-1"></div>
+                </div>
+                <h3
+                  class="text-base font-semibold text-slate-900 tracking-tight text-left">
+                  Direct Bank Transfer
+                </h3>
+                <p class="text-xs text-slate-500 mt-1 text-left">
+                  Clients can pay you directly. These details will show if no
+                  gateway is connected.
+                </p>
+                <div
+                  class="mt-4 p-3 bg-amber-50 rounded-lg border border-amber-100 flex gap-3 text-left">
+                  <UiIcon
+                    icon="heroicons:information-circle"
+                    custom-class="w-4 h-4 text-amber-600 shrink-0" />
+                  <p class="text-[11px] text-amber-700 leading-normal">
+                    <strong>Payment Detection:</strong> We cannot automatically
+                    detect manual payments. You will need to verify the
+                    transaction in your bank account and manually mark the
+                    invoice as paid.
+                  </p>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8 text-left">
+                <div class="space-y-4">
+                  <div>
+                    <label
+                      class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2"
+                      >Bank Name</label
+                    >
+                    <input
+                      v-model="settingsForm.manualBankName"
+                      type="text"
+                      placeholder="e.g. Maybank, CIMB"
+                      class="w-full border border-slate-200 rounded-md px-4 py-2.5 text-sm font-medium focus:ring-1 focus:ring-slate-900 outline-none transition-all" />
+                  </div>
+                  <div>
+                    <label
+                      class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2"
+                      >Account Number</label
+                    >
+                    <input
+                      v-model="settingsForm.manualAccountNumber"
+                      type="text"
+                      placeholder="e.g. 1234 5678 90"
+                      class="w-full border border-slate-200 rounded-md px-4 py-2.5 text-sm font-medium focus:ring-1 focus:ring-slate-900 outline-none transition-all" />
+                  </div>
+                  <div>
+                    <label
+                      class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2"
+                      >Account Holder Name</label
+                    >
+                    <input
+                      v-model="settingsForm.manualAccountName"
+                      type="text"
+                      placeholder="e.g. John Doe Enterprise"
+                      class="w-full border border-slate-200 rounded-md px-4 py-2.5 text-sm font-medium focus:ring-1 focus:ring-slate-900 outline-none transition-all" />
+                  </div>
+                </div>
+
+                <div>
+                  <label
+                    class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2"
+                    >Payment QR Code</label
+                  >
+                  <div
+                    class="relative border-2 border-dashed border-slate-200 rounded-2xl p-6 min-h-[180px] flex flex-col items-center justify-center bg-slate-50/50 hover:bg-slate-50 transition-all group cursor-pointer overflow-hidden">
+                    <template v-if="settingsForm.manualQrCode">
+                      <div class="flex flex-col items-center text-center">
+                        <div
+                          class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mb-3">
+                          <UiIcon
+                            icon="heroicons:qr-code"
+                            custom-class="w-6 h-6" />
+                        </div>
+                        <p
+                          class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mb-1">
+                          QR Data Detected
+                        </p>
+                        <button
+                          @click.stop="settingsForm.manualQrCode = ''"
+                          class="text-[10px] font-bold text-red-500 hover:text-red-600 uppercase tracking-widest underline">
+                          Remove
+                        </button>
+                      </div>
+                    </template>
+                    <template v-else>
+                      <UiIcon
+                        icon="heroicons:cloud-arrow-up"
+                        custom-class="w-8 h-8 text-slate-300 mb-3 group-hover:text-slate-400 transition-colors" />
+                      <p class="text-xs font-bold text-slate-600 mb-1">
+                        Upload QR
+                      </p>
+                      <p class="text-[10px] text-slate-400 px-8 text-center">
+                        We'll decode and regenerate this on your invoices.
+                      </p>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        @change="handleQrUpload"
+                        class="absolute inset-0 opacity-0 cursor-pointer" />
+                    </template>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -977,7 +1115,7 @@
             <button
               type="button"
               @click="saveSettings"
-              :disabled="authStore.loading"
+              :disabled="authStore.loading || !isDirty"
               class="inline-flex justify-center items-center rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 transition-all disabled:opacity-50">
               <UiIcon
                 v-if="authStore.loading"
@@ -1006,6 +1144,7 @@ import { useRoute, useRouter } from "vue-router";
 import { useAuthStore } from "~/stores/authStore";
 import { useUiStore } from "~/stores/uiStore";
 import { useSubscribeStore } from "~/stores/subscribeStore";
+import jsQR from "jsqr";
 
 const authStore = useAuthStore();
 const uiStore = useUiStore();
@@ -1089,17 +1228,6 @@ const profileForm = ref({
   defaultCurrency: "MYR",
   reminderInterval: 0,
 });
-
-const useSameAsUser = ref(false);
-const syncCompanyInfo = () => {
-  if (useSameAsUser.value) {
-    profileForm.value.companyName =
-      profileForm.value.name || authStore.user?.name || "";
-    profileForm.value.companyEmail = authStore.user?.email || "";
-    profileForm.value.companyPhone = profileForm.value.phoneNumber || "";
-  }
-};
-
 const settingsForm = ref({
   whatsappSendTemplate: "",
   whatsappReminderTemplate: "",
@@ -1107,6 +1235,30 @@ const settingsForm = ref({
   twilioSid: "",
   twilioAuthToken: "",
   twilioPhoneNumber: "",
+  manualBankName: "",
+  manualAccountNumber: "",
+  manualAccountName: "",
+  manualQrCode: "",
+  whatsappReminderInterval: 0,
+});
+
+const originalProfileForm = ref({});
+const originalSettingsForm = ref({});
+
+const isDirty = computed(() => {
+  if (activeTab.value === "general" || activeTab.value === "email") {
+    return (
+      JSON.stringify(profileForm.value) !==
+      JSON.stringify(originalProfileForm.value)
+    );
+  }
+  if (activeTab.value === "whatsapp" || activeTab.value === "payments") {
+    return (
+      JSON.stringify(settingsForm.value) !==
+      JSON.stringify(originalSettingsForm.value)
+    );
+  }
+  return false;
 });
 
 onMounted(async () => {
@@ -1140,21 +1292,36 @@ onMounted(async () => {
       address: authStore.user.address || "",
       phoneNumber: authStore.user.phoneNumber || "",
       defaultCurrency: authStore.user.defaultCurrency || "MYR",
-      reminderInterval: authStore.user.reminderInterval || 3,
+      reminderInterval: authStore.user.reminderInterval,
     };
+    originalProfileForm.value = JSON.parse(JSON.stringify(profileForm.value));
   }
 
   const settings = await authStore.fetchSettings();
   if (settings) {
-    settingsForm.value = {
-      whatsappSendTemplate: settings.whatsappSendTemplate || "",
-      whatsappReminderTemplate: settings.whatsappReminderTemplate || "",
-      whatsappMode: settings.whatsappMode || "SYSTEM",
-      twilioSid: settings.twilioSid || "",
-      twilioAuthToken: settings.twilioAuthToken || "",
-      twilioPhoneNumber: settings.twilioPhoneNumber || "",
-    };
+    settingsForm.value.whatsappSendTemplate =
+      settings.whatsappSendTemplate || "";
+    settingsForm.value.whatsappReminderTemplate =
+      settings.whatsappReminderTemplate || "";
+    settingsForm.value.whatsappMode = settings.whatsappMode || "SYSTEM";
+    settingsForm.value.twilioSid = settings.twilioSid || "";
+    settingsForm.value.twilioAuthToken = settings.twilioAuthToken || "";
+    settingsForm.value.twilioPhoneNumber = settings.twilioPhoneNumber || "";
+    settingsForm.value.whatsappReminderInterval =
+      settings.whatsappReminderInterval || 0;
   }
+
+  const paymentSettings = await authStore.fetchPaymentSettings();
+  if (paymentSettings) {
+    settingsForm.value.manualBankName = paymentSettings.manualBankName || "";
+    settingsForm.value.manualAccountNumber =
+      paymentSettings.manualAccountNumber || "";
+    settingsForm.value.manualAccountName =
+      paymentSettings.manualAccountName || "";
+    settingsForm.value.manualQrCode = paymentSettings.manualQrCode || "";
+  }
+
+  originalSettingsForm.value = JSON.parse(JSON.stringify(settingsForm.value));
 
   fetchProviders();
 });
@@ -1174,6 +1341,41 @@ const isProviderConnected = (p) => {
 const openConnectModal = (p) => {
   selectedProvider.value = p;
   connectModal.value = true;
+};
+
+const handleQrUpload = (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx.drawImage(img, 0, 0);
+
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const code = jsQR(imageData.data, imageData.width, imageData.height);
+
+      if (code) {
+        settingsForm.value.manualQrCode = code.data;
+        toast.value = {
+          message: "QR Code decoded successfully!",
+          type: "success",
+        };
+      } else {
+        toast.value = {
+          message: "Could not find a valid QR code in the image.",
+          type: "error",
+        };
+      }
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
 };
 
 const isProviderPreferred = (p) => {
@@ -1237,6 +1439,8 @@ const saveSettings = async () => {
       res = await authStore.updateProfile(profileForm.value);
     } else if (activeTab.value === "whatsapp") {
       res = await authStore.updateSettings(settingsForm.value);
+    } else if (activeTab.value === "payments") {
+      res = await authStore.updatePaymentSettings(settingsForm.value);
     } else {
       return;
     }
@@ -1244,6 +1448,15 @@ const saveSettings = async () => {
       message: res?.message || "Settings saved successfully!",
       type: "success",
     };
+
+    // Update original state to current to reset isDirty
+    if (activeTab.value === "general" || activeTab.value === "email") {
+      originalProfileForm.value = JSON.parse(JSON.stringify(profileForm.value));
+    } else {
+      originalSettingsForm.value = JSON.parse(
+        JSON.stringify(settingsForm.value),
+      );
+    }
   } catch (err) {
     toast.value = {
       message:

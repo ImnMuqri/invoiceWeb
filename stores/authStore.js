@@ -310,6 +310,36 @@ export const useAuthStore = defineStore("auth", () => {
     }
   }
 
+  async function fetchPaymentSettings() {
+    const { $api } = useNuxtApp();
+    loading.value = true;
+    error.value = null;
+    try {
+      const { data } = await $api.get("/users/payments/manual");
+      return data;
+    } catch (err) {
+      error.value = err.response?.data?.message || err.message;
+      return null;
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  async function updatePaymentSettings(paymentData) {
+    const { $api } = useNuxtApp();
+    loading.value = true;
+    error.value = null;
+    try {
+      const { data } = await $api.put("/users/payments/manual", paymentData);
+      return data;
+    } catch (err) {
+      error.value = err.response?.data?.message || err.message;
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  }
+
   return {
     user,
     accessToken,
@@ -327,6 +357,8 @@ export const useAuthStore = defineStore("auth", () => {
     updateProfile,
     fetchSettings,
     updateSettings,
+    fetchPaymentSettings,
+    updatePaymentSettings,
     fetchPaymentProviders,
     updatePaymentProvider,
     deletePaymentProvider,

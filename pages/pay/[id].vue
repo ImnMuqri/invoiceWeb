@@ -80,7 +80,7 @@
                 </span>
                 <span class="text-xs text-slate-300 px-1">•</span>
                 <span class="text-xs font-medium text-slate-500"
-                  >INVM - {{ invoice.id }}</span
+                  >INVK - {{ invoice.id }}</span
                 >
               </div>
 
@@ -210,34 +210,46 @@
           </div>
 
           <!-- Payment Action -->
-          <div v-if="invoice.status !== 'Paid' && activeProvider" class="mt-12">
+          <div
+            v-if="
+              invoice.status !== 'Paid' &&
+              (activeProvider || manualPaymentAvailable)
+            "
+            class="mt-12">
             <button
-              @click="markAsPaid"
-              class="w-full py-3 px-4 bg-slate-900 hover:bg-slate-800 text-white rounded-lg font-medium text-sm transition-colors flex items-center justify-center gap-2">
-              <svg
-                class="w-4 h-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-              </svg>
-              Pay {{ currencySymbol }}{{ invoice.amount.toLocaleString() }}
+              @click="initiatePayment"
+              class="w-full py-3.5 px-4 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold text-sm transition-all shadow-lg active:scale-[0.98] flex items-center justify-center gap-2">
+              <UiIcon icon="heroicons:credit-card" custom-class="w-4 h-4" />
+              Pay Now
             </button>
+
             <div class="flex items-center justify-center gap-2 mt-4 opacity-70">
-              <img :src="activeProviderLogo" class="w-4 h-4 object-contain grayscale hover:grayscale-0 transition-all" :alt="activeProviderName" v-if="activeProviderLogo" />
-              <p
-                class="text-center text-[10px] text-slate-400 uppercase tracking-widest">
-                Secure Processing by {{ activeProviderName }}
-              </p>
+              <template v-if="activeProvider">
+                <img
+                  :src="activeProviderLogo"
+                  class="w-4 h-4 object-contain grayscale hover:grayscale-0 transition-all"
+                  :alt="activeProviderName"
+                  v-if="activeProviderLogo" />
+                <p class="text-[10px] text-slate-400 uppercase tracking-widest">
+                  Secure Processing by {{ activeProviderName }}
+                </p>
+              </template>
+              <template v-else>
+                <UiIcon
+                  icon="heroicons:lock-closed"
+                  custom-class="w-3 h-3 text-slate-400" />
+                <p
+                  class="text-[10px] text-slate-400 uppercase tracking-widest font-medium">
+                  Direct Settlement via Bank Transfer
+                </p>
+              </template>
             </div>
           </div>
 
           <!-- Paid Footer -->
-          <div v-else-if="invoice.status === 'Paid'" class="mt-12 text-center border-t border-slate-100 pt-8">
+          <div
+            v-else-if="invoice.status === 'Paid'"
+            class="mt-12 text-center border-t border-slate-100 pt-8">
             <p class="text-sm font-medium text-emerald-600 mb-2">
               This invoice has been paid.
             </p>
@@ -270,6 +282,108 @@
       </div>
     </div>
     <UiToast v-model="toast" />
+
+    <!-- Manual Payment Modal -->
+    <UiModal
+      v-model="showManualModal"
+      title="Payment Details"
+      description="Review the payment amount carefully before confirming your transaction."
+      max-width="lg">
+      <div class="space-y-4 px-4 py-4">
+        <!-- Bank Details Card -->
+        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-6">
+          <div class="flex items-center gap-2 mb-4">
+            <div
+              class="p-1.5 bg-white border border-slate-200 rounded-lg shadow-sm">
+              <UiIcon
+                icon="heroicons:building-library"
+                custom-class="w-4 h-4 text-slate-600" />
+            </div>
+            <span class="text-xs font-bold uppercase tracking-widest"
+              >Bank Transfer Info</span
+            >
+          </div>
+
+          <div class="flex justify-between px-4 gap-2">
+            <div v-if="invoice.user?.manualBankName">
+              <p
+                class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                Bank Name
+              </p>
+              <p class="text-sm font-bold text-slate-900">
+                {{ invoice.user.manualBankName }}
+              </p>
+            </div>
+            <div v-if="invoice.user?.manualAccountNumber">
+              <p
+                class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                Account Number
+              </p>
+              <div class="flex items-center justify-between">
+                <p class="text-sm font-bold text-slate-900 tracking-tight">
+                  {{ invoice.user.manualAccountNumber }}
+                </p>
+                <!-- Add a simple copy button if possible later -->
+              </div>
+            </div>
+            <div v-if="invoice.user?.manualAccountName">
+              <p
+                class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                Account Name
+              </p>
+              <p class="text-sm font-semibold">
+                {{ invoice.user.manualAccountName }}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- QR Code Section -->
+        <div v-if="qrCodeDataUrl" class="flex flex-col items-center">
+          <!-- Stylized DuitNow QR Container -->
+          <div class="relative mt-8">
+            <!-- Top Logo Badge -->
+            <div
+              class="absolute -top-6 left-1/2 -translate-x-1/2 w-14 h-14 bg-white rounded-full p-0.5 shadow-md border-4 border-[#ed2c67] flex items-center justify-center z-20 overflow-hidden">
+              <img
+                src="/duitnowLogo.png"
+                class="w-8 h-8 object-cover -full"
+                alt="DuitNow" />
+            </div>
+
+            <div
+              class="bg-[#ed2c67] p-2 rounded-[1rem] shadow-lg w-40 sm:w-48 pt-10">
+              <div
+                class="bg-white rounded-2xl p-4 shadow-inner flex items-center justify-center">
+                <img
+                  :src="qrCodeDataUrl"
+                  class="w-full h-auto object-contain transition-all duration-500 hover:scale-105"
+                  alt="Payment QR" />
+              </div>
+            </div>
+          </div>
+
+          <p
+            class="text-xs text-slate-500 mt-8 text-center max-w-xs leading-relaxed">
+            Scan this QR code using your bank's app (DuitNow/TNG/FPX) to
+            complete the payment instantly.
+          </p>
+          <p
+            class="text-xs text-slate-500 mt-4 text-center max-w-xs leading-relaxed">
+            Don't forget to include your invoice number in the payment
+            reference.
+          </p>
+        </div>
+
+        <div class="pt-2">
+          <button
+            @click="showManualModal = false"
+            class="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-bold transition-all">
+            Understood
+          </button>
+        </div>
+      </div>
+    </UiModal>
   </div>
 </template>
 
@@ -277,6 +391,7 @@
 import { ref, onMounted, computed } from "vue";
 import { useRoute } from "vue-router";
 import { useInvoiceStore } from "~/stores/invoiceStore";
+import QRCode from "qrcode";
 
 definePageMeta({
   layout: false,
@@ -289,6 +404,8 @@ const invoiceId = route.params.id;
 const loading = ref(true);
 const invoice = ref(null);
 const toast = ref({ message: "", type: "success" });
+const showManualModal = ref(false);
+const qrCodeDataUrl = ref("");
 
 const currencySymbol = computed(() => {
   if (!invoice.value) return "$";
@@ -306,46 +423,79 @@ const activeProvider = computed(() => {
   return invoice.value?.user?.paymentProviders?.[0];
 });
 
+const manualPaymentAvailable = computed(() => {
+  const u = invoice.value?.user;
+  return !!(u?.manualBankName || u?.manualAccountNumber || u?.manualQrCode);
+});
+
 const activeProviderName = computed(() => {
   if (!activeProvider.value) return "Secure Server";
-  return activeProvider.value.provider === "TOYYIBPAY" ? "ToyyibPay" : "Billplz";
+  return activeProvider.value.provider === "TOYYIBPAY"
+    ? "ToyyibPay"
+    : "Billplz";
 });
 
 const activeProviderLogo = computed(() => {
   if (!activeProvider.value) return null;
-  return activeProvider.value.provider === "TOYYIBPAY" 
-    ? 'https://toyyibpay.com/wp-content/uploads/2022/07/logo-tp.png' 
-    : 'https://avatars.githubusercontent.com/u/1206144?s=280&v=4';
+  return activeProvider.value.provider === "TOYYIBPAY"
+    ? "https://toyyibpay.com/wp-content/uploads/2022/07/logo-tp.png"
+    : "https://avatars.githubusercontent.com/u/1206144?s=280&v=4";
 });
 
-const markAsPaid = async () => {
+const initiatePayment = async () => {
   if (!invoice.value) return;
 
   const provider = activeProvider.value;
-  if (!provider) {
-    toast.value = {
-      message: "Online payment is currently unavailable for this invoice.",
-      type: "error",
-    };
+  if (provider) {
+    try {
+      loading.value = true;
+      const { paymentUrl } = await invoiceStore.createPaymentBill(
+        invoice.value.id,
+        provider.id,
+      );
+      if (paymentUrl) {
+        window.location.href = paymentUrl;
+      } else {
+        throw new Error("Payment link not generated");
+      }
+    } catch (err) {
+      toast.value = {
+        message: "Failed to initiate online payment.",
+        type: "error",
+      };
+    } finally {
+      loading.value = false;
+    }
     return;
   }
 
-  try {
-    loading.value = true;
-    const { paymentUrl } = await invoiceStore.createPaymentBill(invoice.value.id, provider.id);
-    if (paymentUrl) {
-      window.location.href = paymentUrl;
-    } else {
-      throw new Error("Payment link not generated");
+  // Manual Fallback
+  if (manualPaymentAvailable.value) {
+    if (invoice.value.user?.manualQrCode) {
+      try {
+        qrCodeDataUrl.value = await QRCode.toDataURL(
+          invoice.value.user.manualQrCode,
+          {
+            width: 300,
+            margin: 2,
+            color: {
+              dark: "#0f172a",
+              light: "#ffffff",
+            },
+          },
+        );
+      } catch (err) {
+        console.error("QR Generation failed", err);
+      }
     }
-  } catch (err) {
-    toast.value = {
-      message: "Failed to initiate payment. Please contact the sender.",
-      type: "error",
-    };
-  } finally {
-    loading.value = false;
+    showManualModal.value = true;
+    return;
   }
+
+  toast.value = {
+    message: "Payment methods are currently unavailable for this invoice.",
+    type: "error",
+  };
 };
 
 const formatDate = (dateStr) => {
