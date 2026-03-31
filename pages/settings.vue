@@ -895,6 +895,56 @@
               </div>
             </div>
 
+            <!-- Promo Code Section -->
+            <div
+              class="mb-8 p-4 bg-white border border-slate-200 rounded-xl shadow-sm">
+              <h5 class="text-sm font-bold text-slate-900 mb-3 text-left">
+                Have a promo code?
+              </h5>
+              <div class="flex gap-2">
+                <div class="relative flex-1">
+                  <input
+                    v-model="promoCodeInput"
+                    type="text"
+                    placeholder="Enter code"
+                    class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm focus:ring-slate-900 focus:border-slate-900 uppercase shadow-none outline-none"
+                    :disabled="isPromoValid" />
+                  <div
+                    v-if="promoLoading"
+                    class="absolute right-3 top-1/2 -translate-y-1/2">
+                    <UiIcon
+                      icon="heroicons:arrow-path"
+                      class="w-4 h-4 animate-spin text-slate-400" />
+                  </div>
+                </div>
+                <button
+                  v-if="!isPromoValid"
+                  type="button"
+                  @click="validatePromo"
+                  :disabled="!promoCodeInput || promoLoading"
+                  class="px-4 py-2 bg-slate-900 text-white text-xs font-bold rounded-lg hover:bg-slate-800 transition-all disabled:opacity-50">
+                  Verify
+                </button>
+                <button
+                  v-else
+                  type="button"
+                  @click="clearPromo"
+                  class="px-4 py-2 bg-rose-50 text-rose-600 text-xs font-bold rounded-lg hover:bg-rose-100 transition-all">
+                  Clear
+                </button>
+              </div>
+              <p
+                v-if="promoError"
+                class="text-[10px] font-bold text-rose-500 mt-2 ml-1 text-left">
+                {{ promoError }}
+              </p>
+              <p
+                v-if="isPromoValid"
+                class="text-[10px] font-bold text-emerald-600 mt-2 ml-1 text-left">
+                Applied: {{ appliedDiscountText }} discount!
+              </p>
+            </div>
+
             <!-- Pricing Grid -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pb-12">
               <!-- Free Plan -->
@@ -1242,6 +1292,12 @@ const settingsForm = ref({
   whatsappReminderInterval: 0,
 });
 
+const promoCodeInput = ref("");
+const isPromoValid = ref(false);
+const promoLoading = ref(false);
+const promoError = ref("");
+const appliedDiscount = ref(null);
+
 const originalProfileForm = ref({});
 const originalSettingsForm = ref({});
 
@@ -1468,9 +1524,45 @@ const saveSettings = async () => {
   }
 };
 
+const validatePromo = async () => {
+  if (!promoCodeInput.value) return;
+  promoLoading.value = true;
+  promoError.value = "";
+  try {
+    const { data } = await $api.post("/promo/validate", {
+      code: promoCodeInput.value,
+    });
+    appliedDiscount.value = data;
+    isPromoValid.value = true;
+  } catch (err) {
+    promoError.value = err.response?.data?.message || "Invalid promo code";
+    isPromoValid.value = false;
+  } finally {
+    promoLoading.value = false;
+  }
+};
+
+const clearPromo = () => {
+  promoCodeInput.value = "";
+  isPromoValid.value = false;
+  appliedDiscount.value = null;
+  promoError.value = "";
+};
+
+const appliedDiscountText = computed(() => {
+  if (!appliedDiscount.value) return "";
+  const d = appliedDiscount.value;
+  return d.discountType === "PERCENTAGE"
+    ? `${d.discountValue}%`
+    : `${d.discountValue} MYR`;
+});
+
 const updatePlan = async (plan) => {
   try {
-    const res = await subscribeStore.subscribe(plan);
+    const res = await subscribeStore.subscribe(
+      plan,
+      isPromoValid.value ? promoCodeInput.value : null,
+    );
 
     if (res?.checkoutUrl) {
       toast.value = {

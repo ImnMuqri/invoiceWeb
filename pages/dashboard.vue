@@ -1,5 +1,5 @@
 <template>
-  <div class="dashboard-page max-w-[1400px] mx-auto font-sans pb-8">
+  <div class="dashboard-page w-full w-full mx-auto font-sans pb-8">
     <div class="flex flex-col gap-8">
       <div
         class="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -200,9 +200,9 @@
         </div>
       </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
         <!-- Main Chart Section -->
-        <div class="lg:col-span-2 space-y-8">
+        <div class="lg:col-span-3 space-y-8">
           <!-- Monthly Revenue Forecast -->
           <div
             class="bg-white border border-slate-200 shadow-sm rounded-xl overflow-hidden">
@@ -483,6 +483,65 @@
             </div>
           </div>
 
+          <!-- Referral Campaign -->
+          <div
+            class="bg-indigo-50/10 shadow-sm rounded-xl border border-indigo-100 p-6 flex flex-col relative overflow-hidden">
+            <div class="flex items-center gap-2 mb-4">
+              <div class="p-1.5 bg-indigo-100 text-indigo-600 rounded-lg">
+                <UiIcon icon="heroicons:gift" class="w-4 h-4" />
+              </div>
+              <h3 class="text-lg font-semibold text-slate-900 tracking-tight">
+                Referral Campaign
+              </h3>
+            </div>
+
+            <p class="text-xs text-slate-500 mb-4 leading-relaxed">
+              Share your code and when user subscribe you can claim reward.
+            </p>
+
+            <div class="space-y-4">
+              <!-- Referral Code Field -->
+              <div class="flex items-center gap-2">
+                <div
+                  class="flex-1 bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm font-mono text-slate-700">
+                  {{ authStore.user?.referralCode || "..." }}
+                </div>
+                <button
+                  @click="copyReferralCode"
+                  class="p-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors"
+                  title="Copy Code">
+                  <UiIcon icon="heroicons:document-duplicate" class="w-4 h-4" />
+                </button>
+              </div>
+
+              <!-- Progress Bar -->
+              <div class="space-y-2">
+                <div
+                  class="flex justify-between text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                  <span>Progress</span>
+                  <span>{{ authStore.user?.referralCredits || 0 }} / 5</span>
+                </div>
+                <div class="w-full bg-slate-100 rounded-full h-2">
+                  <div
+                    class="bg-indigo-600 h-2 rounded-full transition-all duration-500"
+                    :style="{
+                      width:
+                        Math.min(
+                          100,
+                          ((authStore.user?.referralCredits || 0) / 5) * 100,
+                        ) + '%',
+                    }"></div>
+                </div>
+              </div>
+
+              <NuxtLink
+                to="/referral-management"
+                class="w-full inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-all">
+                See your progress →
+              </NuxtLink>
+            </div>
+          </div>
+
           <!-- Activity History -->
           <div
             class="bg-white border border-slate-200 shadow-sm rounded-xl p-6 flex flex-col">
@@ -547,10 +606,12 @@ import { onMounted, ref, computed, watch } from "vue";
 import { useDashboardStore } from "~/stores/dashboardStore";
 import { useAuthStore } from "~/stores/authStore";
 import { useUiStore } from "~/stores/uiStore";
+import { useReferralStore } from "~/stores/referralStore";
 
 const dashboardStore = useDashboardStore();
 const authStore = useAuthStore();
 const uiStore = useUiStore();
+const referralStore = useReferralStore();
 const toast = ref({ message: "", type: "success" });
 
 const forecastRange = ref(30);
@@ -565,6 +626,14 @@ const fetchCoreData = async () => {
       message: err.response?.data?.message || "Failed to load dashboard stats",
       type: "error",
     };
+  }
+};
+
+const copyReferralCode = () => {
+  const code = authStore.user?.referralCode;
+  if (code) {
+    navigator.clipboard.writeText(code);
+    toast.value = { message: "Referral code copied!", type: "success" };
   }
 };
 
@@ -595,6 +664,7 @@ onMounted(() => {
   fetchCoreData();
   fetchForecastData();
   authStore.fetchProfile();
+  referralStore.fetchStats();
 });
 
 // Chart Data mapping

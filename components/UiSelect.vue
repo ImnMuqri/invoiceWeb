@@ -1,6 +1,8 @@
 <template>
   <div class="relative" ref="selectRef">
-    <label v-if="label" class="block text-sm font-medium text-slate-700 mb-2">
+    <label
+      v-if="label"
+      class="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1">
       {{ label }}
     </label>
     <button

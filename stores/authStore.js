@@ -149,7 +149,7 @@ export const useAuthStore = defineStore("auth", () => {
     }
   }
 
-  async function register(name, email, password) {
+  async function register(name, email, password, referralCode) {
     const { $api } = useNuxtApp();
     loading.value = true;
     error.value = null;
@@ -158,6 +158,7 @@ export const useAuthStore = defineStore("auth", () => {
         name,
         email,
         password,
+        referralCode,
       });
       user.value = data.user;
       accessToken.value = data.accessToken;

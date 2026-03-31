@@ -273,6 +273,52 @@
               </p>
             </div>
 
+            <!-- Promo Code Section -->
+            <div class="max-w-md mx-auto mb-8">
+              <div class="flex gap-2">
+                <div class="relative flex-1">
+                  <input
+                    v-model="promoCodeInput"
+                    type="text"
+                    placeholder="Promo code (Optional)"
+                    class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-slate-900 focus:border-slate-900 uppercase"
+                    :disabled="isPromoValid" />
+                  <div
+                    v-if="promoLoading"
+                    class="absolute right-3 top-1/2 -translate-y-1/2">
+                    <UiIcon
+                      icon="heroicons:arrow-path"
+                      class="w-4 h-4 animate-spin text-slate-400" />
+                  </div>
+                </div>
+                <button
+                  v-if="!isPromoValid"
+                  type="button"
+                  @click="validatePromo"
+                  :disabled="!promoCodeInput || promoLoading"
+                  class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-bold rounded-xl transition-all disabled:opacity-50">
+                  Apply
+                </button>
+                <button
+                  v-else
+                  type="button"
+                  @click="clearPromo"
+                  class="px-4 py-2 bg-rose-50 text-rose-600 text-sm font-bold rounded-xl hover:bg-rose-100 transition-all">
+                  Clear
+                </button>
+              </div>
+              <p
+                v-if="promoError"
+                class="text-[10px] font-bold text-rose-500 mt-1 ml-1">
+                {{ promoError }}
+              </p>
+              <p
+                v-if="isPromoValid"
+                class="text-[10px] font-bold text-emerald-600 mt-1 ml-1">
+                Applied: {{ appliedDiscountText }} off!
+              </p>
+            </div>
+
             <!-- Loading overlay during save -->
             <div
               v-if="loading"
@@ -528,7 +574,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from "vue";
+import { ref, reactive, onMounted, computed } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "~/stores/authStore";
 import { useSubscribeStore } from "~/stores/subscribeStore";
@@ -540,6 +586,12 @@ definePageMeta({
 const router = useRouter();
 const authStore = useAuthStore();
 const subscribeStore = useSubscribeStore();
+
+const promoCodeInput = ref("");
+const isPromoValid = ref(false);
+const promoLoading = ref(false);
+const promoError = ref("");
+const appliedDiscount = ref(null);
 
 const step = ref(1);
 const loading = ref(false);
@@ -588,6 +640,40 @@ onMounted(() => {
   }
 });
 
+const validatePromo = async () => {
+  if (!promoCodeInput.value) return;
+  promoLoading.value = true;
+  promoError.value = "";
+  try {
+    const { $api } = useNuxtApp();
+    const { data } = await $api.post("/promo/validate", {
+      code: promoCodeInput.value,
+    });
+    appliedDiscount.value = data;
+    isPromoValid.value = true;
+  } catch (err) {
+    promoError.value = err.response?.data?.message || "Invalid promo code";
+    isPromoValid.value = false;
+  } finally {
+    promoLoading.value = false;
+  }
+};
+
+const clearPromo = () => {
+  promoCodeInput.value = "";
+  isPromoValid.value = false;
+  appliedDiscount.value = null;
+  promoError.value = "";
+};
+
+const appliedDiscountText = computed(() => {
+  if (!appliedDiscount.value) return "";
+  const d = appliedDiscount.value;
+  return d.discountType === "PERCENTAGE"
+    ? `${d.discountValue}%`
+    : `${d.discountValue} MYR`;
+});
+
 const nextStep = () => {
   error.value = "";
   if (step.value === 1 && !form.currentStatus) {
@@ -632,7 +718,10 @@ const selectPlan = async (plan) => {
       router.push("/dashboard");
     } else {
       // PRO or MAX
-      const res = await subscribeStore.subscribe(plan);
+      const res = await subscribeStore.subscribe(
+        plan,
+        isPromoValid.value ? promoCodeInput.value : null,
+      );
       if (res?.checkoutUrl) {
         window.location.href = res.checkoutUrl;
       } else {

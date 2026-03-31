@@ -59,6 +59,22 @@
           </div>
         </div>
         <div>
+          <label
+            for="referralCode"
+            class="block text-sm font-semibold text-slate-700"
+            >Referral Code (Optional)</label
+          >
+          <div class="mt-2">
+            <input
+              id="referralCode"
+              v-model="referralCode"
+              name="referralCode"
+              type="text"
+              placeholder="Enter code if you were referred"
+              class="appearance-none block w-full px-4 py-3 border border-slate-200 rounded-xl shadow-sm placeholder-slate-400 focus:outline-none focus:ring-emerald-600 focus:border-emerald-600 sm:text-sm bg-white transition-shadow" />
+          </div>
+        </div>
+        <div>
           <button
             type="submit"
             :disabled="authStore.loading"
@@ -118,10 +134,24 @@ const toast = ref({ message: "", type: "success" });
 const name = ref("");
 const email = ref("");
 const password = ref("");
+const referralCode = ref("");
+
+// Check for referral code in query params
+if (process.client) {
+  const route = useRoute();
+  if (route.query.ref) {
+    referralCode.value = route.query.ref;
+  }
+}
 
 const handleRegister = async () => {
   try {
-    await authStore.register(name.value, email.value, password.value);
+    await authStore.register(
+      name.value,
+      email.value,
+      password.value,
+      referralCode.value,
+    );
     router.push("/dashboard");
   } catch (err) {
     toast.value = {
