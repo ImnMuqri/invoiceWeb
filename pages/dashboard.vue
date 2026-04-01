@@ -305,110 +305,184 @@
               </ClientOnly>
             </div>
           </div>
-
-          <!-- Client Profitability Insights -->
-          <div
-            class="bg-white shadow-sm rounded-xl border border-slate-200 flex flex-col overflow-hidden relative">
-            <!-- Blur Overlay for Client Profitability -->
+          <div class="grid grid-cols-3 gap-6">
+            <!-- Activity History -->
             <div
-              v-if="!authStore.isPro"
-              class="absolute inset-0 z-10 backdrop-blur-[4px] bg-white/40 flex items-center justify-center border border-slate-100/50">
-              <div class="text-center p-4">
-                <div class="flex items-center justify-center gap-1 mb-2">
-                  <h3 class="text-[13px] font-bold text-slate-900">
-                    Profitability Insights Locked
-                  </h3>
-                  <UiIcon
-                    icon="heroicons:lock-closed"
-                    class="w-3 h-3 text-black/70" />
-                </div>
-                <p class="text-[12px] text-slate-500 mb-4 px-2 leading-relaxed">
-                  Identify your most high-value clients with automated margin
-                  analysis and payment behavior tracking.
-                </p>
-
+              class="bg-white border border-slate-200 shadow-sm rounded-xl p-6 flex flex-col w-full">
+              <div class="flex justify-between items-center mb-6">
+                <h2 class="text-lg font-semibold text-slate-900 tracking-tight">
+                  Activity History
+                </h2>
                 <NuxtLink
-                  to="/settings?tab=billing"
-                  class="text-[10px] font-bold border border-emerald-200 py-2 px-4 rounded-md text-emerald-600 hover:text-emerald-800 uppercase tracking-widest"
-                  >Upgrade to Pro →</NuxtLink
+                  to="/invoices"
+                  class="text-xs font-semibold text-slate-400 hover:text-slate-900 uppercase tracking-widest"
+                  >All →</NuxtLink
                 >
               </div>
+              <ul role="list" class="space-y-5">
+                <li
+                  v-for="invoice in dashboardStore.recentInvoices"
+                  :key="invoice.id"
+                  class="flex items-center gap-4 group">
+                  <div
+                    class="w-10 h-10 rounded-xl flex items-center justify-center text-[10px] font-black shrink-0 transition-transform group-hover:scale-110"
+                    :class="
+                      invoice.status === 'Paid'
+                        ? 'bg-emerald-50 text-emerald-600 border border-emerald-100'
+                        : invoice.status === 'Overdue'
+                          ? 'bg-rose-50 text-rose-600 border border-rose-100'
+                          : 'bg-amber-50 text-amber-600 border border-amber-100'
+                    ">
+                    INVK
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <p class="text-sm font-semibold text-slate-900 truncate">
+                      {{ invoice.client?.name || invoice.client }}
+                    </p>
+                    <p
+                      class="text-[10px] font-semibold text-slate-400 uppercase mt-0.5">
+                      {{ invoice.status }} • {{ invoice.invoiceNumber }}
+                    </p>
+                  </div>
+                  <p class="text-sm font-semibold text-slate-900 shrink-0">
+                    {{ (invoice.amount || 0).toLocaleString() }}
+                    {{ invoice.currency }}
+                  </p>
+                </li>
+                <li
+                  v-if="dashboardStore.recentInvoices.length === 0"
+                  class="py-10 text-center bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                  <p class="text-xs font-semibold text-slate-400 uppercase">
+                    No activity found
+                  </p>
+                </li>
+              </ul>
             </div>
-
+            <!-- Client Profitability Insights -->
             <div
-              class="p-6 border-b border-slate-200 flex items-center justify-between bg-white">
-              <div>
-                <h3 class="text-lg font-semibold text-slate-900 tracking-tight">
-                  Client Profitability
-                </h3>
-                <p class="text-sm text-slate-500 font-medium mt-1">
-                  AI analysis ranking clients by effective margin.
-                </p>
+              class="col-span-2 bg-white shadow-sm rounded-xl border border-slate-200 flex flex-col overflow-hidden relative">
+              <!-- Blur Overlay for Client Profitability -->
+              <div
+                v-if="!authStore.isPro"
+                class="absolute inset-0 z-10 backdrop-blur-[4px] bg-white/40 flex items-center justify-center border border-slate-100/50">
+                <div class="text-center p-4">
+                  <div class="flex items-center justify-center gap-1 mb-2">
+                    <h3 class="text-[13px] font-bold text-slate-900">
+                      Profitability Insights Locked
+                    </h3>
+                    <UiIcon
+                      icon="heroicons:lock-closed"
+                      class="w-3 h-3 text-black/70" />
+                  </div>
+                  <p
+                    class="text-[12px] text-slate-500 mb-4 px-2 leading-relaxed">
+                    Identify your most high-value clients with automated margin
+                    analysis and payment behavior tracking.
+                  </p>
+
+                  <NuxtLink
+                    to="/settings?tab=billing"
+                    class="text-[10px] font-bold border border-emerald-200 py-2 px-4 rounded-md text-emerald-600 hover:text-emerald-800 uppercase tracking-widest"
+                    >Upgrade to Pro →</NuxtLink
+                  >
+                </div>
               </div>
-              <UiSelect
-                v-model="profitabilityFilter"
-                :options="rankOptions"
-                custom-class="!w-32 !py-1 !text-xs !font-semibold !uppercase !tracking-wider !bg-slate-50" />
-            </div>
-            <div class="flex-1 overflow-x-auto">
-              <table class="min-w-full divide-y divide-slate-200">
-                <thead class="bg-slate-50">
-                  <tr>
-                    <th
-                      class="px-6 py-3 text-left text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
-                      Client
-                    </th>
-                    <th
-                      class="px-6 py-3 text-left text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
-                      Revenue
-                    </th>
-                    <th
-                      class="px-6 py-3 text-left text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
-                      Avg Margin
-                    </th>
-                    <th
-                      class="px-6 py-3 text-right text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
-                      Impact
-                    </th>
-                  </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-slate-100">
-                  <tr
-                    v-for="client in dashboardStore.topClients"
-                    :key="client.id"
-                    class="hover:bg-slate-50 transition-colors">
-                    <td class="px-6 py-4">
-                      <div class="text-sm font-semibold text-slate-900">
-                        {{ client.name }}
-                      </div>
-                    </td>
-                    <td class="px-6 py-4 text-sm font-medium text-slate-600">
-                      {{ (client.totalRevenue || 0).toLocaleString() }}
-                      {{ dashboardStore.stats.currency }}
-                    </td>
-                    <td class="px-6 py-4">
-                      <span
-                        class="inline-flex items-center px-2 py-1 rounded text-xs font-medium border"
+
+              <div
+                class="p-6 border-b border-slate-200 flex items-center justify-between bg-white">
+                <div>
+                  <h3
+                    class="text-lg font-semibold text-slate-900 tracking-tight">
+                    Client Profitability
+                  </h3>
+                  <p class="text-sm text-slate-500 font-medium mt-1">
+                    AI analysis ranking clients by effective margin.
+                  </p>
+                </div>
+                <UiSelect
+                  v-model="profitabilityFilter"
+                  :options="rankOptions"
+                  custom-class="!w-32 !py-1 !text-xs !font-semibold !uppercase !tracking-wider !bg-slate-50" />
+              </div>
+              <div class="flex-1 overflow-x-auto profit-table-scroll">
+                <table class="min-w-full divide-y divide-slate-200">
+                  <thead class="bg-slate-50">
+                    <tr>
+                      <th
+                        class="px-6 py-3 text-left text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
+                        Client
+                      </th>
+                      <th
+                        class="px-6 py-3 text-left text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
+                        Revenue
+                      </th>
+                      <th
+                        class="px-6 py-3 text-left text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
+                        Margin
+                      </th>
+                      <th
+                        class="px-6 py-3 text-left text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
+                        Avg Delay
+                      </th>
+                      <th
+                        class="px-6 py-3 text-right text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
+                        Impact
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody class="bg-white divide-y divide-slate-100">
+                    <tr
+                      v-for="client in dashboardStore.topClients"
+                      :key="client.id"
+                      class="hover:bg-slate-50 transition-colors">
+                      <td class="px-6 py-4">
+                        <div class="text-sm font-semibold text-slate-900">
+                          {{ client.name }}
+                        </div>
+                      </td>
+                      <td class="px-6 py-4 text-sm font-medium text-slate-600">
+                        {{ (client.totalRevenue || 0).toLocaleString() }}
+                        {{ dashboardStore.stats.currency }}
+                      </td>
+                      <td class="px-6 py-4">
+                        <span
+                          class="inline-flex items-center px-2 py-1 rounded text-xs font-medium border"
+                          :class="
+                            client.profitMargin > 20
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
+                              : 'bg-rose-50 text-rose-700 border-rose-100'
+                          "
+                          >{{ client.profitMargin }}%</span
+                        >
+                      </td>
+                      <td class="px-6 py-4 text-sm font-medium text-slate-600">
+                        {{ client.averageDelayDays || 0 }}d
+                      </td>
+                      <td
+                        class="px-6 py-4 text-right text-sm font-semibold"
                         :class="
-                          client.profitMargin > 20
-                            ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
-                            : 'bg-rose-50 text-rose-700 border-rose-100'
-                        "
-                        >{{ client.profitMargin }}%</span
-                      >
-                    </td>
-                    <td
-                      class="px-6 py-4 text-right text-sm font-semibold"
-                      :class="
-                        client.profitMargin > 20
-                          ? 'text-emerald-600'
-                          : 'text-rose-600'
-                      ">
-                      {{ client.profitMargin > 20 ? "High" : "Low" }}
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+                          client.profitMargin > 20 &&
+                          (client.averageDelayDays || 0) < 10
+                            ? 'text-emerald-600'
+                            : client.profitMargin < 15 ||
+                                (client.averageDelayDays || 0) > 20
+                              ? 'text-rose-600'
+                              : 'text-amber-600'
+                        ">
+                        {{
+                          client.profitMargin > 20 &&
+                          (client.averageDelayDays || 0) < 10
+                            ? "Elite"
+                            : client.profitMargin < 15 ||
+                                (client.averageDelayDays || 0) > 20
+                              ? "At Risk"
+                              : "Stable"
+                        }}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </div>
@@ -453,32 +527,70 @@
               </h3>
             </div>
             <div class="space-y-4 min-h-[100px]">
-              <div
-                v-for="insight in dashboardStore.insights"
-                :key="insight.id || insight.title"
-                class="p-4 bg-white rounded-xl border border-slate-200 shadow-sm hover:border-emerald-200 transition-all cursor-pointer group"
-                @click="
-                  insight.type === 'chaser' && authStore.isPro
-                    ? $router.push(`/invoices`)
-                    : null
+              <!-- Loading State -->
+              <template
+                v-if="
+                  dashboardStore.loading && !dashboardStore.insights.length
                 ">
-                <div class="flex items-start gap-4">
-                  <div
-                    class="mt-1 w-2 h-2 rounded-full"
-                    :class="
-                      insight.type === 'chaser'
-                        ? 'bg-amber-500'
-                        : 'bg-emerald-600'
-                    "></div>
-                  <div>
-                    <p class="text-sm font-semibold text-slate-900">
-                      {{ insight.title }}
-                    </p>
-                    <p class="text-xs text-slate-500 mt-1 leading-relaxed">
-                      {{ insight.description }}
-                    </p>
+                <div
+                  v-for="i in 3"
+                  :key="i"
+                  class="p-4 bg-white rounded-xl border border-slate-200 shadow-sm animate-pulse">
+                  <div class="flex items-start gap-4">
+                    <div class="mt-1 w-2 h-2 rounded-full bg-slate-200"></div>
+                    <div class="flex-1 space-y-2">
+                      <div class="h-4 bg-slate-100 rounded w-1/2"></div>
+                      <div class="h-3 bg-slate-50 rounded w-full"></div>
+                    </div>
                   </div>
                 </div>
+              </template>
+
+              <!-- Insight Items -->
+              <template v-else-if="dashboardStore.insights.length > 0">
+                <div
+                  v-for="insight in dashboardStore.insights"
+                  :key="insight.id || insight.title"
+                  class="p-4 bg-white rounded-xl border border-slate-200 shadow-sm hover:border-emerald-200 transition-all cursor-pointer group"
+                  @click="
+                    insight.type === 'chaser' && authStore.isPro
+                      ? $router.push(`/invoices`)
+                      : null
+                  ">
+                  <div class="flex items-start gap-4">
+                    <div
+                      class="mt-1 w-2 h-2 rounded-full"
+                      :class="
+                        insight.type === 'chaser'
+                          ? 'bg-amber-500'
+                          : insight.type === 'profit'
+                            ? 'bg-emerald-600'
+                            : 'bg-indigo-500'
+                      "></div>
+                    <div>
+                      <p class="text-sm font-semibold text-slate-900">
+                        {{ insight.title }}
+                      </p>
+                      <p class="text-xs text-slate-500 mt-1 leading-relaxed">
+                        {{ insight.description }}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </template>
+
+              <!-- Empty State -->
+              <div
+                v-else
+                class="py-8 px-4 text-center rounded-xl border border-dashed border-slate-200 bg-slate-50/50">
+                <div
+                  class="mx-auto w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mb-3">
+                  <UiIcon icon="heroicons:sparkles" class="w-4 h-4" />
+                </div>
+                <p class="text-sm font-bold text-slate-900">All caught up!</p>
+                <p class="text-xs text-slate-500 mt-1 leading-relaxed">
+                  No urgent chasers needed right now. Good job!
+                </p>
               </div>
             </div>
           </div>
@@ -541,59 +653,6 @@
               </NuxtLink>
             </div>
           </div>
-
-          <!-- Activity History -->
-          <div
-            class="bg-white border border-slate-200 shadow-sm rounded-xl p-6 flex flex-col">
-            <div class="flex justify-between items-center mb-6">
-              <h2 class="text-lg font-semibold text-slate-900 tracking-tight">
-                Activity History
-              </h2>
-              <NuxtLink
-                to="/invoices"
-                class="text-xs font-semibold text-slate-400 hover:text-slate-900 uppercase tracking-widest"
-                >All →</NuxtLink
-              >
-            </div>
-            <ul role="list" class="space-y-5">
-              <li
-                v-for="invoice in dashboardStore.recentInvoices"
-                :key="invoice.id"
-                class="flex items-center gap-4 group">
-                <div
-                  class="w-10 h-10 rounded-xl flex items-center justify-center text-[10px] font-black shrink-0 transition-transform group-hover:scale-110"
-                  :class="
-                    invoice.status === 'Paid'
-                      ? 'bg-emerald-50 text-emerald-600 border border-emerald-100'
-                      : invoice.status === 'Overdue'
-                        ? 'bg-rose-50 text-rose-600 border border-rose-100'
-                        : 'bg-amber-50 text-amber-600 border border-amber-100'
-                  ">
-                  INVK
-                </div>
-                <div class="min-w-0 flex-1">
-                  <p class="text-sm font-semibold text-slate-900 truncate">
-                    {{ invoice.client?.name || invoice.client }}
-                  </p>
-                  <p
-                    class="text-[10px] font-semibold text-slate-400 uppercase mt-0.5">
-                    {{ invoice.status }} • {{ invoice.invoiceNumber }}
-                  </p>
-                </div>
-                <p class="text-sm font-semibold text-slate-900 shrink-0">
-                  {{ (invoice.amount || 0).toLocaleString() }}
-                  {{ invoice.currency }}
-                </p>
-              </li>
-              <li
-                v-if="dashboardStore.recentInvoices.length === 0"
-                class="py-10 text-center bg-slate-50 rounded-xl border border-dashed border-slate-200">
-                <p class="text-xs font-semibold text-slate-400 uppercase">
-                  No activity found
-                </p>
-              </li>
-            </ul>
-          </div>
         </div>
       </div>
     </div>
@@ -617,10 +676,45 @@ const toast = ref({ message: "", type: "success" });
 const forecastRange = ref(30);
 const selectedMonth = ref("");
 const selectedYear = ref(new Date().getFullYear());
+const profitabilityFilter = ref("top5");
+const activeFilterMode = ref(null);
 
-const fetchCoreData = async () => {
+const rankOptions = [
+  { label: "Top 5", value: "top5" },
+  { label: "Bottom 5", value: "bottom5" },
+];
+
+const forecastOptions = [
+  { label: "Next 30 Days", value: 30 },
+  { label: "Next 60 Days", value: 60 },
+  { label: "Next 90 Days", value: 90 },
+  { label: "All Time", value: "all" },
+];
+
+const monthOptions = [
+  { label: "Rolling Range", value: "" },
+  { label: "January", value: 1 },
+  { label: "February", value: 2 },
+  { label: "March", value: 3 },
+  { label: "April", value: 4 },
+  { label: "May", value: 5 },
+  { label: "June", value: 6 },
+  { label: "July", value: 7 },
+  { label: "August", value: 8 },
+  { label: "September", value: 9 },
+  { label: "October", value: 10 },
+  { label: "November", value: 11 },
+  { label: "December", value: 12 },
+];
+
+const yearOptions = Array.from({ length: 4 }, (_, i) => ({
+  label: String(new Date().getFullYear() - 1 + i),
+  value: new Date().getFullYear() - 1 + i,
+}));
+
+const fetchCoreData = async (params = {}) => {
   try {
-    await dashboardStore.fetchCoreData();
+    await dashboardStore.fetchCoreData(params);
   } catch (err) {
     toast.value = {
       message: err.response?.data?.message || "Failed to load dashboard stats",
@@ -660,8 +754,12 @@ watch([forecastRange, selectedMonth, selectedYear], () => {
   fetchForecastData();
 });
 
+watch(profitabilityFilter, (newVal) => {
+  fetchCoreData({ rank: newVal });
+});
+
 onMounted(() => {
-  fetchCoreData();
+  fetchCoreData({ rank: profitabilityFilter.value });
   fetchForecastData();
   authStore.fetchProfile();
   referralStore.fetchStats();
@@ -687,9 +785,6 @@ const chartData = computed(() => {
 
 watch(chartData, (newData) => {}, { immediate: true });
 
-const profitabilityFilter = ref("top5");
-const activeFilterMode = ref(null); // 'range' or 'calendar'
-
 const toggleFilterMode = (mode) => {
   if (activeFilterMode.value === mode) {
     activeFilterMode.value = null;
@@ -702,37 +797,33 @@ const toggleFilterMode = (mode) => {
     }
   }
 };
-
-const rankOptions = [
-  { label: "Top 5", value: "top5" },
-  { label: "Bottom 5", value: "bottom5" },
-];
-
-const forecastOptions = [
-  { label: "Next 30 Days", value: 30 },
-  { label: "Next 60 Days", value: 60 },
-  { label: "Next 90 Days", value: 90 },
-  { label: "All Time", value: "all" },
-];
-
-const monthOptions = [
-  { label: "Rolling Range", value: "" },
-  { label: "January", value: 1 },
-  { label: "February", value: 2 },
-  { label: "March", value: 3 },
-  { label: "April", value: 4 },
-  { label: "May", value: 5 },
-  { label: "June", value: 6 },
-  { label: "July", value: 7 },
-  { label: "August", value: 8 },
-  { label: "September", value: 9 },
-  { label: "October", value: 10 },
-  { label: "November", value: 11 },
-  { label: "December", value: 12 },
-];
-
-const yearOptions = Array.from({ length: 4 }, (_, i) => ({
-  label: String(new Date().getFullYear() - 1 + i),
-  value: new Date().getFullYear() - 1 + i,
-}));
 </script>
+
+<style scoped>
+/* Custom scrollbar for Client Profitability */
+.profit-table-scroll::-webkit-scrollbar {
+  height: 5px;
+}
+.profit-table-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.profit-table-scroll::-webkit-scrollbar-thumb {
+  background: #e2e8f0;
+  border-radius: 10px;
+}
+.profit-table-scroll::-webkit-scrollbar-thumb:hover {
+  background: #cbd5e1;
+}
+
+/* Filter grow animation */
+.filter-grow-enter-active,
+.filter-grow-leave-active {
+  transition: all 0.2s ease-out;
+  max-width: 300px;
+}
+.filter-grow-enter-from,
+.filter-grow-leave-to {
+  max-width: 0;
+  opacity: 0;
+}
+</style>

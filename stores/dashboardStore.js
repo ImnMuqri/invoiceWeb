@@ -20,11 +20,11 @@ export const useDashboardStore = defineStore("dashboard", {
     error: null,
   }),
   actions: {
-    async fetchCoreData() {
+    async fetchCoreData(params = {}) {
       const { $api } = useNuxtApp();
       this.loading = true;
       try {
-        const { data } = await $api.get("/dashboard/core");
+        const { data } = await $api.get("/dashboard/core", { params });
         this.stats = data.stats;
         this.recentInvoices = data.recentInvoices;
         this.topClients = data.topClients;
