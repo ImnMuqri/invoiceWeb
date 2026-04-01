@@ -688,6 +688,17 @@
             </p>
 
             <div class="space-y-4">
+              <!-- Referral Credits Status -->
+              <div class="flex items-center justify-between px-1">
+                <span
+                  class="text-xs font-semibold text-slate-500 capitalize tracking-wider"
+                  >My Credits</span
+                >
+                <span class="text-lg font-bold text-emerald-600">{{
+                  authStore.user?.referralCredits || 0
+                }}</span>
+              </div>
+
               <!-- Referral Code Field -->
               <div class="flex items-center gap-2">
                 <div
@@ -700,26 +711,6 @@
                   title="Copy Code">
                   <UiIcon icon="heroicons:document-duplicate" class="w-4 h-4" />
                 </button>
-              </div>
-
-              <!-- Progress Bar -->
-              <div class="space-y-2">
-                <div
-                  class="flex justify-between text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                  <span>Progress</span>
-                  <span>{{ authStore.user?.referralCredits || 0 }} / 5</span>
-                </div>
-                <div class="w-full bg-slate-100 rounded-full h-2">
-                  <div
-                    class="bg-emerald-600 h-2 rounded-full transition-all duration-500"
-                    :style="{
-                      width:
-                        Math.min(
-                          100,
-                          ((authStore.user?.referralCredits || 0) / 5) * 100,
-                        ) + '%',
-                    }"></div>
-                </div>
               </div>
 
               <NuxtLink

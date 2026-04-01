@@ -104,12 +104,25 @@
                 <div class="sm:col-span-3">
                   <label
                     class="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2"
-                    >Business Email</label
+                    >Company Email</label
                   >
                   <input
                     type="email"
                     v-model="profileForm.companyEmail"
                     class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-slate-950 outline-none transition-all" />
+                  <div class="mt-2 flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="sameEmail"
+                      v-model="useSameEmail"
+                      @change="syncEmail"
+                      class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500" />
+                    <label
+                      for="sameEmail"
+                      class="text-[11px] font-medium text-slate-500"
+                      >Use same as login email</label
+                    >
+                  </div>
                 </div>
                 <div class="sm:col-span-3">
                   <label
@@ -120,6 +133,19 @@
                     type="tel"
                     v-model="profileForm.companyPhone"
                     class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-slate-950 outline-none transition-all" />
+                  <div class="mt-2 flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="samePhone"
+                      v-model="useSamePhone"
+                      @change="syncPhone"
+                      class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500" />
+                    <label
+                      for="samePhone"
+                      class="text-[11px] font-medium text-slate-500"
+                      >Use same as personal phone</label
+                    >
+                  </div>
                 </div>
                 <div class="sm:col-span-6">
                   <label
@@ -869,8 +895,11 @@
                     },
                     {
                       key: 'invoiceIncludeEmail',
-                      label: 'Login Email',
+                      label: 'Company Email',
                       icon: 'solar:letter-bold',
+                      disabled: !profileForm.companyEmail,
+                      warning:
+                        'Please fill your company email in General settings to enable.',
                     },
                     {
                       key: 'invoiceIncludePersonalPhone',
@@ -1115,8 +1144,8 @@
                   </h4>
                   <p
                     v-if="
-                      authStore.user?.subscriptions?.length &&
-                      authStore.user.subscriptions[0].status === 'ACTIVE'
+                      activeSubscription &&
+                      activeSubscription.status === 'ACTIVE'
                     "
                     class="text-[10px] text-slate-500 mt-1 font-medium flex items-center gap-1">
                     <UiIcon
@@ -1125,7 +1154,7 @@
                     Renews
                     {{
                       new Date(
-                        authStore.user.subscriptions[0].subscriptionEnds,
+                        activeSubscription.subscriptionEnds,
                       ).toLocaleDateString("en-GB", {
                         day: "numeric",
                         month: "short",
@@ -1322,17 +1351,27 @@
                       ? updatePlan('FREE')
                       : updatePlan('PRO')
                   "
-                  :disabled="authStore.user?.plan === 'PRO' && isCancelling"
+                  :disabled="
+                    (authStore.user?.plan !== 'FREE' &&
+                      authStore.user?.plan !== 'PRO') ||
+                    (authStore.user?.plan === 'PRO' && isCancelling)
+                  "
                   class="w-full py-2.5 rounded-xl text-sm font-semibold transition-all border"
                   :class="
                     authStore.user?.plan === 'PRO'
                       ? isCancelling
                         ? 'border-emerald-100 bg-emerald-50 text-emerald-400 cursor-not-allowed'
                         : 'border-emerald-100 bg-emerald-50 text-emerald-600 hover:bg-emerald-100'
-                      : 'bg-slate-900 text-white border-slate-900 hover:bg-slate-800'
+                      : authStore.user?.plan !== 'FREE' &&
+                          authStore.user?.plan !== 'PRO'
+                        ? 'border-slate-100 bg-slate-50 text-slate-400 cursor-not-allowed'
+                        : 'bg-slate-900 text-white border-slate-900 hover:bg-slate-800'
                   ">
                   <template v-if="authStore.user?.plan === 'PRO'">
                     {{ isCancelling ? "Plan Cancelling" : "Cancel Plan" }}
+                  </template>
+                  <template v-else-if="authStore.user?.plan !== 'FREE'">
+                    Cancel Current Plan First
                   </template>
                   <template v-else> Select Pro </template>
                 </button>
@@ -1385,17 +1424,27 @@
                       ? updatePlan('FREE')
                       : updatePlan('MAX')
                   "
-                  :disabled="authStore.user?.plan === 'MAX' && isCancelling"
+                  :disabled="
+                    (authStore.user?.plan !== 'FREE' &&
+                      authStore.user?.plan !== 'MAX') ||
+                    (authStore.user?.plan === 'MAX' && isCancelling)
+                  "
                   class="w-full py-2.5 rounded-xl text-sm font-semibold transition-all border"
                   :class="
                     authStore.user?.plan === 'MAX'
                       ? isCancelling
                         ? 'border-indigo-100 bg-indigo-50 text-indigo-400 cursor-not-allowed'
                         : 'border-indigo-100 bg-indigo-50 text-indigo-600 hover:bg-indigo-100'
-                      : 'bg-slate-900 text-white border-slate-900 hover:bg-slate-800'
+                      : authStore.user?.plan !== 'FREE' &&
+                          authStore.user?.plan !== 'MAX'
+                        ? 'border-slate-100 bg-slate-50 text-slate-400 cursor-not-allowed'
+                        : 'bg-slate-900 text-white border-slate-900 hover:bg-slate-800'
                   ">
                   <template v-if="authStore.user?.plan === 'MAX'">
                     {{ isCancelling ? "Plan Cancelling" : "Cancel Plan" }}
+                  </template>
+                  <template v-else-if="authStore.user?.plan !== 'FREE'">
+                    Cancel Current Plan First
                   </template>
                   <template v-else> Select Max </template>
                 </button>
@@ -1507,6 +1556,33 @@ const subscribeStore = useSubscribeStore();
 const route = useRoute();
 const router = useRouter();
 const { $api } = useNuxtApp();
+
+const useSameEmail = ref(false);
+const useSamePhone = ref(false);
+
+const syncEmail = () => {
+  if (useSameEmail.value && authStore.user?.email) {
+    profileForm.value.companyEmail = authStore.user.email;
+  }
+};
+
+const syncPhone = () => {
+  if (useSamePhone.value && profileForm.value.phoneNumber) {
+    profileForm.value.companyPhone = profileForm.value.phoneNumber;
+  }
+};
+
+const activeSubscription = computed(() => {
+  if (!authStore.user?.subscriptions?.length) return null;
+  // Find the subscription that matches the current plan name and is active
+  return (
+    authStore.user.subscriptions.find(
+      (s) =>
+        s.plan.toUpperCase() === authStore.user.plan.toUpperCase() &&
+        s.status === "ACTIVE",
+    ) || authStore.user.subscriptions[0]
+  );
+});
 
 const tabs = [
   {
@@ -1688,6 +1764,9 @@ onMounted(async () => {
     // Force disable toggles if data is missing
     if (!profileForm.value.address) {
       profileForm.value.invoiceIncludeAddress = false;
+    }
+    if (!profileForm.value.companyEmail) {
+      profileForm.value.invoiceIncludeEmail = false;
     }
     if (!profileForm.value.companyName) {
       profileForm.value.invoiceIncludeCompanyName = false;
