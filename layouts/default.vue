@@ -177,6 +177,15 @@
               Analytics
             </NuxtLink>
             <NuxtLink
+              to="/admin/transactions"
+              class="flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
+              active-class="bg-[#ebebec] text-slate-900">
+              <UiIcon
+                icon="heroicons:credit-card"
+                class="w-[18px] h-[18px] mr-3 opacity-70" />
+              Transactions
+            </NuxtLink>
+            <NuxtLink
               to="/admin/promo-codes"
               class="flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
               active-class="bg-[#ebebec] text-slate-900">
@@ -530,6 +539,16 @@
                             d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
                         </svg>
                         Analytics
+                      </NuxtLink>
+                      <NuxtLink
+                        to="/admin/transactions"
+                        @click="isMobileMenuOpen = false"
+                        class="flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
+                        active-class="bg-[#ebebec] text-slate-900">
+                        <UiIcon
+                          icon="heroicons:credit-card"
+                          class="w-[18px] h-[18px] mr-3 opacity-70" />
+                        Transactions
                       </NuxtLink>
                       <NuxtLink
                         to="/admin/promo-codes"

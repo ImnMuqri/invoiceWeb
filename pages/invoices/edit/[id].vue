@@ -10,8 +10,14 @@
           class="text-xl sm:text-2xl font-semibold tracking-tight text-slate-900">
           Edit Invoice
         </h1>
-        <p class="text-xs sm:text-sm text-slate-500 mt-1">
+        <p v-if="!isLocked" class="text-xs sm:text-sm text-slate-500 mt-1">
           Modify the details for invoice {{ form.invoiceNumber }}.
+        </p>
+        <p
+          v-else
+          class="text-xs sm:text-sm text-amber-600 font-semibold mt-1 flex items-center gap-1">
+          <UiIcon icon="heroicons:lock-closed" class="w-3.5 h-3.5" />
+          This invoice is locked because it is {{ form.status }}.
         </p>
       </div>
 
@@ -110,10 +116,12 @@
               <UiSelect
                 v-model="form.status"
                 label="Status"
+                :disabled="isLocked"
                 :options="[
                   { label: 'Pending', value: 'Pending' },
                   { label: 'Paid', value: 'Paid' },
                   { label: 'Overdue', value: 'Overdue' },
+                  { label: 'Cancelled', value: 'Cancelled' },
                 ]"
                 placeholder="Select Status" />
               <!-- Theme Selection -->
@@ -225,7 +233,10 @@
                       placeholder="Item name" />
                     <div
                       class="flex items-center gap-1.5 bg-slate-50 rounded-lg px-2.5 py-1.5 border border-slate-200 mt-0.5 focus-within:ring-2 focus-within:ring-slate-950 focus-within:bg-white transition-all shadow-sm">
-                      <span class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">{{ form.currency }}</span>
+                      <span
+                        class="text-[10px] font-bold text-slate-400 uppercase tracking-tight"
+                        >{{ form.currency }}</span
+                      >
                       <input
                         type="text"
                         v-model="item.priceStr"
@@ -348,13 +359,13 @@
           <button
             type="submit"
             @click="submitInvoice"
-            :disabled="isProcessing"
-            class="inline-flex items-center gap-2 justify-center rounded-md border border-transparent bg-slate-900 py-2 px-4 text-sm font-medium text-white shadow hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2 transition-colors disabled:opacity-50">
+            :disabled="isProcessing || isLocked"
+            class="inline-flex items-center gap-2 justify-center rounded-md border border-transparent bg-slate-900 py-2 px-4 text-sm font-medium text-white shadow hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
             <UiIcon
               v-if="isProcessing"
               icon="heroicons:arrow-path"
               custom-class="w-4 h-4 animate-spin text-white" />
-            Update Invoice
+            {{ isLocked ? "Invoice Locked" : "Update Invoice" }}
           </button>
         </div>
       </div>
@@ -945,6 +956,7 @@ const processingComplete = ref(false);
 const showActionButtons = ref(false);
 const processingStatus = ref("Preparing Invoice...");
 const isSending = ref(false);
+const isLocked = ref(false);
 
 const form = ref({
   clientId: "",
@@ -1020,6 +1032,7 @@ onMounted(async () => {
 
       // Enable actions by default on edit
       showActionButtons.value = true;
+      isLocked.value = data.status === "Paid" || data.status === "Cancelled";
     }
   } catch (err) {
     console.error("Failed to fetch invoice:", err);

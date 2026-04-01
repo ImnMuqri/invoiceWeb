@@ -22,8 +22,7 @@
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div
           class="bg-indigo-50 border border-indigo-100 rounded-2xl p-6 shadow-sm">
-          <dt
-            class="text-xs font-bold text-indigo-600 uppercase tracking-widest mb-1">
+          <dt class="text-sm font-bold text-indigo-500 capitalize mb-1">
             Available Credits
           </dt>
           <dd class="text-3xl font-semibold text-indigo-950">
@@ -32,8 +31,7 @@
         </div>
         <div
           class="bg-emerald-50 border border-emerald-100 rounded-2xl p-6 shadow-sm">
-          <dt
-            class="text-xs font-bold text-emerald-600 uppercase tracking-widest mb-1">
+          <dt class="text-sm font-bold text-emerald-500 capitalize mb-1">
             Total Referrals
           </dt>
           <dd class="text-3xl font-semibold text-emerald-950">
@@ -43,11 +41,10 @@
         <div
           class="bg-slate-50 border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between">
           <div>
-            <dt
-              class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">
+            <dt class="text-sm font-bold text-slate-500 capitalize mb-1">
               Your Referral Code
             </dt>
-            <dd class="text-xl font-mono font-bold text-slate-900">
+            <dd class="text-xl font-mono font-semibold text-slate-900">
               {{ referralStore.stats.referralCode || "..." }}
             </dd>
           </div>
@@ -75,7 +72,7 @@
             class="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-6 hover:bg-slate-50/50 transition-colors">
             <div class="flex items-start gap-4">
               <div class="p-3 bg-indigo-100 text-indigo-600 rounded-xl">
-                <UiIcon icon="heroicons:sparkles" class="w-6 h-6" />
+                <UiLogo :showText="false" />
               </div>
               <div>
                 <h4 class="text-base font-bold text-slate-900">
@@ -98,7 +95,7 @@
               <button
                 @click="claim('PRO')"
                 :disabled="referralStore.stats.referralCredits < 5 || loading"
-                class="px-6 py-2.5 rounded-xl font-bold transition-all"
+                class="px-6 py-2.5 rounded-lg font-bold transition-all"
                 :class="
                   referralStore.stats.referralCredits < 5
                     ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
@@ -114,7 +111,7 @@
             class="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-6 hover:bg-slate-50/50 transition-colors">
             <div class="flex items-start gap-4">
               <div class="p-3 bg-amber-100 text-amber-600 rounded-xl">
-                <UiIcon icon="heroicons:fire" class="w-6 h-6" />
+                <UiLogo :showText="false" />
               </div>
               <div>
                 <h4 class="text-base font-bold text-slate-900">

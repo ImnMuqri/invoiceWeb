@@ -123,7 +123,7 @@
               </div>
               <div
                 class="flex justify-between text-[10px] font-medium text-slate-400">
-                <span>WA Reminders Used:</span>
+                <span>Whatsapp Reminders Used:</span>
                 <span class="font-semibold text-slate-600"
                   >{{ authStore.user?.waRemindersUsed || 0 }} /
                   {{ dashboardStore.usageLimits?.waReminders || 0 }}</span

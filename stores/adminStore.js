@@ -5,6 +5,7 @@ export const useAdminStore = defineStore("admin", () => {
   const users = ref([]);
   const stats = ref(null);
   const analytics = ref(null);
+  const transactions = ref([]);
   const loading = ref(false);
   const error = ref(null);
 
@@ -47,6 +48,32 @@ export const useAdminStore = defineStore("admin", () => {
     }
   }
 
+  async function fetchMonthlyRevenue(month, year) {
+    const { $api } = useNuxtApp();
+    try {
+      const { data } = await $api.get("/analytics/monthly", {
+        params: { month, year },
+      });
+      return data;
+    } catch (err) {
+      error.value = err.response?.data?.message || err.message;
+      return null;
+    }
+  }
+
+  async function fetchTransactions() {
+    const { $api } = useNuxtApp();
+    loading.value = true;
+    try {
+      const { data } = await $api.get("/admin/transactions");
+      transactions.value = data;
+    } catch (err) {
+      error.value = err.response?.data?.message || err.message;
+    } finally {
+      loading.value = false;
+    }
+  }
+
   async function updateUser(id, payload) {
     const { $api } = useNuxtApp();
     try {
@@ -75,12 +102,15 @@ export const useAdminStore = defineStore("admin", () => {
     users,
     stats,
     analytics,
+    transactions,
     loading,
     error,
     fetchUsers,
     fetchStats,
     fetchAnalytics,
+    fetchMonthlyRevenue,
+    fetchTransactions,
     updateUser,
-    deleteUser
+    deleteUser,
   };
 });

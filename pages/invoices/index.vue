@@ -1,9 +1,14 @@
 <template>
   <div class="invoices-page">
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+    <div
+      class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
       <div>
-        <h2 class="text-2xl font-bold text-slate-900 tracking-tight">Invoices</h2>
-        <p class="text-xs font-medium text-slate-500 mt-1">Manage and track your client billings.</p>
+        <h2 class="text-2xl font-bold text-slate-900 tracking-tight">
+          Invoices
+        </h2>
+        <p class="text-xs font-medium text-slate-500 mt-1">
+          Manage and track your client billings.
+        </p>
       </div>
       <div class="flex items-center gap-4">
         <!-- Search Input -->
@@ -156,7 +161,11 @@
         </td>
         <td
           class="whitespace-nowrap px-3 py-4 text-sm font-medium text-slate-500">
-          {{ invoice?.whatsappLastSent ? formatDate(invoice.whatsappLastSent) : "-" }}
+          {{
+            invoice?.whatsappLastSent
+              ? formatDate(invoice.whatsappLastSent)
+              : "-"
+          }}
         </td>
         <td class="whitespace-nowrap px-3 py-4 text-sm">
           <div
@@ -194,38 +203,60 @@
           <UiPopover placement="bottom-end">
             <template #trigger>
               <button
-                class="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all"
-                title="Update Status">
+                :disabled="
+                  invoice?.status === 'Paid' || invoice?.status === 'Cancelled'
+                "
+                class="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                :title="
+                  invoice?.status === 'Paid' || invoice?.status === 'Cancelled'
+                    ? `Locked: ${invoice.status}`
+                    : 'Update Status'
+                ">
                 <UiIcon icon="heroicons:check-badge" custom-class="w-4 h-4" />
               </button>
             </template>
 
             <template #default="{ close }">
               <div class="px-3 py-2 border-b border-slate-100 bg-slate-50/50">
-                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Update Status</span>
+                <span
+                  class="text-[10px] font-bold text-slate-400 uppercase tracking-wider"
+                  >Update Status</span
+                >
               </div>
               <div class="p-1 min-w-[160px]">
                 <button
-                  @click="close(); updateStatus(invoice, 'Paid')"
+                  @click="
+                    close();
+                    updateStatus(invoice, 'Paid');
+                  "
                   class="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 rounded-md transition-all text-left">
                   <div class="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
                   Mark as Paid
                 </button>
                 <button
-                  @click="close(); updateStatus(invoice, 'Overdue')"
+                  @click="
+                    close();
+                    updateStatus(invoice, 'Overdue');
+                  "
                   class="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-md transition-all text-left">
                   <div class="w-1.5 h-1.5 rounded-full bg-red-500"></div>
                   Mark as Overdue
                 </button>
                 <button
-                  @click="close(); updateStatus(invoice, 'Pending')"
+                  @click="
+                    close();
+                    updateStatus(invoice, 'Pending');
+                  "
                   class="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-600 hover:text-amber-600 hover:bg-amber-50 rounded-md transition-all text-left">
                   <div class="w-1.5 h-1.5 rounded-full bg-amber-500"></div>
                   Mark as Pending
                 </button>
                 <div class="h-px bg-slate-100 my-1 mx-2"></div>
                 <button
-                  @click="close(); updateStatus(invoice, 'Cancelled')"
+                  @click="
+                    close();
+                    updateStatus(invoice, 'Cancelled');
+                  "
                   class="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-md transition-all text-left">
                   <div class="w-1.5 h-1.5 rounded-full bg-slate-400"></div>
                   Cancelled
@@ -343,9 +374,9 @@
     <UiToast v-model="toast" />
 
     <!-- Delete Confirmation Modal -->
-    <UiModal 
-      v-model="isDeleteModalOpen" 
-      maxWidth="md" 
+    <UiModal
+      v-model="isDeleteModalOpen"
+      maxWidth="md"
       title="Delete Invoice?"
       description="Are you sure you want to delete this invoice? This action cannot be undone.">
       <div class="p-6">
@@ -395,7 +426,6 @@ const authStore = useAuthStore();
 const uiStore = useUiStore();
 
 onMounted(async () => {
-
   try {
     await invoiceStore.fetchInvoices();
   } catch (err) {
@@ -456,7 +486,6 @@ const confirmDelete = async () => {
       type: "success",
     };
   } catch (err) {
-
     toast.value = {
       message:
         err.response?.data?.message ||

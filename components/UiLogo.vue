@@ -34,6 +34,7 @@ const props = defineProps({
     type: String,
     default: "",
   },
+  
 });
 
 const sizeClasses = {
