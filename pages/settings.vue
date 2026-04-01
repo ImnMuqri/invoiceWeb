@@ -906,7 +906,7 @@
                   class="relative flex items-center p-4 border rounded-xl transition-all cursor-pointer group select-none"
                   :class="
                     profileForm[field.key]
-                      ? 'border-slate-900 bg-slate-50 ring-1 ring-slate-900'
+                      ? 'border-emerald-600 bg-slate-50'
                       : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/50'
                   "
                   :style="{
@@ -918,13 +918,13 @@
                       class="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
                       :class="
                         profileForm[field.key]
-                          ? 'bg-slate-900 text-white'
+                          ? 'bg-emerald-600 text-white'
                           : 'bg-slate-100 text-slate-400 group-hover:text-slate-500'
                       ">
                       <UiIcon :icon="field.icon" class="w-4 h-4" />
                     </div>
                     <div
-                      class="text-sm font-semibold transition-colors"
+                      class="text-xs font-semibold transition-colors"
                       :class="
                         profileForm[field.key]
                           ? 'text-slate-900'
@@ -943,7 +943,7 @@
                       class="w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all"
                       :class="
                         profileForm[field.key]
-                          ? 'bg-slate-900 border-slate-900'
+                          ? 'bg-emerald-600 border-emerald-600'
                           : 'bg-white border-slate-200'
                       ">
                       <UiIcon

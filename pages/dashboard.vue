@@ -598,7 +598,8 @@
                 </div>
               </div>
             </div>
-            <div class="space-y-4 min-h-[100px]">
+            <div
+              class="space-y-4 min-h-[100px] max-h-[420px] overflow-y-auto pr-2 custom-scrollbar">
               <!-- Loading State -->
               <template
                 v-if="
@@ -623,7 +624,7 @@
                 <div
                   v-for="insight in dashboardStore.insights"
                   :key="insight.id || insight.title"
-                  class="p-4 bg-white rounded-xl border border-slate-200 shadow-sm hover:border-emerald-200 transition-all cursor-pointer group"
+                  class="p-4 bg-white rounded-xl border border-slate-200 shadow-sm hover:border-emerald-200 transition-all cursor-pointer group mb-4 last:mb-0"
                   @click="
                     insight.type === 'chaser' && authStore.isPro
                       ? $router.push(`/invoices`)
@@ -900,5 +901,27 @@ const toggleFilterMode = (mode) => {
 .filter-grow-leave-to {
   max-width: 0;
   opacity: 0;
+}
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #e2e8f0;
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #cbd5e1;
+}
+
+/* For Firefox */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #e2e8f0 transparent;
 }
 </style>
