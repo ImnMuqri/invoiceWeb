@@ -1324,9 +1324,9 @@
                 <ul class="space-y-4 mb-8 flex-1">
                   <li
                     v-for="feature in [
-                      '30 Invoices/mo',
-                      '30 WhatsApp Sends & Reminders',
-                      '50 Email Deliveries & Reminders',
+                      '100 Invoices/mo',
+                      '50 WhatsApp Sends & Reminders',
+                      '100 Email Deliveries & Reminders',
                       '20 AI Drafts/mo',
                       'Auto-Chaser',
                     ]"
@@ -1403,10 +1403,10 @@
                 <ul class="space-y-4 mb-8 flex-1">
                   <li
                     v-for="feature in [
-                      '100 Invoices/mo',
+                      'Unlimited Invoices/mo',
                       '100 WhatsApp Sends & Reminders',
-                      '100 Email Deliveries & Reminders',
-                      '50 AI Drafts/mo',
+                      'Unlimited Email Deliveries & Reminders',
+                      '100 AI Drafts/mo',
                       'Auto-Chaser',
                       'White Labelling',
                     ]"
@@ -1574,14 +1574,10 @@ const syncPhone = () => {
 
 const activeSubscription = computed(() => {
   if (!authStore.user?.subscriptions?.length) return null;
-  // Find the subscription that matches the current plan name and is active
-  return (
-    authStore.user.subscriptions.find(
-      (s) =>
-        s.plan.toUpperCase() === authStore.user.plan.toUpperCase() &&
-        s.status === "ACTIVE",
-    ) || authStore.user.subscriptions[0]
-  );
+  // Since we only take 1 from backend, it's either this one or nothing
+  const sub = authStore.user.subscriptions[0];
+  if (sub && sub.status === "ACTIVE") return sub;
+  return null;
 });
 
 const tabs = [

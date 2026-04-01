@@ -50,8 +50,8 @@ export const useInvoiceStore = defineStore("invoice", {
       }
     },
 
-    async updateInvoice(id, payload) {
-      this.loading = true;
+    async updateInvoice(id, payload, isLocal = false) {
+      if (!isLocal) this.loading = true;
       try {
         const { $api } = useNuxtApp();
         const response = await $api.put(`/invoices/${id}`, payload);
@@ -64,7 +64,7 @@ export const useInvoiceStore = defineStore("invoice", {
         this.error = err.response?.data?.message || err.message;
         throw err;
       } finally {
-        this.loading = false;
+        if (!isLocal) this.loading = false;
       }
     },
     async deleteInvoice(id) {
@@ -114,14 +114,19 @@ export const useInvoiceStore = defineStore("invoice", {
         link.remove();
         window.URL.revokeObjectURL(url);
       } catch (err) {
-
         throw err;
       }
     },
-    async sendInvoice(id, method, email = null, isReminder = false) {
-      const { $api } = useNuxtApp();
-      this.loading = true;
+    async sendInvoice(
+      id,
+      method,
+      email = null,
+      isReminder = false,
+      isLocal = false,
+    ) {
+      if (!isLocal) this.loading = true;
       try {
+        const { $api } = useNuxtApp();
         const { data } = await $api.post(`/invoices/${id}/send`, {
           method,
           email,
@@ -132,7 +137,7 @@ export const useInvoiceStore = defineStore("invoice", {
         this.error = err.response?.data?.message || err.message;
         throw err;
       } finally {
-        this.loading = false;
+        if (!isLocal) this.loading = false;
       }
     },
     async whatsappInvoice(id) {
@@ -151,9 +156,12 @@ export const useInvoiceStore = defineStore("invoice", {
       const { $api } = useNuxtApp();
       this.loading = true;
       try {
-        const { data } = await $api.post(`/pay/invoice/${invoiceId}/create-bill`, {
-          providerId,
-        });
+        const { data } = await $api.post(
+          `/pay/invoice/${invoiceId}/create-bill`,
+          {
+            providerId,
+          },
+        );
         return data;
       } catch (err) {
         this.error = err.response?.data?.message || err.message;

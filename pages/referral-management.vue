@@ -50,9 +50,9 @@
           </div>
           <button
             @click="copyCode"
-            class="mt-4 text-xs font-bold text-slate-900 flex items-center gap-1 hover:text-indigo-600 transition-colors">
+            class="mt-4 text-xs font-bold text-slate-900 flex items-center gap-1 hover:text-emerald-600 transition-colors">
             <UiIcon icon="heroicons:document-duplicate" class="w-3.5 h-3.5" />
-            COPY CODE
+            Copy Code
           </button>
         </div>
       </div>
@@ -71,7 +71,7 @@
           <div
             class="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-6 hover:bg-slate-50/50 transition-colors">
             <div class="flex items-start gap-4">
-              <div class="p-3 bg-indigo-100 text-indigo-600 rounded-xl">
+              <div class="py-3 pl-4 pr-2 bg-emerald-100 rounded-xl">
                 <UiLogo :showText="false" />
               </div>
               <div>
@@ -109,7 +109,8 @@
           <div
             class="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-6 hover:bg-slate-50/50 transition-colors">
             <div class="flex items-start gap-4">
-              <div class="p-3 bg-amber-100 text-amber-600 rounded-xl">
+              <div
+                class="py-3 pl-4 pr-2 bg-indigo-100 text-amber-600 rounded-xl">
                 <UiLogo :showText="false" />
               </div>
               <div>

@@ -449,9 +449,9 @@
                 <ul class="space-y-4 mb-8 flex-1">
                   <li
                     v-for="feature in [
-                      '30 Invoices/mo',
-                      '30 WhatsApp Sends & Reminders',
-                      '50 Email Deliveries & Reminders',
+                      '100 Invoices/mo',
+                      '50 WhatsApp Sends & Reminders',
+                      '100 Email Deliveries & Reminders',
                       '20 AI Drafts/mo',
                       'Auto-Chaser',
                     ]"
@@ -497,10 +497,10 @@
                 <ul class="space-y-4 mb-8 flex-1">
                   <li
                     v-for="feature in [
-                      '100 Invoices/mo',
+                      'Unlimited Invoices/mo',
                       '100 WhatsApp Sends & Reminders',
-                      '100 Email Deliveries & Reminders',
-                      '50 AI Drafts/mo',
+                      'Unlimited Email Deliveries & Reminders',
+                      '100 AI Drafts/mo',
                       'Auto-Chaser',
                       'White Labelling',
                     ]"

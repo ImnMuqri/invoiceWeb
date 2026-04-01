@@ -239,15 +239,24 @@
             <template #trigger>
               <button
                 :disabled="
-                  invoice?.status === 'Paid' || invoice?.status === 'Cancelled'
+                  invoice?.status === 'Paid' ||
+                  invoice?.status === 'Cancelled' ||
+                  loadingInvoices[invoice.id]
                 "
-                class="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                class="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed group"
                 :title="
                   invoice?.status === 'Paid' || invoice?.status === 'Cancelled'
                     ? `Locked: ${invoice.status}`
                     : 'Update Status'
                 ">
-                <UiIcon icon="heroicons:check-badge" custom-class="w-4 h-4" />
+                <UiIcon
+                  v-if="loadingInvoices[invoice.id] === 'status'"
+                  icon="heroicons:arrow-path"
+                  custom-class="w-4 h-4 animate-spin text-emerald-600" />
+                <UiIcon
+                  v-else
+                  icon="heroicons:check-badge"
+                  custom-class="w-4 h-4" />
               </button>
             </template>
 
@@ -260,41 +269,63 @@
               </div>
               <div class="p-1 min-w-[160px]">
                 <button
-                  @click="
-                    close();
-                    updateStatus(invoice, 'Paid');
-                  "
-                  class="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 rounded-md transition-all text-left">
-                  <div class="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
-                  Mark as Paid
+                  v-if="invoice?.status !== 'Paid'"
+                  @click="updateStatus(invoice, 'Paid')"
+                  :disabled="loadingInvoices[invoice.id]"
+                  class="w-full flex items-center justify-between gap-2 px-3 py-2 text-xs font-semibold text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 rounded-md transition-all text-left disabled:opacity-50">
+                  <div class="flex items-center gap-2">
+                    <div class="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+                    Mark as Paid
+                  </div>
+                  <UiIcon
+                    v-if="loadingInvoices[invoice.id] === 'Paid'"
+                    icon="heroicons:arrow-path"
+                    custom-class="w-3 h-3 animate-spin text-emerald-600" />
                 </button>
                 <button
-                  @click="
-                    close();
-                    updateStatus(invoice, 'Overdue');
-                  "
-                  class="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-md transition-all text-left">
-                  <div class="w-1.5 h-1.5 rounded-full bg-red-500"></div>
-                  Mark as Overdue
+                  v-if="invoice?.status !== 'Overdue'"
+                  @click="updateStatus(invoice, 'Overdue')"
+                  :disabled="loadingInvoices[invoice.id]"
+                  class="w-full flex items-center justify-between gap-2 px-3 py-2 text-xs font-semibold text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-md transition-all text-left disabled:opacity-50">
+                  <div class="flex items-center gap-2">
+                    <div class="w-1.5 h-1.5 rounded-full bg-red-500"></div>
+                    Mark as Overdue
+                  </div>
+                  <UiIcon
+                    v-if="loadingInvoices[invoice.id] === 'Overdue'"
+                    icon="heroicons:arrow-path"
+                    custom-class="w-3 h-3 animate-spin text-red-600" />
                 </button>
                 <button
-                  @click="
-                    close();
-                    updateStatus(invoice, 'Pending');
-                  "
-                  class="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-600 hover:text-amber-600 hover:bg-amber-50 rounded-md transition-all text-left">
-                  <div class="w-1.5 h-1.5 rounded-full bg-amber-500"></div>
-                  Mark as Pending
+                  v-if="invoice?.status !== 'Pending'"
+                  @click="updateStatus(invoice, 'Pending')"
+                  :disabled="loadingInvoices[invoice.id]"
+                  class="w-full flex items-center justify-between gap-2 px-3 py-2 text-xs font-semibold text-slate-600 hover:text-amber-600 hover:bg-amber-50 rounded-md transition-all text-left disabled:opacity-50">
+                  <div class="flex items-center gap-2">
+                    <div class="w-1.5 h-1.5 rounded-full bg-amber-500"></div>
+                    Mark as Pending
+                  </div>
+                  <UiIcon
+                    v-if="loadingInvoices[invoice.id] === 'Pending'"
+                    icon="heroicons:arrow-path"
+                    custom-class="w-3 h-3 animate-spin text-amber-600" />
                 </button>
-                <div class="h-px bg-slate-100 my-1 mx-2"></div>
+                <div
+                  v-if="invoice?.status !== 'Cancelled'"
+                  class="h-px bg-slate-100 my-1 mx-2"></div>
                 <button
-                  @click="
-                    close();
-                    updateStatus(invoice, 'Cancelled');
-                  "
-                  class="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-md transition-all text-left">
-                  <div class="w-1.5 h-1.5 rounded-full bg-slate-400"></div>
-                  Cancelled
+                  v-if="invoice?.status !== 'Cancelled'"
+                  @click="updateStatus(invoice, 'Cancelled')"
+                  :disabled="loadingInvoices[invoice.id]"
+                  class="w-full flex items-center justify-between gap-2 px-3 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-md transition-all text-left disabled:opacity-50">
+                  <div class="flex items-center gap-2">
+                    <div class="w-1.5 h-1.5 rounded-full bg-slate-400"></div>
+                    Cancelled
+                  </div>
+                  <UiIcon
+                    v-if="loadingInvoices[invoice.id] === 'Cancelled'"
+                    icon="heroicons:arrow-path"
+                    custom-class="w-3 h-3 animate-spin text-slate-600" />
                 </button>
               </div>
             </template>
@@ -304,9 +335,19 @@
           <UiPopover placement="bottom-end">
             <template #trigger>
               <button
-                class="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-all"
+                :disabled="loadingInvoices[invoice.id]"
+                class="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-all disabled:opacity-30"
                 title="More Actions">
                 <UiIcon
+                  v-if="
+                    ['email', 'reminder', 'whatsapp', 'waReminder'].includes(
+                      loadingInvoices[invoice.id],
+                    )
+                  "
+                  icon="heroicons:arrow-path"
+                  custom-class="w-5 h-5 animate-spin text-slate-600" />
+                <UiIcon
+                  v-else
                   icon="heroicons:ellipsis-horizontal"
                   custom-class="w-5 h-5" />
               </button>
@@ -323,49 +364,71 @@
 
               <div class="p-1">
                 <button
-                  @click="
-                    close();
-                    handleSendAction(invoice, 'email', false);
+                  @click="handleSendAction(invoice, 'email', false)"
+                  :disabled="
+                    invoice?.status === 'Paid' || loadingInvoices[invoice.id]
                   "
-                  :disabled="invoice?.status === 'Paid'"
-                  class="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-600 hover:text-green-600 hover:bg-green-50 rounded-md transition-all text-left disabled:opacity-50 disabled:cursor-not-allowed">
-                  <UiIcon icon="heroicons:envelope" custom-class="w-4 h-4" />
-                  Send Email
+                  class="w-full flex items-center justify-between gap-2 px-3 py-2 text-xs font-semibold text-slate-600 hover:text-green-600 hover:bg-green-50 rounded-md transition-all text-left disabled:opacity-50 disabled:cursor-not-allowed">
+                  <div class="flex items-center gap-2">
+                    <UiIcon icon="heroicons:envelope" custom-class="w-4 h-4" />
+                    Send Email
+                  </div>
+                  <UiIcon
+                    v-if="loadingInvoices[invoice.id] === 'email'"
+                    icon="heroicons:arrow-path"
+                    custom-class="w-3 h-3 animate-spin text-green-600" />
                 </button>
                 <button
-                  @click="
-                    close();
-                    handleSendAction(invoice, 'email', true);
+                  @click="handleSendAction(invoice, 'email', true)"
+                  :disabled="
+                    invoice?.status === 'Paid' || loadingInvoices[invoice.id]
                   "
-                  :disabled="invoice?.status === 'Paid'"
-                  class="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-600 hover:text-green-600 hover:bg-green-50 rounded-md transition-all text-left disabled:opacity-50 disabled:cursor-not-allowed">
-                  <UiIcon icon="heroicons:bell" custom-class="w-4 h-4" />
-                  Send Reminder Email
+                  class="w-full flex items-center justify-between gap-2 px-3 py-2 text-xs font-semibold text-slate-600 hover:text-green-600 hover:bg-green-50 rounded-md transition-all text-left disabled:opacity-50 disabled:cursor-not-allowed">
+                  <div class="flex items-center gap-2">
+                    <UiIcon icon="heroicons:bell" custom-class="w-4 h-4" />
+                    Send Reminder Email
+                  </div>
+                  <UiIcon
+                    v-if="loadingInvoices[invoice.id] === 'reminder'"
+                    icon="heroicons:arrow-path"
+                    custom-class="w-3 h-3 animate-spin text-green-600" />
                 </button>
                 <div class="h-px bg-slate-100 my-1 mx-2"></div>
                 <button
                   v-if="authStore.user?.plan !== 'FREE'"
-                  @click="
-                    close();
-                    handleSendAction(invoice, 'whatsapp', false);
+                  @click="handleSendAction(invoice, 'whatsapp', false)"
+                  :disabled="
+                    invoice?.status === 'Paid' || loadingInvoices[invoice.id]
                   "
-                  :disabled="invoice?.status === 'Paid'"
-                  class="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-600 hover:text-[#25D366] hover:bg-emerald-50 rounded-md transition-all text-left disabled:opacity-50 disabled:cursor-not-allowed">
-                  <UiIcon icon="simple-icons:whatsapp" custom-class="w-4 h-4" />
-                  Send WhatsApp
+                  class="w-full flex items-center justify-between gap-2 px-3 py-2 text-xs font-semibold text-slate-600 hover:text-[#25D366] hover:bg-emerald-50 rounded-md transition-all text-left disabled:opacity-50 disabled:cursor-not-allowed">
+                  <div class="flex items-center gap-2">
+                    <UiIcon
+                      icon="simple-icons:whatsapp"
+                      custom-class="w-4 h-4" />
+                    Send WhatsApp
+                  </div>
+                  <UiIcon
+                    v-if="loadingInvoices[invoice.id] === 'whatsapp'"
+                    icon="heroicons:arrow-path"
+                    custom-class="w-3 h-3 animate-spin text-[#25D366]" />
                 </button>
                 <button
                   v-if="authStore.user?.plan !== 'FREE'"
-                  @click="
-                    close();
-                    handleSendAction(invoice, 'whatsapp', true);
+                  @click="handleSendAction(invoice, 'whatsapp', true)"
+                  :disabled="
+                    invoice?.status === 'Paid' || loadingInvoices[invoice.id]
                   "
-                  :disabled="invoice?.status === 'Paid'"
-                  class="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-600 hover:text-[#25D366] hover:bg-emerald-50 rounded-md transition-all text-left disabled:opacity-50 disabled:cursor-not-allowed">
+                  class="w-full flex items-center justify-between gap-2 px-3 py-2 text-xs font-semibold text-slate-600 hover:text-[#25D366] hover:bg-emerald-50 rounded-md transition-all text-left disabled:opacity-50 disabled:cursor-not-allowed">
+                  <div class="flex items-center gap-2">
+                    <UiIcon
+                      icon="heroicons:chat-bubble-left-right"
+                      custom-class="w-4 h-4" />
+                    Send Reminder WA
+                  </div>
                   <UiIcon
-                    icon="heroicons:chat-bubble-left-right"
-                    custom-class="w-4 h-4" />
-                  Send Reminder WA
+                    v-if="loadingInvoices[invoice.id] === 'waReminder'"
+                    icon="heroicons:arrow-path"
+                    custom-class="w-3 h-3 animate-spin text-[#25D366]" />
                 </button>
               </div>
 
@@ -515,6 +578,8 @@ const invoiceToDelete = ref(null);
 const isDeleting = ref(false);
 const toast = ref({ message: "", type: "success" });
 
+const loadingInvoices = reactive({});
+
 const openDeleteModal = (invoice) => {
   invoiceToDelete.value = invoice;
   isDeleteModalOpen.value = true;
@@ -545,10 +610,15 @@ const confirmDelete = async () => {
 };
 
 const updateStatus = async (invoice, newStatus) => {
+  loadingInvoices[invoice.id] = newStatus; // Use status name as loading state for specific button
   try {
-    const res = await invoiceStore.updateInvoice(invoice.id, {
-      status: newStatus,
-    });
+    const res = await invoiceStore.updateInvoice(
+      invoice.id,
+      {
+        status: newStatus,
+      },
+      true, // isLocal = true
+    );
     toast.value = {
       message: res?.message || `Invoice marked as ${newStatus}`,
       type: "success",
@@ -558,16 +628,28 @@ const updateStatus = async (invoice, newStatus) => {
       message: err.response?.data?.message || "Failed to update status",
       type: "error",
     };
+  } finally {
+    delete loadingInvoices[invoice.id];
   }
 };
 
 const handleSendAction = async (invoice, method, isReminder) => {
+  const actionType =
+    method === "whatsapp"
+      ? isReminder
+        ? "waReminder"
+        : "whatsapp"
+      : isReminder
+        ? "reminder"
+        : "email";
+  loadingInvoices[invoice.id] = actionType;
   try {
     const res = await invoiceStore.sendInvoice(
       invoice.id,
       method,
       null,
       isReminder,
+      true, // isLocal = true
     );
     if (method === "whatsapp" && res.waLink) {
       window.open(res.waLink, "_blank");
@@ -583,6 +665,8 @@ const handleSendAction = async (invoice, method, isReminder) => {
       message: err.response?.data?.message || err.message,
       type: "error",
     };
+  } finally {
+    delete loadingInvoices[invoice.id];
   }
 };
 </script>
