@@ -54,7 +54,7 @@
               From
             </div>
             <div class="text-sm font-semibold text-slate-900">
-              {{ invoice.fromName || invoice.fromCompanyName || "Our Company" }}
+              {{ invoice.fromName || invoice.fromCompanyName }}
             </div>
             <div class="text-sm text-slate-500 mt-1 whitespace-pre-line">
               <p
@@ -230,9 +230,7 @@
                 From
               </div>
               <div class="text-sm font-semibold text-slate-900 mb-1">
-                {{
-                  invoice.fromName || invoice.fromCompanyName || "Our Company"
-                }}
+                {{ invoice.fromName || invoice.fromCompanyName }}
               </div>
               <div
                 class="text-xs text-slate-500 leading-relaxed whitespace-pre-line">

@@ -742,9 +742,7 @@
                     </div>
 
                     <div class="text-sm font-semibold text-slate-900">
-                      {{
-                        form.from.name || form.from.companyName || "Our Company"
-                      }}
+                      {{ form.from.name || form.from.companyName || "" }}
                     </div>
                     <div
                       class="text-sm text-slate-500 mt-1 whitespace-pre-line">

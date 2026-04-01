@@ -865,6 +865,7 @@
                       key: 'invoiceIncludeName',
                       label: 'Full Name',
                       icon: 'solar:user-bold',
+                      disabled: true,
                     },
                     {
                       key: 'invoiceIncludeEmail',
@@ -898,7 +899,11 @@
                     profileForm[field.key]
                       ? 'border-slate-900 bg-slate-50 ring-1 ring-slate-900'
                       : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/50'
-                  ">
+                  "
+                  :style="{
+                    cursor: field.disabled ? 'not-allowed' : 'pointer',
+                    opacity: field.disabled ? '0.7' : '1',
+                  }">
                   <div class="flex items-center gap-3 flex-1">
                     <div
                       class="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
@@ -936,6 +941,7 @@
                   <input
                     type="checkbox"
                     v-model="profileForm[field.key]"
+                    :disabled="field.disabled"
                     class="sr-only" />
                 </label>
               </div>
