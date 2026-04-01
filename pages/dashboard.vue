@@ -205,12 +205,34 @@
         <div class="lg:col-span-3 space-y-8">
           <!-- Monthly Revenue Forecast -->
           <div
-            class="bg-white border border-slate-200 shadow-sm rounded-xl overflow-hidden">
+            class="bg-white border border-slate-200 shadow-sm rounded-xl relative">
             <div
-              class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-white">
-              <h2 class="text-lg font-semibold text-slate-900 tracking-tight">
-                Monthly Revenue Forecast
-              </h2>
+              class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-white rounded-t-xl z-20">
+              <div class="flex items-center gap-2">
+                <h2 class="text-lg font-semibold text-slate-900 tracking-tight">
+                  Monthly Revenue Forecast
+                </h2>
+                <div class="group relative">
+                  <UiIcon
+                    icon="heroicons:information-circle"
+                    custom-class="w-4 h-4 text-slate-400 cursor-help hover:text-emerald-500 transition-colors" />
+                  <div
+                    class="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-64 p-3 bg-slate-900 text-white text-[11px] rounded-xl shadow-2xl opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none z-[60] -translate-y-1 group-hover:translate-y-0 text-left">
+                    <p
+                      class="font-bold text-emerald-400 mb-1.5 uppercase tracking-wider">
+                      Revenue Prediction
+                    </p>
+                    <div class="leading-relaxed text-slate-200">
+                      A forward-looking view of your cashflow. We calculate this
+                      by summing up your expected payments from **Pending
+                      Invoices** and **Active Subscriptions** for the selected
+                      period.
+                    </div>
+                    <div
+                      class="absolute bottom-full left-1/2 -translate-x-1/2 border-8 border-transparent border-b-slate-900"></div>
+                  </div>
+                </div>
+              </div>
               <div
                 class="flex items-center gap-1 bg-slate-50/50 p-1 rounded-xl border border-slate-100">
                 <!-- Range Selector Group -->
@@ -360,11 +382,11 @@
             </div>
             <!-- Client Profitability Insights -->
             <div
-              class="col-span-2 bg-white shadow-sm rounded-xl border border-slate-200 flex flex-col overflow-hidden relative">
+              class="col-span-2 bg-white shadow-sm rounded-xl border border-slate-200 flex flex-col relative">
               <!-- Blur Overlay for Client Profitability -->
               <div
                 v-if="!authStore.isPro"
-                class="absolute inset-0 z-10 backdrop-blur-[4px] bg-white/40 flex items-center justify-center border border-slate-100/50">
+                class="absolute inset-0 z-10 backdrop-blur-[4px] bg-white/40 flex items-center justify-center border border-slate-100/50 rounded-xl">
                 <div class="text-center p-4">
                   <div class="flex items-center justify-center gap-1 mb-2">
                     <h3 class="text-[13px] font-bold text-slate-900">
@@ -389,12 +411,40 @@
               </div>
 
               <div
-                class="p-6 border-b border-slate-200 flex items-center justify-between bg-white">
+                class="p-6 border-b border-slate-200 flex items-center justify-between bg-white rounded-t-xl z-20">
                 <div>
-                  <h3
-                    class="text-lg font-semibold text-slate-900 tracking-tight">
-                    Client Profitability
-                  </h3>
+                  <div class="flex items-center gap-2">
+                    <h3
+                      class="text-lg font-semibold text-slate-900 tracking-tight">
+                      Client Profitability
+                    </h3>
+                    <div class="group relative">
+                      <UiIcon
+                        icon="heroicons:information-circle"
+                        custom-class="w-4 h-4 text-slate-400 cursor-help hover:text-emerald-500 transition-colors" />
+                      <div
+                        class="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-64 p-3 bg-slate-900 text-white text-[11px] rounded-xl shadow-2xl opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none z-[60] -translate-y-1 group-hover:translate-y-0 text-left">
+                        <p
+                          class="font-bold text-emerald-400 mb-1.5 uppercase tracking-wider">
+                          Profitability Logic
+                        </p>
+                        <div class="leading-relaxed text-slate-200">
+                          We analyze your clients based on their **Total
+                          Revenue**, **Profit Margins**, and **Payment Speed**.
+                          <br /><br />
+                          🌟 <span class="text-white font-bold">Elite</span>:
+                          High-profit & fast payers.<br />
+                          ✅ <span class="text-white font-bold">Stable</span>:
+                          Consistent partners.<br />
+                          ⚠️ <span class="text-white font-bold">At Risk</span>:
+                          Low-margin or late payers.
+                        </div>
+                        <!-- Arrow pointing up -->
+                        <div
+                          class="absolute bottom-full left-1/2 -translate-x-1/2 border-8 border-transparent border-b-slate-900"></div>
+                      </div>
+                    </div>
+                  </div>
                   <p class="text-sm text-slate-500 font-medium mt-1">
                     AI analysis ranking clients by effective margin.
                   </p>
@@ -404,7 +454,8 @@
                   :options="rankOptions"
                   custom-class="!w-32 !py-1 !text-xs !font-semibold !uppercase !tracking-wider !bg-slate-50" />
               </div>
-              <div class="flex-1 overflow-x-auto profit-table-scroll">
+              <div
+                class="flex-1 overflow-x-auto profit-table-scroll rounded-b-xl overflow-hidden">
                 <table class="min-w-full divide-y divide-slate-200">
                   <thead class="bg-slate-50">
                     <tr>
@@ -491,7 +542,7 @@
         <div class="lg:col-span-1 space-y-8">
           <!-- AI Suggestions -->
           <div
-            class="bg-emerald-50/10 shadow-sm rounded-xl border border-emerald-100 p-6 flex flex-col relative overflow-hidden">
+            class="bg-emerald-50/10 shadow-sm rounded-xl border border-emerald-100 p-6 flex flex-col relative">
             <!-- Blur Overlay for AI Insights -->
             <div
               v-if="!authStore.isPro"
@@ -518,13 +569,34 @@
               </div>
             </div>
 
-            <div class="flex items-center gap-2 mb-4">
+            <div class="flex items-center gap-2 mb-4 relative z-20">
               <div class="p-1.5 bg-emerald-100 text-emerald-600 rounded-lg">
                 <UiIcon icon="heroicons:sparkles" class="w-4 h-4" />
               </div>
-              <h3 class="text-lg font-semibold text-slate-900 tracking-tight">
-                AI Chaser Insights
-              </h3>
+              <div class="flex items-center gap-2">
+                <h3 class="text-lg font-semibold text-slate-900 tracking-tight">
+                  AI Chaser Insights
+                </h3>
+                <div class="group relative">
+                  <UiIcon
+                    icon="heroicons:information-circle"
+                    custom-class="w-4 h-4 text-slate-400 cursor-help hover:text-emerald-500 transition-colors" />
+                  <div
+                    class="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-64 p-3 bg-slate-900 text-white text-[11px] rounded-xl shadow-2xl opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none z-[60] -translate-y-1 group-hover:translate-y-0 text-left">
+                    <p
+                      class="font-bold text-emerald-400 mb-1.5 uppercase tracking-wider">
+                      Strategic Mentor
+                    </p>
+                    <div class="leading-relaxed text-slate-200">
+                      Meet your personal business partner! Our AI analyzes your
+                      **Payment Trends** and **Overdue History** to give you
+                      tactical advice on how to recover cash and grow.
+                    </div>
+                    <div
+                      class="absolute bottom-full left-1/2 -translate-x-1/2 border-8 border-transparent border-b-slate-900"></div>
+                  </div>
+                </div>
+              </div>
             </div>
             <div class="space-y-4 min-h-[100px]">
               <!-- Loading State -->
@@ -571,8 +643,11 @@
                       <p class="text-sm font-semibold text-slate-900">
                         {{ insight.title }}
                       </p>
-                      <p class="text-xs text-slate-500 mt-1 leading-relaxed">
+                      <p class="text-xs text-slate-700 mt-1 leading-relaxed">
                         {{ insight.description }}
+                      </p>
+                      <p class="text-xs text-slate-500 leading-relaxed">
+                        {{ insight.action }}
                       </p>
                     </div>
                   </div>

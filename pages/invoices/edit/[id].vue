@@ -21,8 +21,142 @@
         </p>
       </div>
 
+      <!-- Input Mode Tabs -->
+      <div
+        class="flex flex-wrap border-b border-slate-200 bg-slate-50/50 px-4 sm:px-6 pt-3 gap-4 sm:gap-6">
+        <button
+          type="button"
+          @click="inputMode = 'manual'"
+          class="pb-3 text-sm font-semibold border-b-2 transition-colors flex items-center gap-2"
+          :class="
+            inputMode === 'manual'
+              ? 'border-slate-900 text-slate-900'
+              : 'border-transparent text-slate-500 hover:text-slate-700'
+          ">
+          <UiIcon icon="heroicons:pencil-square" class="w-4 h-4" />
+          Manual Entry
+        </button>
+        <button
+          type="button"
+          @click="inputMode = 'ai'"
+          class="pb-3 text-sm font-semibold border-b-2 transition-colors flex items-center gap-2"
+          :class="
+            inputMode === 'ai'
+              ? 'border-emerald-600 text-emerald-600'
+              : 'border-transparent text-slate-500 hover:text-slate-700'
+          ">
+          <UiIcon icon="heroicons:sparkles" class="w-4 h-4" />
+          AI Builder Chat
+        </button>
+      </div>
+
+      <!-- AI Chat Interface (replaces form when active) -->
+      <div
+        v-if="inputMode === 'ai'"
+        class="flex-1 flex flex-col bg-slate-50 overflow-hidden relative min-h-0">
+        <!-- Clear Chat Action -->
+        <div class="absolute top-4 right-4 z-10" v-if="chatHistory.length > 0">
+          <button
+            @click="clearChat"
+            type="button"
+            class="text-xs font-medium text-slate-500 hover:text-red-600 flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm transition-colors">
+            <UiIcon icon="heroicons:trash" class="w-3.5 h-3.5" />
+            Clear Chat
+          </button>
+        </div>
+
+        <!-- AI Messages Area -->
+        <div
+          class="flex-1 overflow-y-auto p-4 sm:p-6 min-h-0 space-y-8"
+          ref="chatContainer">
+          <!-- Initial greeting -->
+          <div class="flex items-start gap-3">
+            <div
+              class="w-7 h-7 rounded-full bg-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm">
+              <UiIcon icon="heroicons:sparkles" class="w-4 h-4 text-white" />
+            </div>
+            <div
+              class="bg-white border border-slate-200 rounded-2xl rounded-tl-sm px-4 py-3 text-slate-700 leading-relaxed max-w-[85%] shadow-sm">
+              Hi! Need to update this invoice quickly? Just tell me what
+              changed.
+              <br /><br />
+              <span class="text-emerald-600 font-medium italic"
+                >"change the price of the first item to RM1500"</span
+              ><br />
+              <span class="text-emerald-600 font-medium italic mt-1 block"
+                >"extend the due date by 2 weeks and update client
+                address"</span
+              >
+            </div>
+          </div>
+
+          <!-- Dynamic Messages -->
+          <div
+            v-for="(msg, index) in chatHistory"
+            :key="index"
+            class="flex items-start gap-3"
+            :class="msg.role === 'user' ? 'flex-row-reverse' : ''">
+            <div
+              v-if="msg.role === 'ai'"
+              class="w-7 h-7 rounded-full bg-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm">
+              <UiIcon icon="heroicons:sparkles" class="w-4 h-4 text-white" />
+            </div>
+            <div
+              :class="
+                msg.role === 'user'
+                  ? 'bg-emerald-600 text-white rounded-2xl rounded-tr-sm'
+                  : 'bg-white border border-slate-200 text-slate-700 rounded-2xl rounded-tl-sm'
+              "
+              class="px-4 py-3 leading-relaxed max-w-[85%] break-words shadow-sm mt-1">
+              <span
+                v-html="
+                  msg.content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                "></span>
+            </div>
+          </div>
+
+          <div v-if="isAiTyping" class="flex items-start gap-3">
+            <div
+              class="w-7 h-7 rounded-full bg-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm">
+              <UiIcon
+                icon="heroicons:arrow-path"
+                custom-class="w-4 h-4 text-white animate-spin" />
+            </div>
+            <div
+              class="bg-white border border-slate-200 rounded-2xl rounded-tl-sm px-4 py-3 text-slate-500 shadow-sm mt-1">
+              Updating Draft...
+            </div>
+          </div>
+        </div>
+
+        <!-- Chat Input Area -->
+        <div class="p-4 bg-white border-t border-slate-200">
+          <form @submit.prevent="submitChatPrompt" class="relative group">
+            <input
+              v-model="chatInput"
+              type="text"
+              placeholder="Message AI Builder..."
+              :disabled="isLocked"
+              class="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 pl-4 pr-12 text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:bg-white transition-all disabled:opacity-50 disabled:cursor-not-allowed" />
+            <button
+              type="submit"
+              :disabled="!chatInput.trim() || isLocked"
+              class="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-white transition-colors"
+              :class="
+                chatInput.trim() && !isLocked
+                  ? 'bg-emerald-600 hover:bg-emerald-700'
+                  : 'bg-slate-300 cursor-not-allowed'
+              ">
+              <UiIcon icon="heroicons:arrow-right" class="w-5 h-5" />
+            </button>
+          </form>
+        </div>
+      </div>
+
       <!-- Manual Form -->
-      <div class="flex-1 overflow-y-auto px-8 py-6">
+      <div
+        v-show="inputMode === 'manual'"
+        class="flex-1 overflow-y-auto px-8 py-6">
         <div
           v-if="loadingInvoice"
           class="flex items-center justify-center h-full">
@@ -544,8 +678,7 @@
             }">
             <!-- PREVIEW: PROFESSIONAL THEME -->
             <template v-if="form.template === 'professional'">
-              <div
-                class="p-12 flex flex-col min-h-[900px] relative pb-20 font-inter">
+              <div class="p-12 flex flex-col relative pb-10 font-inter">
                 <div class="flex justify-between items-start mb-12">
                   <div>
                     <h1
@@ -572,17 +705,40 @@
                       Billed To
                     </div>
                     <div class="text-sm font-semibold text-slate-900">
-                      {{ selectedClient?.name || "Select Client" }}
+                      {{
+                        showManualClient
+                          ? manualClient.name || "Client Name"
+                          : selectedClient?.name || "Select Client"
+                      }}
                     </div>
+
                     <div
                       class="text-sm text-slate-500 mt-1 whitespace-pre-line">
                       <p
-                        v-if="selectedClient?.company"
+                        v-if="
+                          showManualClient
+                            ? manualClient.company
+                            : selectedClient?.company
+                        "
                         class="font-medium text-slate-700">
-                        {{ selectedClient?.company }}
+                        {{
+                          showManualClient
+                            ? manualClient.company
+                            : selectedClient?.company
+                        }}
                       </p>
-                      {{ selectedClient?.email }}
-                      <p>{{ selectedClient?.address }}</p>
+                      {{
+                        showManualClient
+                          ? manualClient.email
+                          : selectedClient?.email
+                      }}
+                      <p>
+                        {{
+                          showManualClient
+                            ? manualClient.address
+                            : selectedClient?.address
+                        }}
+                      </p>
                     </div>
                   </div>
                   <div>
@@ -590,6 +746,7 @@
                       class="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2 border-b border-slate-100 pb-1">
                       From
                     </div>
+
                     <div class="text-sm font-semibold text-slate-900">
                       {{
                         form.from.name || form.from.companyName || "Our Company"
@@ -619,7 +776,7 @@
                       <div class="flex justify-between text-xs">
                         <span class="text-slate-500">Issued:</span
                         ><span class="font-semibold text-slate-900">{{
-                          formatDate(form.createdAt || Date.now())
+                          formatDate(new Date())
                         }}</span>
                       </div>
                       <div class="flex justify-between text-xs">
@@ -717,14 +874,13 @@
                       </div>
                     </div>
                   </div>
-
-                  <!-- Footer Branding -->
+                </div>
+                <!-- Footer Branding -->
+                <div
+                  class="mt-10 border-t border-slate-100 flex justify-end text-end opacity-50">
                   <div
-                    class="mt-10 pt-6 border-t border-slate-100 flex justify-end text-end opacity-50">
-                    <div
-                      class="text-[8px] text-slate-400 font-medium uppercase tracking-[0.2em]">
-                      Generated by <UiLogo class="h-4 grayscale"></UiLogo>
-                    </div>
+                    class="text-[8px] text-slate-400 font-medium uppercase tracking-[0.2em]">
+                    Generated by <UiLogo class="h-4 grayscale"></UiLogo>
                   </div>
                 </div>
               </div>
@@ -732,19 +888,18 @@
 
             <!-- PREVIEW: MODERN THEME -->
             <template v-else-if="form.template === 'modern'">
-              <div
-                class="flex flex-col min-h-[800px] bg-slate-50 overflow-hidden">
+              <div class="flex flex-col bg-slate-50 overflow-hidden">
                 <!-- Modern Header Preview -->
                 <div
                   class="bg-slate-900 text-white p-8 relative overflow-hidden">
                   <div
-                    class="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl"></div>
+                    class="absolute top-0 right-0 w-32 h-32 bg-emerald-600/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl"></div>
                   <div class="relative z-10 flex justify-between items-start">
                     <div>
                       <UiLogo class="h-6 mb-6 brightness-0 invert opacity-90" />
                       <h1
                         class="text-2xl font-extrabold tracking-tight text-white mb-1">
-                        {{ form.invoiceName || "Project Revision" }}
+                        {{ form.invoiceName || "New Project" }}
                       </h1>
                       <div class="flex items-center gap-2 text-[10px]">
                         <span class="text-slate-400 font-medium"
@@ -752,14 +907,14 @@
                         >
                         <span class="w-1 h-1 bg-slate-600 rounded-full"></span>
                         <span
-                          class="px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 font-semibold uppercase tracking-wider rounded border border-emerald-500/20">
+                          class="px-1.5 py-0.5 bg-emerald-600/20 text-emerald-400 font-bold uppercase tracking-wider rounded border border-emerald-600/20">
                           {{ form.status }}
                         </span>
                       </div>
                     </div>
                     <div class="text-right">
                       <div
-                        class="text-[8px] font-semibold text-slate-500 uppercase tracking-widest mb-1">
+                        class="text-[8px] font-bold text-slate-500 uppercase tracking-widest mb-1">
                         Amount Due
                       </div>
                       <div class="text-2xl font-black text-emerald-400">
@@ -775,10 +930,10 @@
                   <div class="grid grid-cols-2 gap-8 mb-10">
                     <div>
                       <div
-                        class="text-[8px] font-semibold text-slate-400 uppercase tracking-widest mb-3 border-b border-slate-100 pb-1">
+                        class="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-3 border-b border-slate-100 pb-1">
                         From
                       </div>
-                      <div class="text-xs font-semibold text-slate-900">
+                      <div class="text-xs font-bold text-slate-900">
                         {{
                           form.from.name ||
                           form.from.companyName ||
@@ -802,22 +957,30 @@
                     </div>
                     <div>
                       <div
-                        class="text-[8px] font-semibold text-slate-400 uppercase tracking-widest mb-3 border-b border-slate-100 pb-1">
+                        class="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-3 border-b border-slate-100 pb-1">
                         Billed To
                       </div>
-                      <div class="text-xs font-semibold text-slate-900">
-                        {{ selectedClient?.name || "Client Name" }}
+                      <div class="text-xs font-bold text-slate-900">
+                        {{
+                          showManualClient
+                            ? manualClient.name
+                            : selectedClient?.name || "Client Name"
+                        }}
                       </div>
-
                       <div
                         class="text-[10px] text-slate-500 mt-1 whitespace-pre-line leading-relaxed">
-                        <p
-                          v-if="selectedClient?.company"
-                          class="font-medium text-slate-700">
-                          {{ selectedClient?.company }}
+                        {{
+                          showManualClient
+                            ? manualClient.email
+                            : selectedClient?.email
+                        }}
+                        <p>
+                          {{
+                            showManualClient
+                              ? manualClient.address
+                              : selectedClient?.address
+                          }}
                         </p>
-                        {{ selectedClient?.email }}
-                        <p>{{ selectedClient?.address }}</p>
                       </div>
                     </div>
                   </div>
@@ -830,7 +993,7 @@
                         Issued Date
                       </div>
                       <div class="text-xs font-bold text-slate-900">
-                        {{ formatDate(form.createdAt || Date.now()) }}
+                        {{ formatDate(new Date()) }}
                       </div>
                     </div>
                     <div>
@@ -844,11 +1007,10 @@
                     </div>
                     <div>
                       <div
-                        class="text-[8px] font-semibold text-slate-400 uppercase tracking-widest mb-1">
+                        class="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-1">
                         Subject
                       </div>
-                      <div
-                        class="text-xs font-semibold text-slate-900 truncate">
+                      <div class="text-xs font-bold text-slate-900 truncate">
                         {{ form.subject || "N/A" }}
                       </div>
                     </div>
@@ -860,15 +1022,15 @@
                       <thead>
                         <tr class="border-b border-slate-100">
                           <th
-                            class="pb-3 text-[8px] font-semibold text-slate-400 uppercase tracking-widest">
+                            class="pb-3 text-[8px] font-bold text-slate-400 uppercase tracking-widest">
                             Description
                           </th>
                           <th
-                            class="pb-3 text-[8px] font-semibold text-slate-400 uppercase tracking-widest text-center w-12">
+                            class="pb-3 text-[8px] font-bold text-slate-400 uppercase tracking-widest text-center w-12">
                             Qty
                           </th>
                           <th
-                            class="pb-3 text-[8px] font-semibold text-slate-400 uppercase tracking-widest text-right">
+                            class="pb-3 text-[8px] font-bold text-slate-400 uppercase tracking-widest text-right">
                             Total
                           </th>
                         </tr>
@@ -876,7 +1038,7 @@
                       <tbody class="divide-y divide-slate-50">
                         <tr v-for="(item, idx) in form.lineItems" :key="idx">
                           <td class="py-4">
-                            <div class="text-xs font-semibold text-slate-900">
+                            <div class="text-xs font-bold text-slate-900">
                               {{ item.name || "Item" }}
                             </div>
                           </td>
@@ -905,6 +1067,13 @@
                           {{ form.currency }}</span
                         >
                       </div>
+                    </div>
+                  </div>
+                  <div
+                    class="mt-16 pt-8 border-t border-slate-100 flex justify-end items-center">
+                    <div
+                      class="text-[10px] text-right text-slate-400 font-medium uppercase tracking-widest">
+                      Generated by <UiLogo class="h-6 opacity-30 grayscale" />
                     </div>
                   </div>
                 </div>
@@ -947,6 +1116,79 @@ const fetchCurrencies = async () => {
       { value: "MYR", label: "MYR (RM)" },
       { value: "USD", label: "USD ($)" },
     ];
+  }
+};
+
+// UI State
+const inputMode = ref("manual");
+
+// AI Chat Logic
+const chatInput = ref("");
+const isAiTyping = ref(false);
+const chatHistory = ref([]);
+const chatContainer = ref(null);
+const usedAi = ref(false);
+
+const clearChat = () => {
+  chatHistory.value = [];
+};
+
+const scrollToBottom = async () => {
+  await nextTick();
+  setTimeout(() => {
+    if (chatContainer.value) {
+      chatContainer.value.scrollTop = chatContainer.value.scrollHeight;
+    }
+  }, 50);
+};
+
+const submitChatPrompt = async () => {
+  const prompt = chatInput.value.trim();
+  if (!prompt) return;
+
+  chatHistory.value.push({ role: "user", content: prompt });
+  chatInput.value = "";
+  isAiTyping.value = true;
+  scrollToBottom();
+
+  try {
+    const { $api } = useNuxtApp();
+    const response = await $api.post("/ai/parse-invoice", {
+      currentFormState: toRaw(form.value),
+      instruction: prompt,
+    });
+
+    const data = response.data;
+
+    if (data.status === "success" && data.update) {
+      usedAi.value = true;
+      if (data.update.error) {
+        chatHistory.value.push({
+          role: "ai",
+          content: `⚠️ ${data.update.error}`,
+        });
+      } else {
+        Object.assign(form.value, data.update);
+        chatHistory.value.push({
+          role: "ai",
+          content:
+            "Invoice updated! I've applied the changes based on your instructions.",
+        });
+      }
+    } else {
+      chatHistory.value.push({
+        role: "ai",
+        content: `⚠️ API Error: ${data.message || "I couldn't process that request."}`,
+      });
+    }
+  } catch (err) {
+    chatHistory.value.push({
+      role: "ai",
+      content: "⚠️ Connection Error: Failed to reach the AI parsing engine.",
+    });
+  } finally {
+    isAiTyping.value = false;
+    scrollToBottom();
   }
 };
 
@@ -1112,6 +1354,7 @@ const submitInvoice = async () => {
       price: item.priceNum,
       quantity: item.qty,
     })),
+    usedAi: usedAi.value,
   };
 
   isProcessing.value = true;

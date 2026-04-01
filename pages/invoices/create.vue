@@ -69,9 +69,7 @@
         v-if="inputMode === 'ai'"
         class="flex-1 flex flex-col bg-slate-50 overflow-hidden relative min-h-0">
         <!-- Clear Chat Action -->
-        <div
-          class="absolute top-4 right-4 z-10"
-          v-if="chatHistory.length > 0 && userPlan !== 'Basic'">
+        <div class="absolute top-4 right-4 z-10" v-if="chatHistory.length > 0">
           <button
             @click="clearChat"
             type="button"
@@ -88,29 +86,6 @@
                 d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
             </svg>
             Clear Chat
-          </button>
-        </div>
-
-        <!-- Premium Lock Screen Overlay -->
-        <div
-          v-if="!authStore.isPro"
-          class="absolute inset-0 z-20 flex flex-col items-center justify-center bg-slate-50/80 backdrop-blur-sm p-6 text-center">
-          <div
-            class="w-16 h-16 bg-white rounded-2xl shadow-sm border border-slate-200 flex items-center justify-center mb-6 text-slate-400">
-            <UiIcon icon="heroicons:lock-closed" class="w-8 h-8" />
-          </div>
-          <h3 class="text-xl font-semibold text-slate-900 mb-2">
-            AI Builder is a Premium Feature
-          </h3>
-          <p class="text-slate-600 mb-8 max-w-sm">
-            Upgrade to the Pro or Max plan to generate complete, accurate
-            invoices instantly using natural language commands.
-          </p>
-          <button
-            type="button"
-            @click="$router.push('/settings')"
-            class="inline-flex items-center justify-center rounded-xl bg-emerald-600 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-emerald-600 transition-colors">
-            Upgrade Plan
           </button>
         </div>
 
@@ -203,14 +178,13 @@
               v-model="chatInput"
               type="text"
               placeholder="Message AI Builder..."
-              :disabled="userPlan === 'Basic'"
               class="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 pl-4 pr-12 text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:bg-white transition-all disabled:opacity-50 disabled:cursor-not-allowed" />
             <button
               type="submit"
-              :disabled="!chatInput.trim() || userPlan === 'Basic'"
+              :disabled="!chatInput.trim()"
               class="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-white transition-colors"
               :class="
-                chatInput.trim() && userPlan !== 'Basic'
+                chatInput.trim()
                   ? 'bg-emerald-600 hover:bg-emerald-700'
                   : 'bg-slate-300 cursor-not-allowed'
               ">
@@ -1282,6 +1256,7 @@ onMounted(async () => {
 });
 
 const userPlan = ref("Basic"); // Mock plan state for UI demo
+const usedAi = ref(false);
 const showAiPreview = ref(false);
 const showManualClient = ref(false);
 const manualClient = ref({
@@ -1392,6 +1367,7 @@ const submitChatPrompt = async () => {
     const data = response.data;
 
     if (data.status === "success" && data.update) {
+      usedAi.value = true;
       if (data.update.error) {
         // Groq flagged the prompt as unrelated to invoices
         chatHistory.value.push({
@@ -1492,6 +1468,7 @@ const submitInvoice = async () => {
       price: item.priceNum,
       quantity: item.qty,
     })),
+    usedAi: usedAi.value,
   };
 
   isProcessing.value = true;
