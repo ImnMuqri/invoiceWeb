@@ -106,8 +106,13 @@
           {{ client.email }}
         </td>
         <td
-          class="whitespace-nowrap px-3 py-4 text-sm font-semibold text-slate-700">
-          {{ client.company }}
+          class="whitespace-nowrap px-3 py-4 text-sm font-semibold transition-colors"
+          :class="
+            client.company
+              ? 'text-slate-700'
+              : 'text-slate-400 font-normal italic'
+          ">
+          {{ client.company || "Personal" }}
         </td>
         <td class="whitespace-nowrap px-3 py-4 text-sm font-semibold relative">
           <div class="flex items-center gap-2">

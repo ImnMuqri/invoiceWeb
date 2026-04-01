@@ -90,18 +90,47 @@
         <th
           scope="col"
           class="px-3 py-4 text-left text-[10px] font-semibold text-slate-400 tracking-wider uppercase whitespace-nowrap">
-          Late Risk
-          <svg
-            class="w-3 h-3 inline-block ml-1 text-emerald-600"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-          </svg>
+          <div class="flex items-center gap-1.5">
+            Late Risk
+            <div class="group relative">
+              <!-- AI Thunder Icon as Tooltip Trigger -->
+              <svg
+                class="w-3.5 h-3.5 text-emerald-600 cursor-help hover:text-emerald-500 transition-colors"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+              </svg>
+
+              <!-- Premium Tooltip -->
+              <div
+                class="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-64 p-3 bg-slate-900 text-white text-[11px] rounded-xl shadow-2xl opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none z-[60] -translate-y-1 group-hover:translate-y-0 text-left normal-case tracking-normal">
+                <p
+                  class="font-bold text-emerald-400 mb-1.5 uppercase tracking-wider">
+                  Predictive Analysis
+                </p>
+                <div class="leading-relaxed text-slate-200">
+                  <p class="whitespace-pre-wrap mb-1">
+                    This predicts the likelihood of late payment based on this
+                    client's historical behavior (**Average Delay Days**).
+                  </p>
+                  <span class="font-bold text-green-400">Low</span>: &lt; 3 days
+                  delay.<br />
+                  <span class="font-bold text-yellow-500">Medium</span>: 4-10
+                  days delay.<br />
+                  <span class="font-bold text-red-500">High</span>: &gt; 10 days
+                  delay.
+                </div>
+                <!-- Arrow pointing up -->
+                <div
+                  class="absolute bottom-full left-1/2 -translate-x-1/2 border-8 border-transparent border-b-slate-900"></div>
+              </div>
+            </div>
+          </div>
         </th>
         <th scope="col" class="relative py-4 pl-3 pr-6">
           <span class="sr-only">Actions</span>
@@ -172,18 +201,24 @@
             v-if="invoice?.status !== 'Paid'"
             class="flex items-center gap-1.5"
             :class="
-              invoice?.latePrediction === 'High'
+              getLateRisk(invoice) === 'High'
                 ? 'text-red-600'
-                : invoice?.latePrediction === 'Medium'
+                : getLateRisk(invoice) === 'Medium'
                   ? 'text-amber-500'
                   : 'text-emerald-600'
             ">
             <div class="w-1.5 h-1.5 rounded-full bg-current"></div>
             <span class="font-semibold text-xs">{{
-              invoice?.latePrediction || "Unknown"
+              getLateRisk(invoice)
             }}</span>
           </div>
-          <span v-else class="text-slate-400 font-medium text-xs">-</span>
+          <span
+            v-else
+            class="text-emerald-600 font-bold text-[10px] flex items-center gap-1 capitalize tracking-tight">
+            <UiIcon
+              icon="heroicons:check-circle"
+              custom-class="w-4 h-4 text-emerald-600" />
+          </span>
         </td>
         <td
           class="relative whitespace-nowrap py-4 pl-3 pr-6 text-right text-sm font-semibold flex items-center justify-end gap-1.5 h-full">
@@ -424,6 +459,17 @@ import { formatDate } from "~/utils/date";
 const invoiceStore = useInvoiceStore();
 const authStore = useAuthStore();
 const uiStore = useUiStore();
+
+const getLateRisk = (invoice) => {
+  // Use existing prediction if available
+  if (invoice?.latePrediction) return invoice.latePrediction;
+
+  // Fallback calculation based on client average delay if missing
+  const delay = invoice?.client?.averageDelayDays || 0;
+  if (delay > 10) return "High";
+  if (delay > 3) return "Medium";
+  return "Low";
+};
 
 onMounted(async () => {
   try {

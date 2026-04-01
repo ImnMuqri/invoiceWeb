@@ -173,7 +173,7 @@
 
         <!-- Chat Input Area -->
         <div class="p-4 bg-white border-t border-slate-200">
-          <form @submit.prevent="handleChatSubmit" class="relative group">
+          <form @submit.prevent="submitChatPrompt" class="relative group">
             <input
               v-model="chatInput"
               type="text"
@@ -222,7 +222,7 @@
                   >People <span class="text-red-500">*</span></label
                 >
                 <div
-                  v-if="!showManualClient"
+                  v-if="!form.showManualClient"
                   class="flex items-center justify-between p-3 border border-slate-200 rounded-lg bg-white shadow-sm gap-4">
                   <div class="flex items-center gap-3 flex-1 min-w-0">
                     <div
@@ -255,8 +255,20 @@
 
                 <!-- Manual Input Fields -->
                 <div
-                  v-else
+                  v-if="form.showManualClient"
                   class="space-y-4 p-4 border border-emerald-100 rounded-lg bg-emerald-50/30">
+                  <div class="flex items-center justify-between mb-2">
+                    <h3
+                      class="text-[10px] font-bold text-emerald-800 uppercase tracking-widest">
+                      New Client Details
+                    </h3>
+                    <button
+                      type="button"
+                      @click="form.showManualClient = false"
+                      class="text-[10px] font-bold text-slate-500 hover:text-slate-700 uppercase">
+                      ← Back to List
+                    </button>
+                  </div>
                   <div class="grid grid-cols-2 gap-4">
                     <div class="col-span-2">
                       <label
@@ -264,7 +276,7 @@
                         >Name</label
                       >
                       <input
-                        v-model="manualClient.name"
+                        v-model="form.manualClient.name"
                         type="text"
                         placeholder="Client Name"
                         class="w-full border border-slate-200 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-600 outline-none" />
@@ -275,7 +287,7 @@
                         >Email</label
                       >
                       <input
-                        v-model="manualClient.email"
+                        v-model="form.manualClient.email"
                         type="email"
                         placeholder="Email"
                         class="w-full border border-slate-200 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-600 outline-none" />
@@ -286,7 +298,7 @@
                         >Phone</label
                       >
                       <input
-                        v-model="manualClient.phone"
+                        v-model="form.manualClient.phone"
                         type="text"
                         placeholder="Phone"
                         class="w-full border border-slate-200 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-600 outline-none" />
@@ -297,7 +309,7 @@
                         >Company (Optional)</label
                       >
                       <input
-                        v-model="manualClient.company"
+                        v-model="form.manualClient.company"
                         type="text"
                         placeholder="Company Name"
                         class="w-full border border-slate-200 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-600 outline-none" />
@@ -308,25 +320,25 @@
                         >Address</label
                       >
                       <textarea
-                        v-model="manualClient.address"
+                        v-model="form.manualClient.address"
                         rows="2"
                         placeholder="Address"
-                        class="w-full border border-slate-200 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"></textarea>
+                        class="w-full border border-slate-200 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-600 outline-none"></textarea>
                     </div>
                   </div>
                 </div>
 
-                <!-- Toggle Button -->
-                <button
-                  type="button"
-                  @click="showManualClient = !showManualClient"
-                  class="mt-2 text-xs font-semibold text-emerald-600 hover:text-emerald-800 transition-colors flex items-center gap-1 uppercase tracking-wider">
-                  {{
-                    showManualClient
-                      ? "← Select Existing Client"
-                      : "+ Add New Client Instead"
-                  }}
-                </button>
+                <!-- Switch to Manual Link -->
+                <div
+                  v-if="!form.showManualClient"
+                  class="flex justify-start mt-2">
+                  <button
+                    type="button"
+                    @click="form.showManualClient = true"
+                    class="text-xs font-semibold text-emerald-600 hover:text-emerald-800 transition-colors">
+                    + Add New Client Details
+                  </button>
+                </div>
               </div>
 
               <!-- Invoice Name Input -->
@@ -843,8 +855,8 @@
                     </div>
                     <div class="text-sm font-semibold text-slate-900">
                       {{
-                        showManualClient
-                          ? manualClient.name || "Client Name"
+                        form.showManualClient
+                          ? form.manualClient.name || "Client Name"
                           : selectedClient?.name || "Select Client"
                       }}
                     </div>
@@ -853,26 +865,26 @@
                       class="text-sm text-slate-500 mt-1 whitespace-pre-line">
                       <p
                         v-if="
-                          showManualClient
-                            ? manualClient.company
+                          form.showManualClient
+                            ? form.manualClient.company
                             : selectedClient?.company
                         "
                         class="font-medium text-slate-700">
                         {{
-                          showManualClient
-                            ? manualClient.company
+                          form.showManualClient
+                            ? form.manualClient.company
                             : selectedClient?.company
                         }}
                       </p>
                       {{
-                        showManualClient
-                          ? manualClient.email
+                        form.showManualClient
+                          ? form.manualClient.email
                           : selectedClient?.email
                       }}
                       <p>
                         {{
-                          showManualClient
-                            ? manualClient.address
+                          form.showManualClient
+                            ? form.manualClient.address
                             : selectedClient?.address
                         }}
                       </p>
@@ -1099,22 +1111,22 @@
                       </div>
                       <div class="text-xs font-bold text-slate-900">
                         {{
-                          showManualClient
-                            ? manualClient.name
+                          form.showManualClient
+                            ? form.manualClient.name
                             : selectedClient?.name || "Client Name"
                         }}
                       </div>
                       <div
                         class="text-[10px] text-slate-500 mt-1 whitespace-pre-line leading-relaxed">
                         {{
-                          showManualClient
-                            ? manualClient.email
+                          form.showManualClient
+                            ? form.manualClient.email
                             : selectedClient?.email
                         }}
                         <p>
                           {{
-                            showManualClient
-                              ? manualClient.address
+                            form.showManualClient
+                              ? form.manualClient.address
                               : selectedClient?.address
                           }}
                         </p>
@@ -1258,14 +1270,6 @@ onMounted(async () => {
 const userPlan = ref("Basic"); // Mock plan state for UI demo
 const usedAi = ref(false);
 const showAiPreview = ref(false);
-const showManualClient = ref(false);
-const manualClient = ref({
-  name: "",
-  email: "",
-  phone: "",
-  company: "",
-  address: "",
-});
 
 const showActionButtons = ref(false);
 const lastInvoiceId = ref(null);
@@ -1298,6 +1302,14 @@ const form = ref({
       qty: 1,
     },
   ],
+  showManualClient: false,
+  manualClient: {
+    name: "",
+    email: "",
+    phone: "",
+    company: "",
+    address: "",
+  },
 });
 
 const selectedClient = computed(() => {
@@ -1419,8 +1431,8 @@ const removeLineItem = (index) => {
 const submitInvoice = async () => {
   let clientId = form.value.clientId;
 
-  if (showManualClient.value) {
-    if (!manualClient.value.name || !manualClient.value.email) {
+  if (form.value.showManualClient) {
+    if (!form.value.manualClient.name || !form.value.manualClient.email) {
       toast.value = {
         message: "Please fill in the client name and email",
         type: "warning",
@@ -1428,7 +1440,9 @@ const submitInvoice = async () => {
       return;
     }
     try {
-      const newClient = await clientStore.addClient({ ...manualClient.value });
+      const newClient = await clientStore.addClient({
+        ...form.value.manualClient,
+      });
       if (newClient && newClient.id) {
         clientId = newClient.id;
       } else {

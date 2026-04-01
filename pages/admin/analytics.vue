@@ -286,7 +286,7 @@
       <div
         class="w-10 h-10 border-4 border-slate-200 border-t-emerald-500 rounded-full animate-spin"></div>
       <p class="text-slate-400 font-bold uppercase tracking-widest text-[10px]">
-        Processing Intelligence...
+        Loading Statistics...
       </p>
     </div>
   </div>
@@ -489,21 +489,6 @@ const doughnutOptions = {
 </script>
 
 <style scoped>
-.advanced-analytics {
-  animation: dashboardFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-@keyframes dashboardFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(12px) scale(0.99);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
 :deep(.chart-container) {
   position: relative;
 }

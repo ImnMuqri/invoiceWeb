@@ -13,10 +13,8 @@
         <p v-if="!isLocked" class="text-xs sm:text-sm text-slate-500 mt-1">
           Modify the details for invoice {{ form.invoiceNumber }}.
         </p>
-        <p
-          v-else
-          class="text-xs sm:text-sm text-amber-600 font-semibold mt-1 flex items-center gap-1">
-          <UiIcon icon="heroicons:lock-closed" class="w-3.5 h-3.5" />
+        <p v-else class="text-sm text-amber-600 mt-1 flex items-center gap-1">
+          <UiIcon icon="heroicons:lock-closed" custom-class="w-3.5 h-3.5" />
           This invoice is locked because it is {{ form.status }}.
         </p>
       </div>
@@ -178,7 +176,7 @@
                   >People <span class="text-red-500">*</span></label
                 >
                 <div
-                  class="flex items-center justify-between p-3 border border-slate-200 rounded-lg bg-white shadow-sm gap-4">
+                  class="flex items-center justify-between p-3 border border-slate-100 rounded-lg bg-slate-50/50 gap-4 opacity-70 cursor-not-allowed">
                   <div class="flex items-center gap-3 flex-1 min-w-0">
                     <div
                       class="w-10 h-10 rounded-full bg-slate-200 overflow-hidden flex-shrink-0 flex items-center justify-center text-slate-500 font-semibold">
@@ -186,23 +184,19 @@
                         {{ selectedClient.name.charAt(0) }}
                       </template>
                       <template v-else>
-                        <svg
-                          class="w-full h-full text-slate-400"
-                          fill="currentColor"
-                          viewBox="0 0 24 24">
-                          <path
-                            d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
-                        </svg>
+                        <UiIcon
+                          icon="heroicons:user"
+                          class="w-5 h-5 text-slate-400" />
                       </template>
                     </div>
                     <div class="flex-1 min-w-0">
-                      <UiSelect
-                        v-model="form.clientId"
-                        :options="clientOptions"
-                        placeholder="Select Client"
-                        custom-class="!border-none !p-0 !shadow-none !ring-0 w-full !pl-3" />
-                      <div class="text-xs text-slate-500 truncate px-3">
-                        {{ selectedClient?.email || "No email set" }}
+                      <div class="text-sm font-bold text-slate-900 px-3">
+                        {{ selectedClient?.name || "Selected Client" }}
+                      </div>
+                      <div
+                        class="text-xs text-slate-500 truncate px-3 flex items-center gap-1">
+                        <UiIcon icon="heroicons:lock-closed" class="w-3 h-3" />
+                        Client cannot be changed after creation
                       </div>
                     </div>
                   </div>
@@ -706,8 +700,8 @@
                     </div>
                     <div class="text-sm font-semibold text-slate-900">
                       {{
-                        showManualClient
-                          ? manualClient.name || "Client Name"
+                        form.showManualClient
+                          ? form.manualClient.name || "Client Name"
                           : selectedClient?.name || "Select Client"
                       }}
                     </div>
@@ -716,26 +710,26 @@
                       class="text-sm text-slate-500 mt-1 whitespace-pre-line">
                       <p
                         v-if="
-                          showManualClient
-                            ? manualClient.company
+                          form.showManualClient
+                            ? form.manualClient.company
                             : selectedClient?.company
                         "
                         class="font-medium text-slate-700">
                         {{
-                          showManualClient
-                            ? manualClient.company
+                          form.showManualClient
+                            ? form.manualClient.company
                             : selectedClient?.company
                         }}
                       </p>
                       {{
-                        showManualClient
-                          ? manualClient.email
+                        form.showManualClient
+                          ? form.manualClient.email
                           : selectedClient?.email
                       }}
                       <p>
                         {{
-                          showManualClient
-                            ? manualClient.address
+                          form.showManualClient
+                            ? form.manualClient.address
                             : selectedClient?.address
                         }}
                       </p>
@@ -962,22 +956,22 @@
                       </div>
                       <div class="text-xs font-bold text-slate-900">
                         {{
-                          showManualClient
-                            ? manualClient.name
+                          form.showManualClient
+                            ? form.manualClient.name
                             : selectedClient?.name || "Client Name"
                         }}
                       </div>
                       <div
                         class="text-[10px] text-slate-500 mt-1 whitespace-pre-line leading-relaxed">
                         {{
-                          showManualClient
-                            ? manualClient.email
+                          form.showManualClient
+                            ? form.manualClient.email
                             : selectedClient?.email
                         }}
                         <p>
                           {{
-                            showManualClient
-                              ? manualClient.address
+                            form.showManualClient
+                              ? form.manualClient.address
                               : selectedClient?.address
                           }}
                         </p>
@@ -1156,6 +1150,7 @@ const submitChatPrompt = async () => {
     const response = await $api.post("/ai/parse-invoice", {
       currentFormState: toRaw(form.value),
       instruction: prompt,
+      isEdit: true,
     });
 
     const data = response.data;
@@ -1218,6 +1213,14 @@ const form = ref({
     companyAddress: "",
   },
   lineItems: [],
+  showManualClient: false,
+  manualClient: {
+    name: "",
+    email: "",
+    phone: "",
+    company: "",
+    address: "",
+  },
 });
 
 onMounted(async () => {
@@ -1258,6 +1261,14 @@ onMounted(async () => {
           tax: "0",
         })),
         template: data.template || "professional",
+        showManualClient: false,
+        manualClient: {
+          name: "",
+          email: "",
+          phone: "",
+          company: "",
+          address: "",
+        },
       };
 
       // Calculate discount percentage if amount is different from subtotal
@@ -1331,13 +1342,42 @@ const calculateTotal = () => {
 };
 
 const submitInvoice = async () => {
-  if (!form.value.clientId) {
+  let clientId = form.value.clientId;
+
+  if (form.value.showManualClient) {
+    if (!form.value.manualClient.name || !form.value.manualClient.email) {
+      toast.value = {
+        message: "Please fill in the client name and email",
+        type: "warning",
+      };
+      return;
+    }
+    try {
+      const newClient = await clientStore.addClient({
+        ...form.value.manualClient,
+      });
+      if (newClient && newClient.id) {
+        clientId = newClient.id;
+      } else {
+        toast.value = { message: "Failed to create client", type: "error" };
+        return;
+      }
+    } catch (err) {
+      toast.value = {
+        message: err.response?.data?.message || "Failed to create client",
+        type: "error",
+      };
+      return;
+    }
+  }
+
+  if (!clientId) {
     toast.value = { message: "Please select a client", type: "warning" };
     return;
   }
 
   const payload = {
-    clientId: form.value.clientId,
+    clientId: clientId,
     invoiceName: form.value.invoiceName,
     subject: form.value.subject,
     fromName: form.value.from.name,
@@ -1374,7 +1414,7 @@ const submitInvoice = async () => {
         showActionButtons.value = true;
         setTimeout(() => {
           processingComplete.value = false;
-        }, 5000);
+        }, 1500);
       }, 1500);
     }, 1000);
   } catch (err) {
