@@ -86,11 +86,10 @@
             </div>
             <div class="flex items-center gap-4 shrink-0">
               <div class="text-right">
-                <p
-                  class="text-xs font-bold text-slate-400 uppercase tracking-widest">
-                  COST
+                <p class="text-sm font-semibold text-slate-400">Cost</p>
+                <p class="text-[15px] font-semibold text-slate-900">
+                  5 Credits
                 </p>
-                <p class="text-lg font-semibold text-slate-900">5 Credits</p>
               </div>
               <button
                 @click="claim('PRO')"
@@ -125,11 +124,10 @@
             </div>
             <div class="flex items-center gap-4 shrink-0">
               <div class="text-right">
-                <p
-                  class="text-xs font-bold text-slate-400 uppercase tracking-widest">
-                  COST
+                <p class="text-sm font-semibold text-slate-400">Cost</p>
+                <p class="text-[15px] font-semibold text-slate-900">
+                  10 Credits
                 </p>
-                <p class="text-lg font-semibold text-slate-900">10 Credits</p>
               </div>
               <button
                 @click="claim('MAX')"

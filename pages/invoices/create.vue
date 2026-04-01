@@ -647,8 +647,13 @@
           <button
             type="submit"
             @click="submitInvoice"
-            class="inline-flex items-center gap-2 justify-center rounded-md border border-transparent bg-slate-900 py-2 px-4 text-sm font-medium text-white shadow hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2 transition-colors">
-            Process Invoice
+            :disabled="isProcessing || showActionButtons"
+            class="inline-flex items-center gap-2 justify-center rounded-md border border-transparent bg-slate-900 py-2 px-4 text-sm font-medium text-white shadow hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+            <UiIcon
+              v-if="isProcessing"
+              icon="heroicons:arrow-path"
+              custom-class="w-4 h-4 animate-spin text-white" />
+            {{ showActionButtons ? "Invoice Processed" : "Process Invoice" }}
           </button>
         </div>
       </div>
@@ -789,9 +794,13 @@
         <div class="relative mt-6 group">
           <div
             v-if="isProcessing"
-            class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/60 backdrop-blur-[2px] rounded-xl transition-all duration-300">
-            <div
-              class="w-12 h-12 border-4 border-emerald-100 border-t-emerald-600 rounded-full animate-spin mb-4"></div>
+            class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/40 backdrop-blur-[2px] rounded-xl transition-all duration-300">
+            <div class="relative w-20 h-20 mb-6">
+              <div
+                class="absolute inset-0 border-4 border-slate-100 rounded-full"></div>
+              <div
+                class="absolute inset-0 border-4 border-emerald-500 rounded-full border-t-transparent animate-spin"></div>
+            </div>
             <p
               class="text-lg font-semibold text-slate-900 tracking-tight animate-pulse">
               {{ processingStatus }}
@@ -808,8 +817,8 @@
             <div
               class="w-16 h-16 rounded-full bg-emerald-100 border-4 border-white shadow-xl flex items-center justify-center mb-4">
               <UiIcon
-                icon="heroicons:check-badge"
-                customClass="w-8 h-8 text-emerald-600" />
+                icon="material-symbols:check-rounded"
+                custom-class="w-8 h-8 text-emerald-600" />
             </div>
             <h3 class="text-xl font-semibold text-slate-900">
               Invoice Processed!
@@ -1485,12 +1494,11 @@ const submitInvoice = async () => {
     })),
   };
 
+  isProcessing.value = true;
+  processingStatus.value = "Saving Invoice...";
+
   try {
     const data = await invoiceStore.addInvoice(payload);
-
-    // Transition to processing state
-    isProcessing.value = true;
-    processingStatus.value = "Saving Invoice...";
 
     // Simulate heavy processing/PDF generation
     setTimeout(async () => {

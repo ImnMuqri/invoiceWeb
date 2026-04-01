@@ -227,6 +227,16 @@
                     custom-class="w-4 h-4" />
                   {{ user.isActive ? "Suspend User" : "Activate User" }}
                 </button>
+                <button
+                  v-if="user.plan !== 'FREE'"
+                  @click="
+                    close();
+                    confirmCancelSubscription(user);
+                  "
+                  class="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-md transition-all text-left mt-0.5">
+                  <UiIcon icon="heroicons:x-circle" custom-class="w-4 h-4" />
+                  Cancel Subscription
+                </button>
                 <div class="h-px bg-slate-100 my-1 mx-2"></div>
                 <button
                   @click="
@@ -380,6 +390,27 @@ const toggleUserStatus = async (user) => {
       message: `User ${user.isActive ? "deactivated" : "activated"} successfully`,
       type: "success",
     };
+  }
+};
+
+const confirmCancelSubscription = async (user) => {
+  if (
+    confirm(
+      `Are you sure you want to cancel the subscription for ${user.email}? This will immediately downgrade them to the FREE plan.`,
+    )
+  ) {
+    const success = await adminStore.cancelSubscription(user.id);
+    if (success) {
+      toast.value = {
+        message: "Subscription successfully cancelled!",
+        type: "success",
+      };
+    } else {
+      toast.value = {
+        message: adminStore.error || "Failed to cancel subscription",
+        type: "error",
+      };
+    }
   }
 };
 

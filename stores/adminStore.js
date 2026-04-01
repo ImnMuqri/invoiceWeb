@@ -98,6 +98,18 @@ export const useAdminStore = defineStore("admin", () => {
     }
   }
 
+  async function cancelSubscription(id) {
+    const { $api } = useNuxtApp();
+    try {
+      await $api.post(`/admin/users/${id}/cancel-subscription`);
+      await fetchUsers();
+      return true;
+    } catch (err) {
+      error.value = err.response?.data?.message || err.message;
+      return false;
+    }
+  }
+
   return {
     users,
     stats,
@@ -110,7 +122,7 @@ export const useAdminStore = defineStore("admin", () => {
     fetchAnalytics,
     fetchMonthlyRevenue,
     fetchTransactions,
-    updateUser,
     deleteUser,
+    cancelSubscription,
   };
 });

@@ -299,7 +299,7 @@
                   class="w-full h-full flex flex-col items-center justify-center text-slate-400 text-sm italic gap-2">
                   <UiIcon
                     icon="heroicons:document-chart-bar"
-                    class="w-8 h-8 text-slate-200" />
+                    custom-class="w-8 h-8 text-slate-200" />
                   <p>No cashflow data available for this range</p>
                 </div>
               </ClientOnly>
@@ -485,9 +485,9 @@
 
           <!-- Referral Campaign -->
           <div
-            class="bg-indigo-50/10 shadow-sm rounded-xl border border-indigo-100 p-6 flex flex-col relative overflow-hidden">
+            class="bg-emerald-50/10 shadow-sm rounded-xl border border-emerald-100 p-6 flex flex-col relative overflow-hidden">
             <div class="flex items-center gap-2 mb-4">
-              <div class="p-1.5 bg-indigo-100 text-indigo-600 rounded-lg">
+              <div class="p-1.5 bg-emerald-100 text-emerald-600 rounded-lg">
                 <UiIcon icon="heroicons:gift" class="w-4 h-4" />
               </div>
               <h3 class="text-lg font-semibold text-slate-900 tracking-tight">
@@ -523,7 +523,7 @@
                 </div>
                 <div class="w-full bg-slate-100 rounded-full h-2">
                   <div
-                    class="bg-indigo-600 h-2 rounded-full transition-all duration-500"
+                    class="bg-emerald-600 h-2 rounded-full transition-all duration-500"
                     :style="{
                       width:
                         Math.min(

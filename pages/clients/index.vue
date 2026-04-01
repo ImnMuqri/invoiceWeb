@@ -94,7 +94,11 @@
         :key="client.id"
         class="hover:bg-slate-50 transition-colors">
         <td
-          class="whitespace-nowrap py-4 pl-6 pr-3 text-sm font-semibold text-slate-900">
+          class="flex items-center gap-2.5 whitespace-nowrap py-4 pl-6 pr-3 text-sm font-semibold text-slate-900">
+          <div
+            class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 text-xs font-bold ring-2 ring-white shadow-sm shrink-0 uppercase">
+            {{ client?.name?.charAt(0) || "U" }}
+          </div>
           {{ client.name }}
         </td>
         <td
