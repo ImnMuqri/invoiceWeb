@@ -32,7 +32,8 @@
           Total Revenue
         </dt>
         <dd class="text-2xl font-semibold text-slate-900 tracking-tight">
-          ${{ adminStore.analytics.summary.revenue.lifetime.toLocaleString() }}
+          MYR
+          {{ adminStore.analytics.summary.revenue.lifetime.toLocaleString() }}
         </dd>
         <p class="text-[10px] text-slate-500 mt-2 font-medium">
           All-time platform earnings
@@ -108,7 +109,7 @@
         <dd
           class="text-2xl font-semibold text-slate-900 tracking-tight transition-all"
           :class="{ 'opacity-50 animate-pulse': loadingMonthly }">
-          ${{ monthlyRevenueValue.toLocaleString() }}
+          MYR {{ monthlyRevenueValue.toLocaleString() }}
         </dd>
         <p class="text-[10px] text-slate-500 mt-2 font-medium">
           {{ months[selectedMonth - 1] }} {{ selectedYear }} Earnings
@@ -433,7 +434,7 @@ const chartOptions = {
         color: "#94a3b8",
         padding: 8,
         callback: (value) =>
-          value >= 1000 ? "$" + value / 1000 + "k" : "$" + value,
+          value >= 1000 ? "MYR " + value / 1000 + "k" : "MYR " + value,
       },
     },
     x: {

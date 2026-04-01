@@ -1,3 +1,123 @@
+<script setup>
+import { onMounted, ref, computed } from "vue";
+import { useAdminStore } from "~/stores/adminStore";
+import { useUiStore } from "~/stores/uiStore";
+
+definePageMeta({
+  layout: "default",
+  middleware: "admin",
+});
+
+const adminStore = useAdminStore();
+const uiStore = useUiStore();
+const toast = ref({ message: "", type: "success" });
+const searchQuery = ref("");
+
+const filteredUsers = computed(() => {
+  if (!searchQuery.value) return adminStore.users;
+  const q = searchQuery.value.toLowerCase();
+  return adminStore.users.filter(
+    (u) =>
+      u.name?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q),
+  );
+});
+
+const editBillingModal = ref({
+  isOpen: false,
+  user: null,
+  newDate: "",
+});
+const savingBilling = ref(false);
+
+const openBillingEditor = (user) => {
+  editBillingModal.value.user = user;
+  const currentEnd = user.subscriptions?.[0]?.subscriptionEnds;
+  editBillingModal.value.newDate = currentEnd
+    ? new Date(
+        new Date(currentEnd).getTime() +
+          Math.abs(new Date(currentEnd).getTimezoneOffset() * 60000),
+      )
+        .toISOString()
+        .split("T")[0]
+    : "";
+  editBillingModal.value.isOpen = true;
+};
+
+const saveBillingDate = async () => {
+  savingBilling.value = true;
+  const success = await adminStore.updateUser(editBillingModal.value.user.id, {
+    subscriptionEnds: editBillingModal.value.newDate || null,
+  });
+  if (success) {
+    toast.value = {
+      message: "Billing date successfully extended!",
+      type: "success",
+    };
+    editBillingModal.value.isOpen = false;
+    await adminStore.fetchUsers(); // Refresh to catch fresh subs array
+  } else {
+    toast.value = { message: "Failed to update billing date", type: "error" };
+  }
+  savingBilling.value = false;
+};
+
+onMounted(() => {
+  adminStore.fetchUsers();
+  adminStore.stats ? null : adminStore.fetchStats();
+});
+
+const toggleUserStatus = async (user) => {
+  const success = await adminStore.updateUser(user.id, {
+    isActive: !user.isActive,
+  });
+  if (success) {
+    toast.value = {
+      message: `User ${user.isActive ? "deactivated" : "activated"} successfully`,
+      type: "success",
+    };
+  }
+};
+
+const confirmCancelSubscription = async (user) => {
+  if (
+    confirm(
+      `Are you sure you want to cancel the subscription for ${user.email}? This will immediately downgrade them to the FREE plan.`,
+    )
+  ) {
+    const success = await adminStore.cancelSubscription(user.id);
+    if (success) {
+      toast.value = {
+        message: "Subscription successfully cancelled!",
+        type: "success",
+      };
+    } else {
+      toast.value = {
+        message: adminStore.error || "Failed to cancel subscription",
+        type: "error",
+      };
+    }
+  }
+};
+
+const confirmDeleteUser = async (user) => {
+  if (
+    confirm(
+      `Are you sure you want to delete ${user.email}? All associated data will be lost forever.`,
+    )
+  ) {
+    const success = await adminStore.deleteUser(user.id);
+    if (success) {
+      toast.value = { message: "User deleted successfully", type: "success" };
+    }
+  }
+};
+
+const getInitials = (name) => {
+  if (!name) return "U";
+  return name.charAt(0).toUpperCase();
+};
+</script>
+
 <template>
   <div class="admin-dashboard">
     <!-- Page Header -->
@@ -89,7 +209,7 @@
           <div class="flex items-center gap-3">
             <div
               class="w-9 h-9 rounded-full bg-slate-900 flex items-center justify-center text-white text-xs font-bold ring-2 ring-white shadow-sm shrink-0">
-              {{ user.name?.charAt(0) || "U" }}
+              {{ getInitials(user.name) }}
             </div>
             <div class="min-w-0">
               <p class="text-sm font-semibold text-slate-900 truncate">
@@ -312,118 +432,3 @@
     <UiToast v-model="toast" />
   </div>
 </template>
-
-<script setup>
-import { onMounted, ref, computed } from "vue";
-import { useAdminStore } from "~/stores/adminStore";
-import { useUiStore } from "~/stores/uiStore";
-
-definePageMeta({
-  layout: "default",
-  middleware: "admin",
-});
-
-const adminStore = useAdminStore();
-const uiStore = useUiStore();
-const toast = ref({ message: "", type: "success" });
-const searchQuery = ref("");
-
-const filteredUsers = computed(() => {
-  if (!searchQuery.value) return adminStore.users;
-  const q = searchQuery.value.toLowerCase();
-  return adminStore.users.filter(
-    (u) =>
-      u.name?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q),
-  );
-});
-
-const editBillingModal = ref({
-  isOpen: false,
-  user: null,
-  newDate: "",
-});
-const savingBilling = ref(false);
-
-const openBillingEditor = (user) => {
-  editBillingModal.value.user = user;
-  const currentEnd = user.subscriptions?.[0]?.subscriptionEnds;
-  editBillingModal.value.newDate = currentEnd
-    ? new Date(
-        new Date(currentEnd).getTime() +
-          Math.abs(new Date(currentEnd).getTimezoneOffset() * 60000),
-      )
-        .toISOString()
-        .split("T")[0]
-    : "";
-  editBillingModal.value.isOpen = true;
-};
-
-const saveBillingDate = async () => {
-  savingBilling.value = true;
-  const success = await adminStore.updateUser(editBillingModal.value.user.id, {
-    subscriptionEnds: editBillingModal.value.newDate || null,
-  });
-  if (success) {
-    toast.value = {
-      message: "Billing date successfully extended!",
-      type: "success",
-    };
-    editBillingModal.value.isOpen = false;
-    await adminStore.fetchUsers(); // Refresh to catch fresh subs array
-  } else {
-    toast.value = { message: "Failed to update billing date", type: "error" };
-  }
-  savingBilling.value = false;
-};
-
-onMounted(() => {
-  adminStore.fetchUsers();
-  adminStore.stats ? null : adminStore.fetchStats();
-});
-
-const toggleUserStatus = async (user) => {
-  const success = await adminStore.updateUser(user.id, {
-    isActive: !user.isActive,
-  });
-  if (success) {
-    toast.value = {
-      message: `User ${user.isActive ? "deactivated" : "activated"} successfully`,
-      type: "success",
-    };
-  }
-};
-
-const confirmCancelSubscription = async (user) => {
-  if (
-    confirm(
-      `Are you sure you want to cancel the subscription for ${user.email}? This will immediately downgrade them to the FREE plan.`,
-    )
-  ) {
-    const success = await adminStore.cancelSubscription(user.id);
-    if (success) {
-      toast.value = {
-        message: "Subscription successfully cancelled!",
-        type: "success",
-      };
-    } else {
-      toast.value = {
-        message: adminStore.error || "Failed to cancel subscription",
-        type: "error",
-      };
-    }
-  }
-};
-
-const confirmDeleteUser = async (user) => {
-  if (
-    confirm(
-      `Are you sure you want to delete ${user.email}? All associated data will be lost forever.`,
-    )
-  ) {
-    const success = await adminStore.deleteUser(user.id);
-    if (success) {
-      toast.value = { message: "User deleted successfully", type: "success" };
-    }
-  }
-};
-</script>

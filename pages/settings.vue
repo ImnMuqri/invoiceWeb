@@ -1185,6 +1185,44 @@
         paymentProviders.find((p) => p.provider === selectedProvider) || {}
       "
       @save="saveConnection" />
+
+    <!-- Downgrade Confirmation Modal -->
+    <UiModal v-model="isDowngradeModalOpen" maxWidth="sm">
+      <div class="p-6">
+        <div
+          class="flex items-center justify-center w-12 h-12 mx-auto bg-amber-50 rounded-full mb-4">
+          <UiIcon
+            icon="heroicons:exclamation-triangle"
+            custom-class="w-6 h-6 text-amber-600" />
+        </div>
+        <div class="text-center">
+          <h3 class="text-lg font-bold text-slate-900">Downgrade to Free?</h3>
+          <p class="mt-2 text-sm text-slate-500 font-medium leading-relaxed">
+            Are you sure you want to move to the
+            <span class="text-slate-900 font-bold">FREE</span> plan? You will
+            immediately lose access to Pro features like WhatsApp reminders and
+            AI drafts.
+          </p>
+        </div>
+        <div class="mt-6 flex flex-col gap-3">
+          <button
+            @click="confirmDowngrade"
+            :disabled="downgradingPlan"
+            class="w-full inline-flex justify-center items-center rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-slate-800 transition-colors disabled:opacity-50">
+            <UiIcon
+              v-if="downgradingPlan"
+              icon="line-md:loading-twotone-loop"
+              class="w-4 h-4 mr-2 animate-spin" />
+            Yes, Downgrade to Free
+          </button>
+          <button
+            @click="isDowngradeModalOpen = false"
+            class="w-full inline-flex justify-center rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-slate-900 shadow-sm ring-1 ring-inset ring-slate-200 hover:bg-slate-50 transition-colors">
+            Keep My Current Plan
+          </button>
+        </div>
+      </div>
+    </UiModal>
   </div>
 </template>
 
@@ -1226,6 +1264,10 @@ const tabs = [
   },
   { id: "billing", name: "Billing", icon: "heroicons:receipt-percent" },
 ];
+
+const isDowngradeModalOpen = ref(false);
+const downgradingPlan = ref(false);
+const pendingPlanUpdate = ref(null);
 
 const activeTab = ref(route.query.tab || "general");
 const toast = ref({ message: "", type: "success" });
@@ -1558,6 +1600,13 @@ const appliedDiscountText = computed(() => {
 });
 
 const updatePlan = async (plan) => {
+  // If downgrading to FREE, show the confirmation modal
+  if (plan === "FREE" && authStore.user?.plan !== "FREE") {
+    pendingPlanUpdate.value = plan;
+    isDowngradeModalOpen.value = true;
+    return;
+  }
+
   try {
     const res = await subscribeStore.subscribe(
       plan,
@@ -1590,6 +1639,31 @@ const updatePlan = async (plan) => {
         "Failed to update plan",
       type: "error",
     };
+  }
+};
+
+const confirmDowngrade = async () => {
+  if (!pendingPlanUpdate.value) return;
+  downgradingPlan.value = true;
+  try {
+    const res = await subscribeStore.subscribe(pendingPlanUpdate.value, null);
+    await authStore.fetchProfile();
+    toast.value = {
+      message: res?.message || "Successfully downgraded to Free plan",
+      type: "success",
+    };
+    isDowngradeModalOpen.value = false;
+  } catch (err) {
+    toast.value = {
+      message:
+        err.response?.data?.message ||
+        subscribeStore.error ||
+        "Failed to downgrade plan",
+      type: "error",
+    };
+  } finally {
+    downgradingPlan.value = false;
+    pendingPlanUpdate.value = null;
   }
 };
 </script>
