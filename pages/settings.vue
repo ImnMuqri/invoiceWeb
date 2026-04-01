@@ -881,16 +881,25 @@
                       key: 'invoiceIncludeCompanyName',
                       label: 'Company Name',
                       icon: 'solar:buildings-bold',
+                      disabled: !profileForm.companyName,
+                      warning:
+                        'Please fill your company name in General settings to enable.',
                     },
                     {
                       key: 'invoiceIncludeCompanyPhone',
                       label: 'Company Phone',
                       icon: 'solar:phone-calling-bold',
+                      disabled: !profileForm.companyPhone,
+                      warning:
+                        'Please fill your company phone in General settings to enable.',
                     },
                     {
                       key: 'invoiceIncludeAddress',
                       label: 'Business Address',
                       icon: 'solar:map-point-bold',
+                      disabled: !profileForm.address,
+                      warning:
+                        'Please fill your business address in General settings to enable.',
                     },
                   ]"
                   :key="field.key"
@@ -914,15 +923,20 @@
                       ">
                       <UiIcon :icon="field.icon" class="w-4 h-4" />
                     </div>
-                    <span
-                      class="text-xs font-bold tracking-tight"
+                    <div
+                      class="text-sm font-semibold transition-colors"
                       :class="
                         profileForm[field.key]
                           ? 'text-slate-900'
-                          : 'text-slate-500 group-hover:text-slate-700'
+                          : 'text-slate-500'
                       ">
                       {{ field.label }}
-                    </span>
+                      <p
+                        v-if="field.disabled && field.warning"
+                        class="text-[10px] font-normal text-amber-600 mt-0.5">
+                        {{ field.warning }}
+                      </p>
+                    </div>
                   </div>
                   <div class="flex items-center">
                     <div
@@ -1609,7 +1623,11 @@ const originalProfileForm = ref({});
 const originalSettingsForm = ref({});
 
 const isDirty = computed(() => {
-  if (activeTab.value === "general" || activeTab.value === "email") {
+  if (
+    activeTab.value === "general" ||
+    activeTab.value === "email" ||
+    activeTab.value === "invoice_config"
+  ) {
     return (
       JSON.stringify(profileForm.value) !==
       JSON.stringify(originalProfileForm.value)
@@ -1666,6 +1684,18 @@ onMounted(async () => {
       globalAutoChaser: authStore.user.globalAutoChaser,
       invoicePrefix: authStore.user.invoicePrefix,
     };
+
+    // Force disable toggles if data is missing
+    if (!profileForm.value.address) {
+      profileForm.value.invoiceIncludeAddress = false;
+    }
+    if (!profileForm.value.companyName) {
+      profileForm.value.invoiceIncludeCompanyName = false;
+    }
+    if (!profileForm.value.companyPhone) {
+      profileForm.value.invoiceIncludeCompanyPhone = false;
+    }
+
     originalProfileForm.value = JSON.parse(JSON.stringify(profileForm.value));
   }
 

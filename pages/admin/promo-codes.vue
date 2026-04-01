@@ -94,6 +94,13 @@
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-right">
                 <button
+                  @click="openEditModal(promo)"
+                  class="text-slate-600 hover:text-slate-900 transition-colors mr-3">
+                  <UiIcon
+                    icon="heroicons:pencil-square"
+                    custom-class="w-4 h-4" />
+                </button>
+                <button
                   @click="confirmDelete(promo.id)"
                   class="text-rose-600 hover:text-rose-900 transition-colors">
                   <UiIcon icon="heroicons:trash" custom-class="w-4 h-4" />
@@ -161,10 +168,12 @@
               type="number"
               class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-slate-950 outline-none transition-all" />
           </div>
-          <UiDatePicker
-            v-model="newPromo.expiresAt"
-            label="Expiry (Optional)"
-            placeholder="Select expiry date" />
+          <div class="relative z-[1000]">
+            <UiDatePicker
+              v-model="newPromo.expiresAt"
+              label="Expiry (Optional)"
+              placeholder="Select expiry date" />
+          </div>
         </div>
         <div class="flex justify-end gap-3 pt-4">
           <button
@@ -183,6 +192,78 @@
       </form>
     </UiModal>
 
+    <!-- Edit Modal -->
+    <UiModal
+      v-model="showEditModal"
+      title="Edit Promo Code"
+      max-width="lg"
+      description="Update the details for the selected promo code.">
+      <form @submit.prevent="handleUpdate" class="space-y-6 p-6">
+        <div>
+          <label
+            class="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1"
+            >Code</label
+          >
+          <input
+            v-model="editPromo.code"
+            type="text"
+            required
+            class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-slate-950 outline-none transition-all uppercase" />
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <UiSelect
+            v-model="editPromo.discountType"
+            label="Discount Type"
+            :options="discountOptions"
+            custom-class="!py-2 !px-3 !rounded-md" />
+          <div>
+            <label
+              class="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1"
+              >Value</label
+            >
+            <input
+              v-model="editPromo.discountValue"
+              type="number"
+              required
+              step="0.01"
+              class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-slate-950 outline-none transition-all" />
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label
+              class="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1"
+              >Max Uses (Optional)</label
+            >
+            <input
+              v-model="editPromo.maxUses"
+              type="number"
+              class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-slate-950 outline-none transition-all" />
+          </div>
+          <div class="relative z-[1000]">
+            <UiDatePicker
+              v-model="editPromo.expiresAt"
+              label="Expiry (Optional)"
+              placeholder="Select expiry date" />
+          </div>
+        </div>
+        <div class="flex justify-end gap-3 pt-4">
+          <button
+            type="button"
+            @click="showEditModal = false"
+            class="px-4 py-2.5 rounded-md font-bold text-slate-600 hover:bg-slate-100 transition-colors text-sm">
+            Cancel
+          </button>
+          <button
+            type="submit"
+            :disabled="promoStore.loading"
+            class="px-5 py-2.5 bg-slate-900 text-white rounded-md font-bold hover:bg-slate-800 transition-all disabled:opacity-50 text-sm">
+            {{ promoStore.loading ? "Updating..." : "Update" }}
+          </button>
+        </div>
+      </form>
+    </UiModal>
+
     <UiToast v-model="toast" />
   </div>
 </template>
@@ -194,8 +275,18 @@ import { usePromoStore } from "~/stores/promoStore";
 const promoStore = usePromoStore();
 const toast = ref({ message: "", type: "success" });
 const showCreateModal = ref(false);
+const showEditModal = ref(false);
 
 const newPromo = ref({
+  code: "",
+  discountType: "PERCENTAGE",
+  discountValue: 0,
+  maxUses: null,
+  expiresAt: null,
+});
+
+const editPromo = ref({
+  id: null,
   code: "",
   discountType: "PERCENTAGE",
   discountValue: 0,
@@ -226,6 +317,34 @@ const handleCreate = async () => {
   } catch (err) {
     toast.value = {
       message: err.message || "Failed to create promo code",
+      type: "error",
+    };
+  }
+};
+
+const openEditModal = (promo) => {
+  editPromo.value = {
+    id: promo.id,
+    code: promo.code,
+    discountType: promo.discountType,
+    discountValue: promo.discountValue,
+    maxUses: promo.maxUses,
+    expiresAt: promo.expiresAt,
+  };
+  showEditModal.value = true;
+};
+
+const handleUpdate = async () => {
+  try {
+    await promoStore.updatePromoCode(editPromo.value.id, editPromo.value);
+    toast.value = {
+      message: "Promo code updated successfully!",
+      type: "success",
+    };
+    showEditModal.value = false;
+  } catch (err) {
+    toast.value = {
+      message: err.message || "Failed to update promo code",
       type: "error",
     };
   }
