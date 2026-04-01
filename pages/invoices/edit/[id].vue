@@ -757,8 +757,13 @@
                         class="font-medium text-slate-700">
                         {{ form.from.companyName }}
                       </p>
-                      {{ form.from.companyEmail }}
-                      <p>{{ form.from.companyAddress }}</p>
+                      <p v-if="form.from.companyEmail">
+                        {{ form.from.companyEmail }}
+                      </p>
+                      <p v-if="form.from.phone">{{ form.from.phone }}</p>
+                      <p v-if="form.from.companyAddress">
+                        {{ form.from.companyAddress }}
+                      </p>
                     </div>
                   </div>
                   <div>
@@ -859,6 +864,24 @@
                         >
                       </div>
                       <div
+                        v-if="form.taxRate > 0"
+                        class="flex justify-between text-sm text-slate-600 font-semibold">
+                        <span>Tax ({{ form.taxRate }}%)</span
+                        ><span
+                          >+{{ calculateTax().toLocaleString() }}
+                          {{ form.currency }}</span
+                        >
+                      </div>
+                      <div
+                        v-if="form.taxRate > 0"
+                        class="flex justify-between text-sm text-slate-600 font-semibold">
+                        <span>Tax ({{ form.taxRate }}%)</span
+                        ><span
+                          >+{{ calculateTax().toLocaleString() }}
+                          {{ form.currency }}</span
+                        >
+                      </div>
+                      <div
                         class="flex justify-between text-base pt-4 border-t border-slate-900 font-semibold">
                         <span class="text-slate-900">Amount Due</span
                         ><span class="text-slate-900"
@@ -945,8 +968,13 @@
                           class="font-medium text-slate-700">
                           {{ form.from.companyName }}
                         </p>
-                        {{ form.from.companyEmail }}
-                        <p>{{ form.from.companyAddress }}</p>
+                        <p v-if="form.from.companyEmail">
+                          {{ form.from.companyEmail }}
+                        </p>
+                        <p v-if="form.from.phone">{{ form.from.phone }}</p>
+                        <p v-if="form.from.companyAddress">
+                          {{ form.from.companyAddress }}
+                        </p>
                       </div>
                     </div>
                     <div>
@@ -1053,6 +1081,38 @@
                     class="mt-8 pt-8 border-t-2 border-slate-900 flex justify-end">
                     <div class="w-48 space-y-2">
                       <div class="flex justify-between text-[10px]">
+                        <span class="text-slate-500 uppercase font-black"
+                          >Subtotal</span
+                        >
+                        <span class="font-black text-slate-900 text-xs"
+                          >{{ calculateSubtotal().toLocaleString() }}
+                          {{ form.currency }}</span
+                        >
+                      </div>
+                      <div
+                        v-if="form.addDiscount"
+                        class="flex justify-between text-[10px]">
+                        <span class="text-red-500 uppercase font-black"
+                          >Discount</span
+                        >
+                        <span class="font-black text-red-600 text-xs"
+                          >-{{ calculateDiscount().toLocaleString() }}
+                          {{ form.currency }}</span
+                        >
+                      </div>
+                      <div
+                        v-if="form.taxRate > 0"
+                        class="flex justify-between text-[10px]">
+                        <span class="text-slate-500 uppercase font-black"
+                          >Tax ({{ form.taxRate }}%)</span
+                        >
+                        <span class="font-black text-slate-900 text-xs"
+                          >+{{ calculateTax().toLocaleString() }}
+                          {{ form.currency }}</span
+                        >
+                      </div>
+                      <div
+                        class="flex justify-between text-[10px] pt-2 border-t border-slate-200">
                         <span class="text-slate-500 uppercase font-black"
                           >Total Due</span
                         >
@@ -1243,15 +1303,26 @@ onMounted(async () => {
         addDiscount: false,
         discountPercentage: 0,
         from: {
-          name: authStore.user?.name || data.fromName || "",
-          companyName:
-            authStore.user?.companyName || data.fromCompanyName || "",
-          companyEmail:
-            authStore.user?.companyEmail ||
-            authStore.user?.email ||
-            data.fromEmail ||
-            "",
-          companyAddress: authStore.user?.address || data.fromAddress || "",
+          name: authStore.user?.invoiceIncludeName
+            ? authStore.user.name || ""
+            : "",
+          companyName: authStore.user?.invoiceIncludeCompanyName
+            ? authStore.user.companyName || ""
+            : "",
+          companyEmail: authStore.user?.invoiceIncludeEmail
+            ? authStore.user.companyEmail || authStore.user.email || ""
+            : "",
+          companyAddress: authStore.user?.invoiceIncludeAddress
+            ? authStore.user.address || ""
+            : "",
+          phone: authStore.user?.invoiceIncludeCompanyPhone
+            ? authStore.user.companyPhone ||
+              (authStore.user.invoiceIncludePersonalPhone
+                ? authStore.user.phoneNumber
+                : "")
+            : authStore.user.invoiceIncludePersonalPhone
+              ? authStore.user.phoneNumber
+              : "",
         },
         lineItems: data.items.map((item) => ({
           name: item.name,
@@ -1337,8 +1408,13 @@ const calculateDiscount = () => {
   return calculateSubtotal() * (form.value.discountPercentage / 100);
 };
 
+const calculateTax = () => {
+  const taxableAmount = calculateSubtotal() - calculateDiscount();
+  return taxableAmount * (form.value.taxRate / 100);
+};
+
 const calculateTotal = () => {
-  return calculateSubtotal() - calculateDiscount();
+  return calculateSubtotal() - calculateDiscount() + calculateTax();
 };
 
 const submitInvoice = async () => {
@@ -1388,6 +1464,7 @@ const submitInvoice = async () => {
     currency: form.value.currency,
     status: form.value.status,
     amount: calculateTotal(),
+    taxRate: form.value.taxRate,
     template: form.value.template,
     items: form.value.lineItems.map((item) => ({
       name: item.name,

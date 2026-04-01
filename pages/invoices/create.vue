@@ -912,8 +912,13 @@
                         class="font-medium text-slate-700">
                         {{ form.from.companyName }}
                       </p>
-                      {{ form.from.companyEmail }}
-                      <p>{{ form.from.companyAddress }}</p>
+                      <p v-if="form.from.companyEmail">
+                        {{ form.from.companyEmail }}
+                      </p>
+                      <p v-if="form.from.phone">{{ form.from.phone }}</p>
+                      <p v-if="form.from.companyAddress">
+                        {{ form.from.companyAddress }}
+                      </p>
                     </div>
                   </div>
                   <div>
@@ -1010,6 +1015,15 @@
                         <span>Discount</span
                         ><span
                           >-{{ calculateDiscount().toLocaleString() }}
+                          {{ form.currency }}</span
+                        >
+                      </div>
+                      <div
+                        v-if="form.taxRate > 0"
+                        class="flex justify-between text-sm text-slate-600 font-semibold">
+                        <span>Tax ({{ form.taxRate }}%)</span
+                        ><span
+                          >+{{ calculateTax().toLocaleString() }}
                           {{ form.currency }}</span
                         >
                       </div>
@@ -1258,12 +1272,26 @@ onMounted(async () => {
 
   // Populate "From" info from user profile
   if (authStore.user) {
+    const u = authStore.user;
     form.value.from = {
-      name: authStore.user.name || "",
-      companyName: authStore.user.companyName || "",
-      companyEmail: authStore.user.companyEmail || authStore.user.email || "",
-      companyAddress: authStore.user.address || "",
+      name: u.invoiceIncludeName ? u.name || "" : "",
+      companyName: u.invoiceIncludeCompanyName ? u.companyName || "" : "",
+      companyEmail: u.invoiceIncludeEmail
+        ? u.companyEmail || u.email || ""
+        : "",
+      companyAddress: u.invoiceIncludeAddress ? u.address || "" : "",
+      // Phone fallback logic
+      phone: u.invoiceIncludeCompanyPhone
+        ? u.companyPhone || (u.invoiceIncludePersonalPhone ? u.phoneNumber : "")
+        : u.invoiceIncludePersonalPhone
+          ? u.phoneNumber
+          : "",
     };
+
+    // Apply default tax rate if enabled
+    if (u.defaultTaxRate > 0) {
+      form.value.taxRate = u.defaultTaxRate;
+    }
   }
 });
 
@@ -1287,6 +1315,7 @@ const form = ref({
   currency: "MYR",
   addDiscount: false,
   discountPercentage: 0,
+  taxRate: 0,
   status: "Pending",
   from: {
     companyName: "Acme Inc.",
@@ -1584,8 +1613,13 @@ const updatePriceNum = (item) => {
   item.priceNum = isNaN(num) ? 0 : num;
 };
 
+const calculateTax = () => {
+  const taxableAmount = calculateSubtotal() - calculateDiscount();
+  return taxableAmount * (form.value.taxRate / 100);
+};
+
 const calculateTotal = () => {
-  return calculateSubtotal() - calculateDiscount();
+  return calculateSubtotal() - calculateDiscount() + calculateTax();
 };
 </script>
 

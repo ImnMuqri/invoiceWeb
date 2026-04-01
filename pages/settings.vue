@@ -846,6 +846,232 @@
             </div>
           </div>
 
+          <!-- Invoice Configuration Tab -->
+          <div v-if="activeTab === 'invoice_config'" class="p-6 space-y-8">
+            <!-- Display Fields Section -->
+            <section>
+              <h3 class="text-base font-semibold text-slate-900 tracking-tight">
+                Invoice Display Fields
+              </h3>
+              <p class="text-sm text-slate-500 mb-6 font-medium">
+                Choose which information you want to include in the "From"
+                section of your invoices.
+              </p>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <label
+                  v-for="field in [
+                    {
+                      key: 'invoiceIncludeName',
+                      label: 'Full Name',
+                      icon: 'solar:user-bold',
+                    },
+                    {
+                      key: 'invoiceIncludeEmail',
+                      label: 'Login Email',
+                      icon: 'solar:letter-bold',
+                    },
+                    {
+                      key: 'invoiceIncludePersonalPhone',
+                      label: 'Personal Phone',
+                      icon: 'solar:phone-bold',
+                    },
+                    {
+                      key: 'invoiceIncludeCompanyName',
+                      label: 'Company Name',
+                      icon: 'solar:buildings-bold',
+                    },
+                    {
+                      key: 'invoiceIncludeCompanyPhone',
+                      label: 'Company Phone',
+                      icon: 'solar:phone-calling-bold',
+                    },
+                    {
+                      key: 'invoiceIncludeAddress',
+                      label: 'Business Address',
+                      icon: 'solar:map-point-bold',
+                    },
+                  ]"
+                  :key="field.key"
+                  class="relative flex items-center p-4 border rounded-xl transition-all cursor-pointer group select-none"
+                  :class="
+                    profileForm[field.key]
+                      ? 'border-slate-900 bg-slate-50 ring-1 ring-slate-900'
+                      : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/50'
+                  ">
+                  <div class="flex items-center gap-3 flex-1">
+                    <div
+                      class="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
+                      :class="
+                        profileForm[field.key]
+                          ? 'bg-slate-900 text-white'
+                          : 'bg-slate-100 text-slate-400 group-hover:text-slate-500'
+                      ">
+                      <UiIcon :icon="field.icon" class="w-4 h-4" />
+                    </div>
+                    <span
+                      class="text-xs font-bold tracking-tight"
+                      :class="
+                        profileForm[field.key]
+                          ? 'text-slate-900'
+                          : 'text-slate-500 group-hover:text-slate-700'
+                      ">
+                      {{ field.label }}
+                    </span>
+                  </div>
+                  <div class="flex items-center">
+                    <div
+                      class="w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all"
+                      :class="
+                        profileForm[field.key]
+                          ? 'bg-slate-900 border-slate-900'
+                          : 'bg-white border-slate-200'
+                      ">
+                      <UiIcon
+                        v-if="profileForm[field.key]"
+                        icon="heroicons:check-16-solid"
+                        class="w-3 h-3 text-white" />
+                    </div>
+                  </div>
+                  <input
+                    type="checkbox"
+                    v-model="profileForm[field.key]"
+                    class="sr-only" />
+                </label>
+              </div>
+            </section>
+
+            <div class="h-px bg-slate-100"></div>
+
+            <!-- Automation Section -->
+            <section>
+              <div class="flex items-center justify-between mb-2">
+                <h3
+                  class="text-base font-semibold text-slate-900 tracking-tight">
+                  Global Automation
+                </h3>
+                <div class="flex items-center">
+                  <button
+                    @click="
+                      profileForm.globalAutoChaser =
+                        !profileForm.globalAutoChaser
+                    "
+                    type="button"
+                    class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ring-offset-2"
+                    :class="
+                      profileForm.globalAutoChaser
+                        ? 'bg-slate-900'
+                        : 'bg-slate-200'
+                    ">
+                    <span
+                      class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+                      :class="
+                        profileForm.globalAutoChaser
+                          ? 'translate-x-5'
+                          : 'translate-x-0'
+                      "></span>
+                  </button>
+                </div>
+              </div>
+              <p class="text-sm text-slate-500 mb-6 font-medium">
+                Enable or disable automated reminders for all clients.
+              </p>
+
+              <div
+                class="p-4 bg-amber-50 border border-amber-100 rounded-xl flex gap-3">
+                <UiIcon
+                  icon="heroicons:exclamation-triangle"
+                  custom-class="w-5 h-5 text-amber-600 shrink-0" />
+                <p class="text-[11px] text-amber-800 leading-relaxed">
+                  <strong>Important Notice:</strong> If you switch this OFF,
+                  <strong>all auto-chaser reminders</strong> for all clients
+                  will be disabled immediately. To disable reminders for a
+                  single specific client while keeping others active, please use
+                  the toggle in the <strong>Client Table</strong> instead.
+                </p>
+              </div>
+
+              <!-- Reminder Info Note -->
+              <div
+                class="mt-4 p-4 bg-blue-50 border border-blue-100 rounded-xl flex gap-3">
+                <UiIcon
+                  icon="heroicons:information-circle"
+                  custom-class="w-5 h-5 text-blue-600 shrink-0" />
+                <p class="text-[11px] text-blue-800 leading-relaxed">
+                  <strong>Reminder Intervals:</strong> Note that specific timing
+                  intervals for automated messages must be configured in the
+                  <button
+                    @click="switchTab('email')"
+                    class="font-bold underline hover:text-blue-900">
+                    Email Configuration
+                  </button>
+                  or
+                  <button
+                    @click="switchTab('whatsapp')"
+                    class="font-bold underline hover:text-blue-900">
+                    WhatsApp Configuration
+                  </button>
+                  tabs.
+                </p>
+              </div>
+            </section>
+
+            <div class="h-px bg-slate-100"></div>
+
+            <!-- Invoice Defaults Section -->
+            <section>
+              <h3 class="text-base font-semibold text-slate-900 tracking-tight">
+                Invoice Defaults
+              </h3>
+              <p class="text-sm text-slate-500 mb-6 font-medium">
+                Set standard defaults for all new invoices you create.
+              </p>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div>
+                  <label
+                    class="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2"
+                    >Invoice Number Prefix</label
+                  >
+                  <input
+                    type="text"
+                    v-model="profileForm.invoicePrefix"
+                    placeholder="e.g. INV"
+                    class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-slate-950 outline-none transition-all uppercase" />
+                  <p class="text-[10px] text-slate-500 mt-2">
+                    Default prefix for your invoice numbers.
+                  </p>
+                </div>
+
+                <div class="space-y-2">
+                  <div class="flex items-center justify-between">
+                    <label
+                      class="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest"
+                      >Default Tax Rate (%)</label
+                    >
+                  </div>
+
+                  <div>
+                    <div class="relative">
+                      <input
+                        type="number"
+                        step="0.01"
+                        v-model="profileForm.defaultTaxRate"
+                        class="block w-full rounded-md border border-slate-200 pl-3 pr-8 py-2 text-sm font-bold text-slate-900 focus:ring-1 focus:ring-slate-950 outline-none transition-all" />
+                      <div
+                        class="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
+                        %
+                      </div>
+                    </div>
+                    <p class="text-[10px] text-slate-500 mt-2">
+                      Automatically apply this percentage to all new invoices.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+
           <!-- Billing Tab -->
           <div v-if="activeTab === 'billing'" class="p-6">
             <!-- Current Plan Banner -->
@@ -1000,19 +1226,23 @@
                 </ul>
                 <button
                   @click="
-                    authStore.user?.plan !== 'FREE' ? updatePlan('FREE') : null
+                    authStore.user?.plan !== 'FREE' && !isCancelling
+                      ? updatePlan('FREE')
+                      : null
                   "
-                  :disabled="authStore.user?.plan === 'FREE'"
+                  :disabled="authStore.user?.plan !== 'FREE'"
                   class="w-full py-2.5 rounded-xl text-sm font-semibold transition-all border"
                   :class="
-                    authStore.user?.plan === 'FREE'
+                    authStore.user?.plan !== 'FREE'
                       ? 'border-slate-100 bg-slate-50 text-slate-400 cursor-not-allowed'
                       : 'bg-slate-900 text-white border-slate-900 hover:bg-slate-800'
                   ">
                   {{
                     authStore.user?.plan === "FREE"
                       ? "Current Plan"
-                      : "Downgrade"
+                      : isCancelling
+                        ? "Downgrade Pending"
+                        : "Cancel Plan To Downgrade"
                   }}
                 </button>
               </div>
@@ -1068,20 +1298,23 @@
                 </ul>
                 <button
                   @click="
-                    authStore.user?.plan !== 'PRO' ? updatePlan('PRO') : null
+                    authStore.user?.plan === 'PRO'
+                      ? updatePlan('FREE')
+                      : updatePlan('PRO')
                   "
-                  :disabled="authStore.user?.plan === 'PRO'"
+                  :disabled="authStore.user?.plan === 'PRO' && isCancelling"
                   class="w-full py-2.5 rounded-xl text-sm font-semibold transition-all border"
                   :class="
                     authStore.user?.plan === 'PRO'
-                      ? 'border-emerald-100 bg-emerald-50 text-emerald-600'
+                      ? isCancelling
+                        ? 'border-emerald-100 bg-emerald-50 text-emerald-400 cursor-not-allowed'
+                        : 'border-emerald-100 bg-emerald-50 text-emerald-600 hover:bg-emerald-100'
                       : 'bg-slate-900 text-white border-slate-900 hover:bg-slate-800'
                   ">
-                  {{
-                    authStore.user?.plan === "PRO"
-                      ? "Current Plan"
-                      : "Select Pro"
-                  }}
+                  <template v-if="authStore.user?.plan === 'PRO'">
+                    {{ isCancelling ? "Plan Cancelling" : "Cancel Plan" }}
+                  </template>
+                  <template v-else> Select Pro </template>
                 </button>
               </div>
 
@@ -1128,20 +1361,23 @@
                 </ul>
                 <button
                   @click="
-                    authStore.user?.plan !== 'MAX' ? updatePlan('MAX') : null
+                    authStore.user?.plan === 'MAX'
+                      ? updatePlan('FREE')
+                      : updatePlan('MAX')
                   "
-                  :disabled="authStore.user?.plan === 'MAX'"
+                  :disabled="authStore.user?.plan === 'MAX' && isCancelling"
                   class="w-full py-2.5 rounded-xl text-sm font-semibold transition-all border"
                   :class="
                     authStore.user?.plan === 'MAX'
-                      ? 'border-indigo-100 bg-indigo-50 text-indigo-600'
+                      ? isCancelling
+                        ? 'border-indigo-100 bg-indigo-50 text-indigo-400 cursor-not-allowed'
+                        : 'border-indigo-100 bg-indigo-50 text-indigo-600 hover:bg-indigo-100'
                       : 'bg-slate-900 text-white border-slate-900 hover:bg-slate-800'
                   ">
-                  {{
-                    authStore.user?.plan === "MAX"
-                      ? "Current Plan"
-                      : "Select Max"
-                  }}
+                  <template v-if="authStore.user?.plan === 'MAX'">
+                    {{ isCancelling ? "Plan Cancelling" : "Cancel Plan" }}
+                  </template>
+                  <template v-else> Select Max </template>
                 </button>
               </div>
             </div>
@@ -1196,12 +1432,23 @@
             custom-class="w-6 h-6 text-amber-600" />
         </div>
         <div class="text-center">
-          <h3 class="text-lg font-bold text-slate-900">Downgrade to Free?</h3>
+          <h3 class="text-lg font-bold text-slate-900">Cancel Plan?</h3>
           <p class="mt-2 text-sm text-slate-500 font-medium leading-relaxed">
-            Are you sure you want to move to the
-            <span class="text-slate-900 font-bold">FREE</span> plan? You will
-            immediately lose access to Pro features like WhatsApp reminders and
-            AI drafts.
+            Are you sure you want to cancel your
+            <span class="text-slate-900 font-bold uppercase">{{
+              authStore.user?.plan
+            }}</span>
+            subscription? You will keep Pro benefits until
+            <span class="text-slate-900 font-bold">{{
+              new Date(
+                authStore.user?.subscriptions?.[0]?.subscriptionEnds,
+              ).toLocaleDateString("en-GB", {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+              })
+            }}</span
+            >, after which you will move to the FREE plan.
           </p>
         </div>
         <div class="mt-6 flex flex-col gap-3">
@@ -1213,7 +1460,7 @@
               v-if="downgradingPlan"
               icon="line-md:loading-twotone-loop"
               class="w-4 h-4 mr-2 animate-spin" />
-            Yes, Downgrade to Free
+            Yes, Confirm Cancellation
           </button>
           <button
             @click="isDowngradeModalOpen = false"
@@ -1248,6 +1495,11 @@ const tabs = [
     icon: "heroicons:building-office",
   },
   {
+    id: "invoice_config",
+    name: "Invoice Configuration",
+    icon: "heroicons:document-text",
+  },
+  {
     id: "whatsapp",
     name: "WhatsApp Configuration",
     icon: "heroicons:chat-bubble-left-right",
@@ -1262,12 +1514,16 @@ const tabs = [
     name: "Payments",
     icon: "heroicons:credit-card",
   },
+
   { id: "billing", name: "Billing", icon: "heroicons:receipt-percent" },
 ];
 
 const isDowngradeModalOpen = ref(false);
 const downgradingPlan = ref(false);
 const pendingPlanUpdate = ref(null);
+
+const currentSub = computed(() => authStore.user?.subscriptions?.[0]);
+const isCancelling = computed(() => currentSub.value?.cancelAtPeriodEnd);
 
 const activeTab = ref(route.query.tab || "general");
 const toast = ref({ message: "", type: "success" });
@@ -1311,14 +1567,17 @@ const switchTab = (tabId) => {
 };
 
 const profileForm = ref({
-  name: "",
-  companyName: "",
-  companyEmail: "",
-  companyPhone: "",
-  address: "",
-  phoneNumber: "",
   defaultCurrency: "MYR",
+  defaultTaxRate: 0,
   reminderInterval: 0,
+  invoiceIncludeName: true,
+  invoiceIncludeEmail: false,
+  invoiceIncludePersonalPhone: false,
+  invoiceIncludeCompanyPhone: true,
+  invoiceIncludeCompanyName: true,
+  invoiceIncludeAddress: true,
+  globalAutoChaser: true,
+  invoicePrefix: "INV",
 });
 const settingsForm = ref({
   whatsappSendTemplate: "",
@@ -1390,7 +1649,16 @@ onMounted(async () => {
       address: authStore.user.address || "",
       phoneNumber: authStore.user.phoneNumber || "",
       defaultCurrency: authStore.user.defaultCurrency || "MYR",
+      defaultTaxRate: authStore.user.defaultTaxRate || 0,
       reminderInterval: authStore.user.reminderInterval,
+      invoiceIncludeName: authStore.user.invoiceIncludeName,
+      invoiceIncludeEmail: authStore.user.invoiceIncludeEmail,
+      invoiceIncludePersonalPhone: authStore.user.invoiceIncludePersonalPhone,
+      invoiceIncludeCompanyPhone: authStore.user.invoiceIncludeCompanyPhone,
+      invoiceIncludeCompanyName: authStore.user.invoiceIncludeCompanyName,
+      invoiceIncludeAddress: authStore.user.invoiceIncludeAddress,
+      globalAutoChaser: authStore.user.globalAutoChaser,
+      invoicePrefix: authStore.user.invoicePrefix,
     };
     originalProfileForm.value = JSON.parse(JSON.stringify(profileForm.value));
   }
@@ -1533,7 +1801,11 @@ const disconnectProvider = async (p) => {
 const saveSettings = async () => {
   try {
     let res;
-    if (activeTab.value === "general" || activeTab.value === "email") {
+    if (
+      activeTab.value === "general" ||
+      activeTab.value === "email" ||
+      activeTab.value === "invoice_config"
+    ) {
       res = await authStore.updateProfile(profileForm.value);
     } else if (activeTab.value === "whatsapp") {
       res = await authStore.updateSettings(settingsForm.value);
