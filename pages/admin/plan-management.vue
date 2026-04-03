@@ -3,10 +3,10 @@
     <!-- Page Header -->
     <div class="mb-8">
       <h2 class="text-2xl font-bold text-slate-900 tracking-tight">
-        Advanced Analytics
+        Plan Management
       </h2>
       <p class="text-xs font-medium text-slate-500 mt-1">
-        Deep insights into platform growth and system performance.
+        Manage subscription plans, pricing, and platform analytics.
       </p>
     </div>
     <!-- Dashboard Overview Stats -->
@@ -280,21 +280,152 @@
       </div>
     </div>
 
-    <!-- Loading State -->
-    <div
-      v-else-if="adminStore.loading"
-      class="flex flex-col items-center justify-center py-24 gap-4">
+    <!-- Plan Management Section -->
+    <div class="space-y-8 pt-8 border-t border-slate-200">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-xl font-bold text-slate-900 tracking-tight">
+            Active Plans
+          </h2>
+          <p
+            class="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-widest">
+            Manage subscription tiers, pricing and feature limits.
+          </p>
+        </div>
+        <button
+          @click="openCreateModal"
+          class="inline-flex items-center gap-2 px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-[12px] font-bold transition-all shadow-sm active:scale-95 border-none cursor-pointer">
+          <UiIcon icon="heroicons:plus" class="w-4 h-4" />
+          Create New Plan
+        </button>
+      </div>
+
       <div
-        class="w-10 h-10 border-4 border-slate-200 border-t-emerald-500 rounded-full animate-spin"></div>
-      <p class="text-slate-400 font-bold uppercase tracking-widest text-[10px]">
-        Loading Statistics...
-      </p>
+        class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-slate-50/50 border-b border-slate-100">
+              <th
+                class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                Plan Name
+              </th>
+              <th
+                class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                Price
+              </th>
+              <th
+                class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                Invoices
+              </th>
+              <th
+                class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                AI Credits
+              </th>
+              <th
+                class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                Status
+              </th>
+              <th
+                class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-50">
+            <template v-if="adminStore.plans && adminStore.plans.length">
+              <tr
+                v-for="plan in adminStore.plans"
+                :key="plan.id"
+                class="hover:bg-slate-50/30 transition-colors group">
+                <td class="px-6 py-4">
+                  <div class="flex flex-col">
+                    <span
+                      class="text-sm font-bold text-slate-900 uppercase tracking-tight"
+                      >{{ plan.name }}</span
+                    >
+                    <span
+                      class="text-[10px] text-slate-500 font-medium truncate max-w-[200px]"
+                      >{{ plan.description }}</span
+                    >
+                  </div>
+                </td>
+                <td class="px-6 py-4">
+                  <div class="flex items-baseline gap-1">
+                    <span class="text-sm font-bold text-slate-900">{{
+                      plan.price
+                    }}</span>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase"
+                      >{{ plan.currency }}/{{ plan.interval }}</span
+                    >
+                  </div>
+                </td>
+                <td class="px-6 py-4">
+                  <span class="text-xs font-bold text-slate-600">{{
+                    plan.invoices >= 999999 ? "Unlimited" : plan.invoices
+                  }}</span>
+                </td>
+                <td class="px-6 py-4">
+                  <span class="text-xs font-bold text-slate-600">{{
+                    plan.aiCredits >= 999999 ? "Unlimited" : plan.aiCredits
+                  }}</span>
+                </td>
+                <td class="px-6 py-4">
+                  <span
+                    :class="
+                      plan.isPublic
+                        ? 'bg-emerald-50 text-emerald-600 shadow-[0_0_0_1px_rgba(16,185,129,0.1)]'
+                        : 'bg-slate-100 text-slate-500'
+                    "
+                    class="px-2 py-1 rounded-md text-[9px] font-bold uppercase tracking-widest">
+                    {{ plan.isPublic ? "Public" : "Private" }}
+                  </span>
+                </td>
+                <td class="px-6 py-4 text-right">
+                  <div class="flex items-center justify-end gap-2">
+                    <button
+                      @click="openEditModal(plan)"
+                      class="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-all border-none bg-transparent cursor-pointer">
+                      <UiIcon icon="heroicons:pencil-square" class="w-4 h-4" />
+                    </button>
+                    <button
+                      @click="confirmDelete(plan)"
+                      class="p-2 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all border-none bg-transparent cursor-pointer"
+                      :disabled="['FREE', 'PRO', 'MAX'].includes(plan.name)">
+                      <UiIcon icon="heroicons:trash" class="w-4 h-4" />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </template>
+            <tr v-else-if="!adminStore.loading">
+              <td colspan="6" class="px-6 py-12 text-center">
+                <div class="flex flex-col items-center gap-2">
+                  <UiIcon
+                    icon="heroicons:scale"
+                    class="w-8 h-8 text-slate-200" />
+                  <p
+                    class="text-sm font-bold text-slate-400 uppercase tracking-widest">
+                    No plans defined
+                  </p>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
+
+    <!-- Plan Modal -->
+    <PlanModal
+      v-model="isModalOpen"
+      :plan="selectedPlan"
+      :loading="adminStore.loading"
+      @save="handleSave" />
   </div>
 </template>
 
 <script setup>
-import { computed, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useAdminStore } from "~/stores/adminStore";
 import { useUiStore } from "~/stores/uiStore";
 
@@ -305,6 +436,51 @@ definePageMeta({
 
 const adminStore = useAdminStore();
 const uiStore = useUiStore();
+
+// Plan Management Logic
+const isModalOpen = ref(false);
+const selectedPlan = ref(null);
+
+const openCreateModal = () => {
+  selectedPlan.value = null;
+  isModalOpen.value = true;
+};
+
+const openEditModal = (plan) => {
+  selectedPlan.value = { ...plan };
+  isModalOpen.value = true;
+};
+
+const handleSave = async (payload) => {
+  let success = false;
+  if (selectedPlan.value) {
+    success = await adminStore.updatePlan(selectedPlan.value.id, payload);
+  } else {
+    success = await adminStore.createPlan(payload);
+  }
+
+  if (success) {
+    isModalOpen.value = false;
+    uiStore.addNotification({
+      type: "success",
+      title: "Plan Saved",
+      message: "The plan details have been updated successfully.",
+    });
+  }
+};
+
+const confirmDelete = async (plan) => {
+  if (confirm(`Are you sure you want to delete the ${plan.name} plan?`)) {
+    const success = await adminStore.deletePlan(plan.id);
+    if (success) {
+      uiStore.addNotification({
+        type: "success",
+        title: "Plan Deleted",
+        message: "The plan has been removed successfully.",
+      });
+    }
+  }
+};
 
 const formatUptime = (seconds) => {
   const days = Math.floor(seconds / (3600 * 24));
@@ -359,7 +535,7 @@ const updateMonthlyRevenue = async () => {
 };
 
 onMounted(async () => {
-  await adminStore.fetchAnalytics();
+  await Promise.all([adminStore.fetchAnalytics(), adminStore.fetchPlans()]);
   // Initial load of monthly revenue for current month
   updateMonthlyRevenue();
 });

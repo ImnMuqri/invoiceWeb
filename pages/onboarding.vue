@@ -370,153 +370,75 @@
             </div>
 
             <div class="grid md:grid-cols-3 gap-4">
-              <!-- Free Plan -->
+              <!-- Dynamic Plans -->
               <div
-                class="border border-slate-200 rounded-2xl p-6 transition-all hover:border-slate-300 bg-slate-50 flex flex-col">
-                <div class="mb-8">
-                  <h5 class="text-lg font-semibold text-slate-900 mb-2">
-                    Free
-                  </h5>
-                  <p class="text-sm text-slate-500 font-medium">For starters</p>
-                </div>
-                <div class="mb-8 flex items-baseline">
-                  <span
-                    class="text-4xl font-semibold text-slate-900 tracking-tight"
-                    >RM 0</span
-                  >
-                  <span class="text-slate-400 text-sm ml-1 font-medium"
-                    >/month</span
-                  >
-                </div>
-                <ul class="space-y-4 mb-8 flex-1">
-                  <li
-                    v-for="feature in [
-                      '5 Invoices/mo',
-                      '5 Email Deliveries/mo',
-                    ]"
-                    :key="feature"
-                    class="flex items-center text-sm font-medium text-slate-600">
-                    <UiIcon
-                      icon="heroicons:check"
-                      class="w-4 h-4 mr-3 text-slate-400" />
-                    {{ feature }}
-                  </li>
-                  <li
-                    v-for="limit in [
-                      'No Reminders',
-                      'No AI Drafts',
-                      'No WhatsApp Features',
-                      'No Auto-Chasers',
-                    ]"
-                    :key="limit"
-                    class="flex items-center text-sm font-medium text-slate-400 line-through">
-                    <UiIcon
-                      icon="heroicons:x-mark"
-                      class="w-4 h-4 mr-3 text-slate-300" />
-                    {{ limit }}
-                  </li>
-                </ul>
-                <button
-                  type="button"
-                  @click="selectPlan('FREE')"
-                  class="w-full py-2.5 rounded-xl text-sm font-semibold transition-all border bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100 hover:text-slate-900">
-                  Continue with Free
-                </button>
-              </div>
-
-              <!-- Pro Plan -->
-              <div
-                class="border border-emerald-200 rounded-2xl p-6 transition-all hover:border-emerald-300 bg-emerald-50/50 flex flex-col relative">
+                v-for="plan in dynamicPlans"
+                :key="plan.id"
+                :class="[
+                  'border rounded-2xl p-6 transition-all flex flex-col relative',
+                  plan.name === 'PRO'
+                    ? 'border-emerald-200 bg-emerald-50/50 hover:border-emerald-300'
+                    : plan.name === 'MAX'
+                      ? 'border-indigo-100 bg-indigo-50/10 hover:border-indigo-200'
+                      : 'border-slate-100 bg-white hover:border-slate-200',
+                ]">
                 <div
+                  v-if="plan.name === 'PRO'"
                   class="absolute -top-3 left-1/2 -translate-x-1/2 bg-emerald-600 text-white text-[10px] font-bold uppercase tracking-widest py-1 px-3 rounded-full">
                   Recommended
                 </div>
                 <div class="mb-8 mt-2">
-                  <h5 class="text-lg font-semibold text-slate-900 mb-2">Pro</h5>
+                  <h5
+                    class="text-lg font-semibold text-slate-900 mb-2 uppercase tracking-tight">
+                    {{ plan.name }}
+                  </h5>
                   <p class="text-sm text-slate-500 font-medium">
-                    Perfect for freelancers
+                    {{ plan.description }}
                   </p>
                 </div>
                 <div class="mb-8 flex items-baseline">
                   <span
-                    class="text-4xl font-semibold text-slate-900 tracking-tight"
-                    >RM 59</span
-                  >
+                    class="text-4xl font-semibold text-slate-900 tracking-tight">
+                    {{ plan.currency }} {{ plan.price }}
+                  </span>
                   <span class="text-slate-400 text-sm ml-1 font-medium"
-                    >/month</span
+                    >/{{ plan.interval }}</span
                   >
                 </div>
-                <ul class="space-y-4 mb-8 flex-1">
+                <ul class="space-y-4 mb-8 flex-1 text-left">
                   <li
-                    v-for="feature in [
-                      '100 Invoices/mo',
-                      '50 WhatsApp Sends & Reminders',
-                      '100 Email Deliveries & Reminders',
-                      '20 AI Drafts/mo',
-                      'Auto-Chaser',
-                    ]"
+                    v-for="feature in plan.features"
                     :key="feature"
                     class="flex items-center text-sm font-medium text-slate-600">
                     <UiIcon
                       icon="heroicons:check"
-                      class="w-4 h-4 mr-3 text-emerald-600" />
-                    {{ feature }}
-                  </li>
-                  <li
-                    class="flex items-center text-sm font-medium text-slate-400 line-through">
-                    <UiIcon
-                      icon="heroicons:x-mark"
-                      class="w-4 h-4 mr-3 text-slate-300" />
-                    White Labelling
-                  </li>
-                </ul>
-                <button
-                  type="button"
-                  @click="selectPlan('PRO')"
-                  class="w-full py-2.5 rounded-xl text-sm font-semibold transition-all border border-emerald-600 bg-emerald-600 text-white hover:bg-emerald-700">
-                  Select Pro
-                </button>
-              </div>
-
-              <!-- Max Plan -->
-              <div
-                class="border border-indigo-100 rounded-2xl p-6 transition-all hover:border-indigo-200 bg-slate-50 flex flex-col">
-                <div class="mb-8">
-                  <h5 class="text-lg font-semibold text-slate-900 mb-2">Max</h5>
-                  <p class="text-sm text-slate-500 font-medium">Power users</p>
-                </div>
-                <div class="mb-8 flex items-baseline">
-                  <span
-                    class="text-4xl font-semibold text-slate-900 tracking-tight"
-                    >RM 99</span
-                  >
-                  <span class="text-slate-400 text-sm ml-1 font-medium"
-                    >/month</span
-                  >
-                </div>
-                <ul class="space-y-4 mb-8 flex-1">
-                  <li
-                    v-for="feature in [
-                      'Unlimited Invoices/mo',
-                      '100 WhatsApp Sends & Reminders',
-                      'Unlimited Email Deliveries & Reminders',
-                      '100 AI Drafts/mo',
-                      'Auto-Chaser',
-                      'White Labelling',
-                    ]"
-                    :key="feature"
-                    class="flex items-center text-sm font-medium text-slate-600">
-                    <UiIcon
-                      icon="heroicons:check"
-                      class="w-4 h-4 mr-3 text-indigo-500" />
+                      :class="[
+                        'w-4 h-4 mr-3 shrink-0',
+                        plan.name === 'PRO'
+                          ? 'text-emerald-600'
+                          : plan.name === 'MAX'
+                            ? 'text-indigo-500'
+                            : 'text-slate-400',
+                      ]" />
                     {{ feature }}
                   </li>
                 </ul>
                 <button
                   type="button"
-                  @click="selectPlan('MAX')"
-                  class="w-full py-2.5 rounded-xl text-sm font-semibold transition-all border bg-slate-900 text-white border-slate-900 hover:bg-slate-800">
-                  Select Max
+                  @click="selectPlan(plan.name)"
+                  :class="[
+                    'w-full py-2.5 rounded-xl text-sm font-semibold transition-all border outline-none cursor-pointer',
+                    plan.name === 'PRO'
+                      ? 'border-emerald-600 bg-emerald-600 text-white hover:bg-emerald-700'
+                      : plan.name === 'MAX'
+                        ? 'bg-slate-900 text-white border-slate-900 hover:bg-slate-800'
+                        : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100',
+                  ]">
+                  {{
+                    plan.name === "FREE"
+                      ? "Continue with Free"
+                      : `Select ${plan.name}`
+                  }}
                 </button>
               </div>
             </div>
@@ -596,6 +518,21 @@ const appliedDiscount = ref(null);
 const step = ref(1);
 const loading = ref(false);
 const error = ref("");
+const dynamicPlans = ref([]);
+
+const fetchPlans = async () => {
+  const { $api } = useNuxtApp();
+  try {
+    const { data } = await $api.get("/plans");
+    dynamicPlans.value = data;
+  } catch (err) {
+    console.error("Failed to fetch plans", err);
+  }
+};
+
+onMounted(() => {
+  fetchPlans();
+});
 
 const form = reactive({
   currentStatus: "",

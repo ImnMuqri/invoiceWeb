@@ -160,7 +160,7 @@
               Users Management
             </NuxtLink>
             <NuxtLink
-              to="/admin/analytics"
+              to="/admin/plan-management"
               class="flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
               active-class="bg-[#ebebec] text-slate-900">
               <svg
@@ -172,9 +172,14 @@
                   stroke-linecap="round"
                   stroke-linejoin="round"
                   stroke-width="2"
-                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                  d="M19 21V5a2 2 0 012-2h2a2 2 0 012 2v16m-4 0h4m-4 0a2 2 0 01-2-2v-5a2 2 0 012-2h2a2 2 0 012 2v5a2 2 0 01-2 2h-4" />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M3 21v-8a2 2 0 012-2h2a2 2 0 012 2v8m-4 0h4m-4 0a2 2 0 01-2-2v-3a2 2 0 012-2h2a2 2 0 012 2v3a2 2 0 01-2 2h-4" />
               </svg>
-              Analytics
+              Plan Management
             </NuxtLink>
             <NuxtLink
               to="/admin/transactions"
@@ -523,7 +528,7 @@
                         Users Management
                       </NuxtLink>
                       <NuxtLink
-                        to="/admin/analytics"
+                        to="/admin/plan-management"
                         @click="isMobileMenuOpen = false"
                         class="flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
                         active-class="bg-[#ebebec] text-slate-900">
@@ -536,9 +541,14 @@
                             stroke-linecap="round"
                             stroke-linejoin="round"
                             stroke-width="2"
-                            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            d="M19 21V5a2 2 0 012-2h2a2 2 0 012 2v16m-4 0h4m-4 0a2 2 0 01-2-2v-5a2 2 0 012-2h2a2 2 0 012 2v5a2 2 0 01-2 2h-4" />
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M3 21v-8a2 2 0 012-2h2a2 2 0 012 2v8m-4 0h4m-4 0a2 2 0 01-2-2v-3a2 2 0 012-2h2a2 2 0 012 2v3a2 2 0 01-2 2h-4" />
                         </svg>
-                        Analytics
+                        Plan Management
                       </NuxtLink>
                       <NuxtLink
                         to="/admin/transactions"

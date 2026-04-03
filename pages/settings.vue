@@ -1220,233 +1220,97 @@
               </p>
             </div>
 
-            <!-- Pricing Grid -->
+            <!-- Dynamic Pricing Grid -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pb-12">
-              <!-- Free Plan -->
               <div
-                class="border border-slate-200 rounded-2xl p-8 transition-all hover:border-slate-300 bg-white shadow-sm flex flex-col">
+                v-for="plan in dynamicPlans"
+                :key="plan.id"
+                :class="[
+                  'border rounded-2xl p-8 transition-all shadow-sm flex flex-col',
+                  plan.name === 'PRO'
+                    ? 'hover:border-emerald-200'
+                    : plan.name === 'MAX'
+                      ? 'hover:border-indigo-200'
+                      : 'hover:border-slate-300',
+                  'bg-white',
+                ]">
                 <div class="mb-8">
-                  <div class="flex items-center justify-between mb-2">
-                    <h5 class="text-lg font-semibold text-slate-900">Free</h5>
+                  <div class="flex items-center justify-between mb-2 text-left">
+                    <h5
+                      class="text-lg font-semibold text-slate-900 uppercase tracking-tight">
+                      {{ plan.name }}
+                    </h5>
                     <span
-                      v-if="authStore.user?.plan === 'FREE'"
+                      v-if="authStore.user?.plan === plan.name"
                       class="px-2 py-0.5 bg-slate-900 text-white text-[10px] font-semibold rounded uppercase tracking-widest">
                       Active
                     </span>
                   </div>
-                  <p class="text-sm text-slate-500 font-medium">For starters</p>
-                </div>
-                <div class="mb-8 flex items-baseline">
-                  <span
-                    class="text-4xl font-semibold text-slate-900 tracking-tight"
-                    >RM 0</span
-                  >
-                  <span class="text-slate-400 text-sm ml-1 font-medium"
-                    >/month</span
-                  >
-                </div>
-                <ul class="space-y-4 mb-8 flex-1">
-                  <li
-                    v-for="feature in [
-                      '5 Invoices/mo',
-                      '5 Email Deliveries/mo',
-                    ]"
-                    :key="feature"
-                    class="flex items-center text-sm font-medium text-slate-600">
-                    <UiIcon
-                      icon="heroicons:check"
-                      class="w-4 h-4 mr-3 text-slate-400" />
-                    {{ feature }}
-                  </li>
-                  <li
-                    v-for="limit in [
-                      'No Reminders',
-                      'No AI Drafts',
-                      'No WhatsApp Features',
-                      'No Auto-Chasers',
-                    ]"
-                    :key="limit"
-                    class="flex items-center text-sm font-medium text-slate-400 line-through">
-                    <UiIcon
-                      icon="heroicons:x-mark"
-                      class="w-4 h-4 mr-3 text-slate-300" />
-                    {{ limit }}
-                  </li>
-                </ul>
-                <button
-                  @click="
-                    authStore.user?.plan !== 'FREE' && !isCancelling
-                      ? updatePlan('FREE')
-                      : null
-                  "
-                  :disabled="authStore.user?.plan !== 'FREE'"
-                  class="w-full py-2.5 rounded-xl text-sm font-semibold transition-all border"
-                  :class="
-                    authStore.user?.plan !== 'FREE'
-                      ? 'border-slate-100 bg-slate-50 text-slate-400 cursor-not-allowed'
-                      : 'bg-slate-900 text-white border-slate-900 hover:bg-slate-800'
-                  ">
-                  {{
-                    authStore.user?.plan === "FREE"
-                      ? "Current Plan"
-                      : isCancelling
-                        ? "Downgrade Pending"
-                        : "Cancel Plan To Downgrade"
-                  }}
-                </button>
-              </div>
-
-              <!-- Pro Plan -->
-              <div
-                class="border border-slate-200 rounded-2xl p-8 transition-all hover:border-emerald-200 bg-white shadow-sm flex flex-col">
-                <div class="mb-8">
-                  <div class="flex items-center justify-between mb-2">
-                    <h5 class="text-lg font-semibold text-slate-900">Pro</h5>
-                    <span
-                      v-if="authStore.user?.plan === 'PRO'"
-                      class="px-2 py-0.5 bg-emerald-600 text-white text-[10px] font-semibold rounded uppercase tracking-widest">
-                      Active
-                    </span>
-                  </div>
-                  <p class="text-sm text-slate-500 font-medium">
-                    Perfect for freelancers
+                  <p class="text-sm text-slate-500 font-medium text-left">
+                    {{ plan.description }}
                   </p>
                 </div>
                 <div class="mb-8 flex items-baseline">
                   <span
-                    class="text-4xl font-semibold text-slate-900 tracking-tight"
-                    >RM 59</span
-                  >
+                    class="text-4xl font-semibold text-slate-900 tracking-tight">
+                    {{ plan.currency }} {{ plan.price }}
+                  </span>
                   <span class="text-slate-400 text-sm ml-1 font-medium"
-                    >/month</span
+                    >/{{ plan.interval }}</span
                   >
                 </div>
-                <ul class="space-y-4 mb-8 flex-1">
+                <ul class="space-y-4 mb-8 flex-1 text-left">
                   <li
-                    v-for="feature in [
-                      '100 Invoices/mo',
-                      '50 WhatsApp Sends & Reminders',
-                      '100 Email Deliveries & Reminders',
-                      '20 AI Drafts/mo',
-                      'Auto-Chaser',
-                    ]"
+                    v-for="feature in plan.features"
                     :key="feature"
                     class="flex items-center text-sm font-medium text-slate-600">
                     <UiIcon
                       icon="heroicons:check"
-                      class="w-4 h-4 mr-3 text-emerald-600" />
-                    {{ feature }}
-                  </li>
-                  <li
-                    class="flex items-center text-sm font-medium text-slate-400 line-through">
-                    <UiIcon
-                      icon="heroicons:x-mark"
-                      class="w-4 h-4 mr-3 text-slate-300" />
-                    White Labelling
-                  </li>
-                </ul>
-                <button
-                  @click="
-                    authStore.user?.plan === 'PRO'
-                      ? updatePlan('FREE')
-                      : updatePlan('PRO')
-                  "
-                  :disabled="
-                    (authStore.user?.plan !== 'FREE' &&
-                      authStore.user?.plan !== 'PRO') ||
-                    (authStore.user?.plan === 'PRO' && isCancelling)
-                  "
-                  class="w-full py-2.5 rounded-xl text-sm font-semibold transition-all border"
-                  :class="
-                    authStore.user?.plan === 'PRO'
-                      ? isCancelling
-                        ? 'border-emerald-100 bg-emerald-50 text-emerald-400 cursor-not-allowed'
-                        : 'border-emerald-100 bg-emerald-50 text-emerald-600 hover:bg-emerald-100'
-                      : authStore.user?.plan !== 'FREE' &&
-                          authStore.user?.plan !== 'PRO'
-                        ? 'border-slate-100 bg-slate-50 text-slate-400 cursor-not-allowed'
-                        : 'bg-slate-900 text-white border-slate-900 hover:bg-slate-800'
-                  ">
-                  <template v-if="authStore.user?.plan === 'PRO'">
-                    {{ isCancelling ? "Plan Cancelling" : "Cancel Plan" }}
-                  </template>
-                  <template v-else-if="authStore.user?.plan !== 'FREE'">
-                    Cancel Current Plan First
-                  </template>
-                  <template v-else> Select Pro </template>
-                </button>
-              </div>
-
-              <!-- Max Plan -->
-              <div
-                class="border border-slate-200 rounded-2xl p-8 transition-all hover:border-indigo-200 bg-white shadow-sm flex flex-col">
-                <div class="mb-8">
-                  <div class="flex items-center justify-between mb-2">
-                    <h5 class="text-lg font-semibold text-slate-900">Max</h5>
-                    <span
-                      v-if="authStore.user?.plan === 'MAX'"
-                      class="px-2 py-0.5 bg-indigo-600 text-white text-[10px] font-semibold rounded uppercase tracking-widest">
-                      Active
-                    </span>
-                  </div>
-                  <p class="text-sm text-slate-500 font-medium">Power users</p>
-                </div>
-                <div class="mb-8 flex items-baseline">
-                  <span
-                    class="text-4xl font-semibold text-slate-900 tracking-tight"
-                    >RM 99</span
-                  >
-                  <span class="text-slate-400 text-sm ml-1 font-medium"
-                    >/month</span
-                  >
-                </div>
-                <ul class="space-y-4 mb-8 flex-1">
-                  <li
-                    v-for="feature in [
-                      'Unlimited Invoices/mo',
-                      '100 WhatsApp Sends & Reminders',
-                      'Unlimited Email Deliveries & Reminders',
-                      '100 AI Drafts/mo',
-                      'Auto-Chaser',
-                      'White Labelling',
-                    ]"
-                    :key="feature"
-                    class="flex items-center text-sm font-medium text-slate-600">
-                    <UiIcon
-                      icon="heroicons:check"
-                      class="w-4 h-4 mr-3 text-indigo-500" />
+                      :class="[
+                        'w-4 h-4 mr-3 shrink-0',
+                        plan.name === 'PRO'
+                          ? 'text-emerald-600'
+                          : plan.name === 'MAX'
+                            ? 'text-indigo-500'
+                            : 'text-slate-400',
+                      ]" />
                     {{ feature }}
                   </li>
                 </ul>
                 <button
-                  @click="
-                    authStore.user?.plan === 'MAX'
-                      ? updatePlan('FREE')
-                      : updatePlan('MAX')
-                  "
+                  @click="updatePlan(plan.name)"
                   :disabled="
+                    (authStore.user?.plan === plan.name && !isCancelling) ||
                     (authStore.user?.plan !== 'FREE' &&
-                      authStore.user?.plan !== 'MAX') ||
-                    (authStore.user?.plan === 'MAX' && isCancelling)
+                      authStore.user?.plan !== plan.name &&
+                      !isCancelling)
                   "
-                  class="w-full py-2.5 rounded-xl text-sm font-semibold transition-all border"
-                  :class="
-                    authStore.user?.plan === 'MAX'
+                  class="w-full py-2.5 rounded-xl text-sm font-semibold transition-all border outline-none cursor-pointer"
+                  :class="[
+                    authStore.user?.plan === plan.name
                       ? isCancelling
-                        ? 'border-indigo-100 bg-indigo-50 text-indigo-400 cursor-not-allowed'
-                        : 'border-indigo-100 bg-indigo-50 text-indigo-600 hover:bg-indigo-100'
-                      : authStore.user?.plan !== 'FREE' &&
-                          authStore.user?.plan !== 'MAX'
                         ? 'border-slate-100 bg-slate-50 text-slate-400 cursor-not-allowed'
                         : 'bg-slate-900 text-white border-slate-900 hover:bg-slate-800'
-                  ">
-                  <template v-if="authStore.user?.plan === 'MAX'">
-                    {{ isCancelling ? "Plan Cancelling" : "Cancel Plan" }}
+                      : authStore.user?.plan !== 'FREE' && !isCancelling
+                        ? 'border-slate-100 bg-slate-50 text-slate-400 cursor-not-allowed'
+                        : 'bg-slate-900 text-white border-slate-900 hover:bg-slate-800',
+                  ]">
+                  <template v-if="authStore.user?.plan === plan.name">
+                    {{ isCancelling ? "Downgrade Pending" : "Current Plan" }}
                   </template>
-                  <template v-else-if="authStore.user?.plan !== 'FREE'">
+                  <template
+                    v-else-if="
+                      authStore.user?.plan !== 'FREE' && !isCancelling
+                    ">
                     Cancel Current Plan First
                   </template>
-                  <template v-else> Select Max </template>
+                  <template v-else>
+                    {{
+                      plan.name === "FREE"
+                        ? "Select Free"
+                        : `Select ${plan.name}`
+                    }}
+                  </template>
                 </button>
               </div>
             </div>
@@ -1620,6 +1484,16 @@ const isCancelling = computed(() => currentSub.value?.cancelAtPeriodEnd);
 const activeTab = ref(route.query.tab || "general");
 const toast = ref({ message: "", type: "success" });
 const currencyOptions = ref([]);
+const dynamicPlans = ref([]);
+
+const fetchPlans = async () => {
+  try {
+    const { data } = await $api.get("/plans");
+    dynamicPlans.value = data;
+  } catch (err) {
+    console.error("Failed to fetch plans", err);
+  }
+};
 
 const reminderIntervalOptions = [
   { value: 0, label: "None (Disabled)" },
@@ -1735,6 +1609,7 @@ onMounted(async () => {
   }
 
   fetchCurrencies();
+  fetchPlans();
   await authStore.fetchProfile();
   if (authStore.user) {
     profileForm.value = {

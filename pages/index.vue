@@ -837,134 +837,70 @@
           </div>
 
           <div class="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto items-center">
-            <!-- Free Plan -->
+            <!-- Dynamic Plans -->
             <div
-              class="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm flex flex-col hover:border-slate-300 transition-colors">
-              <h3 class="text-xl font-semibold text-slate-900 mb-2">Free</h3>
-              <p class="text-sm text-slate-500 mb-6">
-                For micro-freelancers starting out.
-              </p>
-              <div class="mb-6">
-                <span class="text-4xl font-black text-slate-900">RM 0</span>
-              </div>
-              <ul class="space-y-4 mb-8 flex-1">
-                <li
-                  v-for="feature in ['5 Invoices/mo', '5 Email Deliveries/mo']"
-                  :key="feature"
-                  class="flex items-center gap-2 text-sm text-slate-700">
-                  <svg
-                    class="w-4 h-4 text-emerald-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor">
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M5 13l4 4L19 7"></path>
-                  </svg>
-                  {{ feature }}
-                </li>
-                <li
-                  v-for="limit in [
-                    'No Reminders',
-                    'No AI Drafts',
-                    'No WhatsApp Features',
-                    'No Auto-Chasers',
-                  ]"
-                  :key="limit"
-                  class="flex items-center gap-2 text-sm text-slate-400">
-                  <svg
-                    class="w-4 h-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor">
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M6 18L18 6M6 6l12 12"></path>
-                  </svg>
-                  {{ limit }}
-                </li>
-              </ul>
-              <button
-                class="w-full py-3 rounded-full border border-slate-300 font-semibold text-slate-700 hover:bg-slate-50 transition-colors">
-                Get Started
-              </button>
-            </div>
-
-            <!-- Pro Plan -->
-            <div
-              class="bg-slate-900 rounded-3xl p-8 border border-slate-800 shadow-xl flex flex-col relative transform md:-translate-y-4">
+              v-for="plan in dynamicPlans"
+              :key="plan.id"
+              :class="[
+                'rounded-3xl p-8 border shadow-sm flex flex-col transition-all duration-300 relative self-stretch',
+                plan.name === 'PRO'
+                  ? 'bg-slate-900 border-slate-800 shadow-xl transform md:-translate-y-4'
+                  : 'bg-white border-slate-200 hover:border-slate-300',
+              ]">
               <div
+                v-if="plan.name === 'PRO'"
                 class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-emerald-600 text-white px-3 py-1 rounded-full text-xs font-semibold tracking-wide uppercase">
                 Most Popular
               </div>
-              <h3 class="text-xl font-semibold text-white mb-2">Pro</h3>
-              <p class="text-sm text-slate-400 mb-6">
-                Full automation for professionals.
-              </p>
-              <div class="mb-6">
-                <span class="text-4xl font-black text-white">RM 59</span
-                ><span class="text-slate-400 font-medium">/mo</span>
-              </div>
-              <ul class="space-y-4 mb-8 flex-1">
-                <li
-                  v-for="feature in [
-                    '100 Invoices/mo',
-                    '50 WhatsApp Sends & Reminders',
-                    '100 Email Deliveries & Reminders',
-                    '20 AI Drafts/mo',
-                    'Auto-Chaser',
-                  ]"
-                  :key="feature"
-                  class="flex items-center gap-2 text-sm text-slate-300">
-                  <svg
-                    class="w-4 h-4 text-emerald-400"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor">
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M5 13l4 4L19 7"></path>
-                  </svg>
-                  {{ feature }}
-                </li>
-              </ul>
-              <button
-                class="w-full py-3 rounded-full bg-white font-semibold text-slate-900 hover:bg-slate-100 transition-colors">
-                Go Pro
-              </button>
-            </div>
 
-            <!-- Max Plan -->
-            <div
-              class="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm flex flex-col hover:border-slate-300 transition-colors">
-              <h3 class="text-xl font-semibold text-slate-900 mb-2">Max</h3>
-              <p class="text-sm text-slate-500 mb-6">
-                Power usage & custom branding.
+              <h3
+                :class="[
+                  'text-xl font-semibold mb-2',
+                  plan.name === 'PRO' ? 'text-white' : 'text-slate-900',
+                ]">
+                {{ plan.name }}
+              </h3>
+              <p
+                :class="[
+                  'text-sm mb-6',
+                  plan.name === 'PRO' ? 'text-slate-400' : 'text-slate-500',
+                ]">
+                {{ plan.description }}
               </p>
+
               <div class="mb-6">
-                <span class="text-4xl font-black text-slate-900">RM 99</span
-                ><span class="text-slate-500 font-medium">/mo</span>
+                <span
+                  :class="[
+                    'text-4xl font-black',
+                    plan.name === 'PRO' ? 'text-white' : 'text-slate-900',
+                  ]"
+                  >{{ plan.currency }} {{ plan.price }}</span
+                >
+                <span
+                  v-if="plan.price > 0"
+                  :class="[
+                    'font-medium',
+                    plan.name === 'PRO' ? 'text-slate-400' : 'text-slate-500',
+                  ]"
+                  >/{{ plan.interval }}</span
+                >
               </div>
+
               <ul class="space-y-4 mb-8 flex-1">
                 <li
-                  v-for="feature in [
-                    'Unlimited Invoices/mo',
-                    '100 WhatsApp Sends & Reminders',
-                    'Unlimited Email Deliveries & Reminders',
-                    '100 AI Drafts/mo',
-                    'Auto-Chaser',
-                    'White Labelling',
-                  ]"
+                  v-for="feature in plan.features"
                   :key="feature"
-                  class="flex items-center gap-2 text-sm text-slate-700">
+                  class="flex items-center gap-2 text-sm text-left"
+                  :class="
+                    plan.name === 'PRO' ? 'text-slate-300' : 'text-slate-700'
+                  ">
                   <svg
-                    class="w-4 h-4 text-emerald-600"
+                    :class="[
+                      'w-4 h-4 shrink-0',
+                      plan.name === 'PRO'
+                        ? 'text-emerald-400'
+                        : 'text-emerald-600',
+                    ]"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor">
@@ -977,10 +913,25 @@
                   {{ feature }}
                 </li>
               </ul>
-              <button
-                class="w-full py-3 rounded-full bg-slate-900 font-semibold text-white hover:bg-slate-800 transition-colors">
-                Get Max
-              </button>
+
+              <NuxtLink
+                :to="authStore.isAuthenticated ? '/dashboard' : '/register'"
+                class="w-full py-3 rounded-full font-semibold transition-all text-center no-underline inline-block"
+                :class="[
+                  plan.name === 'PRO'
+                    ? 'bg-white text-slate-900 hover:bg-slate-100'
+                    : plan.name === 'MAX'
+                      ? 'bg-slate-900 text-white hover:bg-slate-800'
+                      : 'border border-slate-300 text-slate-700 hover:bg-slate-50',
+                ]">
+                {{
+                  plan.name === "FREE"
+                    ? "Get Started"
+                    : plan.name === "PRO"
+                      ? "Go Pro"
+                      : "Get Max"
+                }}
+              </NuxtLink>
             </div>
           </div>
 
@@ -1165,9 +1116,26 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
+import { useAuthStore } from "~/stores/authStore";
 
+const authStore = useAuthStore();
 const previewTab = ref("ai");
+const dynamicPlans = ref([]);
+
+const fetchPlans = async () => {
+  const { $api } = useNuxtApp();
+  try {
+    const { data } = await $api.get("/plans");
+    dynamicPlans.value = data;
+  } catch (err) {
+    console.error("Failed to fetch plans", err);
+  }
+};
+
+onMounted(() => {
+  fetchPlans();
+});
 
 definePageMeta({
   layout: false,
