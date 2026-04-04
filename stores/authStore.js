@@ -26,9 +26,28 @@ export const useAuthStore = defineStore("auth", () => {
   };
 
   function syncFromCookies() {
-    const u = useCookie("user").value;
-    const at = useCookie("accessToken").value;
-    const rt = useCookie("refreshToken").value;
+    let u = useCookie("user").value;
+    let at = useCookie("accessToken").value;
+    let rt = useCookie("refreshToken").value;
+
+    // Fallback for SSR reliability in production
+    if (process.server && !at) {
+      const headers = useRequestHeaders(["cookie"]);
+      if (headers.cookie) {
+        const atMatch = headers.cookie.match(/accessToken=([^;]+)/);
+        if (atMatch) at = atMatch[1];
+
+        const rtMatch = headers.cookie.match(/refreshToken=([^;]+)/);
+        if (rtMatch) rt = rtMatch[1];
+
+        const userMatch = headers.cookie.match(/user=([^;]+)/);
+        if (userMatch) {
+          try {
+            u = JSON.parse(decodeURIComponent(userMatch[1]));
+          } catch (e) {}
+        }
+      }
+    }
 
     if (at) {
       accessToken.value = at;

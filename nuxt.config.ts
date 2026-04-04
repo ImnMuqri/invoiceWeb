@@ -24,7 +24,7 @@ export default defineNuxtConfig({
   },
   router: {
     options: {
-      trailingSlash: true
+      strict: false
     }
   }
 })

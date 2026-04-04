@@ -14,8 +14,18 @@ export default defineNuxtRouteMiddleware((to, from) => {
   );
 
   // Authentication status check
-  // Directly check cookies for SSR reliability
-  const cookieToken = useCookie("accessToken").value;
+  // Uses store token or direct cookie check for SSR reliability
+  let cookieToken = useCookie("accessToken").value;
+
+  // High-reliability check for SSR in production
+  if (process.server && !cookieToken) {
+    const headers = useRequestHeaders(["cookie"]);
+    if (headers.cookie) {
+      const match = headers.cookie.match(/accessToken=([^;]+)/);
+      if (match) cookieToken = match[1];
+    }
+  }
+
   const isAuthenticated = !!(authStore.accessToken || cookieToken);
 
   // Protected route check
