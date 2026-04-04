@@ -383,33 +383,6 @@
             <!-- Client Profitability Insights -->
             <div
               class="col-span-2 bg-white shadow-sm rounded-xl border border-slate-200 flex flex-col relative">
-              <!-- Blur Overlay for Client Profitability -->
-              <div
-                v-if="!authStore.isPro"
-                class="absolute inset-0 z-10 backdrop-blur-[4px] bg-white/40 flex items-center justify-center border border-slate-100/50 rounded-xl">
-                <div class="text-center p-4">
-                  <div class="flex items-center justify-center gap-1 mb-2">
-                    <h3 class="text-[13px] font-bold text-slate-900">
-                      Profitability Insights Locked
-                    </h3>
-                    <UiIcon
-                      icon="heroicons:lock-closed"
-                      class="w-3 h-3 text-black/70" />
-                  </div>
-                  <p
-                    class="text-[12px] text-slate-500 mb-4 px-2 leading-relaxed">
-                    Identify your most high-value clients with automated margin
-                    analysis and payment behavior tracking.
-                  </p>
-
-                  <NuxtLink
-                    to="/settings?tab=billing"
-                    class="text-[10px] font-bold border border-emerald-200 py-2 px-4 rounded-md text-emerald-600 hover:text-emerald-800 uppercase tracking-widest"
-                    >Upgrade to Pro →</NuxtLink
-                  >
-                </div>
-              </div>
-
               <div
                 class="p-6 border-b border-slate-200 flex items-center justify-between bg-white rounded-t-xl z-20">
                 <div>
@@ -454,8 +427,37 @@
                   :options="rankOptions"
                   custom-class="!w-32 !py-1 !text-xs !font-semibold !uppercase !tracking-wider !bg-slate-50" />
               </div>
+
+              <!-- Table Content Area -->
               <div
-                class="flex-1 overflow-x-auto profit-table-scroll rounded-b-xl overflow-hidden">
+                class="flex-1 overflow-x-auto profit-table-scroll rounded-b-xl overflow-hidden relative">
+                <!-- Blur Overlay for Client Profitability -->
+                <div
+                  v-if="!authStore.isPro"
+                  class="absolute inset-0 z-10 backdrop-blur-[4px] bg-white/40 flex items-center justify-center border border-slate-100/50 rounded-b-xl">
+                  <div class="text-center p-4">
+                    <div class="flex items-center justify-center gap-1 mb-2">
+                      <h3 class="text-[13px] font-bold text-slate-900">
+                        Profitability Insights Locked
+                      </h3>
+                      <UiIcon
+                        icon="heroicons:lock-closed"
+                        class="w-3 h-3 text-black/70" />
+                    </div>
+                    <p
+                      class="text-[12px] text-slate-500 mb-4 px-2 leading-relaxed">
+                      Identify your most high-value clients with automated
+                      margin analysis and payment behavior tracking.
+                    </p>
+
+                    <NuxtLink
+                      to="/settings?tab=billing"
+                      class="text-[10px] font-bold border border-emerald-200 py-2 px-4 rounded-md text-emerald-600 hover:text-emerald-800 uppercase tracking-widest"
+                      >Upgrade to Pro →</NuxtLink
+                    >
+                  </div>
+                </div>
+
                 <table class="min-w-full divide-y divide-slate-200">
                   <thead class="bg-slate-50">
                     <tr>
