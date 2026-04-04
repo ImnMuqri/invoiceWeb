@@ -164,7 +164,7 @@
           <div
             class="flex flex-col sm:flex-row items-center justify-center gap-4">
             <NuxtLink
-              to="/dashboard"
+              to="/login"
               class="group relative w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 text-base font-semibold text-white bg-slate-900 rounded-full hover:bg-slate-800 transition-all duration-300 hover:scale-105 active:scale-95 shadow-md hover:shadow-lg">
               Get Started Free
               <svg

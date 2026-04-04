@@ -1198,16 +1198,34 @@
                 <div class="mb-8 flex flex-col items-start min-h-[50px]">
                   <div class="flex items-baseline flex-wrap gap-2">
                     <span
-                      v-if="isPromoValid && appliedDiscount && getDiscountedPrice(plan.price) < plan.price"
+                      v-if="
+                        isPromoValid &&
+                        appliedDiscount &&
+                        getDiscountedPrice(plan.price) < plan.price
+                      "
                       class="text-2xl font-semibold text-slate-400 line-through tracking-tight">
                       {{ plan.currency }} {{ plan.price }}
                     </span>
-                    <span class="text-4xl font-semibold text-slate-900 tracking-tight">
-                      {{ plan.currency }} {{ isPromoValid ? getDiscountedPrice(plan.price) : plan.price }}
+                    <span
+                      class="text-4xl font-semibold text-slate-900 tracking-tight">
+                      {{ plan.currency }}
+                      {{
+                        isPromoValid
+                          ? getDiscountedPrice(plan.price)
+                          : plan.price
+                      }}
                     </span>
-                    <span class="text-slate-400 text-sm font-medium">/{{ plan.interval }}</span>
+                    <span class="text-slate-400 text-sm font-medium"
+                      >/{{ plan.interval }}</span
+                    >
                   </div>
-                  <p v-if="isPromoValid && appliedDiscount && getDiscountedPrice(plan.price) < plan.price" class="text-[10px] text-emerald-600 font-semibold mt-2 tracking-wide text-left">
+                  <p
+                    v-if="
+                      isPromoValid &&
+                      appliedDiscount &&
+                      getDiscountedPrice(plan.price) < plan.price
+                    "
+                    class="text-[10px] text-emerald-600 font-semibold mt-2 tracking-wide text-left">
                     Discount applies to the first subscription term only.
                   </p>
                 </div>
@@ -1334,30 +1352,32 @@
       </div>
       <div class="text-center">
         <h3 class="text-lg font-bold text-slate-900">Cancel Plan?</h3>
-        <p class="mt-2 text-sm text-slate-500 font-medium leading-relaxed">
+        <div class="mt-2 text-sm text-slate-500 font-medium leading-relaxed">
           Are you sure you want to cancel your
           <span class="text-slate-900 font-bold uppercase">{{
             authStore.user?.plan
           }}</span>
           subscription?
-          <p class="pt-1">You will keep
-          <span class="text-slate-900 font-bold uppercase">{{
-            authStore.user?.plan || "your"
-          }}</span>
-          benefits until
-          <span class="text-slate-900 font-bold">{{
-            authStore.user?.subscriptions?.[0]?.subscriptionEnds
-              ? new Date(
-                  authStore.user.subscriptions[0].subscriptionEnds,
-                ).toLocaleDateString("en-GB", {
-                  day: "numeric",
-                  month: "short",
-                  year: "numeric",
-                })
-              : "the end of your billing cycle"
-          }}</span
-          >, after which you will move to the FREE plan.</p>
-        </p>
+          <p class="pt-2">
+            You will keep
+            <span class="text-slate-900 font-bold uppercase">{{
+              authStore.user?.plan || "your"
+            }}</span>
+            benefits until
+            <span class="text-slate-900 font-bold">{{
+              authStore.user?.subscriptions?.[0]?.subscriptionEnds
+                ? new Date(
+                    authStore.user.subscriptions[0].subscriptionEnds,
+                  ).toLocaleDateString("en-GB", {
+                    day: "numeric",
+                    month: "short",
+                    year: "numeric",
+                  })
+                : "the end of your billing cycle"
+            }}</span
+            >, after which you will move to the FREE plan.
+          </p>
+        </div>
       </div>
       <div class="mt-6 flex flex-col gap-3">
         <button
@@ -1560,7 +1580,11 @@ const currentSub = computed(() => authStore.user?.subscriptions?.[0]);
 const isCancelling = computed(() => {
   const sub = currentSub.value;
   if (!sub) return false;
-  return sub.cancelAtPeriodEnd || sub.status === "CANCELED" || sub.status === "CANCELLED";
+  return (
+    sub.cancelAtPeriodEnd ||
+    sub.status === "CANCELED" ||
+    sub.status === "CANCELLED"
+  );
 });
 const activeTab = ref(route.query.tab || "general");
 const toast = ref({ message: "", type: "success" });
@@ -1707,7 +1731,8 @@ onMounted(async () => {
       reminderInterval: settings?.reminderInterval || 0,
       invoiceIncludeName: settings?.invoiceIncludeName || false,
       invoiceIncludeEmail: settings?.invoiceIncludeEmail || false,
-      invoiceIncludePersonalPhone: settings?.invoiceIncludePersonalPhone || false,
+      invoiceIncludePersonalPhone:
+        settings?.invoiceIncludePersonalPhone || false,
       invoiceIncludeCompanyPhone: settings?.invoiceIncludeCompanyPhone || false,
       invoiceIncludeCompanyName: settings?.invoiceIncludeCompanyName || false,
       invoiceIncludeAddress: settings?.invoiceIncludeAddress || false,
@@ -1945,11 +1970,11 @@ const getDiscountedPrice = (price) => {
   const numPrice = parseFloat(price);
   if (isNaN(numPrice) || numPrice === 0) return numPrice;
   if (!isPromoValid.value || !appliedDiscount.value) return numPrice;
-  
+
   const d = appliedDiscount.value;
   let discounted = numPrice;
   if (d.discountType === "PERCENTAGE") {
-    discounted = numPrice - (numPrice * (d.discountValue / 100));
+    discounted = numPrice - numPrice * (d.discountValue / 100);
   } else {
     discounted = numPrice - d.discountValue;
   }

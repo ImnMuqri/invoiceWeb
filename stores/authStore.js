@@ -73,7 +73,8 @@ export const useAuthStore = defineStore("auth", () => {
       document.readyState === "complete" ||
       document.readyState === "interactive"
     ) {
-      initStore();
+      // Add slight delay to ensure Vue gives the right hydration signal safely if needed
+      setTimeout(initStore, 0);
     } else {
       window.addEventListener("DOMContentLoaded", initStore);
     }
