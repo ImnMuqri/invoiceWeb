@@ -484,6 +484,16 @@
                     </tr>
                   </thead>
                   <tbody class="bg-white divide-y divide-slate-100">
+                    <tr v-if="dashboardStore.topClients.length === 0">
+                      <td
+                        colspan="5"
+                        class="py-10 text-center bg-slate-50 border-b border-dashed border-slate-200">
+                        <p
+                          class="text-xs font-semibold text-slate-400 uppercase">
+                          No data available
+                        </p>
+                      </td>
+                    </tr>
                     <tr
                       v-for="client in dashboardStore.topClients"
                       :key="client.id"

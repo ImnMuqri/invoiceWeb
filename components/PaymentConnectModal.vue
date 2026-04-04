@@ -1,8 +1,12 @@
 <template>
-  <UiModal v-model="isOpen" :title="title" maxWidth="md">
+  <UiModal
+    v-model="isOpen"
+    :title="title"
+    :description="providerDescription"
+    maxWidth="md">
     <div class="p-6">
       <div v-if="step === 1">
-        <div class="flex items-center gap-3 mb-4">
+        <div class="flex items-center gap-3 mb-6">
           <div
             class="w-10 h-10 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100 overflow-hidden shrink-0">
             <img
@@ -10,9 +14,11 @@
               class="w-8 h-8 object-contain"
               :alt="providerName" />
           </div>
-          <h4 class="text-sm font-semibold text-slate-900">
-            {{ providerName }} Setup
-          </h4>
+          <div>
+            <h4 class="text-sm font-semibold text-slate-900">
+              {{ providerName }} Setup
+            </h4>
+          </div>
         </div>
 
         <div class="space-y-6">
@@ -118,6 +124,12 @@ const providerLogo = computed(() => {
   return props.provider === "TOYYIBPAY"
     ? "https://images.crunchbase.com/image/upload/c_pad,h_256,w_256,f_auto,q_auto:eco,dpr_1/e2hhr8kgl2hq5bkkqueq?ik-sanitizeSvg=true"
     : "https://make-cxp-documentation.ams3.digitaloceanspaces.com/apps-center-icons/billplz.png";
+});
+const providerDescription = computed(() => {
+  if (props.provider === "TOYYIBPAY") {
+    return "Accept FPX online banking easily with industry-low flat rates.";
+  }
+  return "Seamlessly collect payments via FPX, cards, and e-wallets.";
 });
 const title = computed(() => `Connect to ${providerName.value}`);
 

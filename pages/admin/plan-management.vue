@@ -162,7 +162,7 @@
       </div>
 
       <div
-        class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
         <table class="w-full text-left border-collapse">
           <thead>
             <tr class="bg-slate-50/50 border-b border-slate-100">

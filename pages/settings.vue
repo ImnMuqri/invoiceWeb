@@ -683,12 +683,12 @@
                   <div class="flex gap-2">
                     <button
                       @click="openConnectModal('TOYYIBPAY')"
-                      class="flex-1 py-2 text-xs font-bold text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 transition-all">
+                      class="flex-1 py-2 text-xs font-bold text-slate-600 border border-slate-200 rounded-md hover:bg-slate-50 transition-all">
                       Edit
                     </button>
                     <button
                       @click="disconnectProvider('TOYYIBPAY')"
-                      class="px-3 py-2 text-xs font-bold text-red-600 border border-red-100 rounded-lg hover:bg-red-50 transition-all">
+                      class="px-3 py-2 text-xs font-bold text-red-600 border border-red-100 rounded-md hover:bg-red-50 transition-all">
                       Disconnect
                     </button>
                   </div>
@@ -698,14 +698,14 @@
                       paymentProviders.length > 1
                     "
                     @click="setPreferred('TOYYIBPAY')"
-                    class="w-full mt-3 py-1.5 text-[10px] font-bold text-blue-600 border border-blue-100 rounded-lg hover:bg-blue-50 transition-all uppercase tracking-widest">
+                    class="w-full mt-3 py-1.5 text-[10px] font-bold text-blue-600 border border-blue-100 rounded-md hover:bg-blue-50 transition-all uppercase tracking-widest">
                     Set Preferred
                   </button>
                 </div>
                 <button
                   v-else
                   @click="openConnectModal('TOYYIBPAY')"
-                  class="mt-auto w-full py-2.5 bg-slate-900 text-white text-xs font-bold rounded-xl hover:bg-slate-800 transition-all uppercase tracking-widest">
+                  class="mt-auto w-full py-2.5 bg-slate-900 text-white text-xs font-bold rounded-md hover:bg-slate-800 transition-all uppercase tracking-widest">
                   Connect
                 </button>
               </div>
@@ -749,12 +749,12 @@
                   <div class="flex gap-2">
                     <button
                       @click="openConnectModal('BILLPLZ')"
-                      class="flex-1 py-2 text-xs font-bold text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 transition-all">
+                      class="flex-1 py-2 text-xs font-bold text-slate-600 border border-slate-200 rounded-md hover:bg-slate-50 transition-all">
                       Edit
                     </button>
                     <button
                       @click="disconnectProvider('BILLPLZ')"
-                      class="px-3 py-2 text-xs font-bold text-red-600 border border-red-100 rounded-lg hover:bg-red-50 transition-all">
+                      class="px-3 py-2 text-xs font-bold text-red-600 border border-red-100 rounded-md hover:bg-red-50 transition-all">
                       Disconnect
                     </button>
                   </div>
@@ -764,14 +764,14 @@
                       paymentProviders.length > 1
                     "
                     @click="setPreferred('BILLPLZ')"
-                    class="w-full mt-3 py-1.5 text-[10px] font-bold text-blue-600 border border-blue-100 rounded-lg hover:bg-blue-50 transition-all uppercase tracking-widest">
+                    class="w-full mt-3 py-1.5 text-[10px] font-bold text-blue-600 border border-blue-100 rounded-md hover:bg-blue-50 transition-all uppercase tracking-widest">
                     Set Preferred
                   </button>
                 </div>
                 <button
                   v-else
                   @click="openConnectModal('BILLPLZ')"
-                  class="mt-auto w-full py-2.5 bg-slate-900 text-white text-xs font-bold rounded-xl hover:bg-slate-800 transition-all uppercase tracking-widest">
+                  class="mt-auto w-full py-2.5 bg-slate-900 text-white text-xs font-bold rounded-md hover:bg-slate-800 transition-all uppercase tracking-widest">
                   Connect
                 </button>
               </div>
@@ -1692,25 +1692,27 @@ onMounted(async () => {
   fetchCurrencies();
   fetchPlans();
   await authStore.fetchProfile();
+  const settings = await authStore.fetchSettings();
+
   if (authStore.user) {
     profileForm.value = {
       name: authStore.user.name || "",
-      companyName: authStore.user.companyName || "",
-      companyEmail: authStore.user.companyEmail || "",
-      companyPhone: authStore.user.companyPhone || "",
-      address: authStore.user.address || "",
       phoneNumber: authStore.user.phoneNumber || "",
       defaultCurrency: authStore.user.defaultCurrency || "MYR",
-      defaultTaxRate: authStore.user.defaultTaxRate || 0,
-      reminderInterval: authStore.user.reminderInterval,
-      invoiceIncludeName: authStore.user.invoiceIncludeName,
-      invoiceIncludeEmail: authStore.user.invoiceIncludeEmail,
-      invoiceIncludePersonalPhone: authStore.user.invoiceIncludePersonalPhone,
-      invoiceIncludeCompanyPhone: authStore.user.invoiceIncludeCompanyPhone,
-      invoiceIncludeCompanyName: authStore.user.invoiceIncludeCompanyName,
-      invoiceIncludeAddress: authStore.user.invoiceIncludeAddress,
-      globalAutoChaser: authStore.user.globalAutoChaser,
-      invoicePrefix: authStore.user.invoicePrefix,
+      companyName: settings?.companyName || "",
+      companyEmail: settings?.companyEmail || "",
+      companyPhone: settings?.companyPhone || "",
+      address: settings?.address || "",
+      defaultTaxRate: settings?.defaultTaxRate || 0,
+      reminderInterval: settings?.reminderInterval || 0,
+      invoiceIncludeName: settings?.invoiceIncludeName || false,
+      invoiceIncludeEmail: settings?.invoiceIncludeEmail || false,
+      invoiceIncludePersonalPhone: settings?.invoiceIncludePersonalPhone || false,
+      invoiceIncludeCompanyPhone: settings?.invoiceIncludeCompanyPhone || false,
+      invoiceIncludeCompanyName: settings?.invoiceIncludeCompanyName || false,
+      invoiceIncludeAddress: settings?.invoiceIncludeAddress || false,
+      globalAutoChaser: settings?.globalAutoChaser || false,
+      invoicePrefix: settings?.invoicePrefix || "INV",
     };
 
     // Force disable toggles if data is missing
@@ -1730,7 +1732,6 @@ onMounted(async () => {
     originalProfileForm.value = JSON.parse(JSON.stringify(profileForm.value));
   }
 
-  const settings = await authStore.fetchSettings();
   if (settings) {
     settingsForm.value.whatsappSendTemplate =
       settings.whatsappSendTemplate || "";
@@ -1874,6 +1875,7 @@ const saveSettings = async () => {
       activeTab.value === "invoice_config"
     ) {
       res = await authStore.updateProfile(profileForm.value);
+      await authStore.updateSettings(profileForm.value);
     } else if (activeTab.value === "whatsapp") {
       res = await authStore.updateSettings(settingsForm.value);
     } else if (activeTab.value === "payments") {

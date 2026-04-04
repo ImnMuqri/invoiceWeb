@@ -233,7 +233,7 @@ export const useAuthStore = defineStore("auth", () => {
     loading.value = true;
     error.value = null;
     try {
-      const { data } = await $api.get("/users/settings");
+      const { data } = await $api.get("/users/settings/profile");
       return data;
     } catch (err) {
       error.value = err.response?.data?.message || err.message;
@@ -248,8 +248,11 @@ export const useAuthStore = defineStore("auth", () => {
     loading.value = true;
     error.value = null;
     try {
-      const { data } = await $api.put("/users/settings", settingsData);
-      return true;
+      const { data } = await $api.put("/users/settings/profile", settingsData);
+      return {
+        message: data.message || "Settings updated successfully",
+        user: data.user,
+      };
     } catch (err) {
       error.value = err.response?.data?.message || err.message;
       throw err;

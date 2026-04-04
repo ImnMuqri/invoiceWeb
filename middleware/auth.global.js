@@ -12,7 +12,8 @@ export default defineNuxtRouteMiddleware((to, from) => {
     (route) =>
       normalizedPath === route ||
       normalizedPath.startsWith("/pay/") ||
-      (normalizedPath.startsWith("/invoices/") && normalizedPath.endsWith("/export")) ||
+      (normalizedPath.startsWith("/invoices/") &&
+        normalizedPath.endsWith("/export")) ||
       normalizedPath === "/pay" ||
       to.name === "pay-id",
   );
@@ -27,12 +28,7 @@ export default defineNuxtRouteMiddleware((to, from) => {
 
   // If user is not authenticated and trying to access a protected route
   if (!isAuthenticated && !isPublicRoute) {
-    // Only redirect to login on the client and ONLY after we are certain hydration/LS check is done
-    if (process.client && authStore.isHydrated) {
-      return navigateTo("/login");
-    }
-    // If we are on the server or not hydrated yet, we stay silent and let the client handle it
-    return;
+    return navigateTo("/login");
   }
 
   // If user is authenticated and trying to access login/register
@@ -44,11 +40,9 @@ export default defineNuxtRouteMiddleware((to, from) => {
   if (isAuthenticated) {
     const isCompleted = authStore.user?.onboardingCompleted === true;
     if (!isCompleted && normalizedPath !== "/onboarding" && !isPublicRoute) {
-      if (process.client && authStore.isHydrated) {
-        return navigateTo("/onboarding");
-      }
+      return navigateTo("/onboarding");
     }
-    
+
     // Don't let completed users go back to onboarding
     if (isCompleted && normalizedPath === "/onboarding") {
       return navigateTo("/dashboard");
