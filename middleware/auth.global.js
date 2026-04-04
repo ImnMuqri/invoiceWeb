@@ -1,29 +1,61 @@
 export default defineNuxtRouteMiddleware((to, from) => {
+  if (import.meta.prerender) return;
+
   const authStore = useAuthStore();
 
-  // Ensure store is synced with cookies on every route change
+  // 🔥 Always sync first
   authStore.syncFromCookies();
+
+  const path = to.path;
 
   const publicRoutes = ["/login", "/register", "/", "/pay"];
   const isPublicRoute = publicRoutes.some(
     (route) =>
-      to.path === route ||
-      to.path.startsWith("/pay/") ||
-      (to.path.startsWith("/invoices/") && to.path.endsWith("/export")) ||
-      to.path === "/pay" ||
+      path === route ||
+      (route !== "/" && path === route + "/") ||
+      path.startsWith("/pay/") ||
+      (path.startsWith("/invoices/") && path.endsWith("/export")) ||
       to.name === "pay-id",
   );
 
-  const isAuthenticated = !!authStore.accessToken;
-  // Reduced logging to avoid terminal clutter, but kept essential for debugging
+  // 🔥 Try cookie first (SSR)
+  let cookieToken = useCookie("accessToken").value;
 
-  // If user is not authenticated and trying to access a protected route
+  if (process.server && !cookieToken) {
+    const headers = useRequestHeaders(["cookie"]);
+    const cookieHeader = headers.cookie || "";
+    const match = cookieHeader.match(
+      new RegExp("(^|;)\\s*accessToken\\s*=\\s*([^;]+)"),
+    );
+    if (match) cookieToken = match[2];
+  }
+
+  // 🔥 FALLBACK to store (this is the key fix)
+  const storeToken = authStore.accessToken;
+
+  const isAuthenticated = !!(cookieToken || storeToken);
+
+  // 🚫 Protect routes
   if (!isAuthenticated && !isPublicRoute) {
     return navigateTo("/login");
   }
 
-  // If user is authenticated and trying to access login/register
-  if (isAuthenticated && (to.path === "/login" || to.path === "/register")) {
+  // 🔁 Redirect away from auth pages
+  if (isAuthenticated && (path === "/login" || path === "/register")) {
     return navigateTo("/dashboard");
+  }
+
+  // ✅ Onboarding logic (safe now)
+  if (isAuthenticated) {
+    const isCompleted = authStore.user?.onboardingCompleted === true;
+    const isOnboarding = path === "/onboarding" || path === "/onboarding/";
+
+    if (!isCompleted && !isOnboarding && !isPublicRoute) {
+      return navigateTo("/onboarding");
+    }
+
+    if (isCompleted && isOnboarding) {
+      return navigateTo("/dashboard");
+    }
   }
 });
