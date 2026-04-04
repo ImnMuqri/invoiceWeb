@@ -102,7 +102,7 @@
       <div class="mt-8 text-center text-sm font-medium text-slate-500">
         Not a member?
         <NuxtLink
-          to="/register"
+          to="/register/"
           class="font-bold text-emerald-600 hover:text-emerald-700 transition-colors"
           >Create an account</NuxtLink
         >
@@ -128,7 +128,7 @@ const password = ref("");
 const handleLogin = async () => {
   try {
     await authStore.login(email.value, password.value);
-    router.push("/dashboard");
+    router.push("/dashboard/");
   } catch (err) {
     toast.value = {
       message: err.response?.data?.message || authStore.error || "Login failed",

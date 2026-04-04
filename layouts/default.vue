@@ -39,7 +39,7 @@
           </div>
 
           <NuxtLink
-            to="/dashboard"
+            to="/dashboard/"
             class="flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
             active-class="bg-[#ebebec] text-slate-900">
             <svg
@@ -65,7 +65,7 @@
           </div>
 
           <NuxtLink
-            to="/invoices"
+            to="/invoices/"
             class="flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
             active-class="bg-[#ebebec] text-slate-900"
             :class="{
@@ -86,7 +86,7 @@
             Invoices
           </NuxtLink>
           <NuxtLink
-            to="/clients"
+            to="/clients/"
             class="flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
             active-class="bg-[#ebebec] text-slate-900">
             <svg
@@ -111,7 +111,7 @@
           </div>
 
           <NuxtLink
-            to="/settings"
+            to="/settings/"
             class="flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
             active-class="bg-[#ebebec] text-slate-900">
             <svg
@@ -142,7 +142,7 @@
               </h4>
             </div>
             <NuxtLink
-              to="/admin"
+              to="/admin/"
               class="flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
               active-class="bg-[#ebebec] text-slate-900"
               :class="{
@@ -162,7 +162,7 @@
               Users Management
             </NuxtLink>
             <NuxtLink
-              to="/admin/plan-management"
+              to="/admin/plan-management/"
               class="flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
               active-class="bg-[#ebebec] text-slate-900">
               <svg
@@ -184,7 +184,7 @@
               Plan Management
             </NuxtLink>
             <NuxtLink
-              to="/admin/analytics"
+              to="/admin/analytics/"
               class="flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
               active-class="bg-[#ebebec] text-slate-900">
               <svg
@@ -201,7 +201,7 @@
               Analytics
             </NuxtLink>
             <NuxtLink
-              to="/admin/transactions"
+              to="/admin/transactions/"
               class="flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
               active-class="bg-[#ebebec] text-slate-900">
               <UiIcon
@@ -210,7 +210,7 @@
               Transactions
             </NuxtLink>
             <NuxtLink
-              to="/admin/promo-codes"
+              to="/admin/promo-codes/"
               class="flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
               active-class="bg-[#ebebec] text-slate-900">
               <svg
@@ -299,7 +299,7 @@
 
                 <div class="p-2">
                   <NuxtLink
-                    to="/settings"
+                    to="/settings/"
                     @click="close"
                     class="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-600 hover:text-green-600 hover:bg-green-50 rounded-md transition-all">
                     <svg
@@ -425,7 +425,7 @@
                   <!-- Navigation Links -->
                   <nav class="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
                     <NuxtLink
-                      to="/dashboard"
+                      to="/dashboard/"
                       @click="isMobileMenuOpen = false"
                       class="flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
                       active-class="bg-[#ebebec] text-slate-900">
@@ -450,7 +450,7 @@
                       </h4>
                     </div>
                     <NuxtLink
-                      to="/invoices"
+                      to="/invoices/"
                       @click="isMobileMenuOpen = false"
                       class="flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
                       active-class="bg-[#ebebec] text-slate-900"
@@ -472,7 +472,7 @@
                       Invoices
                     </NuxtLink>
                     <NuxtLink
-                      to="/clients"
+                      to="/clients/"
                       @click="isMobileMenuOpen = false"
                       class="flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
                       active-class="bg-[#ebebec] text-slate-900">
@@ -497,7 +497,7 @@
                       </h4>
                     </div>
                     <NuxtLink
-                      to="/settings"
+                      to="/settings/"
                       @click="isMobileMenuOpen = false"
                       class="flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
                       active-class="bg-[#ebebec] text-slate-900">
@@ -529,7 +529,7 @@
                         </h4>
                       </div>
                       <NuxtLink
-                        to="/admin"
+                        to="/admin/"
                         @click="isMobileMenuOpen = false"
                         class="flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
                         active-class="bg-[#ebebec] text-slate-900">
@@ -547,7 +547,7 @@
                         Users Management
                       </NuxtLink>
                       <NuxtLink
-                        to="/admin/plan-management"
+                        to="/admin/plan-management/"
                         @click="isMobileMenuOpen = false"
                         class="flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
                         active-class="bg-[#ebebec] text-slate-900">
@@ -570,7 +570,7 @@
                         Plan Management
                       </NuxtLink>
                       <NuxtLink
-                        to="/admin/analytics"
+                        to="/admin/analytics/"
                         @click="isMobileMenuOpen = false"
                         class="flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
                         active-class="bg-[#ebebec] text-slate-900">
@@ -588,7 +588,7 @@
                         Analytics
                       </NuxtLink>
                       <NuxtLink
-                        to="/admin/transactions"
+                        to="/admin/transactions/"
                         @click="isMobileMenuOpen = false"
                         class="flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
                         active-class="bg-[#ebebec] text-slate-900">
@@ -598,7 +598,7 @@
                         Transactions
                       </NuxtLink>
                       <NuxtLink
-                        to="/admin/promo-codes"
+                        to="/admin/promo-codes/"
                         @click="isMobileMenuOpen = false"
                         class="flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
                         active-class="bg-[#ebebec] text-slate-900">
@@ -637,7 +637,7 @@
                           drafts.
                         </p>
                         <NuxtLink
-                          to="/settings?tab=billing"
+                          to="/settings/?tab=billing"
                           @click="isMobileMenuOpen = false"
                           class="block w-full text-center py-2.5 bg-slate-900 text-white text-[12px] font-bold rounded-xl hover:bg-slate-800 transition-all shadow-sm">
                           Upgrade Now

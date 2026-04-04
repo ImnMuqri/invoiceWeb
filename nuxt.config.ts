@@ -22,4 +22,9 @@ export default defineNuxtConfig({
       apiBase: process.env.NUXT_PUBLIC_API_BASE
     }
   },
+  router: {
+    options: {
+      trailingSlash: true
+    }
+  }
 })
