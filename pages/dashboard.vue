@@ -11,11 +11,19 @@
             Deep insights into platform growth and system performance.
           </p>
         </div>
-        <NuxtLink
-          to="/invoices/create"
-          class="inline-flex items-center rounded-md bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 transition-all w-fit">
-          New Invoice
-        </NuxtLink>
+        <div class="flex items-center gap-3">
+          <button
+            @click="uiStore.openModuleHelp('dashboard')"
+            class="text-slate-400 hover:text-indigo-600 transition-colors p-1"
+            title="Dashboard Help">
+            <UiIcon icon="formkit:help" custom-class="w-5 h-5" />
+          </button>
+          <NuxtLink
+            to="/invoices/create"
+            class="inline-flex items-center rounded-md bg-slate-900 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 transition-all w-fit">
+            New Invoice
+          </NuxtLink>
+        </div>
       </div>
 
       <!-- Currency Note -->
@@ -741,11 +749,15 @@
 
 <script setup>
 import { onMounted, ref, computed, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import { useDashboardStore } from "~/stores/dashboardStore";
 import { useAuthStore } from "~/stores/authStore";
 import { useUiStore } from "~/stores/uiStore";
 import { useReferralStore } from "~/stores/referralStore";
+import confetti from "canvas-confetti";
 
+const route = useRoute();
+const router = useRouter();
 const dashboardStore = useDashboardStore();
 const authStore = useAuthStore();
 const uiStore = useUiStore();
@@ -842,6 +854,24 @@ onMounted(() => {
   fetchForecastData();
   authStore.fetchProfile();
   referralStore.fetchStats();
+
+  // Check for welcome trigger
+  if (route.query.welcome === "true") {
+    uiStore.toggleWelcomeModal(true);
+
+    // Trigger professional celebration (Confetti)
+    confetti({
+      particleCount: 150,
+      spread: 70,
+      origin: { y: 0.6 },
+      colors: ["#10b981", "#3b82f6", "#6366f1"],
+    });
+
+    // Clean up URL query parameters
+    const newQuery = { ...route.query };
+    delete newQuery.welcome;
+    router.replace({ query: newQuery });
+  }
 });
 
 // Chart Data mapping

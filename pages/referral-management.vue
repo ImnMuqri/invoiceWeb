@@ -8,13 +8,21 @@
           class="p-2 hover:bg-slate-100 rounded-lg transition-colors">
           <UiIcon icon="heroicons:arrow-left" class="w-5 h-5 text-slate-600" />
         </NuxtLink>
-        <div>
-          <h2 class="text-2xl font-bold text-slate-900 tracking-tight">
-            Referral Management
-          </h2>
-          <p class="text-xs font-medium text-slate-500 mt-1">
-            Manage your referrals and claim rewards.
-          </p>
+        <div class="flex items-center justify-between flex-1">
+          <div>
+            <h2 class="text-2xl font-bold text-slate-900 tracking-tight">
+              Referral Management
+            </h2>
+            <p class="text-xs font-medium text-slate-500 mt-1">
+              Manage your referrals and claim rewards.
+            </p>
+          </div>
+          <button
+            @click="uiStore.openModuleHelp('referrals')"
+            class="text-slate-400 hover:text-pink-600 transition-colors p-1"
+            title="Referrals Help">
+            <UiIcon icon="formkit:help" custom-class="w-5 h-5" />
+          </button>
         </div>
       </div>
 
@@ -153,8 +161,10 @@
 <script setup>
 import { onMounted, ref } from "vue";
 import { useReferralStore } from "~/stores/referralStore";
+import { useUiStore } from "~/stores/uiStore";
 
 const referralStore = useReferralStore();
+const uiStore = useUiStore();
 const toast = ref({ message: "", type: "success" });
 const loading = ref(false);
 const rewardType = ref("");

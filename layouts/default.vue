@@ -1,6 +1,8 @@
 <template>
   <div style="zoom: 0.9">
     <UiAuthLoader v-if="!authStore.isHydrated" />
+    <UiWelcomeModal />
+    <UiModuleHelpModal />
     <div
       v-if="authStore.isHydrated"
       class="h-[111.11vh] bg-slate-50 flex overflow-hidden font-sans text-sm">

@@ -281,7 +281,7 @@
                     v-model="promoCodeInput"
                     type="text"
                     placeholder="Promo code (Optional)"
-                    class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-slate-900 focus:border-slate-900 uppercase"
+                    class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:ring-slate-900 focus:border-slate-900 uppercase"
                     :disabled="isPromoValid" />
                   <div
                     v-if="promoLoading"
@@ -699,18 +699,23 @@ const selectPlan = async (plan) => {
 
     // 2. Validate and subscribe
     if (plan === "FREE") {
-      router.push("/dashboard");
+      router.push("/dashboard?welcome=true");
     } else {
       // PRO or MAX
+      const successUrl = `${window.location.origin}/dashboard?welcome=true`;
+      const failureUrl = `${window.location.origin}/onboarding?step=4&payment_failed=true`;
+
       const res = await subscribeStore.subscribe(
         plan,
         isPromoValid.value ? promoCodeInput.value : null,
+        successUrl,
+        failureUrl,
       );
       if (res?.checkoutUrl) {
         window.location.href = res.checkoutUrl;
       } else {
         // Fallback incase of unexpected response
-        router.push("/dashboard");
+        router.push("/dashboard?welcome=true");
       }
     }
   } catch (err) {

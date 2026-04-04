@@ -10,33 +10,16 @@
           Manage and track your client billings.
         </p>
       </div>
-      <div class="flex items-center gap-4">
-        <!-- Search Input -->
-        <div class="relative rounded-md shadow-sm w-full sm:w-64">
-          <div
-            class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-            <svg
-              class="h-4 w-4 text-slate-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke-width="2"
-              stroke="currentColor"
-              aria-hidden="true">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-            </svg>
-          </div>
-          <input
-            type="text"
-            v-model="searchQuery"
-            class="block w-full rounded-md border-0 py-2 pl-9 pr-3 text-slate-900 ring-1 ring-inset ring-slate-300 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-slate-950 sm:text-sm sm:leading-6"
-            placeholder="Search invoices..." />
-        </div>
+      <div class="flex items-center gap-3">
+        <button
+          @click="uiStore.openModuleHelp('invoices')"
+          class="text-slate-400 hover:text-blue-600 transition-colors p-1"
+          title="Invoices Help">
+          <UiIcon icon="formkit:help" custom-class="w-5 h-5" />
+        </button>
         <NuxtLink
           to="/invoices/create"
-          class="inline-flex items-center justify-center rounded-md border border-transparent bg-slate-900 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2 transition-colors whitespace-nowrap"
+          class="inline-flex items-center justify-center rounded-md border border-transparent bg-slate-900 px-6 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2 transition-colors whitespace-nowrap"
           >Create Invoice</NuxtLink
         >
       </div>

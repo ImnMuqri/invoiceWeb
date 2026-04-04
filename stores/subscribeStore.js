@@ -11,7 +11,12 @@ export const useSubscribeStore = defineStore("subscribe", () => {
    * @param {string} plan - The plan name (FREE, PRO, MAX)
    * @returns {Promise<Object>} The response data
    */
-  async function subscribe(plan, promoCode = null) {
+  async function subscribe(
+    plan,
+    promoCode = null,
+    successUrl = null,
+    failureUrl = null,
+  ) {
     const { $api } = useNuxtApp();
     const authStore = useAuthStore();
 
@@ -19,7 +24,12 @@ export const useSubscribeStore = defineStore("subscribe", () => {
     error.value = null;
 
     try {
-      const { data } = await $api.post("/users/subscribe", { plan, promoCode });
+      const { data } = await $api.post("/users/subscribe", {
+        plan,
+        promoCode,
+        successUrl,
+        failureUrl,
+      });
 
       if (data.checkoutUrl) {
         // Return without updating the store so the UI doesn't glitch while redirecting

@@ -83,7 +83,7 @@
               v-if="authStore.loading"
               icon="heroicons:arrow-path"
               custom-class="w-4 h-4 mr-2 animate-spin text-white" />
-            {{ authStore.loading ? "Starting..." : "Start Free Trial" }}
+            {{ authStore.loading ? "Starting..." : "Join Now" }}
           </button>
         </div>
       </form>

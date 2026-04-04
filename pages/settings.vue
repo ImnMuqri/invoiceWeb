@@ -1,10 +1,20 @@
 <template>
   <div class="max-w-[1300px]">
-    <div class="mb-8">
-      <h2 class="text-2xl font-bold text-slate-900 tracking-tight">Settings</h2>
-      <p class="text-xs font-medium text-slate-500 mt-1">
-        Manage your profile and platform preferences.
-      </p>
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <h2 class="text-2xl font-bold text-slate-900 tracking-tight">
+          Settings
+        </h2>
+        <p class="text-xs font-medium text-slate-500 mt-1">
+          Manage your profile and platform preferences.
+        </p>
+      </div>
+      <button
+        @click="uiStore.openModuleHelp('settings', activeTab)"
+        class="text-slate-400 hover:text-slate-900 transition-colors p-1"
+        title="Settings Help">
+        <UiIcon icon="formkit:help" custom-class="w-5 h-5" />
+      </button>
     </div>
 
     <div class="flex flex-col md:flex-row gap-8">
