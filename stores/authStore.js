@@ -163,7 +163,7 @@ export const useAuthStore = defineStore("auth", () => {
     const { $api } = useNuxtApp();
     loading.value = true;
     try {
-      const { data } = await $api.get("/profile");
+      const { data } = await $api.get("/users/me");
       user.value = data;
       return data;
     } catch (err) {
@@ -178,7 +178,7 @@ export const useAuthStore = defineStore("auth", () => {
     const { $api } = useNuxtApp();
     loading.value = true;
     try {
-      const { data } = await $api.put("/profile", profileData);
+      const { data } = await $api.put("/users/me", profileData);
       user.value = data;
       return data;
     } catch (err) {
@@ -192,7 +192,7 @@ export const useAuthStore = defineStore("auth", () => {
   async function fetchSettings() {
     const { $api } = useNuxtApp();
     try {
-      const { data } = await $api.get("/settings");
+      const { data } = await $api.get("/users/settings/profile");
       return data;
     } catch (err) {
       console.error("Failed to fetch settings", err);
@@ -204,7 +204,7 @@ export const useAuthStore = defineStore("auth", () => {
     const { $api } = useNuxtApp();
     loading.value = true;
     try {
-      const { data } = await $api.put("/settings", settingsData);
+      const { data } = await $api.put("/users/settings/profile", settingsData);
       return data;
     } catch (err) {
       error.value = "Failed to update settings";
@@ -217,7 +217,7 @@ export const useAuthStore = defineStore("auth", () => {
   async function fetchPaymentSettings() {
     const { $api } = useNuxtApp();
     try {
-      const { data } = await $api.get("/settings/payment");
+      const { data } = await $api.get("/users/payments/manual");
       return data;
     } catch (err) {
       console.error("Failed to fetch payment settings", err);
@@ -229,7 +229,7 @@ export const useAuthStore = defineStore("auth", () => {
     const { $api } = useNuxtApp();
     loading.value = true;
     try {
-      const { data } = await $api.put("/settings/payment", paymentData);
+      const { data } = await $api.put("/users/payments/manual", paymentData);
       return data;
     } catch (err) {
       error.value = "Failed to update payment settings";
@@ -242,7 +242,7 @@ export const useAuthStore = defineStore("auth", () => {
   async function fetchPaymentProviders() {
     const { $api } = useNuxtApp();
     try {
-      const { data } = await $api.get("/settings/payment/providers");
+      const { data } = await $api.get("/users/payments");
       return data;
     } catch (err) {
       console.error("Failed to fetch payment providers", err);
@@ -253,10 +253,7 @@ export const useAuthStore = defineStore("auth", () => {
   async function updatePaymentProvider(providerData) {
     const { $api } = useNuxtApp();
     try {
-      const { data } = await $api.post(
-        "/settings/payment/providers",
-        providerData,
-      );
+      const { data } = await $api.post("/users/payments", providerData);
       return data;
     } catch (err) {
       error.value = "Failed to save payment provider";
@@ -267,7 +264,7 @@ export const useAuthStore = defineStore("auth", () => {
   async function deletePaymentProvider(id) {
     const { $api } = useNuxtApp();
     try {
-      await $api.delete(`/settings/payment/providers/${id}`);
+      await $api.delete(`/users/payments/${id}`);
     } catch (err) {
       error.value = "Failed to delete payment provider";
       throw err;
@@ -277,9 +274,7 @@ export const useAuthStore = defineStore("auth", () => {
   async function setPreferredPaymentProvider(id) {
     const { $api } = useNuxtApp();
     try {
-      const { data } = await $api.post(
-        `/settings/payment/providers/${id}/preferred`,
-      );
+      const { data } = await $api.patch(`/users/payments/${id}/prefer`);
       return data;
     } catch (err) {
       error.value = "Failed to set preferred provider";
