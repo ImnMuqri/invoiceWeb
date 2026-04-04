@@ -26,12 +26,6 @@ export default defineNuxtRouteMiddleware((to, from) => {
     return navigateTo("/login");
   }
 
-  // If user is authenticated and trying to access login/register
-  if (isAuthenticated && (to.path === "/login" || to.path === "/register")) {
-    const isCompleted = authStore.user?.onboardingCompleted === true;
-    return navigateTo(isCompleted ? "/dashboard" : "/onboarding");
-  }
-
   // Enforce onboarding
   if (isAuthenticated) {
     const isCompleted = authStore.user?.onboardingCompleted === true;
