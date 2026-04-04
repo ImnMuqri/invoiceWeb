@@ -1,19 +1,26 @@
 <template>
   <div class="advanced-analytics space-y-8">
     <!-- Page Header -->
-    <div class="mb-8">
-      <h2 class="text-2xl font-bold text-slate-900 tracking-tight">
-        Plan Management
-      </h2>
-      <p class="text-xs font-medium text-slate-500 mt-1">
-        Manage subscription plans, pricing, and platform analytics.
-      </p>
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <h2 class="text-2xl font-bold text-slate-900 tracking-tight">
+          Plan Management
+        </h2>
+        <p class="text-xs font-medium text-slate-500 mt-1">
+          Manage subscription plans, pricing, and platform analytics.
+        </p>
+      </div>
+      <button
+        @click="openCreateModal"
+        class="inline-flex items-center gap-2 px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-md text-sm font-bold transition-all shadow-sm active:scale-95 border-none cursor-pointer">
+        Create New Plan
+      </button>
     </div>
-    <!-- Dashboard Overview Stats -->
+
     <!-- Dashboard Overview Stats -->
     <div
       v-if="adminStore.analytics?.summary"
-      class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
       <!-- Total Revenue (Lifetime) -->
       <div
         class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all group">
@@ -118,14 +125,14 @@
 
       <!-- Total Transactions Card -->
       <div
-        class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all group text-white bg-slate-900">
+        class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all group">
         <div class="flex items-center justify-between mb-4">
           <div
-            class="p-2 bg-white/10 rounded-lg group-hover:bg-white/20 transition-colors text-amber-400">
+            class="p-2 bg-amber-50 rounded-lg group-hover:bg-amber-100 transition-colors text-amber-600">
             <UiIcon icon="heroicons:credit-card" class="w-5 h-5" />
           </div>
           <div
-            class="text-white/40 text-[9px] font-bold tracking-widest uppercase">
+            class="text-amber-600 bg-amber-50 px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-widest">
             Platform-wide
           </div>
         </div>
@@ -133,34 +140,50 @@
           class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
           Total Transactions
         </dt>
-        <dd class="text-2xl font-semibold text-white tracking-tight">
+        <dd class="text-2xl font-semibold text-slate-900 tracking-tight">
           {{ adminStore.analytics.summary.totalTransactions.toLocaleString() }}
         </dd>
-        <p class="text-[10px] text-slate-400 mt-2 font-medium">
+        <p class="text-[10px] text-slate-500 mt-2 font-medium">
           Lifetime cumulative activity
+        </p>
+      </div>
+
+      <!-- Plan Distribution Card -->
+      <div
+        class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all group">
+        <div class="flex items-center justify-between mb-4">
+          <div
+            class="p-2 bg-indigo-50 rounded-lg group-hover:bg-indigo-100 transition-colors text-indigo-600">
+            <UiIcon icon="heroicons:chart-pie" class="w-5 h-5" />
+          </div>
+          <div
+            class="text-indigo-600 bg-indigo-50 px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-widest">
+            SUBSCRIPTIONS
+          </div>
+        </div>
+        <dt
+          class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+          Plan Distribution
+        </dt>
+        <dd class="space-y-1">
+          <div
+            v-for="d in adminStore.analytics?.web?.planDistribution"
+            :key="d.plan"
+            class="flex items-center justify-between bg-slate-50/50 px-2 py-0.5 rounded-lg border border-slate-100 group-hover:bg-slate-50 transition-colors">
+            <span class="text-[10px] font-bold text-slate-500 uppercase">{{
+              d.plan
+            }}</span>
+            <span class="text-xs font-bold text-slate-900">{{ d.count }}</span>
+          </div>
+        </dd>
+        <p class="text-[10px] text-slate-500 mt-2 font-medium">
+          Global platform spread
         </p>
       </div>
     </div>
 
     <!-- Plan Management Section -->
-    <div class="space-y-8 pt-8 border-t border-slate-200">
-      <div class="flex items-center justify-between">
-        <div>
-          <h2 class="text-xl font-bold text-slate-900 tracking-tight">
-            Active Plans
-          </h2>
-          <p class="text-xs font-medium text-slate-500 mt-1"">
-            Manage subscription tiers, pricing and feature limits.
-          </p>
-        </div>
-        <button
-          @click="openCreateModal"
-          class="inline-flex items-center gap-2 px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-[12px] font-bold transition-all shadow-sm active:scale-95 border-none cursor-pointer">
-          <UiIcon icon="heroicons:plus" class="w-4 h-4" />
-          Create New Plan
-        </button>
-      </div>
-
+    <div class="space-y-8">
       <div
         class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
         <table class="w-full text-left border-collapse">
@@ -273,144 +296,6 @@
             </tr>
           </tbody>
         </table>
-      </div>
-    </div>
-
-    <div
-      v-if="adminStore.analytics"
-      class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-      <!-- Main Content Column -->
-      <div class="lg:col-span-8 space-y-8">
-        <!-- Revenue Trends -->
-        <div
-          class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div class="flex items-center justify-between mb-8">
-            <div>
-              <h3
-                class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
-                Normalized Revenue (USD)
-              </h3>
-              <p class="text-xl font-semibold text-slate-900 tracking-tight">
-                Daily Revenue Trend
-              </p>
-            </div>
-          </div>
-          <div class="h-[320px]">
-            <UiChart type="line" :data="revenueData" :options="chartOptions" />
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <!-- User Growth -->
-          <div
-            class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-            <div class="flex items-center justify-between mb-8">
-              <div>
-                <h3
-                  class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
-                  User Growth
-                </h3>
-                <p class="text-sm font-semibold text-slate-900 tracking-tight">
-                  Daily Signups
-                </p>
-              </div>
-            </div>
-            <div class="h-[200px]">
-              <UiChart type="bar" :data="userData" :options="barOptions" />
-            </div>
-          </div>
-
-          <!-- Market Share -->
-          <div
-            class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-            <div class="text-center mb-8">
-              <h3
-                class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
-                Market Share
-              </h3>
-              <p class="text-sm font-semibold text-slate-900 tracking-tight">
-                Plan Distribution
-              </p>
-            </div>
-            <div class="h-[200px] flex items-center justify-center">
-              <UiChart
-                type="doughnut"
-                :data="planData"
-                :options="doughnutOptions" />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Sidebar Column -->
-      <div class="lg:col-span-4 space-y-8">
-        <!-- System Health Card -->
-        <div
-          class="bg-slate-950 rounded-2xl p-6 shadow-xl relative overflow-hidden group">
-          <div
-            class="absolute -right-16 -top-16 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl transition-all group-hover:bg-emerald-500/20"></div>
-
-          <div class="flex items-center gap-2 mb-8 relative z-10">
-            <div class="p-1.5 bg-emerald-500/20 rounded-lg">
-              <UiIcon
-                icon="heroicons:cpu-chip"
-                class="w-4 h-4 text-emerald-400" />
-            </div>
-            <h3
-              class="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
-              System Performance
-            </h3>
-          </div>
-
-          <div class="space-y-4 relative z-10">
-            <div
-              class="flex justify-between items-center bg-white/5 p-3 rounded-xl border border-white/5">
-              <span
-                class="text-[10px] font-bold text-slate-500 uppercase tracking-wider"
-                >Node Engine</span
-              >
-              <span class="text-xs font-mono font-bold text-slate-300">{{
-                adminStore.analytics.system.nodeVersion
-              }}</span>
-            </div>
-            <div
-              class="flex justify-between items-start bg-white/5 p-3 rounded-xl border border-white/5">
-              <span
-                class="text-[10px] font-bold text-slate-500 uppercase tracking-wider"
-                >Memory Usage</span
-              >
-              <div class="text-right">
-                <p class="text-sm font-bold text-emerald-400 leading-none mb-1">
-                  {{ adminStore.analytics.system.memory.percentUsed }}
-                </p>
-                <p
-                  class="text-[9px] text-slate-500 font-bold tracking-tight uppercase">
-                  {{ adminStore.analytics.system.memory.used }} /
-                  {{ adminStore.analytics.system.memory.total }}
-                </p>
-              </div>
-            </div>
-            <div
-              class="flex justify-between items-center bg-white/5 p-3 rounded-xl border border-white/5">
-              <span
-                class="text-[10px] font-bold text-slate-500 uppercase tracking-wider"
-                >Server Uptime</span
-              >
-              <span class="text-xs font-bold text-slate-300">{{
-                formatUptime(adminStore.analytics.system.uptime)
-              }}</span>
-            </div>
-            <div
-              class="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 flex items-center gap-3">
-              <div
-                class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-              <span
-                class="text-[10px] font-bold text-emerald-400 uppercase tracking-widest"
-                >Database Stable</span
-              >
-            </div>
-          </div>
-        </div>
       </div>
     </div>
 
@@ -749,11 +634,10 @@ const confirmDelete = async (plan) => {
   }
 };
 
-const formatUptime = (seconds) => {
-  const days = Math.floor(seconds / (3600 * 24));
-  const hrs = Math.floor((seconds % (3600 * 24)) / 3600);
-  return `${days}d ${hrs}h`;
-};
+onMounted(async () => {
+  await Promise.all([adminStore.fetchAnalytics(), adminStore.fetchPlans()]);
+  updateMonthlyRevenue();
+});
 
 // Monthly Revenue Selection Logic
 const selectedMonth = ref(new Date().getMonth() + 1);
@@ -801,58 +685,6 @@ const updateMonthlyRevenue = async () => {
   }
 };
 
-onMounted(async () => {
-  await Promise.all([adminStore.fetchAnalytics(), adminStore.fetchPlans()]);
-  // Initial load of monthly revenue for current month
-  updateMonthlyRevenue();
-});
-
-// Chart Data Mappings
-const revenueData = computed(() => {
-  if (!adminStore.analytics) return { labels: [], datasets: [] };
-  return {
-    labels: adminStore.analytics.web.revenueTrends.map((d) => d.date),
-    datasets: [
-      {
-        label: "Revenue",
-        data: adminStore.analytics.web.revenueTrends.map((d) => d.amount),
-        borderColor: "#059669",
-        backgroundColor: "rgba(16, 185, 129, 0.05)",
-        fill: true,
-        tension: 0.4,
-      },
-    ],
-  };
-});
-
-const userData = computed(() => {
-  if (!adminStore.analytics) return { labels: [], datasets: [] };
-  return {
-    labels: adminStore.analytics.web.userGrowth.map((d) => d.date),
-    datasets: [
-      {
-        label: "Signups",
-        data: adminStore.analytics.web.userGrowth.map((d) => d.count),
-        backgroundColor: "#059669",
-        borderRadius: 4,
-      },
-    ],
-  };
-});
-
-const planData = computed(() => {
-  if (!adminStore.analytics) return { labels: [], datasets: [] };
-  return {
-    labels: adminStore.analytics.web.planDistribution.map((d) => d.plan),
-    datasets: [
-      {
-        data: adminStore.analytics.web.planDistribution.map((d) => d.count),
-        backgroundColor: ["#94a3b8", "#10b981", "#0f172a"],
-      },
-    ],
-  };
-});
-
 const chartOptions = {
   responsive: true,
   maintainAspectRatio: false,
@@ -888,45 +720,6 @@ const chartOptions = {
         color: "#94a3b8",
         padding: 8,
       },
-    },
-  },
-};
-
-const barOptions = {
-  ...chartOptions,
-  scales: {
-    ...chartOptions.scales,
-    y: {
-      ...chartOptions.scales.y,
-      ticks: {
-        ...chartOptions.scales.y.ticks,
-        callback: (value) => value,
-      },
-    },
-  },
-};
-
-const doughnutOptions = {
-  responsive: true,
-  maintainAspectRatio: false,
-  cutout: "85%",
-  plugins: {
-    legend: {
-      position: "bottom",
-      labels: {
-        boxWidth: 8,
-        padding: 24,
-        usePointStyle: true,
-        font: { size: 10, weight: "700" },
-        color: "#64748b",
-      },
-    },
-    tooltip: {
-      backgroundColor: "#0f172a",
-      titleFont: { size: 11, weight: "bold" },
-      bodyFont: { size: 10 },
-      padding: 10,
-      cornerRadius: 8,
     },
   },
 };

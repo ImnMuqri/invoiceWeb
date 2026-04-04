@@ -182,6 +182,23 @@
               Plan Management
             </NuxtLink>
             <NuxtLink
+              to="/admin/analytics"
+              class="flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
+              active-class="bg-[#ebebec] text-slate-900">
+              <svg
+                class="w-[18px] h-[18px] mr-3 opacity-70"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+              </svg>
+              Analytics
+            </NuxtLink>
+            <NuxtLink
               to="/admin/transactions"
               class="flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
               active-class="bg-[#ebebec] text-slate-900">
@@ -549,6 +566,24 @@
                             d="M3 21v-8a2 2 0 012-2h2a2 2 0 012 2v8m-4 0h4m-4 0a2 2 0 01-2-2v-3a2 2 0 012-2h2a2 2 0 012 2v3a2 2 0 01-2 2h-4" />
                         </svg>
                         Plan Management
+                      </NuxtLink>
+                      <NuxtLink
+                        to="/admin/analytics"
+                        @click="isMobileMenuOpen = false"
+                        class="flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
+                        active-class="bg-[#ebebec] text-slate-900">
+                        <svg
+                          class="w-[18px] h-[18px] mr-3 opacity-70"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24">
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+                        </svg>
+                        Analytics
                       </NuxtLink>
                       <NuxtLink
                         to="/admin/transactions"

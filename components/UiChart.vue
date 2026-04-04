@@ -156,9 +156,14 @@ const defaultOptions = computed(() => ({
             lines.push(""); // Spacer
             details.forEach((d) => {
               const idStr = String(d.clientId).slice(0, 8);
-              const dateStr = d.dueDate ? new Date(d.dueDate).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "N/A";
+              const dateStr = d.dueDate
+                ? new Date(d.dueDate).toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                  })
+                : "N/A";
               lines.push(
-                `${d.clientName} [#${idStr}] - ${d.invoiceNumber || 'Inv'}: ${d.amount.toLocaleString()} (Due: ${dateStr})`,
+                `${d.clientName} [#${idStr}] - ${d.invoiceNumber || "Inv"}: ${d.amount.toLocaleString()} (Due: ${dateStr})`,
               );
             });
           }
