@@ -113,8 +113,14 @@
                 >
                 <span class="text-slate-900"
                   >{{ authStore.user?.waSendsUsed || 0 }} /
-                  {{ dashboardStore.usageLimits?.waSends || 0 }}</span
-                >
+                  <template
+                    v-if="(dashboardStore.usageLimits?.waSends || 0) >= 99999"
+                    >∞</template
+                  >
+                  <template v-else>{{
+                    dashboardStore.usageLimits?.waSends || 0
+                  }}</template>
+                </span>
               </div>
               <div class="w-full bg-slate-100 rounded-full h-2">
                 <div
@@ -134,8 +140,16 @@
                 <span>Whatsapp Reminders Used:</span>
                 <span class="font-semibold text-slate-600"
                   >{{ authStore.user?.waRemindersUsed || 0 }} /
-                  {{ dashboardStore.usageLimits?.waReminders || 0 }}</span
-                >
+                  <template
+                    v-if="
+                      (dashboardStore.usageLimits?.waReminders || 0) >= 99999
+                    "
+                    >∞</template
+                  >
+                  <template v-else>{{
+                    dashboardStore.usageLimits?.waReminders || 0
+                  }}</template>
+                </span>
               </div>
             </div>
 
@@ -146,8 +160,16 @@
                 >
                 <span class="text-slate-900"
                   >{{ authStore.user?.emailSendsUsed || 0 }} /
-                  {{ dashboardStore.usageLimits?.emailSends || 0 }}</span
-                >
+                  <template
+                    v-if="
+                      (dashboardStore.usageLimits?.emailSends || 0) >= 99999
+                    "
+                    >∞</template
+                  >
+                  <template v-else>{{
+                    dashboardStore.usageLimits?.emailSends || 0
+                  }}</template>
+                </span>
               </div>
               <div class="w-full bg-slate-100 rounded-full h-2">
                 <div
@@ -167,8 +189,16 @@
                 <span>Email Reminders Used:</span>
                 <span class="font-semibold text-slate-600"
                   >{{ authStore.user?.emailRemindersUsed || 0 }} /
-                  {{ dashboardStore.usageLimits?.emailReminders || 0 }}</span
-                >
+                  <template
+                    v-if="
+                      (dashboardStore.usageLimits?.emailReminders || 0) >= 99999
+                    "
+                    >∞</template
+                  >
+                  <template v-else>{{
+                    dashboardStore.usageLimits?.emailReminders || 0
+                  }}</template>
+                </span>
               </div>
             </div>
 
@@ -179,8 +209,14 @@
                 >
                 <span class="text-slate-900"
                   >{{ authStore.user?.aiUsed || 0 }} /
-                  {{ dashboardStore.usageLimits?.aiCredits || 0 }}</span
-                >
+                  <template
+                    v-if="(dashboardStore.usageLimits?.aiCredits || 0) >= 99999"
+                    >∞</template
+                  >
+                  <template v-else>{{
+                    dashboardStore.usageLimits?.aiCredits || 0
+                  }}</template>
+                </span>
               </div>
               <div class="w-full bg-slate-100 rounded-full h-2">
                 <div

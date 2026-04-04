@@ -205,22 +205,22 @@
               v-if="!authStore.isPro"
               class="absolute inset-0 bg-white/60 backdrop-blur-[2px] z-10 flex flex-col items-center justify-center p-6 text-center">
               <div
-                class="w-12 h-12 bg-amber-100 rounded-2xl flex items-center justify-center mb-4 shadow-sm border border-amber-200">
+                class="w-12 h-12 bg-emerald-100 rounded-2xl flex items-center justify-center mb-4 shadow-sm border border-emerald-200">
                 <UiIcon
                   icon="heroicons:lock-closed"
-                  class="w-6 h-6 text-amber-600" />
+                  class="w-6 h-6 text-emerald-600" />
               </div>
               <h4 class="text-base font-bold text-slate-900 mb-1">
                 WhatsApp Integration
               </h4>
               <p
-                class="text-xs text-slate-500 max-w-[240px] mb-6 leading-relaxed">
+                class="text-xs text-slate-500 max-w-[240px] mb-4 leading-relaxed">
                 Connect your own Twilio or use our system to send invoices and
                 reminders directly to WhatsApp.
               </p>
               <button
                 @click="switchTab('billing')"
-                class="px-5 py-2 bg-slate-900 text-white text-xs font-bold rounded-lg hover:bg-slate-800 transition-all shadow-md active:scale-95">
+                class="px-5 py-2 bg-slate-900 text-white text-xs font-bold rounded-md hover:bg-slate-800 transition-all shadow-md active:scale-95">
                 Upgrade to Pro
               </button>
             </div>
@@ -457,12 +457,12 @@
                     >
                     <div
                       v-if="!authStore.isPro"
-                      class="flex items-center gap-1.5 px-2 py-0.5 bg-amber-50 rounded border border-amber-100">
+                      class="flex items-center gap-1.5 px-2 py-0.5 bg-emerald-50 rounded border border-emerald-100">
                       <UiIcon
                         icon="heroicons:lock-closed"
-                        class="w-3 h-3 text-amber-600" />
+                        custom-class="w-3 h-3 text-emerald-600" />
                       <span
-                        class="text-[9px] font-bold text-amber-700 uppercase tracking-wider"
+                        class="text-[9px] font-bold text-emerald-700 uppercase tracking-wider"
                         >Pro</span
                       >
                     </div>
