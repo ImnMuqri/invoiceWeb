@@ -41,6 +41,25 @@ export const usePromoStore = defineStore("promo", {
       }
     },
 
+    async updatePromoCode(id, promoData) {
+      this.loading = true;
+      try {
+        const { $api } = useNuxtApp();
+        const response = await $api.put(`/admin/promo-codes/${id}`, promoData);
+        const index = this.promoCodes.findIndex((p) => p.id === id);
+        if (index !== -1) {
+          this.promoCodes[index] = response.data;
+        }
+        return response.data;
+      } catch (err) {
+        this.error =
+          err.response?.data?.message || "Failed to update promo code";
+        throw err;
+      } finally {
+        this.loading = false;
+      }
+    },
+
     async deletePromoCode(id) {
       this.loading = true;
       try {

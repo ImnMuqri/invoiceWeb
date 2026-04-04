@@ -1195,14 +1195,21 @@
                     {{ plan.description }}
                   </p>
                 </div>
-                <div class="mb-8 flex items-baseline">
-                  <span
-                    class="text-4xl font-semibold text-slate-900 tracking-tight">
-                    {{ plan.currency }} {{ plan.price }}
-                  </span>
-                  <span class="text-slate-400 text-sm ml-1 font-medium"
-                    >/{{ plan.interval }}</span
-                  >
+                <div class="mb-8 flex flex-col items-start min-h-[50px]">
+                  <div class="flex items-baseline flex-wrap gap-2">
+                    <span
+                      v-if="isPromoValid && appliedDiscount && getDiscountedPrice(plan.price) < plan.price"
+                      class="text-2xl font-semibold text-slate-400 line-through tracking-tight">
+                      {{ plan.currency }} {{ plan.price }}
+                    </span>
+                    <span class="text-4xl font-semibold text-slate-900 tracking-tight">
+                      {{ plan.currency }} {{ isPromoValid ? getDiscountedPrice(plan.price) : plan.price }}
+                    </span>
+                    <span class="text-slate-400 text-sm font-medium">/{{ plan.interval }}</span>
+                  </div>
+                  <p v-if="isPromoValid && appliedDiscount && getDiscountedPrice(plan.price) < plan.price" class="text-[10px] text-emerald-600 font-semibold mt-2 tracking-wide text-left">
+                    Discount applies to the first subscription term only.
+                  </p>
                 </div>
                 <ul class="space-y-4 mb-8 flex-1 text-left">
                   <li
@@ -1930,6 +1937,22 @@ const appliedDiscountText = computed(() => {
     ? `${d.discountValue}%`
     : `${d.discountValue} MYR`;
 });
+
+const getDiscountedPrice = (price) => {
+  if (!price) return 0;
+  const numPrice = parseFloat(price);
+  if (isNaN(numPrice) || numPrice === 0) return numPrice;
+  if (!isPromoValid.value || !appliedDiscount.value) return numPrice;
+  
+  const d = appliedDiscount.value;
+  let discounted = numPrice;
+  if (d.discountType === "PERCENTAGE") {
+    discounted = numPrice - (numPrice * (d.discountValue / 100));
+  } else {
+    discounted = numPrice - d.discountValue;
+  }
+  return Math.max(0, discounted);
+};
 
 const updatePlan = async (plan) => {
   // If downgrading to FREE, show the confirmation modal
