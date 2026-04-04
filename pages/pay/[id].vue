@@ -79,9 +79,9 @@
                   }}
                 </span>
                 <span class="text-xs text-slate-300 px-1">•</span>
-                <span class="text-xs font-medium text-slate-500"
-                  >INVK - {{ invoice.id }}</span
-                >
+                <span class="text-xs font-medium text-slate-500">{{
+                  invoice.invoiceNumber || invoice.id
+                }}</span>
               </div>
 
               <div class="mb-4" v-if="invoice.invoiceName">

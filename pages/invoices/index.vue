@@ -143,7 +143,7 @@
         class="hover:bg-slate-50 transition-colors">
         <td
           class="whitespace-nowrap py-4 pl-6 pr-3 text-sm font-semibold text-slate-900">
-          INVK - {{ invoice?.id || "N/A" }}
+          {{ invoice?.invoiceNumber || invoice?.id || "N/A" }}
         </td>
         <td
           class="whitespace-nowrap px-3 py-4 text-sm font-semibold text-slate-700">
@@ -485,8 +485,9 @@
         <div class="text-center">
           <p class="mt-2 text-sm text-slate-500">
             Are you sure you want to delete invoice
-            <span class="font-semibold text-slate-900"
-              >INVK-{{ invoiceToDelete?.id }}</span
+            <span class="font-semibold text-slate-900">{{
+              invoiceToDelete?.invoiceNumber || invoiceToDelete?.id
+            }}</span
             >? This action cannot be undone.
           </p>
         </div>
