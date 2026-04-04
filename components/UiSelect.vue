@@ -7,10 +7,16 @@
     </label>
     <button
       type="button"
-      @click="toggle"
+      @click="!disabled && toggle()"
       ref="buttonRef"
-      :class="customClass"
-      class="relative w-full cursor-default rounded-md bg-white py-2 pl-3 pr-10 text-left border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-950 sm:text-[12px] shadow-sm hover:border-slate-300 transition-colors"
+      :disabled="disabled"
+      :class="[
+        customClass,
+        disabled
+          ? 'opacity-50 cursor-not-allowed bg-slate-50'
+          : 'cursor-default bg-white hover:border-slate-300',
+      ]"
+      class="relative w-full rounded-md py-2 pl-3 pr-10 text-left border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-950 sm:text-[12px] shadow-sm transition-colors"
       :aria-haspopup="true"
       :aria-expanded="isOpen">
       <span class="block truncate font-medium text-slate-900">
@@ -98,6 +104,10 @@ const props = defineProps({
   emptyMessage: {
     type: String,
     default: "",
+  },
+  disabled: {
+    type: Boolean,
+    default: false,
   },
 });
 
