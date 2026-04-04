@@ -23,11 +23,7 @@ export const useAuthStore = defineStore("auth", () => {
     maxAge: 60 * 60 * 24 * 7, // 7 days
     sameSite: "lax",
     // Only use secure cookies if on HTTPS (localhost usually isn't)
-    secure: process.dev
-      ? false
-      : process.client
-        ? window.location.protocol === "https:"
-        : true,
+    secure: false, // Relaxed for production to avoid SSL termination issues on some proxies
   };
 
   // Function to sync from cookies to store (SSR safe)
@@ -64,16 +60,8 @@ export const useAuthStore = defineStore("auth", () => {
       isHydrated.value = true;
     };
 
-    // Run initialization
-    if (
-      document.readyState === "complete" ||
-      document.readyState === "interactive"
-    ) {
-      // Add slight delay to ensure Vue gives the right hydration signal safely if needed
-      setTimeout(initStore, 0);
-    } else {
-      window.addEventListener("DOMContentLoaded", initStore);
-    }
+    // Run initialization IMMEDIATELY to avoid race conditions with API calls
+    initStore();
 
     // Update cookies and LS when state changes
     watch(
