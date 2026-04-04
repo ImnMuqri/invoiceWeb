@@ -100,6 +100,9 @@
                   Company Profile
                 </h3>
               </div>
+              <p class="text-sm text-slate-500 mb-6">
+                Manage your preferences, personal and business information.
+              </p>
               <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
                 <div class="sm:col-span-6">
                   <label
@@ -175,6 +178,9 @@
                 class="text-base font-semibold text-slate-900 tracking-tight mb-6">
                 Preferences
               </h3>
+              <p class="text-sm text-slate-500 mb-6">
+                Manage your preferences, personal and business information.
+              </p>
               <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
                 <div class="sm:col-span-3">
                   <label
@@ -217,12 +223,11 @@
             </div>
 
             <div class="p-6">
-              <h3
-                class="text-base font-semibold text-slate-900 tracking-tight mb-1">
+              <h3 class="text-base font-semibold text-slate-900 tracking-tight">
                 WhatsApp Connection
               </h3>
               <p class="text-sm text-slate-500 mb-6">
-                Choose how you want to connect to WhatsApp.
+                Manage your preferences, personal and business information.
               </p>
 
               <div class="space-y-3 mb-8">
@@ -334,13 +339,11 @@
             </div>
 
             <div class="p-6 border-t border-slate-100">
-              <h3
-                class="text-base font-semibold text-slate-900 tracking-tight mb-2">
+              <h3 class="text-base font-semibold text-slate-900 tracking-tight">
                 Automated WhatsApp Reminders
               </h3>
-              <p class="text-sm text-slate-500 mb-6 font-medium">
-                Set how frequently your clients receive automated WhatsApp
-                notifications for overdue invoices.
+              <p class="text-sm text-slate-500 mb-6">
+                Manage your preferences, personal and business information.
               </p>
 
               <div class="max-w-xs">
@@ -370,12 +373,11 @@
             </div>
 
             <div class="p-6">
-              <h3
-                class="text-base font-semibold text-slate-900 tracking-tight mb-2">
+              <h3 class="text-base font-semibold text-slate-900 tracking-tight">
                 Message Templates
               </h3>
-              <p class="text-sm text-slate-500 mb-6 font-medium">
-                Customize the messages sent to your clients.
+              <p class="text-sm text-slate-500 mb-6">
+                Manage your preferences, personal and business information.
               </p>
 
               <div class="space-y-6">
@@ -433,49 +435,39 @@
           <div
             v-if="activeTab === 'email'"
             class="divide-y divide-slate-100 relative overflow-hidden min-h-[400px]">
-            <!-- Lock Overlay -->
-            <div
-              v-if="!authStore.isPro"
-              class="absolute inset-0 z-10 backdrop-blur-[6px] bg-white/40 flex flex-col items-center justify-center p-8 text-center">
-              <div
-                class="w-16 h-16 bg-white rounded-2xl shadow-sm border border-slate-200 flex items-center justify-center mb-4 text-emerald-600">
-                <UiIcon icon="heroicons:lock-closed" custom-class="w-6 h-6" />
-              </div>
-              <h3 class="text-xl font-bold text-slate-900 mb-1">
-                Email Reminders are a Pro Feature
-              </h3>
-              <p class="text-sm text-slate-500 mb-4 max-w-sm leading-relaxed">
-                Customize your completely automated email reminder pacing
-                settings by upgrading to a business plan.
-              </p>
-              <button
-                @click="switchTab('billing')"
-                class="inline-flex items-center px-6 py-3 bg-slate-900 text-white text-sm font-bold rounded-xl hover:bg-slate-800 transition-all uppercase tracking-widest shadow-lg">
-                Upgrade to Pro
-              </button>
-            </div>
-
             <div class="p-6">
               <h3
                 class="text-base font-semibold text-slate-900 tracking-tight mb-1">
                 Automated Email Reminders
               </h3>
               <p class="text-sm text-slate-500 mb-6">
-                Control exactly how frequently your clients realistically
-                receive polite, automated email reminders chasing unpaid
-                invoices.
+                Manage your preferences, personal and business information.
               </p>
 
               <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <!-- Controls -->
                 <div>
-                  <label
-                    class="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2"
-                    >Reminder Interval</label
-                  >
+                  <div class="flex items-center justify-between mb-2">
+                    <label
+                      class="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest"
+                      >Reminder Interval</label
+                    >
+                    <div
+                      v-if="!authStore.isPro"
+                      class="flex items-center gap-1.5 px-2 py-0.5 bg-amber-50 rounded border border-amber-100">
+                      <UiIcon
+                        icon="heroicons:lock-closed"
+                        class="w-3 h-3 text-amber-600" />
+                      <span
+                        class="text-[9px] font-bold text-amber-700 uppercase tracking-wider"
+                        >Pro</span
+                      >
+                    </div>
+                  </div>
                   <UiSelect
                     v-model="profileForm.reminderInterval"
                     :options="reminderIntervalOptions"
+                    :disabled="!authStore.isPro"
                     placeholder="Select interval" />
                   <p class="text-[12px] text-slate-500 mt-4 leading-relaxed">
                     <span v-if="profileForm.reminderInterval === 0">
@@ -601,9 +593,8 @@
                 class="text-base font-semibold text-slate-900 tracking-tight text-left">
                 Accept payments from your invoices
               </h3>
-              <p class="text-sm text-slate-500 mt-1 text-left">
-                Connect a payment provider so your clients can pay your invoices
-                online using FPX, DuitNow QR, or card payments.
+              <p class="text-sm text-slate-500 mb-6">
+                Manage your preferences, personal and business information.
               </p>
             </div>
 
@@ -819,9 +810,8 @@
               <h3 class="text-base font-semibold text-slate-900 tracking-tight">
                 Invoice Display Fields
               </h3>
-              <p class="text-sm text-slate-500 mb-6 font-medium">
-                Choose which information you want to include in the "From"
-                section of your invoices.
+              <p class="text-sm text-slate-500 mb-6">
+                Manage your preferences, personal and business information.
               </p>
 
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -934,7 +924,7 @@
 
             <!-- Automation Section -->
             <section>
-              <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center justify-between">
                 <h3
                   class="text-base font-semibold text-slate-900 tracking-tight">
                   Global Automation
@@ -962,8 +952,8 @@
                   </button>
                 </div>
               </div>
-              <p class="text-sm text-slate-500 mb-6 font-medium">
-                Enable or disable automated reminders for all clients.
+              <p class="text-sm text-slate-500 mb-6">
+                Manage your preferences, personal and business information.
               </p>
 
               <div
@@ -1012,8 +1002,8 @@
               <h3 class="text-base font-semibold text-slate-900 tracking-tight">
                 Invoice Defaults
               </h3>
-              <p class="text-sm text-slate-500 mb-6 font-medium">
-                Set standard defaults for all new invoices you create.
+              <p class="text-sm text-slate-500 mb-6">
+                Manage your preferences, personal and business information.
               </p>
 
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -1065,7 +1055,7 @@
           <div v-if="activeTab === 'billing'" class="p-6">
             <!-- Current Plan Banner -->
             <div
-              class="mb-8 p-4 bg-slate-50 border border-slate-200 rounded-md flex items-center justify-between transition-all hover:bg-slate-100/50">
+              class="mb-6 p-4 bg-slate-50 border border-slate-200 rounded-md flex items-center justify-between transition-all hover:bg-slate-100/50">
               <div class="flex items-center gap-3">
                 <div
                   class="w-10 h-10 bg-white border border-slate-200 rounded-md flex items-center justify-center text-lg shadow-sm">
@@ -1127,7 +1117,7 @@
 
             <!-- Promo Code Section -->
             <div
-              class="mb-8 p-4 bg-white border border-slate-200 rounded-xl shadow-sm">
+              class="mb-6 p-4 bg-white border border-slate-200 rounded-xl shadow-sm">
               <h5 class="text-sm font-bold text-slate-900 mb-3 text-left">
                 Have a promo code?
               </h5>
@@ -1152,8 +1142,8 @@
                   type="button"
                   @click="validatePromo"
                   :disabled="!promoCodeInput || promoLoading"
-                  class="px-4 py-2 bg-slate-900 text-white text-xs font-bold rounded-lg hover:bg-slate-800 transition-all disabled:opacity-50">
-                  Verify
+                  class="px-4 py-2 bg-slate-900 text-white text-xs font-bold rounded-md hover:bg-slate-800 transition-all disabled:opacity-50">
+                  Apply
                 </button>
                 <button
                   v-else

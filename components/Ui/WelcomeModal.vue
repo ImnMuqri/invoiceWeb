@@ -102,21 +102,21 @@
           <button
             v-if="currentStep > 1"
             @click="currentStep--"
-            class="flex-1 py-3.5 border border-slate-200 text-slate-600 font-bold text-xs rounded-xl hover:bg-slate-50 transition-all uppercase tracking-widest">
+            class="flex-1 py-3.5 border border-slate-200 text-slate-600 font-bold text-[12px] rounded-md hover:bg-slate-50 transition-all">
             Back
           </button>
 
           <button
             v-if="currentStep < 4"
             @click="currentStep++"
-            class="flex-[2] py-3.5 bg-slate-900 text-white font-bold text-xs rounded-xl hover:bg-slate-800 transition-all shadow-lg shadow-slate-900/10 uppercase tracking-widest">
+            class="flex-[2] py-3.5 bg-slate-900 text-white font-bold text-[12px] rounded-md hover:bg-slate-800 transition-all shadow-lg shadow-slate-900/10">
             Next
           </button>
 
           <button
             v-else
             @click="close"
-            class="flex-[2] py-3.5 bg-emerald-600 text-white font-bold text-xs rounded-xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-600/10 uppercase tracking-widest">
+            class="flex-[2] py-3.5 bg-emerald-600 text-white font-bold text-[12px] rounded-md hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-600/10">
             Let's Go!
           </button>
         </div>
