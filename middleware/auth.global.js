@@ -2,7 +2,7 @@ export default defineNuxtRouteMiddleware((to, from) => {
   const authStore = useAuthStore();
 
   // Ensure store is synced with cookies on every route change
-  authStore.syncFromCookies();
+  const hasToken = authStore.syncFromCookies();
 
   // Normalize path to ignore trailing slashes
   const normalizedPath = to.path.replace(/\/$/, "") || "/";
@@ -18,13 +18,8 @@ export default defineNuxtRouteMiddleware((to, from) => {
       to.name === "pay-id",
   );
 
-  // On client, wait for hydration if needed
-  if (process.client && !authStore.isHydrated) {
-    // We don't return here because we want the rest of the logic to run
-    // but we need to be careful. Actually, syncFromCookies is immediate.
-  }
-
-  const isAuthenticated = !!authStore.accessToken;
+  // Use either the store token or the direct cookie check to prevent refresh-to-login flickering
+  const isAuthenticated = hasToken || !!authStore.accessToken;
 
   // If user is not authenticated and trying to access a protected route
   if (!isAuthenticated && !isPublicRoute) {
@@ -33,7 +28,8 @@ export default defineNuxtRouteMiddleware((to, from) => {
 
   // If user is authenticated and trying to access login/register
   if (isAuthenticated && (to.path === "/login" || to.path === "/register")) {
-    return navigateTo("/dashboard");
+    const isCompleted = authStore.user?.onboardingCompleted === true;
+    return navigateTo(isCompleted ? "/dashboard" : "/onboarding");
   }
 
   // Enforce onboarding

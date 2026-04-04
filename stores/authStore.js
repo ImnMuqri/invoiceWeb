@@ -36,7 +36,9 @@ export const useAuthStore = defineStore("auth", () => {
       accessToken.value = at;
       refreshToken.value = rt;
       user.value = u;
+      return true;
     }
+    return false;
   }
 
   // Initial sync
@@ -71,8 +73,7 @@ export const useAuthStore = defineStore("auth", () => {
       document.readyState === "complete" ||
       document.readyState === "interactive"
     ) {
-      // Add slight delay to ensure Vue gives the right hydration signal safely if needed
-      setTimeout(initStore, 0);
+      initStore();
     } else {
       window.addEventListener("DOMContentLoaded", initStore);
     }
