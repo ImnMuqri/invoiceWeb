@@ -1,11 +1,10 @@
 export default defineNuxtRouteMiddleware(async (to, from) => {
   const authStore = useAuthStore();
 
-  const path = to.path;
+  // 🔥 Always sync first
+  authStore.syncFromCookies();
 
-  if (process.client) {
-    await new Promise((resolve) => setTimeout(resolve, 0));
-  }
+  const path = to.path;
 
   const publicRoutes = ["/login", "/register", "/", "/pay"];
   const isPublicRoute = publicRoutes.some(
@@ -17,11 +16,9 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
       to.name === "pay-id",
   );
 
-  // Authentication status check
-  // Uses store token or direct cookie check for SSR reliability
+  // 🔥 SSR-safe cookie check ONLY
   let cookieToken = useCookie("accessToken").value;
 
-  // High-reliability check for SSR in production
   if (process.server && !cookieToken) {
     const headers = useRequestHeaders(["cookie"]);
     if (headers.cookie) {
@@ -30,26 +27,12 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
     }
   }
 
-  let isAuthenticated = !!(authStore.accessToken || cookieToken);
+  const isAuthenticated = !!cookieToken;
 
-  // Final catch-all for client-side hydration issues
-  if (process.client && !isAuthenticated) {
-    const at = document.cookie
-      .split("; ")
-      .find((row) => row.startsWith("accessToken="))
-      ?.split("=")[1];
-    if (at) {
-      isAuthenticated = true;
-      authStore.syncFromCookies();
-    }
-  }
-
-  // Protected route check
   if (!isAuthenticated && !isPublicRoute) {
     return navigateTo("/login");
   }
 
-  // Onboarding enforcement
   if (isAuthenticated) {
     const isCompleted = authStore.user?.onboardingCompleted === true;
     const isOnboarding = path === "/onboarding" || path === "/onboarding/";
@@ -58,7 +41,6 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
       return navigateTo("/onboarding");
     }
 
-    // Redirect away from onboarding if already completed
     if (isCompleted && isOnboarding) {
       return navigateTo("/dashboard");
     }
