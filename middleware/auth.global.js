@@ -1,52 +1,29 @@
-export default defineNuxtRouteMiddleware(async (to, from) => {
-  // 🚀 SKIP during prerendering to avoid generating static meta-refresh redirects
-  if (import.meta.prerender) return;
-
+export default defineNuxtRouteMiddleware((to, from) => {
   const authStore = useAuthStore();
 
-  // 🔥 Always sync first
+  // Ensure store is synced with cookies on every route change
   authStore.syncFromCookies();
-
-  const path = to.path;
 
   const publicRoutes = ["/login", "/register", "/", "/pay"];
   const isPublicRoute = publicRoutes.some(
     (route) =>
-      path === route ||
-      (route !== "/" && path === route + "/") ||
-      path.startsWith("/pay/") ||
-      (path.startsWith("/invoices/") && path.endsWith("/export")) ||
+      to.path === route ||
+      to.path.startsWith("/pay/") ||
+      (to.path.startsWith("/invoices/") && to.path.endsWith("/export")) ||
+      to.path === "/pay" ||
       to.name === "pay-id",
   );
 
-  // 🔥 SSR-safe cookie check
-  let cookieToken = useCookie("accessToken").value;
+  const isAuthenticated = !!authStore.accessToken;
+  // Reduced logging to avoid terminal clutter, but kept essential for debugging
 
-  if (process.server && !cookieToken) {
-    const headers = useRequestHeaders(["cookie"]);
-    const cookieHeader = headers.cookie || "";
-    const match = cookieHeader.match(
-      new RegExp("(^|;)\\s*accessToken\\s*=\\s*([^;]+)"),
-    );
-    if (match) cookieToken = match[2];
-  }
-
-  const isAuthenticated = !!cookieToken;
-
+  // If user is not authenticated and trying to access a protected route
   if (!isAuthenticated && !isPublicRoute) {
     return navigateTo("/login");
   }
 
-  if (isAuthenticated) {
-    const isCompleted = authStore.user?.onboardingCompleted === true;
-    const isOnboarding = path === "/onboarding" || path === "/onboarding/";
-
-    if (!isCompleted && !isOnboarding && !isPublicRoute) {
-      return navigateTo("/onboarding");
-    }
-
-    if (isCompleted && isOnboarding) {
-      return navigateTo("/dashboard");
-    }
+  // If user is authenticated and trying to access login/register
+  if (isAuthenticated && (to.path === "/login" || to.path === "/register")) {
+    return navigateTo("/dashboard");
   }
 });
