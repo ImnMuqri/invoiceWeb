@@ -1,13 +1,17 @@
-export default defineNuxtRouteMiddleware((to, from) => {
+export default defineNuxtRouteMiddleware(async (to, from) => {
   const authStore = useAuthStore();
 
   const path = to.path;
+
+  if (process.client) {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  }
 
   const publicRoutes = ["/login", "/register", "/", "/pay"];
   const isPublicRoute = publicRoutes.some(
     (route) =>
       path === route ||
-      path === route + "/" ||
+      (route !== "/" && path === route + "/") ||
       path.startsWith("/pay/") ||
       (path.startsWith("/invoices/") && path.endsWith("/export")) ||
       to.name === "pay-id",
@@ -26,7 +30,19 @@ export default defineNuxtRouteMiddleware((to, from) => {
     }
   }
 
-  const isAuthenticated = !!(authStore.accessToken || cookieToken);
+  let isAuthenticated = !!(authStore.accessToken || cookieToken);
+
+  // Final catch-all for client-side hydration issues
+  if (process.client && !isAuthenticated) {
+    const at = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith("accessToken="))
+      ?.split("=")[1];
+    if (at) {
+      isAuthenticated = true;
+      authStore.syncFromCookies();
+    }
+  }
 
   // Protected route check
   if (!isAuthenticated && !isPublicRoute) {

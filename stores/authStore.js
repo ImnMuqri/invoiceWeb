@@ -58,12 +58,14 @@ export const useAuthStore = defineStore("auth", () => {
     return false;
   }
 
-  // Sync from cookies immediately (SSR safe)
-  syncFromCookies();
+  // (Moved syncFromCookies call to return section)
 
   if (process.client) {
     const initStore = () => {
       try {
+        // High-reliability sync on client init
+        syncFromCookies();
+
         // If we have state but no LS, backup to LS
         if (accessToken.value && !localStorage.getItem("accessToken")) {
           localStorage.setItem("user", JSON.stringify(user.value));
@@ -366,6 +368,9 @@ export const useAuthStore = defineStore("auth", () => {
       loading.value = false;
     }
   }
+
+  // Sync from cookies immediately (SSR safe)
+  syncFromCookies();
 
   return {
     user,
