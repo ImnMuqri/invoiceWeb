@@ -26,9 +26,9 @@ export const useAuthStore = defineStore("auth", () => {
   };
 
   function syncFromCookies() {
-    const u = useCookie("user", COOKIE_OPTIONS).value;
-    const at = useCookie("accessToken", COOKIE_OPTIONS).value;
-    const rt = useCookie("refreshToken", COOKIE_OPTIONS).value;
+    const u = useCookie("user").value;
+    const at = useCookie("accessToken").value;
+    const rt = useCookie("refreshToken").value;
 
     if (at) {
       accessToken.value = at;
