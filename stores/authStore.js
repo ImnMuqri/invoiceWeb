@@ -32,121 +32,59 @@ export const useAuthStore = defineStore("auth", () => {
     let at = useCookie("accessToken").value;
     let rt = useCookie("refreshToken").value;
 
-    // SSR fallback
+    // Robust SSR fallback for production
     if (process.server && !at) {
       const headers = useRequestHeaders(["cookie"]);
-      if (headers.cookie) {
-        const atMatch = headers.cookie.match(/accessToken=([^;]+)/);
-        if (atMatch) at = atMatch[1];
+      const cookieHeader = headers.cookie || "";
 
-        const rtMatch = headers.cookie.match(/refreshToken=([^;]+)/);
-        if (rtMatch) rt = rtMatch[1];
+      const getCookie = (name) => {
+        const match = cookieHeader.match(
+          new RegExp("(^|;)\\s*" + name + "\\s*=\\s*([^;]+)"),
+        );
+        return match ? match[2] : null;
+      };
 
-        const userMatch = headers.cookie.match(/user=([^;]+)/);
-        if (userMatch) {
-          try {
-            u = JSON.parse(decodeURIComponent(userMatch[1]));
-          } catch (e) {}
-        }
+      const atMatch = getCookie("accessToken");
+      if (atMatch) at = atMatch;
+
+      const rtMatch = getCookie("refreshToken");
+      if (rtMatch) rt = rtMatch;
+
+      const userMatch = getCookie("user");
+      if (userMatch) {
+        try {
+          u = JSON.parse(decodeURIComponent(userMatch));
+        } catch (e) {}
       }
     }
 
     if (at) {
       accessToken.value = at;
       refreshToken.value = rt;
-
-      if (u) {
-        user.value = u;
-      }
-
+      if (u) user.value = u;
       return true;
     }
-
     return false;
   }
 
-  function syncFromLS() {
-    if (!process.client) return false;
-
-    const at = localStorage.getItem("accessToken");
-
-    if (at) {
-      accessToken.value = at;
-      refreshToken.value = localStorage.getItem("refreshToken");
-
-      const savedUser = localStorage.getItem("user");
-      if (savedUser) {
-        user.value = JSON.parse(savedUser);
-      }
-
-      useCookie("user", COOKIE_OPTIONS).value = user.value;
-      useCookie("accessToken", COOKIE_OPTIONS).value = accessToken.value;
-      useCookie("refreshToken", COOKIE_OPTIONS).value = refreshToken.value;
-
-      return true;
-    }
-
-    return false;
-  }
-
-  // 🔥 SINGLE SOURCE SYNC (SSR SAFE)
+  // ✅ Initialize from cookies
   syncFromCookies();
 
   if (process.client) {
-    try {
-      // Backup to LS if missing
-      if (accessToken.value && !localStorage.getItem("accessToken")) {
-        localStorage.setItem("user", JSON.stringify(user.value));
-        localStorage.setItem("accessToken", accessToken.value);
-        localStorage.setItem("refreshToken", refreshToken.value);
-      }
+    // Set hydrated immediately on client
+    isHydrated.value = true;
 
-      // Restore if cookies missing but LS exists
-      else if (!accessToken.value && localStorage.getItem("accessToken")) {
-        syncFromLS();
-      }
-    } catch (e) {
-    } finally {
-      setTimeout(() => {
-        isHydrated.value = true;
-      }, 0);
-    }
-
-    // ✅ Only watch token, not everything
+    // ✅ Sync state changes TO cookies only
     watch(accessToken, (at) => {
-      if (!isHydrated.value) return;
-
       useCookie("accessToken", COOKIE_OPTIONS).value = at;
-
-      if (at) {
-        localStorage.setItem("accessToken", at);
-      } else {
-        localStorage.removeItem("accessToken");
-      }
     });
 
     watch(user, (u) => {
-      if (!isHydrated.value) return;
-
       useCookie("user", COOKIE_OPTIONS).value = u;
-
-      if (u) {
-        localStorage.setItem("user", JSON.stringify(u));
-      } else {
-        localStorage.removeItem("user");
-      }
     });
 
     watch(refreshToken, (rt) => {
-      if (!isHydrated.value) return;
-
       useCookie("refreshToken", COOKIE_OPTIONS).value = rt;
-
-      if (rt) {
-        localStorage.setItem("refreshToken", rt);
-      } else {
-        localStorage.removeItem("refreshToken");
-      }
     });
   }
 

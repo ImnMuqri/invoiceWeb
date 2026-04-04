@@ -16,15 +16,16 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
       to.name === "pay-id",
   );
 
-  // 🔥 SSR-safe cookie check ONLY
+  // 🔥 SSR-safe cookie check
   let cookieToken = useCookie("accessToken").value;
 
   if (process.server && !cookieToken) {
     const headers = useRequestHeaders(["cookie"]);
-    if (headers.cookie) {
-      const match = headers.cookie.match(/accessToken=([^;]+)/);
-      if (match) cookieToken = match[1];
-    }
+    const cookieHeader = headers.cookie || "";
+    const match = cookieHeader.match(
+      new RegExp("(^|;)\\s*accessToken\\s*=\\s*([^;]+)"),
+    );
+    if (match) cookieToken = match[2];
   }
 
   const isAuthenticated = !!cookieToken;
