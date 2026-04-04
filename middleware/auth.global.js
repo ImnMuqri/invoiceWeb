@@ -1,4 +1,7 @@
 export default defineNuxtRouteMiddleware(async (to, from) => {
+  // 🚀 SKIP during prerendering to avoid generating static meta-refresh redirects
+  if (import.meta.prerender) return;
+
   const authStore = useAuthStore();
 
   // 🔥 Always sync first

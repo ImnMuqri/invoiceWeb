@@ -26,5 +26,13 @@ export default defineNuxtConfig({
     options: {
       strict: false
     }
+  },
+  routeRules: {
+    '/dashboard/**': { ssr: false },
+    '/invoices/**': { ssr: false },
+    '/clients/**': { ssr: false },
+    '/settings/**': { ssr: false },
+    '/onboarding/**': { ssr: false },
+    '/admin/**': { ssr: false }
   }
 })
