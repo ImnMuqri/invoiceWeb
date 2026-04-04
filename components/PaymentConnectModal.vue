@@ -1,5 +1,5 @@
 <template>
-  <UiModal v-model="isOpen" :title="title" max-width="max-w-xl">
+  <UiModal v-model="isOpen" :title="title" maxWidth="md">
     <div class="p-6">
       <div v-if="step === 1">
         <div class="flex items-center gap-3 mb-4">

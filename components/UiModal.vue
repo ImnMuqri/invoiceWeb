@@ -12,7 +12,8 @@
         v-if="modelValue"
         class="fixed inset-0 z-[70] overflow-y-auto pointer-events-none">
         <div
-          class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
+          class="flex min-h-full items-center justify-center p-4 text-center sm:p-0"
+          style="zoom: 0.9">
           <div
             class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-2xl transition-all sm:my-8 w-full pointer-events-auto border border-slate-200"
             :class="maxWidthClass">

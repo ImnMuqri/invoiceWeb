@@ -149,8 +149,7 @@
           <h2 class="text-xl font-bold text-slate-900 tracking-tight">
             Active Plans
           </h2>
-          <p
-            class="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-widest">
+          <p class="text-xs font-medium text-slate-500 mt-1"">
             Manage subscription tiers, pricing and feature limits.
           </p>
         </div>

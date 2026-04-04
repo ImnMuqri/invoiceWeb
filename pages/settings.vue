@@ -597,7 +597,53 @@
               </p>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8 pt-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8 pt-8">
+              <!-- Direct Bank Transfer -->
+              <div
+                class="border border-slate-200 rounded-2xl p-6 bg-white shadow-sm flex flex-col hover:border-slate-300 transition-all">
+                <div class="flex items-center gap-4 mb-6">
+                  <div
+                    class="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100 overflow-hidden text-slate-400">
+                    <UiIcon icon="heroicons:banknotes" class="w-6 h-6" />
+                  </div>
+                  <div class="text-left">
+                    <h4 class="text-sm font-bold text-slate-900 text-left">
+                      Bank Transfer
+                    </h4>
+                    <p class="text-[10px] text-slate-500 font-medium text-left">
+                      Manual fallback for direct payments
+                    </p>
+                  </div>
+                </div>
+
+                <div
+                  v-if="
+                    settingsForm.manualBankName ||
+                    settingsForm.manualAccountNumber
+                  "
+                  class="mt-auto">
+                  <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-2">
+                      <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
+                      <span class="text-[12px] font-bold text-emerald-600"
+                        >Configured</span
+                      >
+                    </div>
+                  </div>
+                  <button
+                    @click="isManualModalOpen = true"
+                    class="w-full py-2 text-xs font-bold text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 transition-all">
+                    Edit Details
+                  </button>
+                </div>
+                <button
+                  v-else
+                  @click="isManualModalOpen = true"
+                  class="mt-auto w-full py-2.5 bg-slate-900 text-white text-xs font-bold rounded-xl hover:bg-slate-800 transition-all uppercase tracking-widest">
+                  Setup Manual
+                </button>
+              </div>
+
               <!-- ToyyibPay -->
               <div
                 class="border border-slate-200 rounded-2xl p-6 bg-white shadow-sm flex flex-col hover:border-slate-300 transition-all">
@@ -731,123 +777,7 @@
               </div>
             </div>
 
-            <!-- Manual Payment Section -->
-            <div class="mt-8 pt-8 border-t border-slate-100">
-              <div class="mb-8 text-left">
-                <div class="flex items-center gap-2 mb-4 text-left">
-                  <div class="h-px bg-slate-200 flex-1"></div>
-                  <span
-                    class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] px-3"
-                    >Or manual fallback</span
-                  >
-                  <div class="h-px bg-slate-200 flex-1"></div>
-                </div>
-                <h3
-                  class="text-base font-semibold text-slate-900 tracking-tight text-left">
-                  Direct Bank Transfer
-                </h3>
-                <p class="text-xs text-slate-500 mt-1 text-left">
-                  Clients can pay you directly. These details will show if no
-                  gateway is connected.
-                </p>
-                <div
-                  class="mt-4 p-3 bg-amber-50 rounded-lg border border-amber-100 flex gap-3 text-left">
-                  <UiIcon
-                    icon="heroicons:information-circle"
-                    custom-class="w-4 h-4 text-amber-600 shrink-0" />
-                  <p class="text-[11px] text-amber-700 leading-normal">
-                    <strong>Payment Detection:</strong> We cannot automatically
-                    detect manual payments. You will need to verify the
-                    transaction in your bank account and manually mark the
-                    invoice as paid.
-                  </p>
-                </div>
-              </div>
-
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8 text-left">
-                <div class="space-y-4">
-                  <div>
-                    <label
-                      class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2"
-                      >Bank Name</label
-                    >
-                    <input
-                      v-model="settingsForm.manualBankName"
-                      type="text"
-                      placeholder="e.g. Maybank, CIMB"
-                      class="w-full border border-slate-200 rounded-md px-4 py-2.5 text-sm font-medium focus:ring-1 focus:ring-slate-900 outline-none transition-all" />
-                  </div>
-                  <div>
-                    <label
-                      class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2"
-                      >Account Number</label
-                    >
-                    <input
-                      v-model="settingsForm.manualAccountNumber"
-                      type="text"
-                      placeholder="e.g. 1234 5678 90"
-                      class="w-full border border-slate-200 rounded-md px-4 py-2.5 text-sm font-medium focus:ring-1 focus:ring-slate-900 outline-none transition-all" />
-                  </div>
-                  <div>
-                    <label
-                      class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2"
-                      >Account Holder Name</label
-                    >
-                    <input
-                      v-model="settingsForm.manualAccountName"
-                      type="text"
-                      placeholder="e.g. John Doe Enterprise"
-                      class="w-full border border-slate-200 rounded-md px-4 py-2.5 text-sm font-medium focus:ring-1 focus:ring-slate-900 outline-none transition-all" />
-                  </div>
-                </div>
-
-                <div>
-                  <label
-                    class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2"
-                    >Payment QR Code</label
-                  >
-                  <div
-                    class="relative border-2 border-dashed border-slate-200 rounded-2xl p-6 min-h-[180px] flex flex-col items-center justify-center bg-slate-50/50 hover:bg-slate-50 transition-all group cursor-pointer overflow-hidden">
-                    <template v-if="settingsForm.manualQrCode">
-                      <div class="flex flex-col items-center text-center">
-                        <div
-                          class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mb-3">
-                          <UiIcon
-                            icon="heroicons:qr-code"
-                            custom-class="w-6 h-6" />
-                        </div>
-                        <p
-                          class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mb-1">
-                          QR Data Detected
-                        </p>
-                        <button
-                          @click.stop="settingsForm.manualQrCode = ''"
-                          class="text-[10px] font-bold text-red-500 hover:text-red-600 uppercase tracking-widest underline">
-                          Remove
-                        </button>
-                      </div>
-                    </template>
-                    <template v-else>
-                      <UiIcon
-                        icon="heroicons:cloud-arrow-up"
-                        custom-class="w-8 h-8 text-slate-300 mb-3 group-hover:text-slate-400 transition-colors" />
-                      <p class="text-xs font-bold text-slate-600 mb-1">
-                        Upload QR
-                      </p>
-                      <p class="text-[10px] text-slate-400 px-8 text-center">
-                        We'll decode and regenerate this on your invoices.
-                      </p>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        @change="handleQrUpload"
-                        class="absolute inset-0 opacity-0 cursor-pointer" />
-                    </template>
-                  </div>
-                </div>
-              </div>
-            </div>
-
+            <!-- Security Notice -->
             <div
               class="mt-12 p-6 bg-slate-50 rounded-xl border border-slate-200">
               <div class="flex gap-4">
@@ -857,7 +787,7 @@
                     name="heroicons:shield-check"
                     custom-class="w-4 h-4" />
                 </div>
-                <div class="flex-1">
+                <div class="flex-1 text-left">
                   <h4 class="text-sm font-bold text-slate-900 mb-1 text-left">
                     Your Security is Our Priority
                   </h4>
@@ -1164,9 +1094,24 @@
                   </p>
                 </div>
               </div>
-              <div
-                class="text-[10px] text-emerald-600 font-semibold uppercase tracking-wider bg-emerald-50 px-2 py-1 rounded border border-emerald-100 shadow-sm">
-                Active
+              <div class="flex items-center gap-3">
+                <div
+                  v-if="
+                    authStore.user?.plan &&
+                    authStore.user?.plan !== 'FREE' &&
+                    !isCancelling
+                  "
+                  class="mr-2">
+                  <button
+                    @click="updatePlan('FREE')"
+                    class="text-[10px] font-bold text-rose-600 hover:text-rose-700 uppercase tracking-wider px-3 py-1.5 rounded-lg border border-rose-100 bg-rose-50/50 hover:bg-rose-50 transition-all">
+                    Cancel Plan
+                  </button>
+                </div>
+                <div
+                  class="text-[10px] text-emerald-600 font-semibold uppercase tracking-wider bg-emerald-50 px-2 py-1 rounded border border-emerald-100 shadow-sm">
+                  Active
+                </div>
               </div>
             </div>
 
@@ -1278,9 +1223,17 @@
                   </li>
                 </ul>
                 <button
-                  @click="updatePlan(plan.name)"
+                  @click="
+                    updatePlan(
+                      authStore.user?.plan === plan.name && plan.name !== 'FREE'
+                        ? 'FREE'
+                        : plan.name,
+                    )
+                  "
                   :disabled="
-                    (authStore.user?.plan === plan.name && !isCancelling) ||
+                    (authStore.user?.plan === plan.name &&
+                      plan.name === 'FREE') ||
+                    (authStore.user?.plan === plan.name && isCancelling) ||
                     (authStore.user?.plan !== 'FREE' &&
                       authStore.user?.plan !== plan.name &&
                       !isCancelling)
@@ -1288,21 +1241,28 @@
                   class="w-full py-2.5 rounded-xl text-sm font-semibold transition-all border outline-none cursor-pointer"
                   :class="[
                     authStore.user?.plan === plan.name
-                      ? isCancelling
-                        ? 'border-slate-100 bg-slate-50 text-slate-400 cursor-not-allowed'
-                        : 'bg-slate-900 text-white border-slate-900 hover:bg-slate-800'
+                      ? plan.name === 'FREE'
+                        ? 'bg-slate-50 text-slate-400 border-slate-100 cursor-not-allowed'
+                        : isCancelling
+                          ? 'border-slate-100 bg-slate-50 text-slate-400 cursor-not-allowed'
+                          : 'bg-white text-rose-600 border-rose-100 hover:bg-rose-50 hover:border-rose-200'
                       : authStore.user?.plan !== 'FREE' && !isCancelling
                         ? 'border-slate-100 bg-slate-50 text-slate-400 cursor-not-allowed'
                         : 'bg-slate-900 text-white border-slate-900 hover:bg-slate-800',
                   ]">
                   <template v-if="authStore.user?.plan === plan.name">
-                    {{ isCancelling ? "Downgrade Pending" : "Current Plan" }}
+                    <template v-if="plan.name === 'FREE'"
+                      >Current Plan</template
+                    >
+                    <template v-else>
+                      {{ isCancelling ? "Downgrade Pending" : "Cancel Plan" }}
+                    </template>
                   </template>
                   <template
                     v-else-if="
                       authStore.user?.plan !== 'FREE' && !isCancelling
                     ">
-                    Cancel Current Plan First
+                    Switch Plan
                   </template>
                   <template v-else>
                     {{
@@ -1346,64 +1306,174 @@
         </div>
       </div>
     </div>
-    <UiToast v-model="toast" />
-    <PaymentConnectModal
-      v-model="connectModal"
-      :provider="selectedProvider"
-      :existing-data="
-        paymentProviders.find((p) => p.provider === selectedProvider) || {}
-      "
-      @save="saveConnection" />
+  </div>
+  <UiToast v-model="toast" />
+  <PaymentConnectModal
+    v-model="connectModal"
+    :provider="selectedProvider"
+    :existing-data="
+      paymentProviders.find((p) => p.provider === selectedProvider) || {}
+    "
+    @save="saveConnection" />
 
-    <!-- Downgrade Confirmation Modal -->
-    <UiModal v-model="isDowngradeModalOpen" maxWidth="sm">
-      <div class="p-6">
-        <div
-          class="flex items-center justify-center w-12 h-12 mx-auto bg-amber-50 rounded-full mb-4">
+  <!-- Downgrade Confirmation Modal -->
+  <UiModal v-model="isDowngradeModalOpen" maxWidth="md">
+    <div class="p-6">
+      <div
+        class="flex items-center justify-center w-12 h-12 mx-auto bg-rose-50 rounded-full mb-4">
+        <UiIcon
+          icon="heroicons:exclamation-triangle"
+          custom-class="w-6 h-6 text-rose-600" />
+      </div>
+      <div class="text-center">
+        <h3 class="text-lg font-bold text-slate-900">Cancel Plan?</h3>
+        <p class="mt-2 text-sm text-slate-500 font-medium leading-relaxed">
+          Are you sure you want to cancel your
+          <span class="text-slate-900 font-bold uppercase">{{
+            authStore.user?.plan
+          }}</span>
+          subscription?
+          <p class="pt-1">You will keep
+          <span class="text-slate-900 font-bold uppercase">{{
+            authStore.user?.plan || "your"
+          }}</span>
+          benefits until
+          <span class="text-slate-900 font-bold">{{
+            authStore.user?.subscriptions?.[0]?.subscriptionEnds
+              ? new Date(
+                  authStore.user.subscriptions[0].subscriptionEnds,
+                ).toLocaleDateString("en-GB", {
+                  day: "numeric",
+                  month: "short",
+                  year: "numeric",
+                })
+              : "the end of your billing cycle"
+          }}</span
+          >, after which you will move to the FREE plan.</p>
+        </p>
+      </div>
+      <div class="mt-6 flex flex-col gap-3">
+        <button
+          @click="confirmDowngrade"
+          :disabled="downgradingPlan"
+          class="w-full inline-flex justify-center items-center rounded-xl bg-rose-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-rose-700 transition-colors disabled:opacity-50">
           <UiIcon
-            icon="heroicons:exclamation-triangle"
-            custom-class="w-6 h-6 text-amber-600" />
+            v-if="downgradingPlan"
+            icon="line-md:loading-twotone-loop"
+            class="w-4 h-4 mr-2 animate-spin" />
+          Yes, Confirm Cancellation
+        </button>
+        <button
+          @click="isDowngradeModalOpen = false"
+          class="w-full inline-flex justify-center rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-slate-900 shadow-sm ring-1 ring-inset ring-slate-200 hover:bg-slate-50 transition-colors">
+          Keep My Current Plan
+        </button>
+      </div>
+    </div>
+  </UiModal>
+
+  <!-- Direct Bank Transfer Modal -->
+  <UiModal
+    v-model="isManualModalOpen"
+    maxWidth="lg"
+    title="Direct Bank Transfer"
+    description="Clients can pay you directly to your bank account. These details will be shown on the invoice if no automated gateway is connected.">
+    <div class="p-6">
+      <div
+        class="mb-6 p-4 bg-amber-50 rounded-xl border border-amber-100 flex gap-3 text-left">
+        <UiIcon
+          icon="heroicons:information-circle"
+          custom-class="w-5 h-5 text-amber-600 shrink-0" />
+        <p class="text-[12px] text-amber-700 leading-normal font-medium">
+          <strong>Manual Detection:</strong> We cannot automatically detect
+          these payments. You must manually mark invoices as paid once received.
+        </p>
+      </div>
+
+      <div class="space-y-4">
+        <div>
+          <label
+            class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2"
+            >Bank Name</label
+          >
+          <input
+            v-model="settingsForm.manualBankName"
+            type="text"
+            placeholder="e.g. Maybank, CIMB"
+            class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:ring-1 focus:ring-slate-900 outline-none transition-all" />
         </div>
-        <div class="text-center">
-          <h3 class="text-lg font-bold text-slate-900">Cancel Plan?</h3>
-          <p class="mt-2 text-sm text-slate-500 font-medium leading-relaxed">
-            Are you sure you want to cancel your
-            <span class="text-slate-900 font-bold uppercase">{{
-              authStore.user?.plan
-            }}</span>
-            subscription? You will keep Pro benefits until
-            <span class="text-slate-900 font-bold">{{
-              new Date(
-                authStore.user?.subscriptions?.[0]?.subscriptionEnds,
-              ).toLocaleDateString("en-GB", {
-                day: "numeric",
-                month: "short",
-                year: "numeric",
-              })
-            }}</span
-            >, after which you will move to the FREE plan.
-          </p>
+        <div>
+          <label
+            class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2"
+            >Account Number</label
+          >
+          <input
+            v-model="settingsForm.manualAccountNumber"
+            type="text"
+            placeholder="e.g. 1234 5678 90"
+            class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:ring-1 focus:ring-slate-900 outline-none transition-all" />
         </div>
-        <div class="mt-6 flex flex-col gap-3">
-          <button
-            @click="confirmDowngrade"
-            :disabled="downgradingPlan"
-            class="w-full inline-flex justify-center items-center rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-slate-800 transition-colors disabled:opacity-50">
-            <UiIcon
-              v-if="downgradingPlan"
-              icon="line-md:loading-twotone-loop"
-              class="w-4 h-4 mr-2 animate-spin" />
-            Yes, Confirm Cancellation
-          </button>
-          <button
-            @click="isDowngradeModalOpen = false"
-            class="w-full inline-flex justify-center rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-slate-900 shadow-sm ring-1 ring-inset ring-slate-200 hover:bg-slate-50 transition-colors">
-            Keep My Current Plan
-          </button>
+        <div>
+          <label
+            class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2"
+            >Account Holder Name</label
+          >
+          <input
+            v-model="settingsForm.manualAccountName"
+            type="text"
+            placeholder="e.g. John Doe Enterprise"
+            class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:ring-1 focus:ring-slate-900 outline-none transition-all" />
+        </div>
+        <div>
+          <label
+            class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2"
+            >Payment QR Code</label
+          >
+          <div
+            class="relative border-2 border-dashed border-slate-200 rounded-2xl p-6 min-h-[140px] flex flex-col items-center justify-center bg-slate-50/50 hover:bg-slate-50 transition-all group cursor-pointer overflow-hidden">
+            <template v-if="settingsForm.manualQrCode">
+              <div class="flex flex-col items-center text-center">
+                <div
+                  class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mb-2">
+                  <UiIcon icon="heroicons:qr-code" custom-class="w-5 h-5" />
+                </div>
+                <p
+                  class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mb-1">
+                  QR Detected
+                </p>
+                <button
+                  @click.stop="settingsForm.manualQrCode = ''"
+                  class="text-[10px] font-bold text-red-500 hover:text-red-600 uppercase tracking-widest underline">
+                  Remove
+                </button>
+              </div>
+            </template>
+            <template v-else>
+              <UiIcon
+                icon="heroicons:cloud-arrow-up"
+                custom-class="w-8 h-8 text-slate-300 mb-2 group-hover:text-slate-400 transition-colors" />
+              <p class="text-[11px] font-bold text-slate-600 mb-1">
+                Upload QR Image
+              </p>
+              <input
+                type="file"
+                accept="image/*"
+                @change="handleQrUpload"
+                class="absolute inset-0 opacity-0 cursor-pointer" />
+            </template>
+          </div>
         </div>
       </div>
-    </UiModal>
-  </div>
+
+      <div class="mt-8">
+        <button
+          @click="isManualModalOpen = false"
+          class="w-full py-3 bg-slate-900 text-white text-sm font-bold rounded-xl hover:bg-slate-800 transition-all shadow-lg uppercase tracking-widest">
+          Done
+        </button>
+      </div>
+    </div>
+  </UiModal>
 </template>
 
 <script setup>
@@ -1475,6 +1545,7 @@ const tabs = [
 ];
 
 const isDowngradeModalOpen = ref(false);
+const isManualModalOpen = ref(false);
 const downgradingPlan = ref(false);
 const pendingPlanUpdate = ref(null);
 
