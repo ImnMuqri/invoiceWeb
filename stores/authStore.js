@@ -23,7 +23,11 @@ export const useAuthStore = defineStore("auth", () => {
     maxAge: 60 * 60 * 24 * 7, // 7 days
     sameSite: "lax",
     // Only use secure cookies if on HTTPS (localhost usually isn't)
-    secure: process.client ? window.location.protocol === "https:" : true,
+    secure: process.dev
+      ? false
+      : process.client
+        ? window.location.protocol === "https:"
+        : true,
   };
 
   // Function to sync from cookies to store (SSR safe)
