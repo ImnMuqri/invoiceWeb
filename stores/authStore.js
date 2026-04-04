@@ -144,6 +144,9 @@ export const useAuthStore = defineStore("auth", () => {
       useCookie("refreshToken", COOKIE_OPTIONS).value = null;
 
       if (process.client) {
+        localStorage.removeItem("user");
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
         window.location.href = "/login";
       }
     }

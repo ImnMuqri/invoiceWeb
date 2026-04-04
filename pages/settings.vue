@@ -1550,8 +1550,11 @@ const downgradingPlan = ref(false);
 const pendingPlanUpdate = ref(null);
 
 const currentSub = computed(() => authStore.user?.subscriptions?.[0]);
-const isCancelling = computed(() => currentSub.value?.cancelAtPeriodEnd);
-
+const isCancelling = computed(() => {
+  const sub = currentSub.value;
+  if (!sub) return false;
+  return sub.cancelAtPeriodEnd || sub.status === "CANCELED" || sub.status === "CANCELLED";
+});
 const activeTab = ref(route.query.tab || "general");
 const toast = ref({ message: "", type: "success" });
 const currencyOptions = ref([]);
