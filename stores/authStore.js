@@ -58,15 +58,7 @@ export const useAuthStore = defineStore("auth", () => {
       }
       // If we have NO state but have LS, restore from LS
       else if (!accessToken.value && localStorage.getItem("accessToken")) {
-        accessToken.value = localStorage.getItem("accessToken");
-        refreshToken.value = localStorage.getItem("refreshToken");
-        const savedUser = localStorage.getItem("user");
-        if (savedUser) user.value = JSON.parse(savedUser);
-
-        // Push back to cookies
-        useCookie("user", COOKIE_OPTIONS).value = user.value;
-        useCookie("accessToken", COOKIE_OPTIONS).value = accessToken.value;
-        useCookie("refreshToken", COOKIE_OPTIONS).value = refreshToken.value;
+        syncFromLS();
       }
 
       isHydrated.value = true;
@@ -109,6 +101,24 @@ export const useAuthStore = defineStore("auth", () => {
       },
       { deep: true },
     );
+  }
+
+  function syncFromLS() {
+    if (!process.client) return false;
+    const at = localStorage.getItem("accessToken");
+    if (at) {
+      accessToken.value = at;
+      refreshToken.value = localStorage.getItem("refreshToken");
+      const savedUser = localStorage.getItem("user");
+      if (savedUser) user.value = JSON.parse(savedUser);
+
+      // Restore cookies from LS for future SSR
+      useCookie("user", COOKIE_OPTIONS).value = user.value;
+      useCookie("accessToken", COOKIE_OPTIONS).value = accessToken.value;
+      useCookie("refreshToken", COOKIE_OPTIONS).value = refreshToken.value;
+      return true;
+    }
+    return false;
   }
 
   async function login(email, password) {
@@ -377,6 +387,7 @@ export const useAuthStore = defineStore("auth", () => {
     deletePaymentProvider,
     setPreferredPaymentProvider,
     syncFromCookies,
+    syncFromLS,
     refreshAccessToken,
   };
 });

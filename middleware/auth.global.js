@@ -19,7 +19,12 @@ export default defineNuxtRouteMiddleware((to, from) => {
   );
 
   // Use either the store token or the direct cookie check to prevent refresh-to-login flickering
-  const isAuthenticated = hasToken || !!authStore.accessToken;
+  let isAuthenticated = hasToken || !!authStore.accessToken;
+
+  // Client-side fallback: check localStorage if cookies failed (prevents refresh-to-login on client)
+  if (process.client && !isAuthenticated) {
+    isAuthenticated = authStore.syncFromLS();
+  }
 
   // If user is not authenticated and trying to access a protected route
   if (!isAuthenticated && !isPublicRoute) {
