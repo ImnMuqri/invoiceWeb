@@ -22,11 +22,9 @@ export const useAuthStore = defineStore("auth", () => {
     path: "/",
     maxAge: 60 * 60 * 24 * 7, // 7 days
     sameSite: "lax",
-    // Only use secure cookies if on HTTPS (localhost usually isn't)
-    secure: false, // Relaxed for production to avoid SSL termination issues on some proxies
+    secure: process.dev ? false : true,
   };
 
-  // Function to sync from cookies to store (SSR safe)
   function syncFromCookies() {
     const u = useCookie("user", COOKIE_OPTIONS).value;
     const at = useCookie("accessToken", COOKIE_OPTIONS).value;
@@ -41,41 +39,43 @@ export const useAuthStore = defineStore("auth", () => {
     return false;
   }
 
-  // Initial sync
+  // Sync from cookies immediately (SSR safe)
   syncFromCookies();
 
   if (process.client) {
     const initStore = () => {
-      // If we have state but no LS, backup to LS
-      if (accessToken.value && !localStorage.getItem("accessToken")) {
-        localStorage.setItem("user", JSON.stringify(user.value));
-        localStorage.setItem("accessToken", accessToken.value);
-        localStorage.setItem("refreshToken", refreshToken.value);
+      try {
+        // If we have state but no LS, backup to LS
+        if (accessToken.value && !localStorage.getItem("accessToken")) {
+          localStorage.setItem("user", JSON.stringify(user.value));
+          localStorage.setItem("accessToken", accessToken.value);
+          localStorage.setItem("refreshToken", refreshToken.value);
+        }
+        // If we have NO state but have LS, restore from LS
+        else if (!accessToken.value && localStorage.getItem("accessToken")) {
+          syncFromLS();
+        }
+      } catch (e) {
+      } finally {
+        // Set hydrated in next tick to avoid hydration mismatch while keeping tokens available synchronously
+        if (process.client) {
+          setTimeout(() => {
+            isHydrated.value = true;
+          }, 0);
+        }
       }
-      // If we have NO state but have LS, restore from LS
-      else if (!accessToken.value && localStorage.getItem("accessToken")) {
-        syncFromLS();
-      }
-
-      isHydrated.value = true;
     };
 
-    // Run initialization IMMEDIATELY to avoid race conditions with API calls
     initStore();
 
-    // Update cookies and LS when state changes
     watch(
       [user, accessToken, refreshToken],
       ([u, at, rt]) => {
         if (!isHydrated.value) return;
 
-        const uCookie = useCookie("user", COOKIE_OPTIONS);
-        const atCookie = useCookie("accessToken", COOKIE_OPTIONS);
-        const rtCookie = useCookie("refreshToken", COOKIE_OPTIONS);
-
-        uCookie.value = u;
-        atCookie.value = at;
-        rtCookie.value = rt;
+        useCookie("user", COOKIE_OPTIONS).value = u;
+        useCookie("accessToken", COOKIE_OPTIONS).value = at;
+        useCookie("refreshToken", COOKIE_OPTIONS).value = rt;
 
         if (at) {
           localStorage.setItem("user", JSON.stringify(u));
@@ -100,7 +100,6 @@ export const useAuthStore = defineStore("auth", () => {
       const savedUser = localStorage.getItem("user");
       if (savedUser) user.value = JSON.parse(savedUser);
 
-      // Restore cookies from LS for future SSR
       useCookie("user", COOKIE_OPTIONS).value = user.value;
       useCookie("accessToken", COOKIE_OPTIONS).value = accessToken.value;
       useCookie("refreshToken", COOKIE_OPTIONS).value = refreshToken.value;
@@ -118,7 +117,6 @@ export const useAuthStore = defineStore("auth", () => {
       accessToken.value = data.accessToken;
       refreshToken.value = data.refreshToken;
 
-      // Explicitly set cookies immediately for middleware
       useCookie("user", COOKIE_OPTIONS).value = data.user;
       useCookie("accessToken", COOKIE_OPTIONS).value = data.accessToken;
       useCookie("refreshToken", COOKIE_OPTIONS).value = data.refreshToken;
@@ -142,7 +140,6 @@ export const useAuthStore = defineStore("auth", () => {
       accessToken.value = null;
       refreshToken.value = null;
 
-      // Clear cookies immediately
       useCookie("user", COOKIE_OPTIONS).value = null;
       useCookie("accessToken", COOKIE_OPTIONS).value = null;
       useCookie("refreshToken", COOKIE_OPTIONS).value = null;
