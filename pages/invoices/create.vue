@@ -245,6 +245,7 @@
                         v-model="form.clientId"
                         :options="clientOptions"
                         placeholder="Select Client"
+                        empty-message="No client available for selection"
                         custom-class="!border-none !p-0 !shadow-none !ring-0 w-full !pl-3" />
                       <div class="text-xs text-slate-500 truncate px-3">
                         {{ selectedClient?.email || "No email set" }}
