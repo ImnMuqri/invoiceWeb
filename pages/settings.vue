@@ -200,24 +200,27 @@
           <div
             v-if="activeTab === 'whatsapp'"
             class="divide-y divide-slate-100 relative overflow-hidden min-h-[400px]">
-            <!-- Lock Overlay -->
+            <!-- Pro Overlay -->
             <div
               v-if="!authStore.isPro"
-              class="absolute inset-0 z-10 backdrop-blur-[6px] bg-white/40 flex flex-col items-center justify-center p-8 text-center">
+              class="absolute inset-0 bg-white/60 backdrop-blur-[2px] z-10 flex flex-col items-center justify-center p-6 text-center">
               <div
-                class="w-16 h-16 bg-white rounded-2xl shadow-sm border border-slate-200 flex items-center justify-center mb-4 text-emerald-600">
-                <UiIcon icon="heroicons:lock-closed" custom-class="w-6 h-6" />
+                class="w-12 h-12 bg-amber-100 rounded-2xl flex items-center justify-center mb-4 shadow-sm border border-amber-200">
+                <UiIcon
+                  icon="heroicons:lock-closed"
+                  class="w-6 h-6 text-amber-600" />
               </div>
-              <h3 class="text-xl font-bold text-slate-900 mb-1">
-                WhatsApp & Reminders are Pro Features
-              </h3>
-              <p class="text-sm text-slate-500 mb-4 max-w-sm leading-relaxed">
-                Connect your own Twilio, customize automated reminder templates,
-                and more by upgrading to a business plan.
+              <h4 class="text-base font-bold text-slate-900 mb-1">
+                WhatsApp Integration
+              </h4>
+              <p
+                class="text-xs text-slate-500 max-w-[240px] mb-6 leading-relaxed">
+                Connect your own Twilio or use our system to send invoices and
+                reminders directly to WhatsApp.
               </p>
               <button
                 @click="switchTab('billing')"
-                class="inline-flex items-center px-6 py-3 bg-slate-900 text-white text-sm font-bold rounded-xl hover:bg-slate-800 transition-all uppercase tracking-widest shadow-lg">
+                class="px-5 py-2 bg-slate-900 text-white text-xs font-bold rounded-lg hover:bg-slate-800 transition-all shadow-md active:scale-95">
                 Upgrade to Pro
               </button>
             </div>
@@ -435,6 +438,31 @@
           <div
             v-if="activeTab === 'email'"
             class="divide-y divide-slate-100 relative overflow-hidden min-h-[400px]">
+            <!-- Pro Overlay -->
+            <div
+              v-if="!authStore.isPro"
+              class="absolute inset-0 bg-white/60 backdrop-blur-[2px] z-10 flex flex-col items-center justify-center p-6 text-center">
+              <div
+                class="w-12 h-12 bg-amber-100 rounded-2xl flex items-center justify-center mb-4 shadow-sm border border-amber-200">
+                <UiIcon
+                  icon="heroicons:lock-closed"
+                  class="w-6 h-6 text-amber-600" />
+              </div>
+              <h4 class="text-base font-bold text-slate-900 mb-1">
+                Pro Feature
+              </h4>
+              <p
+                class="text-xs text-slate-500 max-w-[240px] mb-6 leading-relaxed">
+                Automated email reminders and smart chaser are exclusive to our
+                Pro and Max partners.
+              </p>
+              <button
+                @click="switchTab('billing')"
+                class="px-5 py-2 bg-slate-900 text-white text-xs font-bold rounded-lg hover:bg-slate-800 transition-all shadow-md active:scale-95">
+                View Plans
+              </button>
+            </div>
+
             <div class="p-6">
               <h3
                 class="text-base font-semibold text-slate-900 tracking-tight mb-1">
