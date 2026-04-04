@@ -32,7 +32,7 @@ export const useAuthStore = defineStore("auth", () => {
     let at = useCookie("accessToken").value;
     let rt = useCookie("refreshToken").value;
 
-    // Robust SSR fallback for production
+    // Robust SSR fallback for production (Cloudflare Workers / Node)
     if (process.server && !at) {
       const headers = useRequestHeaders(["cookie"]);
       const cookieHeader = headers.cookie || "";
@@ -93,9 +93,36 @@ export const useAuthStore = defineStore("auth", () => {
   async function login(email, password) {
     const { $api } = useNuxtApp();
     loading.value = true;
+    error.value = null;
 
     try {
       const { data } = await $api.post("/auth/login", { email, password });
+
+      user.value = data.user;
+      accessToken.value = data.accessToken;
+      refreshToken.value = data.refreshToken;
+
+      return true;
+    } catch (err) {
+      error.value = err.response?.data?.message || err.message;
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  async function register(name, email, password, referralCode) {
+    const { $api } = useNuxtApp();
+    loading.value = true;
+    error.value = null;
+
+    try {
+      const { data } = await $api.post("/auth/register", {
+        name,
+        email,
+        password,
+        referralCode,
+      });
 
       user.value = data.user;
       accessToken.value = data.accessToken;
@@ -132,56 +159,141 @@ export const useAuthStore = defineStore("auth", () => {
     }
   }
 
-  async function register(name, email, password, referralCode) {
+  async function fetchProfile() {
     const { $api } = useNuxtApp();
     loading.value = true;
-    error.value = null;
-
     try {
-      const { data } = await $api.post("/auth/register", {
-        name,
-        email,
-        password,
-        referralCode,
-      });
-
-      user.value = data.user;
-      accessToken.value = data.accessToken;
-      refreshToken.value = data.refreshToken;
-
-      return true;
+      const { data } = await $api.get("/profile");
+      user.value = data;
+      return data;
     } catch (err) {
-      error.value = err.response?.data?.message || err.message;
+      error.value = "Failed to fetch profile";
       throw err;
     } finally {
       loading.value = false;
     }
   }
 
-  async function fetchProfile() {
+  async function updateProfile(profileData) {
     const { $api } = useNuxtApp();
     loading.value = true;
-
     try {
-      const { data } = await $api.get("/users/me");
-      user.value = { ...user.value, ...data };
+      const { data } = await $api.put("/profile", profileData);
+      user.value = data;
+      return data;
     } catch (err) {
-      error.value = err.response?.data?.message || err.message;
+      error.value = "Failed to update profile";
+      throw err;
     } finally {
       loading.value = false;
     }
   }
 
+  async function fetchSettings() {
+    const { $api } = useNuxtApp();
+    try {
+      const { data } = await $api.get("/settings");
+      return data;
+    } catch (err) {
+      console.error("Failed to fetch settings", err);
+      return null;
+    }
+  }
+
+  async function updateSettings(settingsData) {
+    const { $api } = useNuxtApp();
+    loading.value = true;
+    try {
+      const { data } = await $api.put("/settings", settingsData);
+      return data;
+    } catch (err) {
+      error.value = "Failed to update settings";
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  async function fetchPaymentSettings() {
+    const { $api } = useNuxtApp();
+    try {
+      const { data } = await $api.get("/settings/payment");
+      return data;
+    } catch (err) {
+      console.error("Failed to fetch payment settings", err);
+      return null;
+    }
+  }
+
+  async function updatePaymentSettings(paymentData) {
+    const { $api } = useNuxtApp();
+    loading.value = true;
+    try {
+      const { data } = await $api.put("/settings/payment", paymentData);
+      return data;
+    } catch (err) {
+      error.value = "Failed to update payment settings";
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  async function fetchPaymentProviders() {
+    const { $api } = useNuxtApp();
+    try {
+      const { data } = await $api.get("/settings/payment/providers");
+      return data;
+    } catch (err) {
+      console.error("Failed to fetch payment providers", err);
+      return [];
+    }
+  }
+
+  async function updatePaymentProvider(providerData) {
+    const { $api } = useNuxtApp();
+    try {
+      const { data } = await $api.post(
+        "/settings/payment/providers",
+        providerData,
+      );
+      return data;
+    } catch (err) {
+      error.value = "Failed to save payment provider";
+      throw err;
+    }
+  }
+
+  async function deletePaymentProvider(id) {
+    const { $api } = useNuxtApp();
+    try {
+      await $api.delete(`/settings/payment/providers/${id}`);
+    } catch (err) {
+      error.value = "Failed to delete payment provider";
+      throw err;
+    }
+  }
+
+  async function setPreferredPaymentProvider(id) {
+    const { $api } = useNuxtApp();
+    try {
+      const { data } = await $api.post(
+        `/settings/payment/providers/${id}/preferred`,
+      );
+      return data;
+    } catch (err) {
+      error.value = "Failed to set preferred provider";
+      throw err;
+    }
+  }
+
   async function refreshAccessToken() {
     const { $api } = useNuxtApp();
-
     if (!refreshToken.value) return false;
-
     try {
       const { data } = await $api.post("/auth/refresh", {
         refreshToken: refreshToken.value,
       });
-
       accessToken.value = data.accessToken;
       return true;
     } catch (err) {
@@ -203,6 +315,15 @@ export const useAuthStore = defineStore("auth", () => {
     register,
     logout,
     fetchProfile,
+    updateProfile,
+    fetchSettings,
+    updateSettings,
+    fetchPaymentSettings,
+    updatePaymentSettings,
+    fetchPaymentProviders,
+    updatePaymentProvider,
+    deletePaymentProvider,
+    setPreferredPaymentProvider,
     refreshAccessToken,
     syncFromCookies,
   };
