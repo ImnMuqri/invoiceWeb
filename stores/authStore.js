@@ -71,8 +71,10 @@ export const useAuthStore = defineStore("auth", () => {
   syncFromCookies();
 
   if (process.client) {
-    // Set hydrated immediately on client
-    isHydrated.value = true;
+    // Set hydrated in next tick to avoid hydration mismatch
+    setTimeout(() => {
+      isHydrated.value = true;
+    }, 0);
 
     // ✅ Sync state changes TO cookies only
     watch(accessToken, (at) => {
@@ -203,6 +205,5 @@ export const useAuthStore = defineStore("auth", () => {
     fetchProfile,
     refreshAccessToken,
     syncFromCookies,
-    syncFromLS,
   };
 });
