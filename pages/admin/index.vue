@@ -149,8 +149,16 @@ const planForm = ref({
   emailReminders: 0,
   invoices: 0,
   features: [],
-  isPublic: true,
+  isActive: true,
 });
+
+const addFeatureRow = () => {
+  planForm.value.features.push("");
+};
+
+const removeFeatureRow = (index) => {
+  planForm.value.features.splice(index, 1);
+};
 
 const openCreatePlanModal = () => {
   selectedPlan.value = null;
@@ -168,7 +176,7 @@ const openCreatePlanModal = () => {
     emailReminders: 0,
     invoices: 0,
     features: [],
-    isPublic: true,
+    isActive: true,
   };
   isPlanModalOpen.value = true;
 };
@@ -947,18 +955,18 @@ onMounted(async () => {
         <div
           class="p-6 border-b border-slate-100 flex items-center justify-between">
           <div>
-            <h3 class="text-sm font-bold text-slate-900">
+            <p class="text-lg font-bold text-slate-900">
               Subscription Plans Control
-            </h3>
-            <p class="text-[11px] font-medium text-slate-500">
-              Manage platform-wide subscription tiers. Define technical throughput limits, 
-              AI processing credits, and market visibility for each tier.
+            </p>
+            <p class="text-[12px] font-medium text-slate-500">
+              Manage platform-wide subscription tiers. Define technical
+              throughput limits, AI processing credits, and market visibility
+              for each tier.
             </p>
           </div>
           <button
             @click="openCreatePlanModal"
-            class="flex items-center gap-2 px-5 py-2.5 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-slate-800 transition-all active:scale-95">
-            <UiIcon icon="heroicons:plus" class="w-4 h-4" />
+            class="flex items-center gap-2 px-5 py-2.5 bg-slate-900 text-white rounded-md text-[12px] font-bold hover:bg-slate-800 transition-all active:scale-95">
             Create New Plan
           </button>
         </div>
@@ -1037,11 +1045,11 @@ onMounted(async () => {
                 <span
                   :class="[
                     'px-2 py-1 rounded-md text-[9px] font-bold uppercase tracking-widest w-fit border',
-                    plan.isPublic
+                    plan.isActive
                       ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
                       : 'bg-slate-100 text-slate-500 border-slate-200',
                   ]">
-                  {{ plan.isPublic ? "Public" : "Hidden" }}
+                  {{ plan.isActive ? "Active" : "Paused" }}
                 </span>
               </td>
               <td class="px-6 py-4 text-right">
@@ -1203,8 +1211,7 @@ onMounted(async () => {
             </div>
             <button
               @click="showCreatePromoModal = true"
-              class="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-slate-800 transition-all shrink-0">
-              <UiIcon icon="heroicons:plus" class="w-4 h-4" />
+              class="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-md text-[12px] font-bold hover:bg-slate-800 transition-all shrink-0">
               New Code
             </button>
             <button
@@ -1596,15 +1603,38 @@ onMounted(async () => {
               </div>
             </div>
 
-            <div class="space-y-4">
-              <h4 class="text-[10px] font-semibold text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-2">Feature Entitlements</h4>
-              <div class="grid grid-cols-2 gap-3">
-                <label v-for="feature in ['AI Helper Access', 'WhatsApp System', 'Email System', 'Priority Support', 'Custom Domain', 'Advanced Analytics']" :key="feature" class="flex items-center gap-2 p-2 bg-slate-50 border border-slate-100 rounded-lg cursor-pointer hover:bg-slate-100 transition-colors">
-                  <input type="checkbox" :value="feature" v-model="planForm.features" class="w-3.5 h-3.5 rounded text-slate-900 border-slate-300" />
-                  <span class="text-[10px] font-bold text-slate-600 uppercase">{{ feature }}</span>
-                </label>
+              <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                <h4 class="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">
+                  Marketing Highlights
+                </h4>
+                <button
+                  type="button"
+                  @click="addFeatureRow"
+                  class="text-[10px] font-bold text-emerald-600 hover:text-emerald-700 uppercase tracking-wider flex items-center gap-1">
+                  <UiIcon icon="heroicons:plus-circle" class="w-3 h-3" />
+                  Add Highlight
+                </button>
               </div>
-            </div>
+              <div class="space-y-2">
+                <div v-for="(feature, index) in planForm.features" :key="index" class="flex items-center gap-2">
+                  <div class="flex-1 relative">
+                    <input
+                      v-model="planForm.features[index]"
+                      type="text"
+                      placeholder="e.g. 5 AI Drafts/mo"
+                      class="w-full pl-4 pr-10 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold focus:ring-1 focus:ring-slate-900 outline-none" />
+                  </div>
+                  <button
+                    type="button"
+                    @click="removeFeatureRow(index)"
+                    class="p-2 text-slate-400 hover:text-rose-600 transition-colors">
+                    <UiIcon icon="heroicons:trash" class="w-4 h-4" />
+                  </button>
+                </div>
+                <div v-if="planForm.features.length === 0" class="py-4 text-center border border-dashed border-slate-200 rounded-xl bg-slate-50/30">
+                  <p class="text-[10px] font-medium text-slate-400 italic">No marketing highlights added yet.</p>
+                </div>
+              </div>
           </div>
 
           <div class="space-y-6">
@@ -1671,13 +1701,13 @@ onMounted(async () => {
               <div class="flex items-center gap-2 pt-2">
                 <input
                   type="checkbox"
-                  v-model="planForm.isPublic"
-                  id="isPublic"
+                  v-model="planForm.isActive"
+                  id="isActive"
                   class="w-4 h-4 rounded text-slate-900 border-slate-300" />
                 <label
-                  for="isPublic"
+                  for="isActive"
                   class="text-xs font-bold text-slate-700 uppercase tracking-wide"
-                  >Visible to Public Users</label
+                  >Plan is Active</label
                 >
               </div>
             </div>

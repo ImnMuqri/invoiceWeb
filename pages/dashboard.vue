@@ -1,23 +1,6 @@
 <template>
   <div class="dashboard-page w-full w-full mx-auto font-sans pb-8">
     <div class="flex flex-col gap-8">
-      <!-- Global System Notice -->
-      <div
-        v-if="systemStore.globalNotice"
-        class="bg-amber-50 border border-amber-100 rounded-2xl p-6 flex gap-4 items-start shadow-sm animate-pulse-slow">
-        <div class="mt-0.5 p-2 bg-amber-100 rounded-xl text-amber-600">
-          <UiIcon icon="heroicons:megaphone" custom-class="w-5 h-5" />
-        </div>
-        <div class="flex-1">
-          <h4 class="text-sm font-bold text-amber-900 uppercase tracking-widest">
-            System Announcement
-          </h4>
-          <p class="text-xs font-bold text-amber-800/80 mt-1 leading-relaxed">
-            {{ systemStore.globalNotice }}
-          </p>
-        </div>
-      </div>
-
       <div
         class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -50,7 +33,20 @@
           </button>
         </div>
       </div>
-
+      <!-- Global System Notice -->
+      <div
+        v-if="systemStore.globalNotice"
+        class="bg-amber-50 border border-amber-100 rounded-2xl p-4 flex gap-4 items-start animate-pulse-slow">
+        <div class="mt-0.5 p-2 bg-amber-100 rounded-xl text-amber-600">
+          <UiIcon icon="heroicons:megaphone" custom-class="w-4 h-4" />
+        </div>
+        <div class="flex-1">
+          <h4 class="text-sm font-bold text-amber-900">System Announcement</h4>
+          <p class="text-xs font-bold text-amber-800/80 mt-1 leading-relaxed">
+            {{ systemStore.globalNotice }}
+          </p>
+        </div>
+      </div>
       <!-- Currency Note -->
       <div
         class="bg-indigo-50 border border-indigo-100 rounded-xl p-4 flex gap-4 items-start">
