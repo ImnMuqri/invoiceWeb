@@ -369,30 +369,55 @@
               </div>
             </div>
 
-            <div class="grid md:grid-cols-3 gap-4">
+            <div class="grid md:grid-cols-4 gap-4">
               <!-- Dynamic Plans -->
               <div
                 v-for="plan in dynamicPlans"
                 :key="plan.id"
                 :class="[
-                  'border rounded-2xl p-6 transition-all flex flex-col relative',
-                  plan.name === 'PRO'
-                    ? 'border-emerald-200 bg-emerald-50/50 hover:border-emerald-300'
-                    : plan.name === 'MAX'
-                      ? 'border-indigo-100 bg-indigo-50/10 hover:border-indigo-200'
-                      : 'border-slate-100 bg-white hover:border-slate-200',
+                  'border rounded-2xl p-6 transition-all duration-500 flex flex-col relative',
+                  plan.name.toUpperCase() === 'FREE'
+                    ? 'border-slate-100 bg-white hover:border-slate-200'
+                    : '',
+                  plan.name.toUpperCase() === 'STARTER'
+                    ? 'border-emerald-100 bg-emerald-50 hover:border-emerald-200'
+                    : '',
+                  plan.name.toUpperCase() === 'PRO'
+                    ? 'border-slate-800 bg-slate-900 shadow-xl'
+                    : '',
+                  plan.name.toUpperCase() === 'MAX'
+                    ? 'border-indigo-500/30 bg-gradient-to-br from-indigo-900 to-slate-900 shadow-lg'
+                    : '',
                 ]">
                 <div
-                  v-if="plan.name === 'PRO'"
-                  class="absolute -top-3 left-1/2 -translate-x-1/2 bg-emerald-600 text-white text-[10px] font-bold uppercase tracking-widest py-1 px-3 rounded-full">
+                  v-if="plan.name.toUpperCase() === 'PRO'"
+                  class="absolute -top-3 left-1/2 -translate-x-1/2 bg-emerald-600 text-white text-[10px] font-bold uppercase tracking-widest py-1 px-3 rounded-full shadow-lg shadow-emerald-600/20">
                   Recommended
+                </div>
+                <div
+                  v-if="plan.name.toUpperCase() === 'MAX'"
+                  class="absolute -top-3 left-1/2 -translate-x-1/2 bg-indigo-600 text-white text-[10px] font-bold uppercase tracking-widest py-1 px-3 rounded-full shadow-lg shadow-indigo-600/20">
+                  Ultimate
                 </div>
                 <div class="mb-8 mt-2">
                   <h5
-                    class="text-lg font-semibold text-slate-900 mb-2 uppercase tracking-tight">
+                    :class="[
+                      'text-lg font-bold mb-2 uppercase tracking-tight',
+                      ['PRO', 'MAX'].includes(plan.name.toUpperCase())
+                        ? 'text-white'
+                        : 'text-slate-900',
+                    ]">
                     {{ plan.name }}
                   </h5>
-                  <p class="text-sm text-slate-500 font-medium">
+                  <p
+                    :class="[
+                      'text-[13px] font-medium leading-relaxed',
+                      plan.name.toUpperCase() === 'PRO'
+                        ? 'text-slate-400'
+                        : plan.name.toUpperCase() === 'MAX'
+                          ? 'text-indigo-200/70'
+                          : 'text-slate-500',
+                    ]">
                     {{ plan.description }}
                   </p>
                 </div>
@@ -404,11 +429,16 @@
                         appliedDiscount &&
                         getDiscountedPrice(plan.price) < plan.price
                       "
-                      class="text-2xl font-semibold text-slate-400 line-through tracking-tight">
+                      class="text-xl font-semibold text-slate-400 line-through tracking-tight">
                       {{ plan.currency }} {{ plan.price }}
                     </span>
                     <span
-                      class="text-4xl font-semibold text-slate-900 tracking-tight">
+                      :class="[
+                        'text-3xl font-black tracking-tight',
+                        ['PRO', 'MAX'].includes(plan.name.toUpperCase())
+                          ? 'text-white'
+                          : 'text-slate-900',
+                      ]">
                       {{ plan.currency }}
                       {{
                         isPromoValid
@@ -416,7 +446,15 @@
                           : plan.price
                       }}
                     </span>
-                    <span class="text-slate-400 text-sm ml-1 font-medium"
+                    <span
+                      :class="[
+                        'text-sm ml-1 font-bold',
+                        plan.name.toUpperCase() === 'PRO'
+                          ? 'text-slate-500'
+                          : plan.name.toUpperCase() === 'MAX'
+                            ? 'text-indigo-400'
+                            : 'text-slate-400',
+                      ]"
                       >/{{ plan.interval }}</span
                     >
                   </div>
@@ -426,25 +464,42 @@
                       appliedDiscount &&
                       getDiscountedPrice(plan.price) < plan.price
                     "
-                    class="text-[10px] text-emerald-600 font-semibold mt-2 tracking-wide text-left">
-                    Discount applies to the first subscription term only.
+                    class="text-[9px] text-emerald-600 font-bold mt-2 tracking-wide text-left uppercase">
+                    First term discount applied
                   </p>
                 </div>
                 <ul class="space-y-4 mb-8 flex-1 text-left">
                   <li
                     v-for="feature in plan.features"
                     :key="feature"
-                    class="flex items-center text-sm font-medium text-slate-600">
-                    <UiIcon
-                      icon="heroicons:check"
-                      :class="[
-                        'w-4 h-4 mr-3 shrink-0',
-                        plan.name === 'PRO'
-                          ? 'text-emerald-600'
-                          : plan.name === 'MAX'
-                            ? 'text-indigo-500'
-                            : 'text-slate-400',
-                      ]" />
+                    class="flex items-center text-xs font-semibold"
+                    :class="
+                      plan.name.toUpperCase() === 'PRO'
+                        ? 'text-slate-300'
+                        : plan.name.toUpperCase() === 'MAX'
+                          ? 'text-indigo-100/90'
+                          : 'text-slate-600'
+                    ">
+                    <div
+                      class="w-4 h-4 rounded-full flex items-center justify-center shrink-0 mr-3"
+                      :class="
+                        plan.name.toUpperCase() === 'PRO'
+                          ? 'bg-emerald-500/10'
+                          : plan.name.toUpperCase() === 'MAX'
+                            ? 'bg-indigo-500/20'
+                            : 'bg-emerald-50'
+                      ">
+                      <UiIcon
+                        icon="heroicons:check"
+                        :class="[
+                          'w-2.5 h-2.5',
+                          plan.name.toUpperCase() === 'PRO'
+                            ? 'text-emerald-400'
+                            : plan.name.toUpperCase() === 'MAX'
+                              ? 'text-indigo-400'
+                              : 'text-emerald-600',
+                        ]" />
+                    </div>
                     {{ feature }}
                   </li>
                 </ul>
@@ -452,16 +507,23 @@
                   type="button"
                   @click="selectPlan(plan.name)"
                   :class="[
-                    'w-full py-2.5 rounded-xl text-sm font-semibold transition-all border outline-none cursor-pointer',
-                    plan.name === 'PRO'
-                      ? 'border-emerald-600 bg-emerald-600 text-white hover:bg-emerald-700'
-                      : plan.name === 'MAX'
-                        ? 'bg-slate-900 text-white border-slate-900 hover:bg-slate-800'
-                        : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100',
+                    'w-full py-2.5 rounded-xl text-sm font-bold transition-all border outline-none cursor-pointer ',
+                    plan.name.toUpperCase() === 'FREE'
+                      ? 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+                      : '',
+                    plan.name.toUpperCase() === 'STARTER'
+                      ? 'bg-emerald-600 border-emerald-600 text-white hover:bg-emerald-700 shadow-md shadow-emerald-600/20'
+                      : '',
+                    plan.name.toUpperCase() === 'PRO'
+                      ? 'bg-white border-white text-slate-900 hover:bg-slate-100'
+                      : '',
+                    plan.name.toUpperCase() === 'MAX'
+                      ? 'bg-indigo-600 border-indigo-600 text-white hover:bg-indigo-500 shadow-md shadow-indigo-600/30'
+                      : '',
                   ]">
                   {{
-                    plan.name === "FREE"
-                      ? "Continue with Free"
+                    plan.name.toUpperCase() === "FREE"
+                      ? "Continue Free"
                       : `Select ${plan.name}`
                   }}
                 </button>

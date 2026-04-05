@@ -216,33 +216,48 @@
               (activeProvider || manualPaymentAvailable)
             "
             class="mt-12">
-            <button
-              @click="initiatePayment"
-              class="w-full py-3.5 px-4 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold text-sm transition-all shadow-lg active:scale-[0.98] flex items-center justify-center gap-2">
-              <UiIcon icon="heroicons:credit-card" custom-class="w-4 h-4" />
-              Pay Now
-            </button>
+            
+            <!-- Global Payment Toggle Restriction -->
+            <template v-if="invoice.system?.paymentsEnabled !== false">
+              <button
+                @click="initiatePayment"
+                class="w-full py-3.5 px-4 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold text-sm transition-all shadow-lg active:scale-[0.98] flex items-center justify-center gap-2">
+                <UiIcon icon="heroicons:credit-card" custom-class="w-4 h-4" />
+                Pay Now
+              </button>
 
-            <div class="flex items-center justify-center gap-2 mt-4 opacity-70">
-              <template v-if="activeProvider">
-                <img
-                  :src="activeProviderLogo"
-                  class="w-4 h-4 object-contain grayscale hover:grayscale-0 transition-all"
-                  :alt="activeProviderName"
-                  v-if="activeProviderLogo" />
-                <p class="text-[10px] text-slate-400 uppercase tracking-widest">
-                  Secure Processing by {{ activeProviderName }}
-                </p>
-              </template>
-              <template v-else>
-                <UiIcon
-                  icon="heroicons:lock-closed"
-                  custom-class="w-3 h-3 text-slate-400" />
-                <p
-                  class="text-[10px] text-slate-400 uppercase tracking-widest font-medium">
-                  Direct Settlement via Bank Transfer
-                </p>
-              </template>
+              <div class="flex items-center justify-center gap-2 mt-4 opacity-70">
+                <template v-if="activeProvider">
+                  <img
+                    :src="activeProviderLogo"
+                    class="w-4 h-4 object-contain grayscale hover:grayscale-0 transition-all"
+                    :alt="activeProviderName"
+                    v-if="activeProviderLogo" />
+                  <p class="text-[10px] text-slate-400 uppercase tracking-widest">
+                    Secure Processing by {{ activeProviderName }}
+                  </p>
+                </template>
+                <template v-else>
+                  <UiIcon
+                    icon="heroicons:lock-closed"
+                    custom-class="w-3 h-3 text-slate-400" />
+                  <p
+                    class="text-[10px] text-slate-400 uppercase tracking-widest font-medium">
+                    Direct Settlement via Bank Transfer
+                  </p>
+                </template>
+              </div>
+            </template>
+
+            <!-- Disabled State Notice -->
+            <div v-else class="bg-amber-50 border border-amber-100 rounded-xl p-6 flex flex-col items-center text-center shadow-sm">
+              <div class="p-2 bg-white border border-amber-200 rounded-full mb-3">
+                <UiIcon icon="heroicons:pause-circle" class="w-6 h-6 text-amber-600" />
+              </div>
+              <h4 class="text-sm font-bold text-amber-900">Online Payments Temporarily Unavailable</h4>
+              <p class="text-xs font-medium text-amber-700/80 mt-1 max-w-xs leading-relaxed">
+                The payment gateway is currently undergoing maintenance. Please try again later or contact the invoice issuer.
+              </p>
             </div>
           </div>
 

@@ -1,5 +1,5 @@
 <template>
-  <div class="max-w-[1300px]">
+  <div class="md:min-w-[1400px] max-w-[1500px] w-fit">
     <div class="flex items-center justify-between mb-8">
       <div>
         <h2 class="text-2xl font-bold text-slate-900 tracking-tight">
@@ -1168,49 +1168,80 @@
               </p>
             </div>
 
-            <!-- Dynamic Pricing Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pb-12">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 pb-12">
               <div
                 v-for="plan in dynamicPlans"
                 :key="plan.id"
                 :class="[
-                  'border rounded-2xl p-8 transition-all shadow-sm flex flex-col',
-                  plan.name === 'PRO'
-                    ? 'hover:border-emerald-200'
-                    : plan.name === 'MAX'
-                      ? 'hover:border-indigo-200'
-                      : 'hover:border-slate-300',
-                  'bg-white',
+                  'border rounded-2xl p-8 transition-all duration-500 shadow-sm flex flex-col relative',
+                  plan.name.toUpperCase() === 'FREE'
+                    ? 'border-slate-100 bg-white hover:border-slate-200'
+                    : '',
+                  plan.name.toUpperCase() === 'STARTER'
+                    ? 'border-emerald-100 bg-emerald-50 hover:border-emerald-200'
+                    : '',
+                  plan.name.toUpperCase() === 'PRO'
+                    ? 'border-slate-800 bg-slate-900 shadow-xl'
+                    : '',
+                  plan.name.toUpperCase() === 'MAX'
+                    ? 'border-indigo-500/30 bg-gradient-to-br from-indigo-900 to-slate-900 shadow-lg'
+                    : '',
                 ]">
                 <div class="mb-8">
                   <div class="flex items-center justify-between mb-2 text-left">
                     <h5
-                      class="text-lg font-semibold text-slate-900 uppercase tracking-tight">
+                      :class="[
+                        'text-lg font-bold uppercase tracking-tight',
+                        ['PRO', 'MAX'].includes(plan.name.toUpperCase())
+                          ? 'text-white'
+                          : 'text-slate-900',
+                      ]">
                       {{ plan.name }}
                     </h5>
                     <span
-                      v-if="authStore.user?.plan === plan.name"
-                      class="px-2 py-0.5 bg-slate-900 text-white text-[10px] font-semibold rounded uppercase tracking-widest">
+                      v-if="
+                        authStore.user?.plan.toUpperCase() ===
+                        plan.name.toUpperCase()
+                      "
+                      :class="[
+                        'px-2 py-0.5 text-[10px] font-bold rounded uppercase tracking-widest',
+                        ['PRO', 'MAX'].includes(plan.name.toUpperCase())
+                          ? 'bg-white text-slate-900'
+                          : 'bg-slate-900 text-white',
+                      ]">
                       Active
                     </span>
                   </div>
-                  <p class="text-sm text-slate-500 font-medium text-left">
+                  <p
+                    :class="[
+                      'text-[13px] font-medium leading-relaxed text-left',
+                      plan.name.toUpperCase() === 'PRO'
+                        ? 'text-slate-400'
+                        : plan.name.toUpperCase() === 'MAX'
+                          ? 'text-indigo-200/70'
+                          : 'text-slate-500',
+                    ]">
                     {{ plan.description }}
                   </p>
                 </div>
                 <div class="mb-8 flex flex-col items-start min-h-[50px]">
-                  <div class="flex items-baseline flex-wrap gap-2">
+                  <div class="flex items-baseline flex-wrap gap-2 text-left">
                     <span
                       v-if="
                         isPromoValid &&
                         appliedDiscount &&
                         getDiscountedPrice(plan.price) < plan.price
                       "
-                      class="text-2xl font-semibold text-slate-400 line-through tracking-tight">
+                      class="text-xl font-semibold text-slate-400 line-through tracking-tight">
                       {{ plan.currency }} {{ plan.price }}
                     </span>
                     <span
-                      class="text-4xl font-semibold text-slate-900 tracking-tight">
+                      :class="[
+                        'text-3xl font-black tracking-tight',
+                        ['PRO', 'MAX'].includes(plan.name.toUpperCase())
+                          ? 'text-white'
+                          : 'text-slate-900',
+                      ]">
                       {{ plan.currency }}
                       {{
                         isPromoValid
@@ -1218,7 +1249,15 @@
                           : plan.price
                       }}
                     </span>
-                    <span class="text-slate-400 text-sm font-medium"
+                    <span
+                      :class="[
+                        'text-sm font-bold',
+                        plan.name.toUpperCase() === 'PRO'
+                          ? 'text-slate-500'
+                          : plan.name.toUpperCase() === 'MAX'
+                            ? 'text-indigo-400'
+                            : 'text-slate-400',
+                      ]"
                       >/{{ plan.interval }}</span
                     >
                   </div>
@@ -1228,25 +1267,42 @@
                       appliedDiscount &&
                       getDiscountedPrice(plan.price) < plan.price
                     "
-                    class="text-[10px] text-emerald-600 font-semibold mt-2 tracking-wide text-left">
-                    Discount applies to the first subscription term only.
+                    class="text-[9px] text-emerald-600 font-bold mt-2 tracking-wide text-left uppercase">
+                    Discount Applied
                   </p>
                 </div>
                 <ul class="space-y-4 mb-8 flex-1 text-left">
                   <li
                     v-for="feature in plan.features"
                     :key="feature"
-                    class="flex items-center text-sm font-medium text-slate-600">
-                    <UiIcon
-                      icon="heroicons:check"
-                      :class="[
-                        'w-4 h-4 mr-3 shrink-0',
-                        plan.name === 'PRO'
-                          ? 'text-emerald-600'
-                          : plan.name === 'MAX'
-                            ? 'text-indigo-500'
-                            : 'text-slate-400',
-                      ]" />
+                    class="flex items-center text-xs font-semibold"
+                    :class="
+                      plan.name.toUpperCase() === 'PRO'
+                        ? 'text-slate-300'
+                        : plan.name.toUpperCase() === 'MAX'
+                          ? 'text-indigo-100/90'
+                          : 'text-slate-600'
+                    ">
+                    <div
+                      class="w-4 h-4 rounded-full flex items-center justify-center shrink-0 mr-3"
+                      :class="
+                        plan.name.toUpperCase() === 'PRO'
+                          ? 'bg-emerald-500/10'
+                          : plan.name.toUpperCase() === 'MAX'
+                            ? 'bg-indigo-500/20'
+                            : 'bg-emerald-50'
+                      ">
+                      <UiIcon
+                        icon="heroicons:check"
+                        :class="[
+                          'w-2.5 h-2.5',
+                          plan.name.toUpperCase() === 'PRO'
+                            ? 'text-emerald-400'
+                            : plan.name.toUpperCase() === 'MAX'
+                              ? 'text-indigo-400'
+                              : 'text-emerald-600',
+                        ]" />
+                    </div>
                     {{ feature }}
                   </li>
                 </ul>
@@ -1268,15 +1324,26 @@
                   "
                   class="w-full py-2.5 rounded-xl text-sm font-semibold transition-all border outline-none cursor-pointer"
                   :class="[
-                    authStore.user?.plan === plan.name
-                      ? plan.name === 'FREE'
+                    authStore.user?.plan.toUpperCase() ===
+                    plan.name.toUpperCase()
+                      ? plan.name.toUpperCase() === 'FREE'
                         ? 'bg-slate-50 text-slate-400 border-slate-100 cursor-not-allowed'
                         : isCancelling
                           ? 'border-slate-100 bg-slate-50 text-slate-400 cursor-not-allowed'
-                          : 'bg-white text-rose-600 border-rose-100 hover:bg-rose-50 hover:border-rose-200'
-                      : authStore.user?.plan !== 'FREE' && !isCancelling
-                        ? 'border-slate-100 bg-slate-50 text-slate-400 cursor-not-allowed'
-                        : 'bg-slate-900 text-white border-slate-900 hover:bg-slate-800',
+                          : 'bg-white text-rose-600 border-rose-100 hover:bg-rose-50 hover:border-rose-200 shadow-md'
+                      : authStore.user?.plan.toUpperCase() !== 'FREE' &&
+                          !isCancelling
+                        ? plan.name.toUpperCase() === 'PRO' ||
+                          plan.name.toUpperCase() === 'MAX'
+                          ? 'bg-slate-800 text-slate-500 border-slate-700 cursor-not-allowed'
+                          : 'border-slate-100 bg-slate-50 text-slate-400 cursor-not-allowed'
+                        : plan.name.toUpperCase() === 'STARTER'
+                          ? 'bg-emerald-600 border-emerald-600 text-white hover:bg-emerald-700 shadow-lg shadow-emerald-600/20'
+                          : plan.name.toUpperCase() === 'PRO'
+                            ? 'bg-white text-slate-900 border-white hover:bg-slate-100 shadow-lg'
+                            : plan.name.toUpperCase() === 'MAX'
+                              ? 'bg-indigo-600 border-indigo-600 text-white hover:bg-indigo-500 shadow-lg shadow-indigo-600/30'
+                              : 'bg-slate-900 text-white border-slate-900 hover:bg-slate-800',
                   ]">
                   <template v-if="authStore.user?.plan === plan.name">
                     <template v-if="plan.name === 'FREE'"

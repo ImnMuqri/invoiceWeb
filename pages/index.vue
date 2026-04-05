@@ -164,7 +164,7 @@
           <div
             class="flex flex-col sm:flex-row items-center justify-center gap-4">
             <NuxtLink
-              to="/login"
+              to="/register"
               class="group relative w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 text-base font-semibold text-white bg-slate-900 rounded-full hover:bg-slate-800 transition-all duration-300 hover:scale-105 active:scale-95 shadow-md hover:shadow-lg">
               Get Started Free
               <svg
@@ -179,10 +179,6 @@
                   d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
               </svg>
             </NuxtLink>
-            <button
-              class="px-8 py-4 text-base font-semibold text-slate-600 hover:text-slate-900 transition-colors duration-300">
-              View Live Demo
-            </button>
           </div>
         </div>
       </main>
@@ -825,7 +821,7 @@
       <!-- Pricing Section -->
       <section
         class="relative z-20 py-24 px-6 md:px-12 bg-white/50 backdrop-blur-md border-y border-slate-200/50">
-        <div class="max-w-6xl mx-auto">
+        <div class="max-w-7xl mx-auto">
           <div class="text-center mb-16">
             <h2
               class="text-3xl md:text-4xl font-semibold tracking-tight text-slate-900 mb-4">
@@ -836,34 +832,57 @@
             </p>
           </div>
 
-          <div class="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto items-center">
+          <div class="grid md:grid-cols-4 max-w-7xl gap-8 mx-auto items-center">
             <!-- Dynamic Plans -->
             <div
               v-for="plan in dynamicPlans"
               :key="plan.id"
               :class="[
-                'rounded-3xl p-8 border shadow-sm flex flex-col transition-all duration-300 relative self-stretch',
-                plan.name === 'PRO'
-                  ? 'bg-slate-900 border-slate-800 shadow-xl transform md:-translate-y-4'
-                  : 'bg-white border-slate-200 hover:border-slate-300',
+                'rounded-3xl p-8 border flex flex-col transition-all duration-500 relative self-stretch',
+                plan.name.toUpperCase() === 'FREE'
+                  ? 'bg-white border-slate-200 shadow-sm hover:border-slate-300'
+                  : '',
+                plan.name.toUpperCase() === 'STARTER'
+                  ? 'bg-emerald-50 border-emerald-100 shadow-sm hover:border-emerald-200'
+                  : '',
+                plan.name.toUpperCase() === 'PRO'
+                  ? 'bg-slate-900 border-slate-800 shadow-2xl  z-10'
+                  : '',
+                plan.name.toUpperCase() === 'MAX'
+                  ? 'bg-gradient-to-br from-indigo-900 via-slate-900 to-indigo-950 border-indigo-500/30 shadow-xl hover:border-indigo-500/50'
+                  : '',
               ]">
+              <!-- Badge for PRO -->
               <div
-                v-if="plan.name === 'PRO'"
-                class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-emerald-600 text-white px-3 py-1 rounded-full text-xs font-semibold tracking-wide uppercase">
+                v-if="plan.name.toUpperCase() === 'PRO'"
+                class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-emerald-600 text-white px-3 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase shadow-lg shadow-emerald-600/20">
                 Most Popular
+              </div>
+
+              <!-- Badge for MAX -->
+              <div
+                v-if="plan.name.toUpperCase() === 'MAX'"
+                class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-indigo-600 text-white px-3 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase shadow-lg shadow-indigo-600/20">
+                Ultimate Power
               </div>
 
               <h3
                 :class="[
-                  'text-xl font-semibold mb-2',
-                  plan.name === 'PRO' ? 'text-white' : 'text-slate-900',
+                  'text-xl font-bold mb-2 tracking-tight uppercase',
+                  ['PRO', 'MAX'].includes(plan.name.toUpperCase())
+                    ? 'text-white'
+                    : 'text-slate-900',
                 ]">
                 {{ plan.name }}
               </h3>
               <p
                 :class="[
-                  'text-sm mb-6',
-                  plan.name === 'PRO' ? 'text-slate-400' : 'text-slate-500',
+                  'text-sm mb-6 font-medium leading-relaxed',
+                  plan.name.toUpperCase() === 'PRO'
+                    ? 'text-slate-400'
+                    : plan.name.toUpperCase() === 'MAX'
+                      ? 'text-indigo-200/70'
+                      : 'text-slate-500',
                 ]">
                 {{ plan.description }}
               </p>
@@ -871,16 +890,22 @@
               <div class="mb-6">
                 <span
                   :class="[
-                    'text-4xl font-black',
-                    plan.name === 'PRO' ? 'text-white' : 'text-slate-900',
+                    'text-4xl font-black tracking-tight',
+                    ['PRO', 'MAX'].includes(plan.name.toUpperCase())
+                      ? 'text-white'
+                      : 'text-slate-900',
                   ]"
                   >{{ plan.currency }} {{ plan.price }}</span
                 >
                 <span
                   v-if="plan.price > 0"
                   :class="[
-                    'font-medium',
-                    plan.name === 'PRO' ? 'text-slate-400' : 'text-slate-500',
+                    'font-bold text-sm ml-1',
+                    plan.name.toUpperCase() === 'PRO'
+                      ? 'text-slate-500'
+                      : plan.name.toUpperCase() === 'MAX'
+                        ? 'text-indigo-400'
+                        : 'text-slate-400',
                   ]"
                   >/{{ plan.interval }}</span
                 >
@@ -890,47 +915,74 @@
                 <li
                   v-for="feature in plan.features"
                   :key="feature"
-                  class="flex items-center gap-2 text-sm text-left"
+                  class="flex items-center gap-3 text-sm font-medium"
                   :class="
-                    plan.name === 'PRO' ? 'text-slate-300' : 'text-slate-700'
+                    plan.name.toUpperCase() === 'PRO'
+                      ? 'text-slate-300'
+                      : plan.name.toUpperCase() === 'MAX'
+                        ? 'text-indigo-100/90'
+                        : 'text-slate-600'
                   ">
-                  <svg
-                    :class="[
-                      'w-4 h-4 shrink-0',
-                      plan.name === 'PRO'
-                        ? 'text-emerald-400'
-                        : 'text-emerald-600',
-                    ]"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor">
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M5 13l4 4L19 7"></path>
-                  </svg>
+                  <div
+                    class="w-5 h-5 rounded-full flex items-center justify-center shrink-0"
+                    :class="
+                      plan.name.toUpperCase() === 'PRO'
+                        ? 'bg-emerald-500/10'
+                        : plan.name.toUpperCase() === 'MAX'
+                          ? 'bg-indigo-500/20'
+                          : 'bg-emerald-50'
+                    ">
+                    <svg
+                      class="w-3 h-3"
+                      :class="
+                        plan.name.toUpperCase() === 'PRO'
+                          ? 'text-emerald-400'
+                          : plan.name.toUpperCase() === 'MAX'
+                            ? 'text-indigo-400'
+                            : 'text-emerald-600'
+                      "
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2.5"
+                        d="M5 13l4 4L19 7"></path>
+                    </svg>
+                  </div>
                   {{ feature }}
                 </li>
               </ul>
 
               <NuxtLink
                 :to="authStore.isAuthenticated ? '/dashboard' : '/register'"
-                class="w-full py-3 rounded-full font-semibold transition-all text-center no-underline inline-block"
+                class="w-full py-3.5 rounded-2xl font-bold transition-all text-center no-underline inline-block text-sm tracking-wide group"
                 :class="[
-                  plan.name === 'PRO'
-                    ? 'bg-white text-slate-900 hover:bg-slate-100'
-                    : plan.name === 'MAX'
-                      ? 'bg-slate-900 text-white hover:bg-slate-800'
-                      : 'border border-slate-300 text-slate-700 hover:bg-slate-50',
+                  plan.name.toUpperCase() === 'FREE'
+                    ? 'border-2 border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300'
+                    : '',
+                  plan.name.toUpperCase() === 'STARTER'
+                    ? 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-lg shadow-emerald-600/20 hover:scale-[1.02]'
+                    : '',
+                  plan.name.toUpperCase() === 'PRO'
+                    ? 'bg-white text-slate-900 hover:bg-slate-100 shadow-lg hover:scale-[1.02]'
+                    : '',
+                  plan.name.toUpperCase() === 'MAX'
+                    ? 'bg-indigo-600 text-white hover:bg-indigo-500 shadow-lg shadow-indigo-600/30 hover:scale-[1.02]'
+                    : '',
                 ]">
-                {{
-                  plan.name === "FREE"
-                    ? "Get Started"
-                    : plan.name === "PRO"
-                      ? "Go Pro"
-                      : "Get Max"
-                }}
+                <span class="flex items-center justify-center gap-2">
+                  {{
+                    plan.name.toUpperCase() === "FREE"
+                      ? "Get Started"
+                      : plan.name.toUpperCase() === "STARTER"
+                        ? "Get Starter"
+                        : plan.name.toUpperCase() === "PRO"
+                          ? "Go Pro"
+                          : "Get Max"
+                  }}
+                </span>
               </NuxtLink>
             </div>
           </div>

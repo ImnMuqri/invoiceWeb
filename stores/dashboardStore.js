@@ -22,6 +22,9 @@ export const useDashboardStore = defineStore("dashboard", {
   actions: {
     async fetchCoreData(params = {}) {
       const { $api } = useNuxtApp();
+      const { useSystemStore } = await import("./systemStore");
+      const systemStore = useSystemStore();
+      
       this.loading = true;
       try {
         const { data } = await $api.get("/dashboard/core", { params });
@@ -30,6 +33,11 @@ export const useDashboardStore = defineStore("dashboard", {
         this.topClients = data.topClients;
         this.insights = data.insights || [];
         this.usageLimits = data.usageLimits || null;
+        
+        // Update global system config
+        if (data.system) {
+          systemStore.setSystemConfig(data.system);
+        }
       } catch (err) {
         this.error = err.response?.data?.message || err.message;
       } finally {

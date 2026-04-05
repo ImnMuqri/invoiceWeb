@@ -146,85 +146,12 @@
               class="flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
               active-class="bg-[#ebebec] text-slate-900"
               :class="{
-                'bg-[#ebebec] text-slate-900': $route.path === '/admin',
+                'bg-[#ebebec] text-slate-900': $route.path.startsWith('/admin'),
               }">
-              <svg
-                class="w-[18px] h-[18px] mr-3 opacity-70"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-              </svg>
-              Users Management
-            </NuxtLink>
-            <NuxtLink
-              to="/admin/plan-management/"
-              class="flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
-              active-class="bg-[#ebebec] text-slate-900">
-              <svg
-                class="w-[18px] h-[18px] mr-3 opacity-70"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M19 21V5a2 2 0 012-2h2a2 2 0 012 2v16m-4 0h4m-4 0a2 2 0 01-2-2v-5a2 2 0 012-2h2a2 2 0 012 2v5a2 2 0 01-2 2h-4" />
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M3 21v-8a2 2 0 012-2h2a2 2 0 012 2v8m-4 0h4m-4 0a2 2 0 01-2-2v-3a2 2 0 012-2h2a2 2 0 012 2v3a2 2 0 01-2 2h-4" />
-              </svg>
-              Plan Management
-            </NuxtLink>
-            <NuxtLink
-              to="/admin/analytics/"
-              class="flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
-              active-class="bg-[#ebebec] text-slate-900">
-              <svg
-                class="w-[18px] h-[18px] mr-3 opacity-70"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
-              </svg>
-              Analytics
-            </NuxtLink>
-            <NuxtLink
-              to="/admin/transactions/"
-              class="flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
-              active-class="bg-[#ebebec] text-slate-900">
               <UiIcon
-                icon="heroicons:credit-card"
+                icon="heroicons:command-line"
                 class="w-[18px] h-[18px] mr-3 opacity-70" />
-              Transactions
-            </NuxtLink>
-            <NuxtLink
-              to="/admin/promo-codes/"
-              class="flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
-              active-class="bg-[#ebebec] text-slate-900">
-              <svg
-                class="w-[18px] h-[18px] mr-3 opacity-70"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"></path>
-              </svg>
-              Promo Codes
+              System Management
             </NuxtLink>
           </template>
         </nav>
@@ -532,88 +459,14 @@
                         to="/admin/"
                         @click="isMobileMenuOpen = false"
                         class="flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
-                        active-class="bg-[#ebebec] text-slate-900">
-                        <svg
-                          class="w-[18px] h-[18px] mr-3 opacity-70"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24">
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                        </svg>
-                        Users Management
-                      </NuxtLink>
-                      <NuxtLink
-                        to="/admin/plan-management/"
-                        @click="isMobileMenuOpen = false"
-                        class="flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
-                        active-class="bg-[#ebebec] text-slate-900">
-                        <svg
-                          class="w-[18px] h-[18px] mr-3 opacity-70"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24">
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M19 21V5a2 2 0 012-2h2a2 2 0 012 2v16m-4 0h4m-4 0a2 2 0 01-2-2v-5a2 2 0 012-2h2a2 2 0 012 2v5a2 2 0 01-2 2h-4" />
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M3 21v-8a2 2 0 012-2h2a2 2 0 012 2v8m-4 0h4m-4 0a2 2 0 01-2-2v-3a2 2 0 012-2h2a2 2 0 012 2v3a2 2 0 01-2 2h-4" />
-                        </svg>
-                        Plan Management
-                      </NuxtLink>
-                      <NuxtLink
-                        to="/admin/analytics/"
-                        @click="isMobileMenuOpen = false"
-                        class="flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
-                        active-class="bg-[#ebebec] text-slate-900">
-                        <svg
-                          class="w-[18px] h-[18px] mr-3 opacity-70"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24">
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
-                        </svg>
-                        Analytics
-                      </NuxtLink>
-                      <NuxtLink
-                        to="/admin/transactions/"
-                        @click="isMobileMenuOpen = false"
-                        class="flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
-                        active-class="bg-[#ebebec] text-slate-900">
+                        active-class="bg-[#ebebec] text-slate-900"
+                        :class="{
+                          'bg-[#ebebec] text-slate-900': $route.path.startsWith('/admin'),
+                        }">
                         <UiIcon
-                          icon="heroicons:credit-card"
+                          icon="heroicons:command-line"
                           class="w-[18px] h-[18px] mr-3 opacity-70" />
-                        Transactions
-                      </NuxtLink>
-                      <NuxtLink
-                        to="/admin/promo-codes/"
-                        @click="isMobileMenuOpen = false"
-                        class="flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
-                        active-class="bg-[#ebebec] text-slate-900">
-                        <svg
-                          class="w-[18px] h-[18px] mr-3 opacity-70"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24">
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"></path>
-                        </svg>
-                        Promo Codes
+                        System Management
                       </NuxtLink>
                     </template>
                   </nav>

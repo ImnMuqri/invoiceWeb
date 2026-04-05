@@ -1,6 +1,23 @@
 <template>
   <div class="dashboard-page w-full w-full mx-auto font-sans pb-8">
     <div class="flex flex-col gap-8">
+      <!-- Global System Notice -->
+      <div
+        v-if="systemStore.globalNotice"
+        class="bg-amber-50 border border-amber-100 rounded-2xl p-6 flex gap-4 items-start shadow-sm animate-pulse-slow">
+        <div class="mt-0.5 p-2 bg-amber-100 rounded-xl text-amber-600">
+          <UiIcon icon="heroicons:megaphone" custom-class="w-5 h-5" />
+        </div>
+        <div class="flex-1">
+          <h4 class="text-sm font-bold text-amber-900 uppercase tracking-widest">
+            System Announcement
+          </h4>
+          <p class="text-xs font-bold text-amber-800/80 mt-1 leading-relaxed">
+            {{ systemStore.globalNotice }}
+          </p>
+        </div>
+      </div>
+
       <div
         class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -19,10 +36,18 @@
             <UiIcon icon="formkit:help" custom-class="w-5 h-5" />
           </button>
           <NuxtLink
+            v-if="systemStore.isInvoiceCreationEnabled"
             to="/invoices/create"
             class="inline-flex items-center rounded-md bg-slate-900 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 transition-all w-fit">
             New Invoice
           </NuxtLink>
+          <button
+            v-else
+            disabled
+            class="inline-flex items-center rounded-md bg-slate-200 px-6 py-2.5 text-sm font-semibold text-slate-400 cursor-not-allowed w-fit"
+            title="Invoice creation is temporarily disabled by admin">
+            New Invoice (Disabled)
+          </button>
         </div>
       </div>
 
@@ -662,7 +687,7 @@
                   dashboardStore.loading && !dashboardStore.insights.length
                 ">
                 <div
-                  v-for="i in 3"
+                  v-for="i in 1"
                   :key="i"
                   class="p-4 bg-white rounded-xl border border-slate-200 shadow-sm animate-pulse">
                   <div class="flex items-start gap-4">
@@ -790,6 +815,7 @@ import { useDashboardStore } from "~/stores/dashboardStore";
 import { useAuthStore } from "~/stores/authStore";
 import { useUiStore } from "~/stores/uiStore";
 import { useReferralStore } from "~/stores/referralStore";
+import { useSystemStore } from "~/stores/systemStore";
 import confetti from "canvas-confetti";
 
 const route = useRoute();
@@ -798,6 +824,7 @@ const dashboardStore = useDashboardStore();
 const authStore = useAuthStore();
 const uiStore = useUiStore();
 const referralStore = useReferralStore();
+const systemStore = useSystemStore();
 const toast = ref({ message: "", type: "success" });
 
 const forecastRange = ref(30);
