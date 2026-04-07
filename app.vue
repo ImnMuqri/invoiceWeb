@@ -54,7 +54,6 @@ const systemStore = useSystemStore();
 
 onMounted(() => {
   // authStore state is now computed from cookies, no init needed
-  systemStore.fetchSystemConfig();
 });
 
 useHead({
