@@ -67,6 +67,7 @@
                 {{ invoice.fromCompanyName }}
               </p>
               {{ invoice.fromEmail }}
+              <p v-if="invoice.fromPhone">{{ invoice.fromPhone }}</p>
               <p>{{ invoice.fromAddress }}</p>
             </div>
           </div>
@@ -244,6 +245,7 @@
                   {{ invoice.fromCompanyName }}
                 </p>
                 {{ invoice.fromEmail }}
+                <p v-if="invoice.fromPhone">{{ invoice.fromPhone }}</p>
                 <p>{{ invoice.fromAddress }}</p>
               </div>
             </div>

@@ -1312,7 +1312,14 @@ onMounted(async () => {
           companyName: data.fromCompanyName || (authStore.user?.invoiceIncludeCompanyName ? authStore.user.companyName : ""),
           companyEmail: data.fromEmail || (authStore.user?.invoiceIncludeEmail ? (authStore.user.companyEmail || authStore.user.email) : ""),
           companyAddress: data.fromAddress || (authStore.user?.invoiceIncludeAddress ? authStore.user.address : ""),
-          phone: data.fromPhone || (authStore.user?.invoiceIncludeCompanyPhone ? authStore.user.companyPhone : ""),
+          phone: data.fromPhone || (() => {
+            const u = authStore.user;
+            if (!u) return "";
+            const phones = [];
+            if (u.invoiceIncludeCompanyPhone && u.companyPhone) phones.push(u.companyPhone);
+            if (u.invoiceIncludePersonalPhone && u.phoneNumber) phones.push(u.phoneNumber);
+            return phones.join(" / ");
+          })(),
         },
         lineItems: data.items.map((item) => ({
           name: item.name,

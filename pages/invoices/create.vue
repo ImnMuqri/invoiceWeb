@@ -1118,6 +1118,7 @@
                           {{ form.from.companyName }}
                         </p>
                         {{ form.from.companyEmail }}
+                        <p v-if="form.from.phone">{{ form.from.phone }}</p>
                         <p>{{ form.from.companyAddress }}</p>
                       </div>
                     </div>
@@ -1286,6 +1287,10 @@ onMounted(async () => {
   // Populate "From" info from user profile
   if (authStore.user) {
     const u = authStore.user;
+    const phones = [];
+    if (u.invoiceIncludeCompanyPhone && u.companyPhone) phones.push(u.companyPhone);
+    if (u.invoiceIncludePersonalPhone && u.phoneNumber) phones.push(u.phoneNumber);
+    
     form.value.from = {
       name: u.invoiceIncludeName ? u.name || "" : "",
       companyName: u.invoiceIncludeCompanyName ? u.companyName || "" : "",
@@ -1293,11 +1298,7 @@ onMounted(async () => {
         ? u.companyEmail || u.email || ""
         : "",
       companyAddress: u.invoiceIncludeAddress ? u.address || "" : "",
-      phone: u.invoiceIncludeCompanyPhone
-        ? u.companyPhone || (u.invoiceIncludePersonalPhone ? u.phoneNumber : "")
-        : u.invoiceIncludePersonalPhone
-          ? u.phoneNumber
-          : "",
+      phone: phones.join(" / "),
     };
 
     // Apply default tax rate if enabled

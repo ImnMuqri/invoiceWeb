@@ -56,7 +56,7 @@
                 User Profile
               </h3>
               <p class="text-sm text-slate-500 mb-6">
-                Manage your preferences, personal and business information.
+                Update your personal details and contact information.
               </p>
               <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
                 <div class="sm:col-span-3">
@@ -101,7 +101,7 @@
                 </h3>
               </div>
               <p class="text-sm text-slate-500 mb-6">
-                Manage your preferences, personal and business information.
+                Set your business details and address for invoice headers.
               </p>
               <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
                 <div class="sm:col-span-6">
@@ -179,7 +179,7 @@
                 Preferences
               </h3>
               <p class="text-sm text-slate-500 mb-6">
-                Manage your preferences, personal and business information.
+                Configure global settings like your default billing currency.
               </p>
               <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
                 <div class="sm:col-span-3">
@@ -220,7 +220,7 @@
               </p>
               <button
                 @click="switchTab('billing')"
-                class="px-5 py-2 bg-slate-900 text-white text-xs font-bold rounded-md hover:bg-slate-800 transition-all shadow-md active:scale-95">
+                class="px-5 py-2.5 bg-slate-900 text-white text-xs font-bold rounded-md hover:bg-slate-800 transition-all shadow-md active:scale-95">
                 Upgrade to Pro
               </button>
             </div>
@@ -230,7 +230,8 @@
                 WhatsApp Connection
               </h3>
               <p class="text-sm text-slate-500 mb-6">
-                Manage your preferences, personal and business information.
+                Choose between our shared business number or your own Twilio
+                account.
               </p>
 
               <div class="space-y-3 mb-8">
@@ -346,17 +347,32 @@
                 Automated WhatsApp Reminders
               </h3>
               <p class="text-sm text-slate-500 mb-6">
-                Manage your preferences, personal and business information.
+                Set up automatic WhatsApp notifications for upcoming and overdue
+                invoices.
               </p>
 
               <div class="max-w-xs">
-                <label
-                  class="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2"
-                  >WhatsApp Reminder Interval</label
-                >
+                <div class="flex items-center justify-between mb-2">
+                  <label
+                    class="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest"
+                    >WhatsApp Reminder Interval</label
+                  >
+                  <div
+                    v-if="!authStore.isPro"
+                    class="flex items-center gap-1.5 px-2 py-0.5 bg-emerald-50 rounded border border-emerald-100">
+                    <UiIcon
+                      icon="heroicons:lock-closed"
+                      custom-class="w-3 h-3 text-emerald-600" />
+                    <span
+                      class="text-[9px] font-bold text-emerald-700 uppercase tracking-wider"
+                      >Pro</span
+                    >
+                  </div>
+                </div>
                 <UiSelect
                   v-model="settingsForm.whatsappReminderInterval"
                   :options="reminderIntervalOptions"
+                  :disabled="!authStore.isPro"
                   placeholder="Select interval" />
                 <p class="text-[12px] text-slate-500 mt-4 leading-relaxed">
                   <span v-if="settingsForm.whatsappReminderInterval === 0">
@@ -380,7 +396,8 @@
                 Message Templates
               </h3>
               <p class="text-sm text-slate-500 mb-6">
-                Manage your preferences, personal and business information.
+                Customize the content of your automated and manual WhatsApp
+                messages.
               </p>
 
               <div class="space-y-6">
@@ -444,7 +461,8 @@
                 Automated Email Reminders
               </h3>
               <p class="text-sm text-slate-500 mb-6">
-                Manage your preferences, personal and business information.
+                Configure automated email sequences to ensure your clients pay
+                on time.
               </p>
 
               <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -597,7 +615,8 @@
                 Accept payments from your invoices
               </h3>
               <p class="text-sm text-slate-500 mb-6">
-                Manage your preferences, personal and business information.
+                Connect payment gateways to allow clients to pay you directly
+                from their invoices.
               </p>
             </div>
 
@@ -814,7 +833,8 @@
                 Invoice Display Fields
               </h3>
               <p class="text-sm text-slate-500 mb-6">
-                Manage your preferences, personal and business information.
+                Select which business and personal details appear on your
+                generated invoices.
               </p>
 
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -932,19 +952,33 @@
                   class="text-base font-semibold text-slate-900 tracking-tight">
                   Global Automation
                 </h3>
-                <div class="flex items-center">
+                <div class="flex items-center gap-3">
+                  <div
+                    v-if="!authStore.isPro"
+                    class="flex items-center gap-1.5 px-2 py-1 bg-emerald-50 rounded-lg border border-emerald-100 shadow-sm">
+                    <UiIcon
+                      icon="heroicons:lock-closed"
+                      custom-class="w-3 h-3 text-emerald-600" />
+                    <span
+                      class="text-[9px] font-bold text-emerald-700 uppercase tracking-wider"
+                      >Pro</span
+                    >
+                  </div>
                   <button
                     @click="
-                      profileForm.globalAutoChaser =
-                        !profileForm.globalAutoChaser
+                      authStore.isPro
+                        ? (profileForm.globalAutoChaser =
+                            !profileForm.globalAutoChaser)
+                        : null
                     "
                     type="button"
                     class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ring-offset-2"
-                    :class="
+                    :class="[
                       profileForm.globalAutoChaser
                         ? 'bg-slate-900'
-                        : 'bg-slate-200'
-                    ">
+                        : 'bg-slate-200',
+                      !authStore.isPro ? 'opacity-50 cursor-not-allowed' : '',
+                    ]">
                     <span
                       class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
                       :class="
@@ -956,7 +990,8 @@
                 </div>
               </div>
               <p class="text-sm text-slate-500 mb-6">
-                Manage your preferences, personal and business information.
+                Enable or disable all automated reminders across your entire
+                account.
               </p>
 
               <div
@@ -1006,7 +1041,8 @@
                 Invoice Defaults
               </h3>
               <p class="text-sm text-slate-500 mb-6">
-                Manage your preferences, personal and business information.
+                Set default values for new invoices, including prefixes and tax
+                rates.
               </p>
 
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -1806,9 +1842,16 @@ onMounted(async () => {
       invoiceIncludeCompanyPhone: settings?.invoiceIncludeCompanyPhone || false,
       invoiceIncludeCompanyName: settings?.invoiceIncludeCompanyName || false,
       invoiceIncludeAddress: settings?.invoiceIncludeAddress || false,
-      globalAutoChaser: settings?.globalAutoChaser || false,
+      globalAutoChaser: authStore.isPro
+        ? settings?.globalAutoChaser || false
+        : false,
       invoicePrefix: settings?.invoicePrefix || "INV",
     };
+
+    if (!authStore.isPro) {
+      profileForm.value.reminderInterval = 0;
+      profileForm.value.globalAutoChaser = false;
+    }
 
     // Force disable toggles if data is missing
     if (!profileForm.value.address) {
@@ -1836,8 +1879,9 @@ onMounted(async () => {
     settingsForm.value.twilioSid = settings.twilioSid || "";
     settingsForm.value.twilioAuthToken = settings.twilioAuthToken || "";
     settingsForm.value.twilioPhoneNumber = settings.twilioPhoneNumber || "";
-    settingsForm.value.whatsappReminderInterval =
-      settings.whatsappReminderInterval || 0;
+    settingsForm.value.whatsappReminderInterval = authStore.isPro
+      ? settings.whatsappReminderInterval || 0
+      : 0;
   }
 
   const paymentSettings = await authStore.fetchPaymentSettings();
