@@ -126,7 +126,47 @@
           >
         </div>
         <div>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div class="space-y-3">
+              <div class="flex justify-between text-xs font-semibold">
+                <span class="text-slate-500 uppercase tracking-tight"
+                  >Invoices Generated</span
+                >
+                <span class="text-slate-900"
+                  >{{ authStore.user?.invoicesUsed || 0 }} /
+                  <template
+                    v-if="(dashboardStore.usageLimits?.invoices || 0) >= 99999"
+                    >∞</template
+                  >
+                  <template v-else>{{
+                    dashboardStore.usageLimits?.invoices || 0
+                  }}</template>
+                </span>
+              </div>
+              <div class="w-full bg-slate-100 rounded-full h-2">
+                <div
+                  class="bg-rose-500 h-2 rounded-full transition-all duration-500"
+                  :style="{
+                    width:
+                      Math.min(
+                        100,
+                        ((authStore.user?.invoicesUsed || 0) /
+                          (dashboardStore.usageLimits?.invoices || 1)) *
+                          100,
+                      ) + '%',
+                  }"></div>
+              </div>
+              <div
+                class="flex justify-between text-[10px] font-medium text-slate-400">
+                <span>Monthly Limit:</span>
+                <NuxtLink
+                  to="/invoices"
+                  class="font-semibold text-indigo-600 hover:text-indigo-800 transition-colors uppercase tracking-widest"
+                  >Manage →</NuxtLink
+                >
+              </div>
+            </div>
+
             <div class="space-y-3">
               <div class="flex justify-between text-xs font-semibold">
                 <span class="text-slate-500 uppercase tracking-tight"
@@ -158,7 +198,7 @@
               </div>
               <div
                 class="flex justify-between text-[10px] font-medium text-slate-400">
-                <span>Whatsapp Reminders Used:</span>
+                <span>Reminders Used:</span>
                 <span class="font-semibold text-slate-600"
                   >{{ authStore.user?.waRemindersUsed || 0 }} /
                   <template
@@ -207,7 +247,7 @@
               </div>
               <div
                 class="flex justify-between text-[10px] font-medium text-slate-400">
-                <span>Email Reminders Used:</span>
+                <span>Reminders Used:</span>
                 <span class="font-semibold text-slate-600"
                   >{{ authStore.user?.emailRemindersUsed || 0 }} /
                   <template

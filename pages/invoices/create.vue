@@ -1293,7 +1293,6 @@ onMounted(async () => {
         ? u.companyEmail || u.email || ""
         : "",
       companyAddress: u.invoiceIncludeAddress ? u.address || "" : "",
-      // Phone fallback logic
       phone: u.invoiceIncludeCompanyPhone
         ? u.companyPhone || (u.invoiceIncludePersonalPhone ? u.phoneNumber : "")
         : u.invoiceIncludePersonalPhone
@@ -1331,9 +1330,11 @@ const form = ref({
   taxRate: 0,
   status: "Pending",
   from: {
-    companyName: "Acme Inc.",
-    companyEmail: "billing@acme.com",
-    companyAddress: "123 Business St, Suite 100\nNew York, NY 10001",
+    name: "",
+    companyName: "",
+    companyEmail: "",
+    companyAddress: "",
+    phone: "",
   },
   template: "professional",
   lineItems: [

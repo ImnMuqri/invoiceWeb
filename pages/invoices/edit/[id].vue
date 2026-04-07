@@ -1308,26 +1308,11 @@ onMounted(async () => {
         addDiscount: false,
         discountPercentage: 0,
         from: {
-          name: authStore.user?.invoiceIncludeName
-            ? authStore.user.name || ""
-            : "",
-          companyName: authStore.user?.invoiceIncludeCompanyName
-            ? authStore.user.companyName || ""
-            : "",
-          companyEmail: authStore.user?.invoiceIncludeEmail
-            ? authStore.user.companyEmail || authStore.user.email || ""
-            : "",
-          companyAddress: authStore.user?.invoiceIncludeAddress
-            ? authStore.user.address || ""
-            : "",
-          phone: authStore.user?.invoiceIncludeCompanyPhone
-            ? authStore.user.companyPhone ||
-              (authStore.user.invoiceIncludePersonalPhone
-                ? authStore.user.phoneNumber
-                : "")
-            : authStore.user.invoiceIncludePersonalPhone
-              ? authStore.user.phoneNumber
-              : "",
+          name: data.fromName || (authStore.user?.invoiceIncludeName ? authStore.user.name : ""),
+          companyName: data.fromCompanyName || (authStore.user?.invoiceIncludeCompanyName ? authStore.user.companyName : ""),
+          companyEmail: data.fromEmail || (authStore.user?.invoiceIncludeEmail ? (authStore.user.companyEmail || authStore.user.email) : ""),
+          companyAddress: data.fromAddress || (authStore.user?.invoiceIncludeAddress ? authStore.user.address : ""),
+          phone: data.fromPhone || (authStore.user?.invoiceIncludeCompanyPhone ? authStore.user.companyPhone : ""),
         },
         lineItems: data.items.map((item) => ({
           name: item.name,
