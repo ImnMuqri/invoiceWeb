@@ -49,17 +49,17 @@
       </div>
       <!-- Currency Note -->
       <div
-        class="bg-indigo-50 border border-indigo-100 rounded-xl p-4 flex gap-4 items-start">
+        class="bg-emerald-50 border border-emerald-100 rounded-xl p-4 flex gap-4 items-start">
         <div class="mt-0.5">
           <UiIcon
             icon="heroicons:information-circle-solid"
-            custom-class="w-5 h-5 text-indigo-600" />
+            custom-class="w-5 h-5 text-emerald-600" />
         </div>
         <div>
-          <h4 class="text-sm font-bold text-indigo-900">
+          <h4 class="text-sm font-bold text-emerald-900">
             Multi-Currency standardisation
           </h4>
-          <p class="text-xs text-indigo-700/80 mt-1 leading-relaxed">
+          <p class="text-xs text-emerald-700/80 mt-1 leading-relaxed">
             All amounts are automatically converted and standardised to your
             default currency (<strong>{{
               dashboardStore.stats.currency || "MYR"
@@ -130,8 +130,8 @@
             <div class="space-y-3">
               <div class="flex justify-between text-xs font-semibold">
                 <span class="text-slate-500 uppercase tracking-tight"
-                  >Invoices Generated</span
-                >
+                  >Invoices
+                </span>
                 <span class="text-slate-900"
                   >{{ authStore.user?.invoicesUsed || 0 }} /
                   <template
@@ -161,7 +161,7 @@
                 <span>Monthly Limit:</span>
                 <NuxtLink
                   to="/invoices"
-                  class="font-semibold text-indigo-600 hover:text-indigo-800 transition-colors uppercase tracking-widest"
+                  class="font-semibold text-emerald-600 hover:text-emerald-800 transition-colors uppercase tracking-widest"
                   >Manage →</NuxtLink
                 >
               </div>
