@@ -163,7 +163,7 @@ export const useAuthStore = defineStore("auth", () => {
     const { $api } = useNuxtApp();
     loading.value = true;
     try {
-      const { data } = await $api.get("/users/me");
+      const { data } = await $api.get("/users/profile");
       user.value = data;
       return data;
     } catch (err) {
@@ -178,7 +178,7 @@ export const useAuthStore = defineStore("auth", () => {
     const { $api } = useNuxtApp();
     loading.value = true;
     try {
-      const { data } = await $api.put("/users/me", profileData);
+      const { data } = await $api.put("/users/profile", profileData);
       user.value = data;
       return data;
     } catch (err) {

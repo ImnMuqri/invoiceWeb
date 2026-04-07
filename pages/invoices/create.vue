@@ -1692,6 +1692,50 @@ const calculateTax = () => {
 const calculateTotal = () => {
   return calculateSubtotal() - calculateDiscount() + calculateTax();
 };
+
+// Auto-populate "From" data from user profile
+const populateFromData = () => {
+  if (authStore.user) {
+    const user = authStore.user;
+    if (!form.value.from.name) form.value.from.name = user.name || "";
+    if (!form.value.from.companyName)
+      form.value.from.companyName = user.companyName || "";
+    if (!form.value.from.companyEmail)
+      form.value.from.companyEmail = user.companyEmail || "";
+    if (!form.value.from.companyAddress)
+      form.value.from.companyAddress = user.address || "";
+    if (!form.value.from.phone)
+      form.value.from.phone = user.companyPhone || user.phoneNumber || "";
+    
+    // Default currency if not set
+    if (!form.value.currency && user.defaultCurrency) {
+      form.value.currency = user.defaultCurrency;
+    }
+    
+    // Default tax rate if not set
+    if (form.value.taxRate === 0 && user.defaultTaxRate) {
+      form.value.taxRate = user.defaultTaxRate;
+    }
+  }
+};
+
+onMounted(async () => {
+  await fetchCurrencies();
+  if (authStore.user) {
+    populateFromData();
+  }
+});
+
+// Watch for user data being loaded if it wasn't available on mount
+watch(
+  () => authStore.user,
+  (newUser) => {
+    if (newUser) {
+      populateFromData();
+    }
+  },
+  { immediate: true },
+);
 </script>
 
 <style scoped>
