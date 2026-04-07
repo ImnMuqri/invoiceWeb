@@ -48,6 +48,29 @@
           >Return Home</NuxtLink
         >
       </div>
+      
+      <!-- Payments Disabled State -->
+      <div
+        v-else-if="!systemStore.isPaymentsEnabled"
+        class="bg-white rounded-xl shadow-sm border border-slate-200 p-12 text-center min-h-[400px] flex flex-col justify-center items-center">
+        <div class="mb-6 p-4 bg-amber-50 rounded-full">
+          <UiIcon
+            icon="heroicons:wrench-screwdriver"
+            custom-class="w-10 h-10 text-amber-600" />
+        </div>
+        <h2 class="text-xl font-bold text-slate-900 mb-2 tracking-tight">
+          Payments Temporarily Unavailable
+        </h2>
+        <p class="text-slate-500 mb-8 text-sm max-w-sm leading-relaxed">
+          Our payment systems are currently undergoing scheduled maintenance. 
+          Please try again later or contact the invoice issuer directly.
+        </p>
+        <div class="px-6 py-2 bg-slate-50 border border-slate-100 rounded-lg">
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+            Estimated Uptime: Shortly
+          </p>
+        </div>
+      </div>
 
       <!-- Invoice View State -->
       <div
@@ -406,6 +429,7 @@
 import { ref, onMounted, computed } from "vue";
 import { useRoute } from "vue-router";
 import { useInvoiceStore } from "~/stores/invoiceStore";
+import { useSystemStore } from "~/stores/systemStore";
 import QRCode from "qrcode";
 
 definePageMeta({
@@ -414,6 +438,7 @@ definePageMeta({
 
 const route = useRoute();
 const invoiceStore = useInvoiceStore();
+const systemStore = useSystemStore();
 const invoiceId = route.params.id;
 
 const loading = ref(true);
@@ -429,6 +454,9 @@ const currencySymbol = computed(() => {
 });
 
 onMounted(async () => {
+  // Ensure system config is latest
+  await systemStore.fetchSystemConfig();
+  
   // Fetch from API directly using the numeric ID
   invoice.value = await invoiceStore.fetchInvoiceById(invoiceId);
   loading.value = false;

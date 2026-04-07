@@ -28,7 +28,7 @@
             disabled
             class="inline-flex items-center justify-center rounded-md border border-transparent bg-slate-200 px-6 py-2.5 text-sm font-medium text-slate-400 cursor-not-allowed shadow-sm transition-colors whitespace-nowrap"
             title="Invoice creation is temporarily disabled by admin">
-            Create Invoice (Disabled)
+            Create Invoice
           </button>
         </div>
     </div>
@@ -363,7 +363,7 @@
                   :title="!systemStore.isEmailEnabled ? 'Email is temporarily disabled by admin' : ''">
                   <div class="flex items-center gap-2">
                     <UiIcon icon="heroicons:envelope" custom-class="w-4 h-4" />
-                    Send Email {{ !systemStore.isEmailEnabled ? '(Disabled)' : '' }}
+                    Send Email
                   </div>
                   <UiIcon
                     v-if="loadingInvoices[invoice.id] === 'email'"
@@ -379,7 +379,7 @@
                   :title="!systemStore.isEmailEnabled ? 'Email is temporarily disabled by admin' : ''">
                   <div class="flex items-center gap-2">
                     <UiIcon icon="heroicons:bell" custom-class="w-4 h-4" />
-                    Send Reminder Email {{ !systemStore.isEmailEnabled ? '(Disabled)' : '' }}
+                    Send Reminder Email
                   </div>
                   <UiIcon
                     v-if="loadingInvoices[invoice.id] === 'reminder'"
@@ -399,7 +399,7 @@
                     <UiIcon
                       icon="simple-icons:whatsapp"
                       custom-class="w-4 h-4" />
-                    Send WhatsApp {{ !systemStore.isWhatsappEnabled ? '(Disabled)' : '' }}
+                    Send WhatsApp
                   </div>
                   <UiIcon
                     v-if="loadingInvoices[invoice.id] === 'whatsapp'"
@@ -418,7 +418,7 @@
                     <UiIcon
                       icon="heroicons:chat-bubble-left-right"
                       custom-class="w-4 h-4" />
-                    Send Reminder WA {{ !systemStore.isWhatsappEnabled ? '(Disabled)' : '' }}
+                    Send Reminder WA
                   </div>
                   <UiIcon
                     v-if="loadingInvoices[invoice.id] === 'waReminder'"

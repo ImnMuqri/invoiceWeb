@@ -1237,7 +1237,7 @@
                     </span>
                     <span
                       :class="[
-                        'text-3xl font-black tracking-tight',
+                        'text-3xl font-semibold tracking-tight',
                         ['PRO', 'MAX'].includes(plan.name.toUpperCase())
                           ? 'text-white'
                           : 'text-slate-900',
@@ -1671,7 +1671,7 @@ const fetchPlans = async () => {
 };
 
 const reminderIntervalOptions = [
-  { value: 0, label: "None (Disabled)" },
+  { value: 0, label: "None" },
   { value: -3, label: "3 Days Before Due" },
   { value: 3, label: "Every 3 Days (Aggressive)" },
   { value: 7, label: "Every 7 Days (Standard)" },

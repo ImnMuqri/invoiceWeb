@@ -1,178 +1,190 @@
 <template>
   <div
-    class="min-h-screen bg-transparent p-0 sm:p-8 flex justify-center items-start print:p-0">
+    class="min-h-[297mm] bg-transparent p-0 sm:p-8 flex justify-center items-start print:p-0">
     <!-- Selected Template -->
     <div
       v-if="invoice"
       id="invoice-content"
-      class="w-full max-w-4xl bg-white shadow-none border-none animate-in fade-in duration-700">
+      class="w-full max-w-4xl bg-white shadow-none border-none animate-in fade-in duration-700 min-h-[297mm]">
       <!-- 1. PROFESSIONAL THEME (Clean & Formal) -->
       <div
         v-if="currentTemplate === 'professional'"
-        class="p-12 flex flex-col min-h-[900px] border border-slate-100 relative pb-20">
-        <div class="flex justify-between items-start mb-12">
-          <div>
-            <h1
-              class="text-3xl font-semibold text-slate-900 tracking-tight mb-1">
-              INVOICE
-            </h1>
-            <p class="text-lg text-slate-500">{{ invoice.invoiceName }}</p>
-          </div>
-          <div class="text-right">
-            <div
-              class="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1">
-              Invoice Number
+        class="p-16 flex flex-col border border-slate-100 relative bg-white overflow-hidden"
+        style="height: 297mm; min-height: 297mm;">
+        <!-- Content Wrapper -->
+        <div class="flex-1">
+          <div class="flex justify-between items-start mb-12">
+            <div>
+              <h1
+                class="text-3xl font-semibold text-slate-900 tracking-tight mb-1">
+                INVOICE
+              </h1>
+              <p class="text-lg text-slate-500">{{ invoice.invoiceName }}</p>
             </div>
-            <div class="text-xl font-semibold text-slate-900">
-              {{ invoice.invoiceNumber }}
+            <div class="text-right">
+              <div
+                class="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1">
+                Invoice Number
+              </div>
+              <div class="text-xl font-semibold text-slate-900">
+                {{ invoice.invoiceNumber }}
+              </div>
             </div>
           </div>
-        </div>
 
-        <div class="grid grid-cols-2 gap-y-10 gap-x-12 mb-12">
-          <div>
-            <div
-              class="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2 border-b border-slate-100 pb-1">
-              Billed To
-            </div>
-            <div class="text-sm font-semibold text-slate-900">
-              {{ invoice.client?.name }}
-            </div>
-            <div class="text-sm text-slate-500 mt-1 whitespace-pre-line">
-              <p
-                v-if="invoice.client?.company"
-                class="font-medium text-slate-700">
-                {{ invoice.client?.company }}
-              </p>
-              {{ invoice.client?.email }}
-              <p>{{ invoice.client?.address }}</p>
-            </div>
-          </div>
-          <div>
-            <div
-              class="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2 border-b border-slate-100 pb-1">
-              From
-            </div>
-            <div class="text-sm font-semibold text-slate-900">
-              {{ invoice.fromName || invoice.fromCompanyName }}
-            </div>
-            <div class="text-sm text-slate-500 mt-1 whitespace-pre-line">
-              <p
-                v-if="
-                  invoice.fromCompanyName &&
-                  invoice.fromName &&
-                  invoice.fromCompanyName !== invoice.fromName
-                "
-                class="font-medium text-slate-700">
-                {{ invoice.fromCompanyName }}
-              </p>
-              {{ invoice.fromEmail }}
-              <p>{{ invoice.fromAddress }}</p>
-            </div>
-          </div>
-          <div>
-            <div
-              class="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2 border-b border-slate-100 pb-1">
-              Dates
-            </div>
-            <div class="flex flex-col gap-1">
-              <div class="flex justify-between text-xs">
-                <span class="text-slate-500">Issued:</span
-                ><span class="font-semibold text-slate-900">{{
-                  formatDate(invoice.date)
-                }}</span>
+          <div class="grid grid-cols-2 gap-y-10 gap-x-12 mb-12">
+            <div>
+              <div
+                class="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2 border-b border-slate-100 pb-1">
+                Billed To
               </div>
-              <div class="flex justify-between text-xs">
-                <span class="text-slate-500">Due:</span
-                ><span class="font-semibold text-slate-900">{{
-                  formatDate(invoice.dueDate)
-                }}</span>
+              <div class="text-sm font-semibold text-slate-900">
+                {{ invoice.client?.name }}
+              </div>
+              <div class="text-sm text-slate-500 mt-1 whitespace-pre-line">
+                <p
+                  v-if="invoice.client?.company"
+                  class="font-medium text-slate-700">
+                  {{ invoice.client?.company }}
+                </p>
+                {{ invoice.client?.email }}
+                <p>{{ invoice.client?.address }}</p>
               </div>
             </div>
-          </div>
-          <div>
-            <div
-              class="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2 border-b border-slate-100 pb-1">
-              Details
-            </div>
-            <div class="flex flex-col gap-1 text-xs">
-              <div class="flex justify-between font-semibold">
-                <span class="text-slate-500">Subject:</span
-                ><span class="text-slate-900 ml-2">{{
-                  invoice.subject || "N/A"
-                }}</span>
+            <div>
+              <div
+                class="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2 border-b border-slate-100 pb-1">
+                From
               </div>
-              <div class="flex justify-between">
-                <span class="text-slate-500">Currency:</span
-                ><span class="text-slate-900">{{ invoice.currency }}</span>
+              <div class="text-sm font-semibold text-slate-900">
+                {{ invoice.fromName || invoice.fromCompanyName }}
+              </div>
+              <div class="text-sm text-slate-500 mt-1 whitespace-pre-line">
+                <p
+                  v-if="
+                    invoice.fromCompanyName &&
+                    invoice.fromName &&
+                    invoice.fromCompanyName !== invoice.fromName
+                  "
+                  class="font-medium text-slate-700">
+                  {{ invoice.fromCompanyName }}
+                </p>
+                {{ invoice.fromEmail }}
+                <p>{{ invoice.fromAddress }}</p>
               </div>
             </div>
-          </div>
-        </div>
-
-        <div class="flex-1 mt-4">
-          <div
-            class="flex items-center text-[10px] font-semibold text-slate-500 uppercase tracking-widest mb-4 border-b border-slate-900 pb-2">
-            <div class="flex-[3]">Description</div>
-            <div class="w-20 text-center">Qty</div>
-            <div class="w-32 text-right">Unit Price</div>
-            <div class="w-32 text-right">Amount</div>
-          </div>
-          <div class="space-y-4">
-            <div
-              v-for="(item, idx) in invoice.items"
-              :key="idx"
-              class="flex items-center text-sm py-1 border-b border-slate-50 last:border-0 pb-3">
-              <div class="flex-[3] flex items-center gap-3">
-                <div
-                  class="w-6 h-6 rounded bg-teal-50 flex items-center justify-center border border-teal-100 flex-shrink-0">
-                  <UiIcon icon="heroicons:cube" class="w-4 h-4 text-teal-600" />
+            <div>
+              <div
+                class="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2 border-b border-slate-100 pb-1">
+                Dates
+              </div>
+              <div class="flex flex-col gap-1">
+                <div class="flex justify-between text-xs">
+                  <span class="text-slate-500">Issued:</span
+                  ><span class="font-semibold text-slate-900">{{
+                    formatDate(invoice.date)
+                  }}</span>
                 </div>
-                <span class="font-semibold text-slate-900">{{
-                  item.name || "Unnamed Item"
-                }}</span>
+                <div class="flex justify-between text-xs">
+                  <span class="text-slate-500">Due:</span
+                  ><span class="font-semibold text-slate-900">{{
+                    formatDate(invoice.dueDate)
+                  }}</span>
+                </div>
               </div>
-              <div class="w-20 text-center font-medium text-slate-700">
-                {{ item.quantity }}
+            </div>
+            <div>
+              <div
+                class="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2 border-b border-slate-100 pb-1">
+                Details
               </div>
-              <div class="w-32 text-right font-medium text-slate-700">
-                {{ item.price.toLocaleString() }} {{ invoice.currency }}
-              </div>
-              <div class="w-32 text-right font-semibold text-slate-900">
-                {{ (item.price * item.quantity).toLocaleString() }}
-                {{ invoice.currency }}
+              <div class="flex flex-col gap-1 text-xs">
+                <div class="flex justify-between font-semibold">
+                  <span class="text-slate-500">Subject:</span
+                  ><span class="text-slate-900 ml-2 font-semibold">{{
+                    invoice.subject || "N/A"
+                  }}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-slate-500">Currency:</span
+                  ><span class="text-slate-900 font-semibold">{{
+                    invoice.currency
+                  }}</span>
+                </div>
               </div>
             </div>
           </div>
-          <div class="mt-12 border-t border-slate-200 pt-6 flex justify-end">
+
+          <div class="mt-4">
+            <div
+              class="flex items-center text-[10px] font-semibold text-slate-500 uppercase tracking-widest mb-4 border-b border-slate-900 pb-2">
+              <div class="flex-[3]">Description</div>
+              <div class="w-20 text-center">Qty</div>
+              <div class="w-32 text-right">Unit Price</div>
+              <div class="w-32 text-right">Amount</div>
+            </div>
+            <div class="space-y-4">
+              <div
+                v-for="(item, idx) in invoice.items"
+                :key="idx"
+                class="flex items-center text-sm py-1 border-b border-slate-50 last:border-0 pb-3">
+                <div class="flex-[3] flex items-center gap-3">
+                  <div
+                    class="w-6 h-6 rounded bg-teal-50 flex items-center justify-center border border-teal-100 flex-shrink-0">
+                    <UiIcon
+                      icon="heroicons:cube"
+                      class="w-4 h-4 text-teal-600" />
+                  </div>
+                  <span class="font-semibold text-slate-900">{{
+                    item.name || "Unnamed Item"
+                  }}</span>
+                </div>
+                <div class="w-20 text-center font-medium text-slate-700">
+                  {{ item.quantity }}
+                </div>
+                <div class="w-32 text-right font-medium text-slate-700">
+                  {{ item.price.toLocaleString() }} {{ invoice.currency }}
+                </div>
+                <div class="w-32 text-right font-semibold text-slate-900">
+                  {{ (item.price * item.quantity).toLocaleString() }}
+                  {{ invoice.currency }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Totals & Footer (Pushed to bottom) -->
+        <div class="mt-auto">
+          <div class="border-t border-slate-200 pt-6 flex justify-end">
             <div class="w-72 space-y-3">
               <div class="flex justify-between text-sm">
-                <span class="font-medium text-slate-500">Subtotal</span
-                ><span class="font-semibold text-slate-900"
-                  >{{ subtotal.toLocaleString() }} {{ invoice.currency }}</span
-                >
+                <span class="font-medium text-slate-500">Subtotal</span>
+                <span class="font-semibold text-slate-900">
+                  {{ subtotal.toLocaleString() }} {{ invoice.currency }}
+                </span>
               </div>
               <div
                 v-if="discount > 0"
                 class="flex justify-between text-sm text-red-600 font-semibold">
-                <span>Discount</span
-                ><span
+                <span>Discount</span>
+                <span
                   >-{{ discount.toLocaleString() }} {{ invoice.currency }}</span
                 >
               </div>
               <div
                 class="flex justify-between text-base pt-4 border-t border-slate-900 font-semibold">
-                <span class="text-slate-900">Amount Due</span
-                ><span class="text-slate-900"
-                  >{{ invoice.amount.toLocaleString() }}
-                  {{ invoice.currency }}</span
-                >
+                <span class="text-slate-900">Amount Due</span>
+                <span class="text-slate-900">
+                  {{ invoice.amount ? invoice.amount.toLocaleString() : "0" }}
+                  {{ invoice.currency }}
+                </span>
               </div>
             </div>
           </div>
-          <!-- Footer Branding moved inside -->
+          <!-- Footer Branding -->
           <div
-            class="mt-10 pt-6 border-t border-slate-100 flex justify-end text-end opacity-50">
+            class="mt-14 pt-6 border-t border-slate-100 flex justify-end text-end opacity-50">
             <div
               class="text-[8px] text-slate-400 font-medium uppercase tracking-[0.2em]">
               Generated by <UiLogo class="h-4 grayscale"></UiLogo>
@@ -184,7 +196,8 @@
       <!-- 2. MODERN THEME (Premium & Sleek) -->
       <div
         v-else-if="currentTemplate === 'modern'"
-        class="flex flex-col min-h-[900px] bg-slate-50 overflow-hidden border border-slate-200 relative pb-20">
+        class="flex flex-col bg-white overflow-hidden border border-slate-200 relative"
+        style="height: 297mm; min-height: 297mm;">
         <!-- Modern Header -->
         <div class="bg-slate-900 text-white p-12 relative overflow-hidden">
           <!-- Subtle background pattern or gradient -->
@@ -215,90 +228,92 @@
                 Amount Due
               </div>
               <div class="text-4xl font-black text-emerald-400">
-                {{ invoice.currency }} {{ invoice.amount.toLocaleString() }}
+                {{ invoice.currency }}
+                {{ invoice.amount ? invoice.amount.toLocaleString() : "0" }}
               </div>
             </div>
           </div>
         </div>
 
         <div class="p-12 flex flex-col flex-1 bg-white">
-          <!-- Multi-column info -->
-          <div class="grid grid-cols-3 gap-12 mb-16">
-            <div>
-              <div
-                class="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-4 border-b border-slate-100 pb-2">
-                From
-              </div>
-              <div class="text-sm font-semibold text-slate-900 mb-1">
-                {{ invoice.fromName || invoice.fromCompanyName }}
-              </div>
-              <div
-                class="text-xs text-slate-500 leading-relaxed whitespace-pre-line">
-                <p
-                  v-if="
-                    invoice.fromCompanyName &&
-                    invoice.fromName &&
-                    invoice.fromCompanyName !== invoice.fromName
-                  "
-                  class="font-medium text-slate-700">
-                  {{ invoice.fromCompanyName }}
-                </p>
-                {{ invoice.fromEmail }}
-                <p>{{ invoice.fromAddress }}</p>
-              </div>
-            </div>
-            <div>
-              <div
-                class="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-4 border-b border-slate-100 pb-2">
-                Billed To
-              </div>
-              <div class="text-sm font-semibold text-slate-900 mb-1">
-                {{ invoice.client?.name }}
-              </div>
-              <div
-                class="text-xs text-slate-500 leading-relaxed whitespace-pre-line">
-                <p
-                  v-if="invoice.client?.company"
-                  class="font-medium text-slate-700">
-                  {{ invoice.client?.company }}
-                </p>
-                {{ invoice.client?.email }}
-                <p>{{ invoice.client?.address }}</p>
-              </div>
-            </div>
-            <div class="space-y-4">
-              <div>
-                <div
-                  class="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2 border-b border-slate-100 pb-1">
-                  Issued Date
-                </div>
-                <div class="text-sm font-semibold text-slate-900">
-                  {{ formatDate(invoice.date) }}
-                </div>
-              </div>
-              <div>
-                <div
-                  class="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2 border-b border-slate-100 pb-1">
-                  Due Date
-                </div>
-                <div class="text-sm font-semibold text-emerald-600">
-                  {{ formatDate(invoice.dueDate) }}
-                </div>
-              </div>
-              <div v-if="invoice.subject">
-                <div
-                  class="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2 border-b border-slate-100 pb-1">
-                  Subject
-                </div>
-                <div class="text-sm font-semibold text-slate-900">
-                  {{ invoice.subject }}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Modern Table -->
+          <!-- Content wrap -->
           <div class="flex-1">
+            <!-- Multi-column info -->
+            <div class="grid grid-cols-3 gap-12 mb-16">
+              <div>
+                <div
+                  class="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-4 border-b border-slate-100 pb-2">
+                  From
+                </div>
+                <div class="text-sm font-semibold text-slate-900 mb-1">
+                  {{ invoice.fromName || invoice.fromCompanyName }}
+                </div>
+                <div
+                  class="text-xs text-slate-500 leading-relaxed whitespace-pre-line">
+                  <p
+                    v-if="
+                      invoice.fromCompanyName &&
+                      invoice.fromName &&
+                      invoice.fromCompanyName !== invoice.fromName
+                    "
+                    class="font-medium text-slate-700">
+                    {{ invoice.fromCompanyName }}
+                  </p>
+                  {{ invoice.fromEmail }}
+                  <p>{{ invoice.fromAddress }}</p>
+                </div>
+              </div>
+              <div>
+                <div
+                  class="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-4 border-b border-slate-100 pb-2">
+                  Billed To
+                </div>
+                <div class="text-sm font-semibold text-slate-900 mb-1">
+                  {{ invoice.client?.name }}
+                </div>
+                <div
+                  class="text-xs text-slate-500 leading-relaxed whitespace-pre-line">
+                  <p
+                    v-if="invoice.client?.company"
+                    class="font-medium text-slate-700">
+                    {{ invoice.client?.company }}
+                  </p>
+                  {{ invoice.client?.email }}
+                  <p>{{ invoice.client?.address }}</p>
+                </div>
+              </div>
+              <div class="space-y-4">
+                <div>
+                  <div
+                    class="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2 border-b border-slate-100 pb-1">
+                    Issued Date
+                  </div>
+                  <div class="text-sm font-semibold text-slate-900">
+                    {{ formatDate(invoice.date) }}
+                  </div>
+                </div>
+                <div>
+                  <div
+                    class="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2 border-b border-slate-100 pb-1">
+                    Due Date
+                  </div>
+                  <div class="text-sm font-semibold text-emerald-600">
+                    {{ formatDate(invoice.dueDate) }}
+                  </div>
+                </div>
+                <div v-if="invoice.subject">
+                  <div
+                    class="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2 border-b border-slate-100 pb-1">
+                    Subject
+                  </div>
+                  <div class="text-sm font-semibold text-slate-900">
+                    {{ invoice.subject }}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Modern Table -->
             <table class="w-full text-left">
               <thead>
                 <tr class="bg-slate-50">
@@ -344,42 +359,49 @@
             </table>
           </div>
 
-          <!-- Bottom Summary -->
-          <div class="mt-12 pt-12 border-t border-slate-100 flex justify-end">
-            <div class="w-80 space-y-4">
-              <div class="flex justify-between text-sm">
-                <span class="text-slate-500 font-medium">Subtotal</span>
-                <span class="font-semibold text-slate-900"
-                  >{{ subtotal.toLocaleString() }} {{ invoice.currency }}</span
-                >
-              </div>
-              <div v-if="discount > 0" class="flex justify-between text-sm">
-                <span class="text-slate-500 font-medium">Discount Applied</span>
-                <span class="font-semibold text-red-500"
-                  >-{{ discount.toLocaleString() }} {{ invoice.currency }}</span
-                >
-              </div>
-              <div
-                class="flex justify-between items-center pt-6 border-t-2 border-slate-900">
-                <span
-                  class="text-lg font-black text-slate-900 uppercase tracking-tighter"
-                  >Amount Due</span
-                >
-                <span class="text-3xl font-black text-slate-900">
-                  {{ invoice.amount.toLocaleString() }}
-                  <span class="text-sm font-semibold text-slate-400">{{
-                    invoice.currency
-                  }}</span>
-                </span>
+          <!-- Bottom Summary (Pushed down) -->
+          <div class="mt-auto">
+            <div class="pt-12 border-t border-slate-100 flex justify-end">
+              <div class="w-80 space-y-4">
+                <div class="flex justify-between text-sm">
+                  <span class="text-slate-500 font-medium">Subtotal</span>
+                  <span class="font-semibold text-slate-900"
+                    >{{ subtotal.toLocaleString() }}
+                    {{ invoice.currency }}</span
+                  >
+                </div>
+                <div v-if="discount > 0" class="flex justify-between text-sm">
+                  <span class="text-slate-500 font-medium"
+                    >Discount Applied</span
+                  >
+                  <span class="font-semibold text-red-500"
+                    >-{{ discount.toLocaleString() }}
+                    {{ invoice.currency }}</span
+                  >
+                </div>
+                <div
+                  class="flex justify-between items-center pt-6 border-t-2 border-slate-900">
+                  <span
+                    class="text-lg font-black text-slate-900 uppercase tracking-tighter"
+                    >Amount Due</span
+                  >
+                  <span class="text-3xl font-black text-slate-900">
+                    {{ invoice.amount ? invoice.amount.toLocaleString() : "0" }}
+                    <span class="text-sm font-semibold text-slate-400">{{
+                      invoice.currency
+                    }}</span>
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
-          <!-- Footer Branding moved inside -->
-          <div
-            class="mt-10 pt-6 border-t border-slate-100 flex justify-end text-end opacity-50">
+            <!-- Footer Branding -->
             <div
-              class="text-[8px] text-slate-400 font-medium uppercase tracking-[0.2em]">
-              Generated by <UiLogo class="h-4 grayscale brightness-0"></UiLogo>
+              class="mt-14 pt-6 border-t border-slate-100 flex justify-end text-end opacity-50">
+              <div
+                class="text-[8px] text-slate-400 font-medium uppercase tracking-[0.2em]">
+                Generated by
+                <UiLogo class="h-4 grayscale brightness-0"></UiLogo>
+              </div>
             </div>
           </div>
         </div>
@@ -451,9 +473,35 @@ import { formatDate } from "~/utils/date";
   font-family: "Inter", sans-serif;
 }
 
+#invoice-content {
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
 @media print {
+  @page {
+    size: A4;
+    margin: 0;
+  }
+
+  body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    background: white !important;
+  }
+
+  #invoice-content {
+    height: 29.7cm !important;
+    width: 21cm !important;
+    border: none !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
   .min-h-screen {
     background: white !important;
+    padding: 0 !important;
   }
 }
 </style>
