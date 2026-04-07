@@ -583,13 +583,8 @@ import { useUiStore } from "~/stores/uiStore";
 const route = useRoute();
 const authStore = useAuthStore();
 const uiStore = useUiStore();
-const systemStore = useSystemStore();
 const isMobileMenuOpen = ref(false);
 const isLogoutModalOpen = ref(false);
-
-onMounted(() => {
-  systemStore.fetchSystemConfig();
-});
 
 watch(isMobileMenuOpen, (isOpen) => {
   if (process.client) {

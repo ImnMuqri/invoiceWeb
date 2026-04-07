@@ -126,8 +126,8 @@
           >
         </div>
         <div>
-          <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div class="space-y-3 text-left">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="space-y-3">
               <div class="flex justify-between text-xs font-semibold">
                 <span class="text-slate-500 uppercase tracking-tight"
                   >WhatsApp Sends</span
@@ -174,7 +174,7 @@
               </div>
             </div>
 
-            <div class="space-y-3 text-left">
+            <div class="space-y-3">
               <div class="flex justify-between text-xs font-semibold">
                 <span class="text-slate-500 uppercase tracking-tight"
                   >Email Sends</span
@@ -223,7 +223,7 @@
               </div>
             </div>
 
-            <div class="space-y-3 text-left">
+            <div class="space-y-3">
               <div class="flex justify-between text-xs font-semibold">
                 <span class="text-slate-500 uppercase tracking-tight"
                   >AI Helper Credits</span
@@ -252,38 +252,8 @@
                       ) + '%',
                   }"></div>
               </div>
-            </div>
 
-            <div class="space-y-3 text-left">
-              <div class="flex justify-between text-xs font-semibold">
-                <span class="text-slate-500 uppercase tracking-tight"
-                  >Invoices Created</span
-                >
-                <span class="text-slate-900"
-                  >{{ authStore.user?.invoicesUsed || 0 }} /
-                  <template
-                    v-if="(dashboardStore.usageLimits?.invoices || 0) >= 99999"
-                    >∞</template
-                  >
-                  <template v-else>{{
-                    dashboardStore.usageLimits?.invoices || 0
-                  }}</template>
-                </span>
-              </div>
-              <div class="w-full bg-slate-100 rounded-full h-2">
-                <div
-                  class="bg-slate-900 h-2 rounded-full transition-all duration-500"
-                  :style="{
-                    width:
-                      Math.min(
-                        100,
-                        ((authStore.user?.invoicesUsed || 0) /
-                          (dashboardStore.usageLimits?.invoices || 1)) *
-                          100,
-                      ) + '%',
-                  }"></div>
-              </div>
-              <div class="flex justify-end pt-2">
+              <div class="flex justify-end">
                 <NuxtLink
                   to="/settings"
                   class="text-[10px] font-semibold text-slate-400 hover:text-slate-900 uppercase tracking-widest"

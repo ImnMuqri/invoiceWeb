@@ -1785,41 +1785,30 @@ onMounted(async () => {
 
   fetchCurrencies();
   fetchPlans();
-  
-  // Fetch unified profile data
-  const profile = await authStore.fetchProfile();
-  
-  // Also fetch payment settings specifically as they are handled in a separate record
-  const paymentSettings = await authStore.fetchPaymentSettings();
+  await authStore.fetchProfile();
+  const settings = await authStore.fetchSettings();
 
-  if (profile) {
+  if (authStore.user) {
     profileForm.value = {
-      name: profile.name || "",
-      phoneNumber: profile.phoneNumber || "",
-      defaultCurrency: profile.defaultCurrency || "MYR",
-      companyName: profile.companyName || "",
-      companyEmail: profile.companyEmail || "",
-      companyPhone: profile.companyPhone || "",
-      address: profile.address || "",
-      defaultTaxRate: profile.defaultTaxRate || 0,
-      reminderInterval: profile.reminderInterval || 0,
-      invoiceIncludeName: profile.invoiceIncludeName || false,
-      invoiceIncludeEmail: profile.invoiceIncludeEmail || false,
-      invoiceIncludePersonalPhone: profile.invoiceIncludePersonalPhone || false,
-      invoiceIncludeCompanyPhone: profile.invoiceIncludeCompanyPhone || false,
-      invoiceIncludeCompanyName: profile.invoiceIncludeCompanyName || false,
-      invoiceIncludeAddress: profile.invoiceIncludeAddress || false,
-      globalAutoChaser: profile.globalAutoChaser || false,
-      invoicePrefix: profile.invoicePrefix || "INV",
+      name: authStore.user.name || "",
+      phoneNumber: authStore.user.phoneNumber || "",
+      defaultCurrency: authStore.user.defaultCurrency || "MYR",
+      companyName: settings?.companyName || "",
+      companyEmail: settings?.companyEmail || "",
+      companyPhone: settings?.companyPhone || "",
+      address: settings?.address || "",
+      defaultTaxRate: settings?.defaultTaxRate || 0,
+      reminderInterval: settings?.reminderInterval || 0,
+      invoiceIncludeName: settings?.invoiceIncludeName || false,
+      invoiceIncludeEmail: settings?.invoiceIncludeEmail || false,
+      invoiceIncludePersonalPhone:
+        settings?.invoiceIncludePersonalPhone || false,
+      invoiceIncludeCompanyPhone: settings?.invoiceIncludeCompanyPhone || false,
+      invoiceIncludeCompanyName: settings?.invoiceIncludeCompanyName || false,
+      invoiceIncludeAddress: settings?.invoiceIncludeAddress || false,
+      globalAutoChaser: settings?.globalAutoChaser || false,
+      invoicePrefix: settings?.invoicePrefix || "INV",
     };
-
-    settingsForm.value.whatsappSendTemplate = profile.whatsappSendTemplate || "";
-    settingsForm.value.whatsappReminderTemplate = profile.whatsappReminderTemplate || "";
-    settingsForm.value.whatsappMode = profile.whatsappMode || "SYSTEM";
-    settingsForm.value.twilioSid = profile.twilioSid || "";
-    settingsForm.value.twilioAuthToken = profile.twilioAuthToken || "";
-    settingsForm.value.twilioPhoneNumber = profile.twilioPhoneNumber || "";
-    settingsForm.value.whatsappReminderInterval = profile.whatsappReminderInterval || 0;
 
     // Force disable toggles if data is missing
     if (!profileForm.value.address) {
@@ -1838,10 +1827,20 @@ onMounted(async () => {
     originalProfileForm.value = JSON.parse(JSON.stringify(profileForm.value));
   }
 
-  if (profile) {
-    // profile already has everything merged from the new consolidated endpoint
+  if (settings) {
+    settingsForm.value.whatsappSendTemplate =
+      settings.whatsappSendTemplate || "";
+    settingsForm.value.whatsappReminderTemplate =
+      settings.whatsappReminderTemplate || "";
+    settingsForm.value.whatsappMode = settings.whatsappMode || "SYSTEM";
+    settingsForm.value.twilioSid = settings.twilioSid || "";
+    settingsForm.value.twilioAuthToken = settings.twilioAuthToken || "";
+    settingsForm.value.twilioPhoneNumber = settings.twilioPhoneNumber || "";
+    settingsForm.value.whatsappReminderInterval =
+      settings.whatsappReminderInterval || 0;
   }
 
+  const paymentSettings = await authStore.fetchPaymentSettings();
   if (paymentSettings) {
     settingsForm.value.manualBankName = paymentSettings.manualBankName || "";
     settingsForm.value.manualAccountNumber =

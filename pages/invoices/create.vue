@@ -721,33 +721,16 @@
           <div
             v-else
             class="flex items-center gap-3 text-sm font-medium animate-in fade-in slide-in-from-top-2 duration-500">
-            <!-- Download Button (Consistent with Edit Page) -->
             <button
               @click="downloadInvoice"
-              :disabled="isDownloading || isSending || isSendingWa"
-              class="flex items-center gap-2 px-3 py-1.5 rounded-md bg-emerald-600 text-white shadow-sm hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-              <UiIcon
-                v-if="!isDownloading"
-                icon="heroicons:arrow-down-tray"
-                class="w-4 h-4" />
-              <UiIcon
-                v-else
-                icon="heroicons:arrow-path"
-                custom-class="w-4 h-4 animate-spin text-white" />
-              <span>Download PDF</span>
+              class="flex items-center gap-2 px-3 py-1.5 rounded-md bg-emerald-600 text-white shadow-sm hover:bg-emerald-700 transition-colors">
+              <UiIcon icon="heroicons:arrow-down-tray" class="w-4 h-4" />
+              Download PDF
             </button>
-
-            <!-- Email Button -->
             <div class="relative group">
               <button
                 @click="emailInvoice"
-                :disabled="
-                  isSending ||
-                  isDownloading ||
-                  isSendingWa ||
-                  !authStore.isPro ||
-                  !systemStore.isEmailEnabled
-                "
+                :disabled="isSending || !authStore.isPro || !systemStore.isEmailEnabled"
                 class="flex items-center gap-2 px-3 py-1.5 rounded-md bg-white shadow-sm border border-slate-200 text-slate-900 hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 :title="
                   !systemStore.isEmailEnabled
@@ -764,54 +747,35 @@
                   v-else
                   icon="heroicons:arrow-path"
                   custom-class="w-4 h-4 animate-spin text-slate-500" />
-                <span
-                  :class="{
-                    'opacity-50':
-                      !authStore.isPro || !systemStore.isEmailEnabled,
-                  }">Email client</span>
+                <span :class="{ 'opacity-50': !authStore.isPro || !systemStore.isEmailEnabled }"
+                  >Email client</span
+                >
                 <UiIcon
                   v-if="!authStore.isPro"
                   icon="heroicons:lock-closed"
                   class="w-3 h-3 text-slate-400 ml-1" />
               </button>
             </div>
-
-            <!-- WhatsApp Button -->
             <div class="relative group">
               <button
                 @click="whatsappInvoice"
-                :disabled="
-                  isSendingWa ||
-                  isDownloading ||
-                  isSending ||
-                  !authStore.isPro ||
-                  !systemStore.isWhatsappEnabled
-                "
-                class="flex items-center gap-2 px-3 py-1.5 rounded-md bg-white shadow-sm border border-slate-200 text-slate-900 hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                :disabled="!authStore.isPro || !systemStore.isWhatsappEnabled"
+                class="flex items-center gap-2 px-3 py-1.5 rounded-md bg-[#25D366] text-white shadow-sm hover:bg-[#128C7E] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 :title="
                   !systemStore.isWhatsappEnabled
-                    ? 'WhatsApp is globally disabled'
+                    ? 'WhatsApp service is disabled'
                     : !authStore.isPro
-                      ? 'Upgrade to PRO to use WhatsApp'
+                      ? 'Upgrade to Pro to send via WhatsApp'
                       : 'WhatsApp'
                 ">
-                <UiIcon
-                  v-if="!isSendingWa"
-                  icon="simple-icons:whatsapp"
-                  class="w-4 h-4" />
-                <UiIcon
-                  v-else
-                  icon="heroicons:arrow-path"
-                  custom-class="w-4 h-4 animate-spin text-slate-500" />
-                <span
-                  :class="{
-                    'opacity-50':
-                      !authStore.isPro || !systemStore.isWhatsappEnabled,
-                  }">WhatsApp</span>
+                <UiIcon icon="simple-icons:whatsapp" class="w-4 h-4" />
+                <span :class="{ 'opacity-50': !authStore.isPro || !systemStore.isWhatsappEnabled }"
+                  >WhatsApp</span
+                >
                 <UiIcon
                   v-if="!authStore.isPro"
                   icon="heroicons:lock-closed"
-                  class="w-3 h-3 text-slate-400 ml-1" />
+                  class="w-3 h-3 text-white/70 ml-1" />
               </button>
             </div>
           </div>
@@ -861,7 +825,6 @@
           </div>
 
           <div
-            id="invoice-content"
             class="bg-white rounded-xl shadow-sm border border-slate-200 min-h-[800px] flex flex-col transition-all duration-700 overflow-hidden"
             :class="{
               'scale-95 opacity-50 blur-sm grayscale':
@@ -1310,7 +1273,7 @@ const { $api } = useNuxtApp();
 
 onMounted(async () => {
   await systemStore.fetchSystemConfig();
-
+  
   // Global check: Is invoice creation enabled?
   if (!systemStore.isInvoiceCreationEnabled) {
     router.push("/dashboard");
@@ -1323,30 +1286,24 @@ onMounted(async () => {
   // Populate "From" info from user profile
   if (authStore.user) {
     const u = authStore.user;
-    const p = u.profile || {};
     form.value.from = {
-      name: p.invoiceIncludeName ? p.name || "" : "",
-      companyName: p.invoiceIncludeCompanyName ? p.companyName || "" : "",
-      companyEmail: p.invoiceIncludeEmail
-        ? p.companyEmail || u.email || ""
+      name: u.invoiceIncludeName ? u.name || "" : "",
+      companyName: u.invoiceIncludeCompanyName ? u.companyName || "" : "",
+      companyEmail: u.invoiceIncludeEmail
+        ? u.companyEmail || u.email || ""
         : "",
-      companyAddress: p.invoiceIncludeAddress ? p.address || "" : "",
+      companyAddress: u.invoiceIncludeAddress ? u.address || "" : "",
       // Phone fallback logic
-      phone: p.invoiceIncludeCompanyPhone
-        ? p.companyPhone || (p.invoiceIncludePersonalPhone ? p.phoneNumber : "")
-        : p.invoiceIncludePersonalPhone
-          ? p.phoneNumber
+      phone: u.invoiceIncludeCompanyPhone
+        ? u.companyPhone || (u.invoiceIncludePersonalPhone ? u.phoneNumber : "")
+        : u.invoiceIncludePersonalPhone
+          ? u.phoneNumber
           : "",
     };
 
     // Apply default tax rate if enabled
-    if (p.defaultTaxRate > 0) {
-      form.value.taxRate = p.defaultTaxRate;
-    }
-
-    // Apply default currency if set
-    if (p.defaultCurrency) {
-      form.value.currency = p.defaultCurrency;
+    if (u.defaultTaxRate > 0) {
+      form.value.taxRate = u.defaultTaxRate;
     }
   }
 });
@@ -1374,9 +1331,9 @@ const form = ref({
   taxRate: 0,
   status: "Pending",
   from: {
-    companyName: "",
-    companyEmail: "",
-    companyAddress: "",
+    companyName: "Acme Inc.",
+    companyEmail: "billing@acme.com",
+    companyAddress: "123 Business St, Suite 100\nNew York, NY 10001",
   },
   template: "professional",
   lineItems: [
@@ -1469,7 +1426,7 @@ const submitChatPrompt = async () => {
         // Groq flagged the prompt as unrelated to invoices
         chatHistory.value.push({
           role: "ai",
-          content: `${data.update.error}`,
+          content: `⚠️ ${data.update.error}`,
         });
       } else {
         // Merge the JSON diff returned by Groq into our reactive Vue form state
@@ -1485,14 +1442,14 @@ const submitChatPrompt = async () => {
       console.error("Groq Parse Error:", data.message);
       chatHistory.value.push({
         role: "ai",
-        content: `API Error: ${data.message || "I couldn't process that request."}`,
+        content: `⚠️ API Error: ${data.message || "I couldn't process that request."}`,
       });
     }
   } catch (err) {
     console.error("Fetch Error:", err);
     chatHistory.value.push({
       role: "ai",
-      content: "Connection Error: Failed to reach the AI parsing engine.",
+      content: "⚠️ Connection Error: Failed to reach the AI parsing engine.",
     });
   } finally {
     isAiTyping.value = false;
@@ -1605,23 +1562,12 @@ const submitInvoice = async () => {
   }
 };
 
-const isDownloading = ref(false);
 const downloadInvoice = async () => {
   if (!lastInvoiceId.value) return;
-  isDownloading.value = true;
-  try {
-    await invoiceStore.downloadPdf(
-      lastInvoiceId.value,
-      `Invoice-${form.value.invoiceNumber}.pdf`,
-    );
-  } catch (err) {
-    toast.value = {
-      message: "Failed to download PDF",
-      type: "error",
-    };
-  } finally {
-    isDownloading.value = false;
-  }
+  await invoiceStore.downloadPdf(
+    lastInvoiceId.value,
+    `Invoice-${form.value.invoiceNumber}.pdf`,
+  );
 };
 
 const isSending = ref(false);
@@ -1644,10 +1590,8 @@ const emailInvoice = async () => {
   }
 };
 
-const isSendingWa = ref(false);
 const whatsappInvoice = async () => {
   if (!lastInvoiceId.value) return;
-  isSendingWa.value = true;
   try {
     const result = await invoiceStore.whatsappInvoice(lastInvoiceId.value);
     toast.value = {
@@ -1659,8 +1603,6 @@ const whatsappInvoice = async () => {
       message: err.response?.data?.message || err.message,
       type: "error",
     };
-  } finally {
-    isSendingWa.value = false;
   }
 };
 
@@ -1692,75 +1634,17 @@ const calculateTax = () => {
 const calculateTotal = () => {
   return calculateSubtotal() - calculateDiscount() + calculateTax();
 };
-
-// Auto-populate "From" data from user profile
-const populateFromData = () => {
-  if (authStore.user) {
-    const user = authStore.user;
-    if (!form.value.from.name) form.value.from.name = user.name || "";
-    if (!form.value.from.companyName)
-      form.value.from.companyName = user.companyName || "";
-    if (!form.value.from.companyEmail)
-      form.value.from.companyEmail = user.companyEmail || "";
-    if (!form.value.from.companyAddress)
-      form.value.from.companyAddress = user.address || "";
-    if (!form.value.from.phone)
-      form.value.from.phone = user.companyPhone || user.phoneNumber || "";
-    
-    // Default currency if not set
-    if (!form.value.currency && user.defaultCurrency) {
-      form.value.currency = user.defaultCurrency;
-    }
-    
-    // Default tax rate if not set
-    if (form.value.taxRate === 0 && user.defaultTaxRate) {
-      form.value.taxRate = user.defaultTaxRate;
-    }
-  }
-};
-
-onMounted(async () => {
-  await fetchCurrencies();
-  if (authStore.user) {
-    populateFromData();
-  }
-});
-
-// Watch for user data being loaded if it wasn't available on mount
-watch(
-  () => authStore.user,
-  (newUser) => {
-    if (newUser) {
-      populateFromData();
-    }
-  },
-  { immediate: true },
-);
 </script>
 
 <style scoped>
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap");
-
-.font-inter {
-  font-family: "Inter", sans-serif;
-}
-
-@media print {
-  @page {
-    size: A4;
-    margin: 0;
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
   }
-  body {
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-  .print-no-bg {
-    background: white !important;
-  }
-  #invoice-content {
-    box-shadow: none !important;
-    border: none !important;
-    margin: 0 !important;
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 

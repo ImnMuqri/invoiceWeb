@@ -557,31 +557,17 @@
           <div
             v-else
             class="flex items-center gap-3 text-sm font-medium animate-in fade-in slide-in-from-top-2 duration-500">
-            <!-- Download Button -->
             <button
               @click="downloadInvoice"
-              :disabled="isDownloading || isSending || isSendingWa"
-              class="flex items-center gap-2 px-3 py-1.5 rounded-md bg-emerald-600 text-white shadow-sm hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-              <UiIcon
-                v-if="!isDownloading"
-                icon="heroicons:arrow-down-tray"
-                class="w-4 h-4" />
-              <UiIcon
-                v-else
-                icon="heroicons:arrow-path"
-                custom-class="w-4 h-4 animate-spin text-white" />
-              <span>Download PDF</span>
+              class="flex items-center gap-2 px-3 py-1.5 rounded-md bg-emerald-600 text-white shadow-sm hover:bg-emerald-700 transition-colors">
+              <UiIcon icon="heroicons:arrow-down-tray" class="w-4 h-4" />
+              Download PDF
             </button>
             <div class="relative group">
               <button
                 @click="emailInvoice"
                 :disabled="
-                  isSending ||
-                  isDownloading ||
-                  isSendingWa ||
-                  !authStore.isPro ||
-                  form.status === 'Paid' ||
-                  !systemStore.isEmailEnabled
+                  isSending || !authStore.isPro || form.status === 'Paid' || !systemStore.isEmailEnabled
                 "
                 class="flex items-center gap-2 px-3 py-1.5 rounded-md bg-white shadow-sm border border-slate-200 text-slate-900 hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 :title="
@@ -603,11 +589,10 @@
                   custom-class="w-4 h-4 animate-spin text-slate-500" />
                 <span
                   :class="{
-                    'opacity-50':
-                      !authStore.isPro ||
-                      form.status === 'Paid' ||
-                      !systemStore.isEmailEnabled,
-                  }">Email client</span>
+                    'opacity-50': !authStore.isPro || form.status === 'Paid' || !systemStore.isEmailEnabled,
+                  }"
+                  >Email client</span
+                >
                 <UiIcon
                   v-if="!authStore.isPro"
                   icon="heroicons:lock-closed"
@@ -617,15 +602,8 @@
             <div class="relative group">
               <button
                 @click="whatsappInvoice"
-                :disabled="
-                  isSendingWa ||
-                  isDownloading ||
-                  isSending ||
-                  !authStore.isPro ||
-                  form.status === 'Paid' ||
-                  !systemStore.isWhatsappEnabled
-                "
-                class="flex items-center gap-2 px-3 py-1.5 rounded-md bg-white shadow-sm border border-slate-200 text-slate-900 hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                :disabled="!authStore.isPro || form.status === 'Paid' || !systemStore.isWhatsappEnabled"
+                class="flex items-center gap-2 px-3 py-1.5 rounded-md bg-[#25D366] text-white shadow-sm hover:bg-[#128C7E] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 :title="
                   !systemStore.isWhatsappEnabled
                     ? 'WhatsApp service is temporarily disabled'
@@ -635,25 +613,14 @@
                         ? 'Cannot WhatsApp paid invoice'
                         : 'WhatsApp'
                 ">
-                <UiIcon
-                  v-if="!isSendingWa"
-                  icon="simple-icons:whatsapp"
-                  class="w-4 h-4 text-slate-400" />
-                <UiIcon
-                  v-else
-                  icon="heroicons:arrow-path"
-                  custom-class="w-4 h-4 animate-spin text-slate-500" />
-                <span
-                  :class="{
-                    'opacity-50':
-                      !authStore.isPro ||
-                      form.status === 'Paid' ||
-                      !systemStore.isWhatsappEnabled,
-                  }">WhatsApp</span>
+                <UiIcon icon="simple-icons:whatsapp" class="w-4 h-4" />
+                <span :class="{ 'opacity-50': !authStore.isPro || !systemStore.isWhatsappEnabled }"
+                  >WhatsApp</span
+                >
                 <UiIcon
                   v-if="!authStore.isPro"
                   icon="heroicons:lock-closed"
-                  class="w-3 h-3 text-slate-400 ml-1" />
+                  class="w-3 h-3 text-white/70 ml-1" />
               </button>
             </div>
           </div>
@@ -1341,33 +1308,25 @@ onMounted(async () => {
         addDiscount: false,
         discountPercentage: 0,
         from: {
-          name:
-            data.fromName ||
-            (authStore.user?.profile?.invoiceIncludeName
-              ? authStore.user.profile.name || ""
-              : ""),
-          companyName:
-            data.fromCompanyName ||
-            (authStore.user?.profile?.invoiceIncludeCompanyName
-              ? authStore.user.profile.companyName || ""
-              : ""),
-          companyEmail:
-            data.fromEmail ||
-            (authStore.user?.profile?.invoiceIncludeEmail
-              ? authStore.user.profile.companyEmail || authStore.user.email || ""
-              : ""),
-          companyAddress:
-            data.fromAddress ||
-            (authStore.user?.profile?.invoiceIncludeAddress
-              ? authStore.user.profile.address || ""
-              : ""),
-          phone: authStore.user?.profile?.invoiceIncludeCompanyPhone
-            ? authStore.user.profile.companyPhone ||
-              (authStore.user.profile.invoiceIncludePersonalPhone
-                ? authStore.user.profile.phoneNumber
+          name: authStore.user?.invoiceIncludeName
+            ? authStore.user.name || ""
+            : "",
+          companyName: authStore.user?.invoiceIncludeCompanyName
+            ? authStore.user.companyName || ""
+            : "",
+          companyEmail: authStore.user?.invoiceIncludeEmail
+            ? authStore.user.companyEmail || authStore.user.email || ""
+            : "",
+          companyAddress: authStore.user?.invoiceIncludeAddress
+            ? authStore.user.address || ""
+            : "",
+          phone: authStore.user?.invoiceIncludeCompanyPhone
+            ? authStore.user.companyPhone ||
+              (authStore.user.invoiceIncludePersonalPhone
+                ? authStore.user.phoneNumber
                 : "")
-            : authStore.user?.profile?.invoiceIncludePersonalPhone
-              ? authStore.user.profile.phoneNumber
+            : authStore.user.invoiceIncludePersonalPhone
+              ? authStore.user.phoneNumber
               : "",
         },
         lineItems: data.items.map((item) => ({
@@ -1549,22 +1508,11 @@ const submitInvoice = async () => {
   }
 };
 
-const isDownloading = ref(false);
 const downloadInvoice = async () => {
-  isDownloading.value = true;
-  try {
-    await invoiceStore.downloadPdf(
-      invoiceId,
-      `Invoice-${form.value.invoiceNumber}.pdf`,
-    );
-  } catch (err) {
-    toast.value = {
-      message: "Failed to download PDF",
-      type: "error",
-    };
-  } finally {
-    isDownloading.value = false;
-  }
+  await invoiceStore.downloadPdf(
+    invoiceId,
+    `Invoice-${form.value.invoiceNumber}.pdf`,
+  );
 };
 
 const emailInvoice = async () => {
@@ -1585,9 +1533,7 @@ const emailInvoice = async () => {
   }
 };
 
-const isSendingWa = ref(false);
 const whatsappInvoice = async () => {
-  isSendingWa.value = true;
   try {
     const result = await invoiceStore.whatsappInvoice(invoiceId);
     toast.value = {
@@ -1599,48 +1545,8 @@ const whatsappInvoice = async () => {
       message: err.response?.data?.message || err.message,
       type: "error",
     };
-  } finally {
-    isSendingWa.value = false;
   }
 };
-
-// Auto-populate "From" data from user profile if missing
-const populateFromData = () => {
-  if (authStore.user) {
-    const user = authStore.user;
-    if (!form.value.from.name) form.value.from.name = user.name || "";
-    if (!form.value.from.companyName)
-      form.value.from.companyName = user.companyName || "";
-    if (!form.value.from.companyEmail)
-      form.value.from.companyEmail = user.companyEmail || "";
-    if (!form.value.from.companyAddress)
-      form.value.from.companyAddress = user.address || "";
-    if (!form.value.from.phone)
-      form.value.from.phone = user.companyPhone || user.phoneNumber || "";
-    
-    // Default currency if not set
-    if (!form.value.currency && user.defaultCurrency) {
-      form.value.currency = user.defaultCurrency;
-    }
-  }
-};
-
-onMounted(() => {
-  if (authStore.user) {
-    populateFromData();
-  }
-});
-
-// Watch for user data being loaded if it wasn't available on mount
-watch(
-  () => authStore.user,
-  (newUser) => {
-    if (newUser) {
-      populateFromData();
-    }
-  },
-  { immediate: true },
-);
 </script>
 
 <style scoped>
