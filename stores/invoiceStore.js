@@ -147,6 +147,27 @@ export const useInvoiceStore = defineStore("invoice", {
       return this.sendInvoice(id, "whatsapp", null, false, true);
     },
 
+    async downloadReceipt(id, filename = "receipt.pdf") {
+      const { $api } = useNuxtApp();
+      try {
+        const response = await $api.get(`/invoices/${id}/pdf`, {
+          params: { type: "receipt" },
+          responseType: "blob",
+        });
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", filename);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+      } catch (err) {
+        this.error = err.response?.data?.message || err.message;
+        throw err;
+      }
+    },
+ 
     async createPaymentBill(invoiceId, providerId) {
       const { $api } = useNuxtApp();
       this.loading = true;

@@ -303,6 +303,7 @@
               This invoice has been paid.
             </p>
             <button
+              @click="invoiceStore.downloadReceipt(invoice.id, 'receipt-' + invoice.invoiceNumber + '.pdf')"
               class="inline-flex items-center text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
               Download Receipt
               <svg

@@ -14,7 +14,7 @@
           <div>
             <h1
               class="text-3xl font-semibold text-slate-900 tracking-tight mb-1">
-              INVOICE
+              {{ isReceipt ? "OFFICIAL RECEIPT" : "INVOICE" }}
             </h1>
             <p class="text-lg text-slate-500">{{ invoice.invoiceName }}</p>
           </div>
@@ -145,6 +145,17 @@
               </div>
             </div>
           </div>
+
+          <!-- Paid Watermark/Stamp -->
+          <div
+            v-if="isReceipt || invoice.status === 'Paid'"
+            class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rotate-12 opacity-[0.15] pointer-events-none">
+            <div
+              class="text-[120px] font-black border-[15px] border-red-500 text-red-500 px-12 py-4 rounded-[40px] tracking-tighter uppercase">
+              Paid
+            </div>
+          </div>
+
           <div class="mt-12 border-t border-slate-200 pt-6 flex justify-end">
             <div class="w-72 space-y-3">
               <div class="flex justify-between text-sm">
@@ -197,7 +208,7 @@
               <UiLogo class="h-8 mb-8 brightness-0 invert opacity-90" />
               <h1
                 class="text-4xl font-extrabold tracking-tight text-white mb-2">
-                {{ invoice.invoiceName }}
+                {{ isReceipt ? "OFFICIAL RECEIPT" : invoice.invoiceName }}
               </h1>
               <div class="flex items-center gap-3">
                 <span class="text-slate-400 font-medium"
@@ -376,6 +387,17 @@
               </div>
             </div>
           </div>
+
+          <!-- Paid Watermark/Stamp (Modern) -->
+          <div
+            v-if="isReceipt || invoice.status === 'Paid'"
+            class="absolute top-[60%] left-1/2 -translate-x-1/2 -translate-y-1/2 -rotate-12 opacity-[0.15] pointer-events-none">
+            <div
+              class="text-[120px] font-black border-[15px] border-red-500 text-red-500 px-12 py-4 rounded-[40px] tracking-tighter uppercase">
+              Paid
+            </div>
+          </div>
+
           <!-- Footer Branding moved inside -->
           <div
             class="mt-10 pt-6 border-t border-slate-100 flex justify-end text-end opacity-50">
@@ -421,6 +443,10 @@ const invoice = ref(null);
 // Get template from invoice property, fallback to professional, or query param for live preview
 const currentTemplate = computed(() => {
   return route.query.template || invoice.value?.template || "professional";
+});
+
+const isReceipt = computed(() => {
+  return route.query.type === "receipt";
 });
 
 onMounted(async () => {
