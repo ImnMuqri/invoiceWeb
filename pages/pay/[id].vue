@@ -473,19 +473,39 @@ onMounted(async () => {
 
   // Handle Gateway Redirect Race-condition
   if (route.query.status === "success" && invoice.value?.status !== "Paid") {
-    // The webhook might take a few seconds to hit the backend
     toast.value = { message: "Verifying secure payment...", type: "success" };
-    for (let i = 0; i < 6; i++) {
-      await new Promise((r) => setTimeout(r, 1500)); // wait 1.5s
-      invoice.value = await invoiceStore.fetchInvoiceById(invoiceId);
-      if (invoice.value?.status === "Paid") {
-        toast.value = {
-          message: "Payment successful and verified!",
-          type: "success",
-        };
-        break;
+    
+    try {
+      const { $api } = useNuxtApp();
+      const verifyRes = await $api.get(`/pay/invoice/${invoiceId}/verify`, {
+        params: {
+          billcode: route.query.billcode || "",
+          transaction_id: route.query.transaction_id || "",
+          "billplz[paid]": route.query["billplz[paid]"] || "",
+        }
+      });
+      
+      if (verifyRes.data?.status === "Paid") {
+        invoice.value.status = "Paid";
+        toast.value = { message: "Payment successful and verified!", type: "success" };
+      } else {
+        // Fallback polling just in case Toyyibpay API is slow to update internally
+        for (let i = 0; i < 4; i++) {
+           await new Promise((r) => setTimeout(r, 2000));
+           const pollRes = await $api.get(`/pay/invoice/${invoiceId}/verify`, {
+             params: { billcode: route.query.billcode || "" }
+           });
+           if (pollRes.data?.status === "Paid") {
+              invoice.value.status = "Paid";
+              toast.value = { message: "Payment successful and verified!", type: "success" };
+              break;
+           }
+        }
       }
+    } catch(err) {
+      console.error("Verification failed", err);
     }
+
     // Clean URL
     if (window.history.replaceState) {
       window.history.replaceState(null, null, window.location.pathname);
