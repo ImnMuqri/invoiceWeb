@@ -157,7 +157,7 @@ const fields = computed(() => {
         label: "Secret Key",
         type: "password",
         placeholder: isEditing
-          ? "Leave blank to keep the current key"
+          ? "Leave blank to keep the current data"
           : "Enter your ToyyibPay Secret Key",
       },
       {
@@ -173,7 +173,7 @@ const fields = computed(() => {
       label: "API Key",
       type: "password",
       placeholder: isEditing
-        ? "•••••••••••••••• (Leave blank to keep)"
+        ? "Leave blank to keep the current data"
         : "Enter your Billplz API Key",
     },
     {
@@ -186,7 +186,7 @@ const fields = computed(() => {
       label: "X Signature Key",
       type: "password",
       placeholder: isEditing
-        ? "•••••••••••••••• (Leave blank to keep)"
+        ? "Leave blank to keep the current data"
         : "Enter your X Signature Key",
     },
   ];

@@ -650,14 +650,29 @@
               <!-- Direct Bank Transfer -->
               <div
                 class="relative border rounded-2xl p-6 shadow-sm flex flex-col transition-all"
-                :class="isManualPreferred ? 'border-amber-300 bg-amber-50/20 hover:border-amber-400' : 'border-slate-200 bg-white hover:border-slate-300'">
-                
+                :class="
+                  isManualPreferred
+                    ? 'border-amber-300 bg-amber-50/20 hover:border-amber-400'
+                    : 'border-slate-200 bg-white hover:border-slate-300'
+                ">
                 <!-- Radio Checker -->
-                <div v-if="settingsForm.manualBankName && settingsForm.manualAccountNumber && paymentProviders.length > 0" 
-                     @click="setManualPreferred"
-                     class="absolute top-5 right-5 w-5 h-5 rounded-full border-2 flex items-center justify-center cursor-pointer transition-all shadow-sm hover:shadow"
-                     :class="isManualPreferred ? 'border-slate-900 bg-slate-900' : 'border-slate-300 hover:border-slate-400 bg-white'">
-                  <div v-if="isManualPreferred" class="w-1.5 h-1.5 rounded-full bg-white"></div>
+                <div
+                  v-if="
+                    settingsForm.manualBankName &&
+                    settingsForm.manualAccountNumber &&
+                    paymentProviders.length > 0
+                  "
+                  @click="setManualPreferred"
+                  class="absolute top-5 right-5 w-5 h-5 rounded-full border-2 flex items-center justify-center cursor-pointer transition-all shadow-sm hover:shadow"
+                  :class="
+                    isManualPreferred
+                      ? 'border-emerald-600 bg-emerald-600'
+                      : 'border-slate-300 hover:border-slate-400 bg-white'
+                  ">
+                  <UiIcon
+                    v-if="isManualPreferred"
+                    icon="material-symbols:check-rounded"
+                    custom-class="w-4 h-4 text-white stroke-[3px]" />
                 </div>
 
                 <div class="flex items-center gap-4 mb-6">
@@ -698,7 +713,7 @@
                 <button
                   v-else
                   @click="isManualModalOpen = true"
-                  class="mt-auto w-full py-2.5 bg-slate-900 text-white text-xs font-bold rounded-xl hover:bg-slate-800 transition-all uppercase tracking-widest">
+                  class="mt-auto w-full py-2.5 bg-slate-900 text-white text-xs font-bold rounded-md hover:bg-slate-800 transition-all">
                   Setup Manual
                 </button>
               </div>
@@ -706,14 +721,28 @@
               <!-- ToyyibPay -->
               <div
                 class="relative border rounded-2xl p-6 shadow-sm flex flex-col transition-all"
-                :class="isProviderPreferred('TOYYIBPAY') ? 'border-amber-300 bg-amber-50/20 hover:border-amber-400' : 'border-slate-200 bg-white hover:border-slate-300'">
-                
+                :class="
+                  isProviderPreferred('TOYYIBPAY')
+                    ? 'border-emerald-300 bg-emerald-50/20 hover:border-emerald-400'
+                    : 'border-slate-200 bg-white hover:border-slate-300'
+                ">
                 <!-- Radio Checker -->
-                <div v-if="isProviderConnected('TOYYIBPAY') && paymentProviders.length > 1" 
-                     @click="setPreferred('TOYYIBPAY')"
-                     class="absolute top-5 right-5 w-5 h-5 rounded-full border-2 flex items-center justify-center cursor-pointer transition-all shadow-sm hover:shadow"
-                     :class="isProviderPreferred('TOYYIBPAY') ? 'border-slate-900 bg-slate-900' : 'border-slate-300 hover:border-slate-400 bg-white'">
-                  <div v-if="isProviderPreferred('TOYYIBPAY')" class="w-1.5 h-1.5 rounded-full bg-white"></div>
+                <div
+                  v-if="
+                    isProviderConnected('TOYYIBPAY') &&
+                    paymentProviders.length > 1
+                  "
+                  @click="setPreferred('TOYYIBPAY')"
+                  class="absolute top-5 right-5 w-5 h-5 rounded-full border-2 flex items-center justify-center cursor-pointer transition-all shadow-sm hover:shadow"
+                  :class="
+                    isProviderPreferred('TOYYIBPAY')
+                      ? 'border-emerald-600 bg-emerald-600'
+                      : 'border-slate-300 hover:border-slate-400 bg-white'
+                  ">
+                  <UiIcon
+                    v-if="isProviderPreferred('TOYYIBPAY')"
+                    icon="material-symbols:check-rounded"
+                    custom-class="w-4 h-4 text-white stroke-[4px]" />
                 </div>
 
                 <div class="flex items-center gap-4 mb-6">
@@ -738,8 +767,7 @@
                   <div class="flex items-center justify-between mb-4">
                     <div class="flex items-center gap-2">
                       <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
-                      <span
-                        class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest"
+                      <span class="text-[12px] font-bold text-emerald-600"
                         >Connected</span
                       >
                     </div>
@@ -760,7 +788,7 @@
                 <button
                   v-else
                   @click="openConnectModal('TOYYIBPAY')"
-                  class="mt-auto w-full py-2.5 bg-slate-900 text-white text-xs font-bold rounded-md hover:bg-slate-800 transition-all uppercase tracking-widest">
+                  class="mt-auto w-full py-2.5 bg-slate-900 text-white text-xs font-bold rounded-md hover:bg-slate-800 transition-all">
                   Connect
                 </button>
               </div>
@@ -768,14 +796,28 @@
               <!-- Billplz -->
               <div
                 class="relative border rounded-2xl p-6 shadow-sm flex flex-col transition-all"
-                :class="isProviderPreferred('BILLPLZ') ? 'border-amber-300 bg-amber-50/20 hover:border-amber-400' : 'border-slate-200 bg-white hover:border-slate-300'">
-                
+                :class="
+                  isProviderPreferred('BILLPLZ')
+                    ? 'border-emerald-300 bg-emerald-50/20 hover:border-emerald-400'
+                    : 'border-slate-200 bg-white hover:border-slate-300'
+                ">
                 <!-- Radio Checker -->
-                <div v-if="isProviderConnected('BILLPLZ') && paymentProviders.length > 1" 
-                     @click="setPreferred('BILLPLZ')"
-                     class="absolute top-5 right-5 w-5 h-5 rounded-full border-2 flex items-center justify-center cursor-pointer transition-all shadow-sm hover:shadow"
-                     :class="isProviderPreferred('BILLPLZ') ? 'border-slate-900 bg-slate-900' : 'border-slate-300 hover:border-slate-400 bg-white'">
-                  <div v-if="isProviderPreferred('BILLPLZ')" class="w-1.5 h-1.5 rounded-full bg-white"></div>
+                <div
+                  v-if="
+                    isProviderConnected('BILLPLZ') &&
+                    paymentProviders.length > 1
+                  "
+                  @click="setPreferred('BILLPLZ')"
+                  class="absolute top-5 right-5 w-5 h-5 rounded-full border-2 flex items-center justify-center cursor-pointer transition-all shadow-sm hover:shadow"
+                  :class="
+                    isProviderPreferred('BILLPLZ')
+                      ? 'border-emerald-600 bg-emerald-600'
+                      : 'border-slate-300 hover:border-slate-400 bg-white'
+                  ">
+                  <UiIcon
+                    v-if="isProviderPreferred('BILLPLZ')"
+                    icon="material-symbols:check-rounded"
+                    custom-class="w-4 h-4 text-white stroke-[4px]" />
                 </div>
 
                 <div class="flex items-center gap-4 mb-6">
@@ -800,8 +842,7 @@
                   <div class="flex items-center justify-between mb-4">
                     <div class="flex items-center gap-2">
                       <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
-                      <span
-                        class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest"
+                      <span class="text-[12px] font-bold text-emerald-600"
                         >Connected</span
                       >
                     </div>
@@ -822,7 +863,7 @@
                 <button
                   v-else
                   @click="openConnectModal('BILLPLZ')"
-                  class="mt-auto w-full py-2.5 bg-slate-900 text-white text-xs font-bold rounded-md hover:bg-slate-800 transition-all uppercase tracking-widest">
+                  class="mt-auto w-full py-2.5 bg-slate-900 text-white text-xs font-bold rounded-md hover:bg-slate-800 transition-all">
                   Connect
                 </button>
               </div>
@@ -1628,9 +1669,12 @@
 
       <div class="mt-8">
         <button
-          @click="isManualModalOpen = false"
+          @click="
+            saveSettings();
+            isManualModalOpen = false;
+          "
           class="w-full py-3 bg-slate-900 text-white text-sm font-bold rounded-xl hover:bg-slate-800 transition-all shadow-lg uppercase tracking-widest">
-          Done
+          Save details
         </button>
       </div>
     </div>
@@ -2008,7 +2052,8 @@ const isProviderPreferred = (p) => {
 };
 
 const isManualPreferred = computed(() => {
-  if (!paymentProviders.value || paymentProviders.value.length === 0) return true;
+  if (!paymentProviders.value || paymentProviders.value.length === 0)
+    return true;
   return paymentProviders.value.every((p) => !p.isPreferred);
 });
 
