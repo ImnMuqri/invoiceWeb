@@ -41,7 +41,8 @@
             class="pt-6 border-t border-white/5 flex flex-col items-center gap-4">
             <div
               class="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-full border border-white/5">
-              <div class="w-2 h-2 bg-emerald-500 rounded-full animate-ping"></div>
+              <div
+                class="w-2 h-2 bg-emerald-500 rounded-full animate-ping"></div>
               <span
                 class="text-[10px] font-bold text-slate-300 uppercase tracking-widest"
                 >System Status: Updating</span
@@ -518,7 +519,8 @@
                         class="flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
                         active-class="bg-[#ebebec] text-slate-900"
                         :class="{
-                          'bg-[#ebebec] text-slate-900': $route.path.startsWith('/admin'),
+                          'bg-[#ebebec] text-slate-900':
+                            $route.path.startsWith('/admin'),
                         }">
                         <UiIcon
                           icon="heroicons:command-line"

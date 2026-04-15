@@ -477,13 +477,14 @@ onMounted(async () => {
     
     try {
       const { $api } = useNuxtApp();
-      const verifyRes = await $api.get(`/pay/invoice/${invoiceId}/verify`, {
-        params: {
-          billcode: route.query.billcode || "",
-          transaction_id: route.query.transaction_id || "",
-          "billplz[paid]": route.query["billplz[paid]"] || "",
-        }
-      });
+        const verifyRes = await $api.get(`/pay/invoice/${invoiceId}/verify`, {
+          params: {
+            billcode: route.query.billcode || "",
+            transaction_id: route.query.transaction_id || "",
+            "billplz[paid]": route.query["billplz[paid]"] || "",
+            "billplz[id]": route.query["billplz[id]"] || "",
+          }
+        });
       
       if (verifyRes.data?.status === "Paid") {
         invoice.value.status = "Paid";

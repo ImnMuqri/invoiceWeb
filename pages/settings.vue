@@ -92,6 +92,16 @@
                     class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-slate-950 outline-none transition-all" />
                 </div>
               </div>
+              <div
+                class="mt-5 p-4 bg-blue-50 border border-blue-100 rounded-xl flex gap-3">
+                <UiIcon
+                  icon="heroicons:information-circle"
+                  custom-class="w-5 h-5 text-blue-600 shrink-0" />
+                <p class="text-[11px] text-blue-800 leading-relaxed">
+                  <strong>Credentials change:</strong> Please contact us at
+                  help@invokita to change your name
+                </p>
+              </div>
             </div>
 
             <div class="p-6 border-b border-slate-100">
