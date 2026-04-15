@@ -127,9 +127,9 @@ const providerLogo = computed(() => {
 });
 const providerDescription = computed(() => {
   if (props.provider === "TOYYIBPAY") {
-    return "Accept FPX online banking easily with industry-low flat rates.";
+    return "Accept FPX online banking easily with industry-low flat rates. Personal accounts supported (no SSM required).";
   }
-  return "Seamlessly collect payments via FPX, cards, and e-wallets.";
+  return "Seamlessly collect payments via FPX, cards, and e-wallets. Company Registration (SSM) is required.";
 });
 const title = computed(() => `Connect to ${providerName.value}`);
 
@@ -155,7 +155,7 @@ const fields = computed(() => {
         key: "secretKey",
         label: "Secret Key",
         type: "password",
-        placeholder: "Enter your ToyyibPay Secret Key",
+        placeholder: isEditing ? "•••••••••••••••• (Leave blank to keep)" : "Enter your ToyyibPay Secret Key",
       },
       {
         key: "categoryCode",
@@ -169,7 +169,7 @@ const fields = computed(() => {
       key: "apiKey",
       label: "API Key",
       type: "password",
-      placeholder: "Enter your Billplz API Key",
+      placeholder: isEditing ? "•••••••••••••••• (Leave blank to keep)" : "Enter your Billplz API Key",
     },
     {
       key: "collectionId",
@@ -180,7 +180,7 @@ const fields = computed(() => {
       key: "xSignatureKey",
       label: "X Signature Key",
       type: "password",
-      placeholder: "Enter your X Signature Key",
+      placeholder: isEditing ? "•••••••••••••••• (Leave blank to keep)" : "Enter your X Signature Key",
     },
   ];
 });

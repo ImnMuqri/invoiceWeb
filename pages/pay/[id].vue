@@ -48,7 +48,7 @@
           >Return Home</NuxtLink
         >
       </div>
-      
+
       <!-- Payments Disabled State -->
       <div
         v-else-if="!systemStore.isPaymentsEnabled"
@@ -62,11 +62,12 @@
           Payments Temporarily Unavailable
         </h2>
         <p class="text-slate-500 mb-8 text-sm max-w-sm leading-relaxed">
-          Our payment systems are currently undergoing scheduled maintenance. 
+          Our payment systems are currently undergoing scheduled maintenance.
           Please try again later or contact the invoice issuer directly.
         </p>
         <div class="px-6 py-2 bg-slate-50 border border-slate-100 rounded-lg">
-          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+          <p
+            class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
             Estimated Uptime: Shortly
           </p>
         </div>
@@ -239,7 +240,6 @@
               (activeProvider || manualPaymentAvailable)
             "
             class="mt-12">
-            
             <!-- Global Payment Toggle Restriction -->
             <template v-if="invoice.system?.paymentsEnabled !== false">
               <button
@@ -249,14 +249,16 @@
                 Pay Now
               </button>
 
-              <div class="flex items-center justify-center gap-2 mt-4 opacity-70">
+              <div
+                class="flex items-center justify-center gap-2 mt-4 opacity-70">
                 <template v-if="activeProvider">
                   <img
                     :src="activeProviderLogo"
                     class="w-4 h-4 object-contain grayscale hover:grayscale-0 transition-all"
                     :alt="activeProviderName"
                     v-if="activeProviderLogo" />
-                  <p class="text-[10px] text-slate-400 uppercase tracking-widest">
+                  <p
+                    class="text-[10px] text-slate-400 uppercase tracking-widest">
                     Secure Processing by {{ activeProviderName }}
                   </p>
                 </template>
@@ -273,13 +275,22 @@
             </template>
 
             <!-- Disabled State Notice -->
-            <div v-else class="bg-amber-50 border border-amber-100 rounded-xl p-6 flex flex-col items-center text-center shadow-sm">
-              <div class="p-2 bg-white border border-amber-200 rounded-full mb-3">
-                <UiIcon icon="heroicons:pause-circle" class="w-6 h-6 text-amber-600" />
+            <div
+              v-else
+              class="bg-amber-50 border border-amber-100 rounded-xl p-6 flex flex-col items-center text-center shadow-sm">
+              <div
+                class="p-2 bg-white border border-amber-200 rounded-full mb-3">
+                <UiIcon
+                  icon="heroicons:pause-circle"
+                  class="w-6 h-6 text-amber-600" />
               </div>
-              <h4 class="text-sm font-bold text-amber-900">Online Payments Temporarily Unavailable</h4>
-              <p class="text-xs font-medium text-amber-700/80 mt-1 max-w-xs leading-relaxed">
-                The payment gateway is currently undergoing maintenance. Please try again later or contact the invoice issuer.
+              <h4 class="text-sm font-bold text-amber-900">
+                Online Payments Temporarily Unavailable
+              </h4>
+              <p
+                class="text-xs font-medium text-amber-700/80 mt-1 max-w-xs leading-relaxed">
+                The payment gateway is currently undergoing maintenance. Please
+                try again later or contact the invoice issuer.
               </p>
             </div>
           </div>
@@ -456,9 +467,31 @@ const currencySymbol = computed(() => {
 onMounted(async () => {
   // Ensure system config is latest
   await systemStore.fetchSystemConfig();
-  
+
   // Fetch from API directly using the numeric ID
   invoice.value = await invoiceStore.fetchInvoiceById(invoiceId);
+
+  // Handle Gateway Redirect Race-condition
+  if (route.query.status === "success" && invoice.value?.status !== "Paid") {
+    // The webhook might take a few seconds to hit the backend
+    toast.value = { message: "Verifying secure payment...", type: "success" };
+    for (let i = 0; i < 6; i++) {
+      await new Promise((r) => setTimeout(r, 1500)); // wait 1.5s
+      invoice.value = await invoiceStore.fetchInvoiceById(invoiceId);
+      if (invoice.value?.status === "Paid") {
+        toast.value = {
+          message: "Payment successful and verified!",
+          type: "success",
+        };
+        break;
+      }
+    }
+    // Clean URL
+    if (window.history.replaceState) {
+      window.history.replaceState(null, null, window.location.pathname);
+    }
+  }
+
   loading.value = false;
 });
 
@@ -481,8 +514,8 @@ const activeProviderName = computed(() => {
 const activeProviderLogo = computed(() => {
   if (!activeProvider.value) return null;
   return activeProvider.value.provider === "TOYYIBPAY"
-    ? "https://toyyibpay.com/wp-content/uploads/2022/07/logo-tp.png"
-    : "https://avatars.githubusercontent.com/u/1206144?s=280&v=4";
+    ? "https://images.crunchbase.com/image/upload/c_pad,h_256,w_256,f_auto,q_auto:eco,dpr_1/e2hhr8kgl2hq5bkkqueq?ik-sanitizeSvg=true"
+    : "https://make-cxp-documentation.ams3.digitaloceanspaces.com/apps-center-icons/billplz.png";
 });
 
 const initiatePayment = async () => {
