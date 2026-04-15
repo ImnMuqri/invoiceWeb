@@ -13,7 +13,8 @@ export const useAuthStore = defineStore("auth", () => {
   const token = computed(() => accessToken.value);
 
   const isPro = computed(() => {
-    return user.value?.plan === "PRO" || user.value?.plan === "MAX";
+    const p = user.value?.plan?.toUpperCase();
+    return p && p !== "FREE" && p !== "PENDING" && p !== "CANCELLED";
   });
 
   const isAdmin = computed(() => {
