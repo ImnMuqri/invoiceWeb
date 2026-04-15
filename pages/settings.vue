@@ -352,7 +352,7 @@
                 invoices.
               </p>
 
-              <div class="max-w-xs">
+              <div class="max-w-full">
                 <div class="flex items-center justify-between mb-2">
                   <label
                     class="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest"
@@ -374,7 +374,8 @@
                   v-model="settingsForm.whatsappReminderInterval"
                   :options="reminderIntervalOptions"
                   :disabled="!authStore.isPro"
-                  placeholder="Select interval" />
+                  placeholder="Select interval"
+                  class="max-w-[250px]" />
                 <p class="text-[12px] text-slate-500 mt-4 leading-relaxed">
                   <span v-if="settingsForm.whatsappReminderInterval === 0">
                     WhatsApp reminders are currently disabled.
@@ -389,6 +390,18 @@
                     {{ settingsForm.whatsappReminderInterval }} days.
                   </span>
                 </p>
+                <div
+                  v-if="settingsForm.whatsappReminderInterval !== 0"
+                  class="mt-4 p-3 bg-amber-50 rounded-lg border border-amber-100 flex gap-3 text-left">
+                  <UiIcon
+                    icon="heroicons:exclamation-triangle"
+                    custom-class="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                  <p class="text-[11px] text-amber-800 leading-relaxed">
+                    <strong>Quota Notice:</strong> Automated reminders consume
+                    your monthly plan quota. Frequent intervals for multiple
+                    clients will quickly deplete your limit.
+                  </p>
+                </div>
               </div>
             </div>
 
@@ -509,6 +522,18 @@
                       until it is marked as Paid.
                     </span>
                   </p>
+                  <div
+                    v-if="profileForm.reminderInterval !== 0"
+                    class="mt-4 p-3 bg-amber-50 rounded-lg border border-amber-100 flex gap-3 text-left">
+                    <UiIcon
+                      icon="heroicons:exclamation-triangle"
+                      custom-class="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                    <p class="text-[11px] text-amber-800 leading-relaxed">
+                      <strong>Quota Notice:</strong> Automated reminders consume
+                      your monthly plan quota. Frequent intervals for multiple
+                      clients will quickly deplete your limit.
+                    </p>
+                  </div>
                 </div>
                 <!-- Preview Canvas -->
                 <div
@@ -700,7 +725,7 @@
                     </div>
                     <div
                       v-if="isProviderPreferred('TOYYIBPAY')"
-                      class="bg-blue-50 text-blue-600 text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider border border-blue-100 italic">
+                      class="bg-blue-50 text-blue-600 text-[12px] font-bold px-2 py-0.5 rounded border border-blue-100">
                       Preferred
                     </div>
                   </div>
