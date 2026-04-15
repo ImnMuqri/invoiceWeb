@@ -649,7 +649,17 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8 pt-8">
               <!-- Direct Bank Transfer -->
               <div
-                class="border border-slate-200 rounded-2xl p-6 bg-white shadow-sm flex flex-col hover:border-slate-300 transition-all">
+                class="relative border rounded-2xl p-6 shadow-sm flex flex-col transition-all"
+                :class="isManualPreferred ? 'border-amber-300 bg-amber-50/20 hover:border-amber-400' : 'border-slate-200 bg-white hover:border-slate-300'">
+                
+                <!-- Radio Checker -->
+                <div v-if="settingsForm.manualBankName && settingsForm.manualAccountNumber && paymentProviders.length > 0" 
+                     @click="setManualPreferred"
+                     class="absolute top-5 right-5 w-5 h-5 rounded-full border-2 flex items-center justify-center cursor-pointer transition-all shadow-sm hover:shadow"
+                     :class="isManualPreferred ? 'border-slate-900 bg-slate-900' : 'border-slate-300 hover:border-slate-400 bg-white'">
+                  <div v-if="isManualPreferred" class="w-1.5 h-1.5 rounded-full bg-white"></div>
+                </div>
+
                 <div class="flex items-center gap-4 mb-6">
                   <div
                     class="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100 overflow-hidden text-slate-400">
@@ -695,7 +705,17 @@
 
               <!-- ToyyibPay -->
               <div
-                class="border border-slate-200 rounded-2xl p-6 bg-white shadow-sm flex flex-col hover:border-slate-300 transition-all">
+                class="relative border rounded-2xl p-6 shadow-sm flex flex-col transition-all"
+                :class="isProviderPreferred('TOYYIBPAY') ? 'border-amber-300 bg-amber-50/20 hover:border-amber-400' : 'border-slate-200 bg-white hover:border-slate-300'">
+                
+                <!-- Radio Checker -->
+                <div v-if="isProviderConnected('TOYYIBPAY') && paymentProviders.length > 1" 
+                     @click="setPreferred('TOYYIBPAY')"
+                     class="absolute top-5 right-5 w-5 h-5 rounded-full border-2 flex items-center justify-center cursor-pointer transition-all shadow-sm hover:shadow"
+                     :class="isProviderPreferred('TOYYIBPAY') ? 'border-slate-900 bg-slate-900' : 'border-slate-300 hover:border-slate-400 bg-white'">
+                  <div v-if="isProviderPreferred('TOYYIBPAY')" class="w-1.5 h-1.5 rounded-full bg-white"></div>
+                </div>
+
                 <div class="flex items-center gap-4 mb-6">
                   <div
                     class="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100 overflow-hidden">
@@ -723,11 +743,6 @@
                         >Connected</span
                       >
                     </div>
-                    <div
-                      v-if="isProviderPreferred('TOYYIBPAY')"
-                      class="bg-blue-50 text-blue-600 text-[12px] font-bold px-2 py-0.5 rounded border border-blue-100">
-                      Preferred
-                    </div>
                   </div>
                   <div class="flex gap-2">
                     <button
@@ -741,15 +756,6 @@
                       Disconnect
                     </button>
                   </div>
-                  <button
-                    v-if="
-                      !isProviderPreferred('TOYYIBPAY') &&
-                      paymentProviders.length > 1
-                    "
-                    @click="setPreferred('TOYYIBPAY')"
-                    class="w-full mt-3 py-1.5 text-[10px] font-bold text-blue-600 border border-blue-100 rounded-md hover:bg-blue-50 transition-all uppercase tracking-widest">
-                    Set Preferred
-                  </button>
                 </div>
                 <button
                   v-else
@@ -761,7 +767,17 @@
 
               <!-- Billplz -->
               <div
-                class="border border-slate-200 rounded-2xl p-6 bg-white shadow-sm flex flex-col hover:border-slate-300 transition-all">
+                class="relative border rounded-2xl p-6 shadow-sm flex flex-col transition-all"
+                :class="isProviderPreferred('BILLPLZ') ? 'border-amber-300 bg-amber-50/20 hover:border-amber-400' : 'border-slate-200 bg-white hover:border-slate-300'">
+                
+                <!-- Radio Checker -->
+                <div v-if="isProviderConnected('BILLPLZ') && paymentProviders.length > 1" 
+                     @click="setPreferred('BILLPLZ')"
+                     class="absolute top-5 right-5 w-5 h-5 rounded-full border-2 flex items-center justify-center cursor-pointer transition-all shadow-sm hover:shadow"
+                     :class="isProviderPreferred('BILLPLZ') ? 'border-slate-900 bg-slate-900' : 'border-slate-300 hover:border-slate-400 bg-white'">
+                  <div v-if="isProviderPreferred('BILLPLZ')" class="w-1.5 h-1.5 rounded-full bg-white"></div>
+                </div>
+
                 <div class="flex items-center gap-4 mb-6">
                   <div
                     class="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100 overflow-hidden">
@@ -789,11 +805,6 @@
                         >Connected</span
                       >
                     </div>
-                    <div
-                      v-if="isProviderPreferred('BILLPLZ')"
-                      class="bg-blue-50 text-blue-600 text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider border border-blue-100 italic">
-                      Preferred
-                    </div>
                   </div>
                   <div class="flex gap-2">
                     <button
@@ -807,15 +818,6 @@
                       Disconnect
                     </button>
                   </div>
-                  <button
-                    v-if="
-                      !isProviderPreferred('BILLPLZ') &&
-                      paymentProviders.length > 1
-                    "
-                    @click="setPreferred('BILLPLZ')"
-                    class="w-full mt-3 py-1.5 text-[10px] font-bold text-blue-600 border border-blue-100 rounded-md hover:bg-blue-50 transition-all uppercase tracking-widest">
-                    Set Preferred
-                  </button>
                 </div>
                 <button
                   v-else
@@ -2003,6 +2005,29 @@ const isProviderPreferred = (p) => {
   return paymentProviders.value.some(
     (pr) => pr.provider === p && pr.isPreferred,
   );
+};
+
+const isManualPreferred = computed(() => {
+  if (!paymentProviders.value || paymentProviders.value.length === 0) return true;
+  return paymentProviders.value.every((p) => !p.isPreferred);
+});
+
+const setManualPreferred = async () => {
+  if (isManualPreferred.value) return;
+  try {
+    const { $api } = useNuxtApp();
+    await $api.patch("/users/payments/manual/prefer");
+    await fetchProviders();
+    toast.value = {
+      message: "Bank Transfer set as preferred",
+      type: "success",
+    };
+  } catch (err) {
+    toast.value = {
+      message: "Failed to prefer manual bank transfer",
+      type: "error",
+    };
+  }
 };
 
 const setPreferred = async (p) => {

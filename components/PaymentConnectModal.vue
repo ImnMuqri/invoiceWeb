@@ -156,7 +156,9 @@ const fields = computed(() => {
         key: "secretKey",
         label: "Secret Key",
         type: "password",
-        placeholder: isEditing ? "•••••••••••••••• (Leave blank to keep)" : "Enter your ToyyibPay Secret Key",
+        placeholder: isEditing
+          ? "Leave blank to keep the current key"
+          : "Enter your ToyyibPay Secret Key",
       },
       {
         key: "categoryCode",
@@ -170,7 +172,9 @@ const fields = computed(() => {
       key: "apiKey",
       label: "API Key",
       type: "password",
-      placeholder: isEditing ? "•••••••••••••••• (Leave blank to keep)" : "Enter your Billplz API Key",
+      placeholder: isEditing
+        ? "•••••••••••••••• (Leave blank to keep)"
+        : "Enter your Billplz API Key",
     },
     {
       key: "collectionId",
@@ -181,7 +185,9 @@ const fields = computed(() => {
       key: "xSignatureKey",
       label: "X Signature Key",
       type: "password",
-      placeholder: isEditing ? "•••••••••••••••• (Leave blank to keep)" : "Enter your X Signature Key",
+      placeholder: isEditing
+        ? "•••••••••••••••• (Leave blank to keep)"
+        : "Enter your X Signature Key",
     },
   ];
 });

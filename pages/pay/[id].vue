@@ -516,7 +516,18 @@ onMounted(async () => {
 });
 
 const activeProvider = computed(() => {
-  return invoice.value?.user?.paymentProviders?.[0];
+  const providers = invoice.value?.user?.paymentProviders;
+  if (!providers || providers.length === 0) return null;
+  
+  const preferred = providers.find(p => p.isPreferred);
+  if (preferred) return preferred;
+
+  // Fallback to manual if manual settings exist and NO online gateway is strictly preferred
+  const u = invoice.value?.user;
+  const manualOk = !!(u?.manualBankName && u?.manualAccountNumber);
+  if (manualOk) return null;
+
+  return providers[0];
 });
 
 const manualPaymentAvailable = computed(() => {
