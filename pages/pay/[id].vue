@@ -524,7 +524,7 @@ const activeProvider = computed(() => {
 
   // Fallback to manual if manual settings exist and NO online gateway is strictly preferred
   const u = invoice.value?.user;
-  const manualOk = !!(u?.manualBankName && u?.manualAccountNumber);
+  const manualOk = !!(u?.manualBankName || u?.manualAccountNumber || u?.manualQrCode);
   if (manualOk) return null;
 
   return providers[0];

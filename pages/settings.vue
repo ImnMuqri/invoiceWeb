@@ -652,7 +652,7 @@
                 class="relative border rounded-2xl p-6 shadow-sm flex flex-col transition-all"
                 :class="
                   isManualPreferred
-                    ? 'border-amber-300 bg-amber-50/20 hover:border-amber-400'
+                    ? 'border-emerald-300 bg-emerald-50/20 hover:border-emerald-400'
                     : 'border-slate-200 bg-white hover:border-slate-300'
                 ">
                 <!-- Radio Checker -->
@@ -678,7 +678,7 @@
                 <div class="flex items-center gap-4 mb-6">
                   <div
                     class="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100 overflow-hidden text-slate-400">
-                    <UiIcon icon="heroicons:banknotes" class="w-6 h-6" />
+                    <UiIcon icon="heroicons:banknotes" custom-class="w-5 h-5" />
                   </div>
                   <div class="text-left">
                     <h4 class="text-sm font-bold text-slate-900 text-left">
