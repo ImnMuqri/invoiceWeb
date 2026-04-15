@@ -133,7 +133,7 @@
                   >Invoices
                 </span>
                 <span class="text-slate-900"
-                  >{{ authStore.user?.invoicesUsed || 0 }} /
+                  >{{ dashboardStore.quotaUsage.invoicesUsed }} /
                   <template
                     v-if="(dashboardStore.usageLimits?.invoices || 0) >= 99999"
                     >∞</template
@@ -150,7 +150,7 @@
                     width:
                       Math.min(
                         100,
-                        ((authStore.user?.invoicesUsed || 0) /
+                        (dashboardStore.quotaUsage.invoicesUsed /
                           (dashboardStore.usageLimits?.invoices || 1)) *
                           100,
                       ) + '%',
@@ -173,7 +173,7 @@
                   >WhatsApp Sends</span
                 >
                 <span class="text-slate-900"
-                  >{{ authStore.user?.waSendsUsed || 0 }} /
+                  >{{ dashboardStore.quotaUsage.waSendsUsed }} /
                   <template
                     v-if="(dashboardStore.usageLimits?.waSends || 0) >= 99999"
                     >∞</template
@@ -190,7 +190,7 @@
                     width:
                       Math.min(
                         100,
-                        ((authStore.user?.waSendsUsed || 0) /
+                        (dashboardStore.quotaUsage.waSendsUsed /
                           (dashboardStore.usageLimits?.waSends || 1)) *
                           100,
                       ) + '%',
@@ -200,7 +200,7 @@
                 class="flex justify-between text-[10px] font-medium text-slate-400">
                 <span>Reminders Used:</span>
                 <span class="font-semibold text-slate-600"
-                  >{{ authStore.user?.waRemindersUsed || 0 }} /
+                  >{{ dashboardStore.quotaUsage.waRemindersUsed }} /
                   <template
                     v-if="
                       (dashboardStore.usageLimits?.waReminders || 0) >= 99999
@@ -220,7 +220,7 @@
                   >Email Sends</span
                 >
                 <span class="text-slate-900"
-                  >{{ authStore.user?.emailSendsUsed || 0 }} /
+                  >{{ dashboardStore.quotaUsage.emailSendsUsed }} /
                   <template
                     v-if="
                       (dashboardStore.usageLimits?.emailSends || 0) >= 99999
@@ -239,7 +239,7 @@
                     width:
                       Math.min(
                         100,
-                        ((authStore.user?.emailSendsUsed || 0) /
+                        (dashboardStore.quotaUsage.emailSendsUsed /
                           (dashboardStore.usageLimits?.emailSends || 1)) *
                           100,
                       ) + '%',
@@ -249,7 +249,7 @@
                 class="flex justify-between text-[10px] font-medium text-slate-400">
                 <span>Reminders Used:</span>
                 <span class="font-semibold text-slate-600"
-                  >{{ authStore.user?.emailRemindersUsed || 0 }} /
+                  >{{ dashboardStore.quotaUsage.emailRemindersUsed }} /
                   <template
                     v-if="
                       (dashboardStore.usageLimits?.emailReminders || 0) >= 99999
@@ -269,7 +269,7 @@
                   >AI Helper Credits</span
                 >
                 <span class="text-slate-900"
-                  >{{ authStore.user?.aiUsed || 0 }} /
+                  >{{ dashboardStore.quotaUsage.aiUsed }} /
                   <template
                     v-if="(dashboardStore.usageLimits?.aiCredits || 0) >= 99999"
                     >∞</template
@@ -286,7 +286,7 @@
                     width:
                       Math.min(
                         100,
-                        ((authStore.user?.aiUsed || 0) /
+                        (dashboardStore.quotaUsage.aiUsed /
                           (dashboardStore.usageLimits?.aiCredits || 1)) *
                           100,
                       ) + '%',
@@ -951,7 +951,6 @@ watch(profitabilityFilter, (newVal) => {
 onMounted(() => {
   fetchCoreData({ rank: profitabilityFilter.value });
   fetchForecastData();
-  authStore.fetchProfile();
   referralStore.fetchStats();
 
   // Check for welcome trigger

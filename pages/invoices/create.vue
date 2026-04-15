@@ -730,7 +730,9 @@
             <div class="relative group">
               <button
                 @click="emailInvoice"
-                :disabled="isSending || !authStore.isPro || !systemStore.isEmailEnabled"
+                :disabled="
+                  isSending || !authStore.isPro || !systemStore.isEmailEnabled
+                "
                 class="flex items-center gap-2 px-3 py-1.5 rounded-md bg-white shadow-sm border border-slate-200 text-slate-900 hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 :title="
                   !systemStore.isEmailEnabled
@@ -747,7 +749,11 @@
                   v-else
                   icon="heroicons:arrow-path"
                   custom-class="w-4 h-4 animate-spin text-slate-500" />
-                <span :class="{ 'opacity-50': !authStore.isPro || !systemStore.isEmailEnabled }"
+                <span
+                  :class="{
+                    'opacity-50':
+                      !authStore.isPro || !systemStore.isEmailEnabled,
+                  }"
                   >Email client</span
                 >
                 <UiIcon
@@ -769,7 +775,11 @@
                       : 'WhatsApp'
                 ">
                 <UiIcon icon="simple-icons:whatsapp" class="w-4 h-4" />
-                <span :class="{ 'opacity-50': !authStore.isPro || !systemStore.isWhatsappEnabled }"
+                <span
+                  :class="{
+                    'opacity-50':
+                      !authStore.isPro || !systemStore.isWhatsappEnabled,
+                  }"
                   >WhatsApp</span
                 >
                 <UiIcon
@@ -1274,7 +1284,7 @@ const { $api } = useNuxtApp();
 
 onMounted(async () => {
   await systemStore.fetchSystemConfig();
-  
+
   // Global check: Is invoice creation enabled?
   if (!systemStore.isInvoiceCreationEnabled) {
     router.push("/dashboard");
@@ -1284,26 +1294,34 @@ onMounted(async () => {
   fetchCurrencies();
   clientStore.fetchClients();
 
-  // Populate "From" info from user profile
-  if (authStore.user) {
-    const u = authStore.user;
+  // Fetch invoice config separately (not in /me to keep it lean)
+  const u = authStore.user;
+  const invoiceConfig = await authStore.fetchInvoiceConfig();
+
+  if (u) {
     const phones = [];
-    if (u.invoiceIncludeCompanyPhone && u.companyPhone) phones.push(u.companyPhone);
-    if (u.invoiceIncludePersonalPhone && u.phoneNumber) phones.push(u.phoneNumber);
-    
+    if (invoiceConfig.invoiceIncludeCompanyPhone && u.companyPhone)
+      phones.push(u.companyPhone);
+    if (invoiceConfig.invoiceIncludePersonalPhone && u.phoneNumber)
+      phones.push(u.phoneNumber);
+
     form.value.from = {
-      name: u.invoiceIncludeName ? u.name || "" : "",
-      companyName: u.invoiceIncludeCompanyName ? u.companyName || "" : "",
-      companyEmail: u.invoiceIncludeEmail
+      name: invoiceConfig.invoiceIncludeName ? u.name || "" : "",
+      companyName: invoiceConfig.invoiceIncludeCompanyName
+        ? u.companyName || ""
+        : "",
+      companyEmail: invoiceConfig.invoiceIncludeEmail
         ? u.companyEmail || u.email || ""
         : "",
-      companyAddress: u.invoiceIncludeAddress ? u.address || "" : "",
+      companyAddress: invoiceConfig.invoiceIncludeAddress
+        ? u.address || ""
+        : "",
       phone: phones.join(" / "),
     };
 
-    // Apply default tax rate if enabled
-    if (u.defaultTaxRate > 0) {
-      form.value.taxRate = u.defaultTaxRate;
+    // Apply default tax rate if set
+    if (invoiceConfig.defaultTaxRate > 0) {
+      form.value.taxRate = invoiceConfig.defaultTaxRate;
     }
   }
 });
@@ -1340,9 +1358,9 @@ const form = ref({
   template: "professional",
   lineItems: [
     {
-      name: "Summer 2K23 T-shirt",
-      priceStr: "125,000",
-      priceNum: 125000,
+      name: "Item Name",
+      priceStr: "0",
+      priceNum: 0,
       qty: 1,
     },
   ],

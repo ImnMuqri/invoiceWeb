@@ -77,8 +77,9 @@
                   >
                   <input
                     type="text"
-                    v-model="profileForm.name"
-                    class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-slate-950 outline-none transition-all" />
+                    disabled
+                    :value="authStore.user?.name"
+                    class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm bg-slate-50 text-slate-500 cursor-not-allowed outline-none transition-all" />
                 </div>
                 <div class="sm:col-span-3">
                   <label
@@ -641,7 +642,7 @@
 
                 <div
                   v-if="
-                    settingsForm.manualBankName ||
+                    settingsForm.manualBankName &&
                     settingsForm.manualAccountNumber
                   "
                   class="mt-auto">
@@ -1529,11 +1530,11 @@
             class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2"
             >Bank Name</label
           >
-          <input
+          <UiSelect
             v-model="settingsForm.manualBankName"
-            type="text"
-            placeholder="e.g. Maybank, CIMB"
-            class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:ring-1 focus:ring-slate-900 outline-none transition-all" />
+            :options="malaysiaBanks"
+            placeholder="Select a bank"
+            custom-class="!py-3 !rounded-xl" />
         </div>
         <div>
           <label
@@ -1696,6 +1697,28 @@ const activeTab = ref(route.query.tab || "general");
 const toast = ref({ message: "", type: "success" });
 const currencyOptions = ref([]);
 const dynamicPlans = ref([]);
+
+const malaysiaBanks = [
+  { value: "Maybank", label: "Maybank" },
+  { value: "CIMB Bank", label: "CIMB Bank" },
+  { value: "Public Bank", label: "Public Bank" },
+  { value: "RHB Bank", label: "RHB Bank" },
+  { value: "Hong Leong Bank", label: "Hong Leong Bank" },
+  { value: "AmBank", label: "AmBank" },
+  { value: "UOB Bank", label: "UOB Bank" },
+  { value: "Bank Rakyat", label: "Bank Rakyat" },
+  { value: "Bank Islam", label: "Bank Islam" },
+  { value: "Affin Bank", label: "Affin Bank" },
+  { value: "Alliance Bank", label: "Alliance Bank" },
+  { value: "Standard Chartered Bank", label: "Standard Chartered Bank" },
+  { value: "OCBC Bank", label: "OCBC Bank" },
+  { value: "HSBC Bank", label: "HSBC Bank" },
+  { value: "MBSB Bank", label: "MBSB Bank" },
+  { value: "Bank Muamalat", label: "Bank Muamalat" },
+  { value: "Agrobank", label: "Agrobank" },
+  { value: "Al Rajhi Bank", label: "Al Rajhi Bank" },
+  { value: "Citibank", label: "Citibank" },
+];
 
 const fetchPlans = async () => {
   try {

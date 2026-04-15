@@ -1292,6 +1292,10 @@ onMounted(async () => {
   fetchCurrencies();
   await clientStore.fetchClients();
 
+  // Fetch invoice config separately (not in /me to keep it lean)
+  const invoiceConfig = await authStore.fetchInvoiceConfig();
+  const u = authStore.user;
+
   try {
     const data = await invoiceStore.fetchInvoiceById(invoiceId);
     if (data) {
@@ -1308,16 +1312,15 @@ onMounted(async () => {
         addDiscount: false,
         discountPercentage: 0,
         from: {
-          name: data.fromName || (authStore.user?.invoiceIncludeName ? authStore.user.name : ""),
-          companyName: data.fromCompanyName || (authStore.user?.invoiceIncludeCompanyName ? authStore.user.companyName : ""),
-          companyEmail: data.fromEmail || (authStore.user?.invoiceIncludeEmail ? (authStore.user.companyEmail || authStore.user.email) : ""),
-          companyAddress: data.fromAddress || (authStore.user?.invoiceIncludeAddress ? authStore.user.address : ""),
+          name: data.fromName || (invoiceConfig.invoiceIncludeName ? u?.name : "") || "",
+          companyName: data.fromCompanyName || (invoiceConfig.invoiceIncludeCompanyName ? u?.companyName : "") || "",
+          companyEmail: data.fromEmail || (invoiceConfig.invoiceIncludeEmail ? (u?.companyEmail || u?.email) : "") || "",
+          companyAddress: data.fromAddress || (invoiceConfig.invoiceIncludeAddress ? u?.address : "") || "",
           phone: data.fromPhone || (() => {
-            const u = authStore.user;
             if (!u) return "";
             const phones = [];
-            if (u.invoiceIncludeCompanyPhone && u.companyPhone) phones.push(u.companyPhone);
-            if (u.invoiceIncludePersonalPhone && u.phoneNumber) phones.push(u.phoneNumber);
+            if (invoiceConfig.invoiceIncludeCompanyPhone && u.companyPhone) phones.push(u.companyPhone);
+            if (invoiceConfig.invoiceIncludePersonalPhone && u.phoneNumber) phones.push(u.phoneNumber);
             return phones.join(" / ");
           })(),
         },

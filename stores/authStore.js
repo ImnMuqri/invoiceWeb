@@ -200,6 +200,38 @@ export const useAuthStore = defineStore("auth", () => {
     }
   }
 
+  // Fetches only the invoice config fields (invoiceInclude*, defaultTaxRate, invoicePrefix)
+  // Called on invoice create/edit mount — keeps /me lean
+  async function fetchInvoiceConfig() {
+    const { $api } = useNuxtApp();
+    try {
+      const { data } = await $api.get("/users/settings/profile");
+      return {
+        invoiceIncludeName: data.invoiceIncludeName ?? true,
+        invoiceIncludeEmail: data.invoiceIncludeEmail ?? false,
+        invoiceIncludePersonalPhone: data.invoiceIncludePersonalPhone ?? false,
+        invoiceIncludeCompanyPhone: data.invoiceIncludeCompanyPhone ?? true,
+        invoiceIncludeCompanyName: data.invoiceIncludeCompanyName ?? true,
+        invoiceIncludeAddress: data.invoiceIncludeAddress ?? true,
+        defaultTaxRate: data.defaultTaxRate ?? 0,
+        invoicePrefix: data.invoicePrefix ?? "INV",
+      };
+    } catch (err) {
+      console.error("Failed to fetch invoice config", err);
+      // Safe defaults so the invoice builder never crashes
+      return {
+        invoiceIncludeName: true,
+        invoiceIncludeEmail: false,
+        invoiceIncludePersonalPhone: false,
+        invoiceIncludeCompanyPhone: true,
+        invoiceIncludeCompanyName: true,
+        invoiceIncludeAddress: true,
+        defaultTaxRate: 0,
+        invoicePrefix: "INV",
+      };
+    }
+  }
+
   async function updateSettings(settingsData) {
     const { $api } = useNuxtApp();
     loading.value = true;
@@ -312,6 +344,7 @@ export const useAuthStore = defineStore("auth", () => {
     fetchProfile,
     updateProfile,
     fetchSettings,
+    fetchInvoiceConfig,
     updateSettings,
     fetchPaymentSettings,
     updatePaymentSettings,

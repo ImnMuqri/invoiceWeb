@@ -10,38 +10,41 @@ export const useInvoiceStore = defineStore("invoice", {
     async fetchInvoices() {
       const { $api } = useNuxtApp();
       this.loading = true;
+      this.error = null;
       try {
         const { data } = await $api.get("/invoices");
         this.invoices = data;
       } catch (err) {
         this.error = err.response?.data?.message || err.message;
-
         throw err;
       } finally {
         this.loading = false;
       }
     },
+
     async fetchInvoiceById(id) {
       const { $api } = useNuxtApp();
       this.loading = true;
+      this.error = null;
       try {
         const { data } = await $api.get(`/invoices/${id}`);
         return data;
       } catch (err) {
         this.error = err.response?.data?.message || err.message;
-
         throw err;
       } finally {
         this.loading = false;
       }
     },
+
     async addInvoice(payload) {
+      const { $api } = useNuxtApp();
       this.loading = true;
+      this.error = null;
       try {
-        const { $api } = useNuxtApp();
-        const response = await $api.post("/invoices", payload);
-        this.invoices.unshift(response.data);
-        return response.data;
+        const { data } = await $api.post("/invoices", payload);
+        this.invoices.unshift(data);
+        return data;
       } catch (err) {
         this.error = err.response?.data?.message || err.message;
         throw err;
@@ -50,16 +53,16 @@ export const useInvoiceStore = defineStore("invoice", {
       }
     },
 
+    // isLocal = true skips the global loading flag (used for inline status updates)
     async updateInvoice(id, payload, isLocal = false) {
+      const { $api } = useNuxtApp();
+      this.error = null;
       if (!isLocal) this.loading = true;
       try {
-        const { $api } = useNuxtApp();
-        const response = await $api.put(`/invoices/${id}`, payload);
+        const { data } = await $api.put(`/invoices/${id}`, payload);
         const index = this.invoices.findIndex((i) => i.id === id);
-        if (index !== -1) {
-          this.invoices[index] = response.data;
-        }
-        return response.data;
+        if (index !== -1) this.invoices[index] = data;
+        return data;
       } catch (err) {
         this.error = err.response?.data?.message || err.message;
         throw err;
@@ -67,38 +70,38 @@ export const useInvoiceStore = defineStore("invoice", {
         if (!isLocal) this.loading = false;
       }
     },
+
     async deleteInvoice(id) {
       const { $api } = useNuxtApp();
+      this.loading = true;
+      this.error = null;
       try {
-        const { data } = await $api.delete(`/invoices/${id}`);
+        await $api.delete(`/invoices/${id}`);
         this.invoices = this.invoices.filter((i) => i.id !== id);
-        return data;
       } catch (err) {
         this.error = err.response?.data?.message || err.message;
-
         throw err;
+      } finally {
+        this.loading = false;
       }
     },
+
     async sendWhatsAppReminder(id) {
       const { $api } = useNuxtApp();
+      this.error = null;
+      // Optimistic UI update
       const invoice = this.invoices.find((i) => i.id === id);
-      if (invoice) {
-        invoice.whatsappStatus = "Sending...";
-      }
+      if (invoice) invoice.whatsappStatus = "Sending...";
       try {
         await $api.post(`/whatsapp/remind/${id}`);
-        if (invoice) {
-          invoice.whatsappStatus = "Sent";
-        }
+        if (invoice) invoice.whatsappStatus = "Sent";
       } catch (err) {
-        if (invoice) {
-          invoice.whatsappStatus = "Not Sent";
-        }
+        if (invoice) invoice.whatsappStatus = "Not Sent";
         this.error = err.response?.data?.message || err.message;
-
         throw err;
       }
     },
+
     async downloadPdf(id, filename = "invoice.pdf") {
       const { $api } = useNuxtApp();
       try {
@@ -114,19 +117,17 @@ export const useInvoiceStore = defineStore("invoice", {
         link.remove();
         window.URL.revokeObjectURL(url);
       } catch (err) {
+        this.error = err.response?.data?.message || err.message;
         throw err;
       }
     },
-    async sendInvoice(
-      id,
-      method,
-      email = null,
-      isReminder = false,
-      isLocal = false,
-    ) {
+
+    // isLocal = true skips global loading spinner (used in bulk/inline sends)
+    async sendInvoice(id, method, email = null, isReminder = false, isLocal = false) {
+      const { $api } = useNuxtApp();
+      this.error = null;
       if (!isLocal) this.loading = true;
       try {
-        const { $api } = useNuxtApp();
         const { data } = await $api.post(`/invoices/${id}/send`, {
           method,
           email,
@@ -140,28 +141,20 @@ export const useInvoiceStore = defineStore("invoice", {
         if (!isLocal) this.loading = false;
       }
     },
+
+    // Convenience wrapper — avoids callers having to pass method: "whatsapp"
     async whatsappInvoice(id) {
-      const { $api } = useNuxtApp();
-      try {
-        const { data } = await $api.post(`/invoices/${id}/send`, {
-          method: "whatsapp",
-        });
-        return data;
-      } catch (err) {
-        this.error = err.response?.data?.message || err.message;
-        throw err;
-      }
+      return this.sendInvoice(id, "whatsapp", null, false, true);
     },
+
     async createPaymentBill(invoiceId, providerId) {
       const { $api } = useNuxtApp();
       this.loading = true;
+      this.error = null;
       try {
-        const { data } = await $api.post(
-          `/pay/invoice/${invoiceId}/create-bill`,
-          {
-            providerId,
-          },
-        );
+        const { data } = await $api.post(`/pay/invoice/${invoiceId}/create-bill`, {
+          providerId,
+        });
         return data;
       } catch (err) {
         this.error = err.response?.data?.message || err.message;
