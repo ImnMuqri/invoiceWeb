@@ -711,9 +711,6 @@
                     <p class="text-[10px] text-slate-500 font-medium text-left">
                       Accepts FPX, DuitNow, and Card payments
                     </p>
-                    <p class="text-[9px] text-emerald-600 font-bold mt-1.5 flex items-center gap-1">
-                      <UiIcon icon="heroicons:check-circle" custom-class="w-3 h-3" /> PERSONAL ACCOUNT SUPPORTED
-                    </p>
                   </div>
                 </div>
 
@@ -779,9 +776,6 @@
                     </h4>
                     <p class="text-[10px] text-slate-500 font-medium text-left">
                       Accepts FPX and Card payments
-                    </p>
-                    <p class="text-[9px] text-amber-600 font-bold mt-1.5 flex items-center gap-1">
-                      <UiIcon icon="heroicons:building-office" custom-class="w-3 h-3" /> SSM REGISTRATION REQUIRED
                     </p>
                   </div>
                 </div>

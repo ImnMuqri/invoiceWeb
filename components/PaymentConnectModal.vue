@@ -127,9 +127,9 @@ const providerLogo = computed(() => {
 });
 const providerDescription = computed(() => {
   if (props.provider === "TOYYIBPAY") {
-    return "Accept FPX online banking easily with industry-low flat rates. Personal accounts supported (no SSM required).";
+    return "Accept FPX online banking easily with industry-low flat rates.";
   }
-  return "Seamlessly collect payments via FPX, cards, and e-wallets. Company Registration (SSM) is required.";
+  return "Seamlessly collect payments via FPX, cards, and e-wallets.";
 });
 const title = computed(() => `Connect to ${providerName.value}`);
 
@@ -149,6 +149,7 @@ const instructions = computed(() => {
 });
 
 const fields = computed(() => {
+  const isEditing = !!props.existingData?.id;
   if (props.provider === "TOYYIBPAY") {
     return [
       {
