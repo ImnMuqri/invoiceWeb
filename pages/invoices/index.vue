@@ -10,27 +10,27 @@
           Manage and track your client billings.
         </p>
       </div>
-        <div class="flex items-center gap-3">
+      <div class="flex items-center gap-3">
         <button
           @click="uiStore.openModuleHelp('invoices')"
-            class="text-slate-400 hover:text-blue-600 transition-colors p-1"
-            title="Invoices Help">
-            <UiIcon icon="formkit:help" custom-class="w-5 h-5" />
-          </button>
-          <NuxtLink
-            v-if="systemStore.isInvoiceCreationEnabled"
-            to="/invoices/create"
-            class="inline-flex items-center justify-center rounded-md border border-transparent bg-slate-900 px-6 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2 transition-colors whitespace-nowrap"
-            >Create Invoice</NuxtLink
-          >
-          <button
-            v-else
-            disabled
-            class="inline-flex items-center justify-center rounded-md border border-transparent bg-slate-200 px-6 py-2.5 text-sm font-medium text-slate-400 cursor-not-allowed shadow-sm transition-colors whitespace-nowrap"
-            title="Invoice creation is temporarily disabled by admin">
-            Create Invoice
-          </button>
-        </div>
+          class="text-slate-400 hover:text-blue-600 transition-colors p-1"
+          title="Invoices Help">
+          <UiIcon icon="formkit:help" custom-class="w-5 h-5" />
+        </button>
+        <NuxtLink
+          v-if="systemStore.isInvoiceCreationEnabled"
+          to="/invoices/create"
+          class="inline-flex items-center justify-center rounded-md border border-transparent bg-slate-900 px-6 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2 transition-colors whitespace-nowrap"
+          >Create Invoice</NuxtLink
+        >
+        <button
+          v-else
+          disabled
+          class="inline-flex items-center justify-center rounded-md border border-transparent bg-slate-200 px-6 py-2.5 text-sm font-medium text-slate-400 cursor-not-allowed shadow-sm transition-colors whitespace-nowrap"
+          title="Invoice creation is temporarily disabled by admin">
+          Create Invoice
+        </button>
+      </div>
     </div>
 
     <UiTable
@@ -359,10 +359,16 @@
                 <button
                   @click="handleSendAction(invoice, 'email', false)"
                   :disabled="
-                    invoice?.status === 'Paid' || !systemStore.isEmailEnabled || loadingInvoices[invoice.id]
+                    invoice?.status === 'Paid' ||
+                    !systemStore.isEmailEnabled ||
+                    loadingInvoices[invoice.id]
                   "
                   class="w-full flex items-center justify-between gap-2 px-3 py-2 text-xs font-semibold text-slate-600 hover:text-green-600 hover:bg-green-50 rounded-md transition-all text-left disabled:opacity-50 disabled:cursor-not-allowed"
-                  :title="!systemStore.isEmailEnabled ? 'Email is temporarily disabled by admin' : ''">
+                  :title="
+                    !systemStore.isEmailEnabled
+                      ? 'Email is temporarily disabled by admin'
+                      : ''
+                  ">
                   <div class="flex items-center gap-2">
                     <UiIcon icon="heroicons:envelope" custom-class="w-4 h-4" />
                     Send Email
@@ -375,10 +381,16 @@
                 <button
                   @click="handleSendAction(invoice, 'email', true)"
                   :disabled="
-                    invoice?.status === 'Paid' || !systemStore.isEmailEnabled || loadingInvoices[invoice.id]
+                    invoice?.status === 'Paid' ||
+                    !systemStore.isEmailEnabled ||
+                    loadingInvoices[invoice.id]
                   "
                   class="w-full flex items-center justify-between gap-2 px-3 py-2 text-xs font-semibold text-slate-600 hover:text-green-600 hover:bg-green-50 rounded-md transition-all text-left disabled:opacity-50 disabled:cursor-not-allowed"
-                  :title="!systemStore.isEmailEnabled ? 'Email is temporarily disabled by admin' : ''">
+                  :title="
+                    !systemStore.isEmailEnabled
+                      ? 'Email is temporarily disabled by admin'
+                      : ''
+                  ">
                   <div class="flex items-center gap-2">
                     <UiIcon icon="heroicons:bell" custom-class="w-4 h-4" />
                     Send Reminder Email
@@ -393,10 +405,16 @@
                   v-if="authStore.user?.plan !== 'FREE'"
                   @click="handleSendAction(invoice, 'whatsapp', false)"
                   :disabled="
-                    invoice?.status === 'Paid' || !systemStore.isWhatsappEnabled || loadingInvoices[invoice.id]
+                    invoice?.status === 'Paid' ||
+                    !systemStore.isWhatsappEnabled ||
+                    loadingInvoices[invoice.id]
                   "
                   class="w-full flex items-center justify-between gap-2 px-3 py-2 text-xs font-semibold text-slate-600 hover:text-[#25D366] hover:bg-emerald-50 rounded-md transition-all text-left disabled:opacity-50 disabled:cursor-not-allowed"
-                  :title="!systemStore.isWhatsappEnabled ? 'WhatsApp is temporarily disabled by admin' : ''">
+                  :title="
+                    !systemStore.isWhatsappEnabled
+                      ? 'WhatsApp is temporarily disabled by admin'
+                      : ''
+                  ">
                   <div class="flex items-center gap-2">
                     <UiIcon
                       icon="simple-icons:whatsapp"
@@ -412,10 +430,16 @@
                   v-if="authStore.user?.plan !== 'FREE'"
                   @click="handleSendAction(invoice, 'whatsapp', true)"
                   :disabled="
-                    invoice?.status === 'Paid' || !systemStore.isWhatsappEnabled || loadingInvoices[invoice.id]
+                    invoice?.status === 'Paid' ||
+                    !systemStore.isWhatsappEnabled ||
+                    loadingInvoices[invoice.id]
                   "
                   class="w-full flex items-center justify-between gap-2 px-3 py-2 text-xs font-semibold text-slate-600 hover:text-[#25D366] hover:bg-emerald-50 rounded-md transition-all text-left disabled:opacity-50 disabled:cursor-not-allowed"
-                  :title="!systemStore.isWhatsappEnabled ? 'WhatsApp is temporarily disabled by admin' : ''">
+                  :title="
+                    !systemStore.isWhatsappEnabled
+                      ? 'WhatsApp is temporarily disabled by admin'
+                      : ''
+                  ">
                   <div class="flex items-center gap-2">
                     <UiIcon
                       icon="heroicons:chat-bubble-left-right"

@@ -475,46 +475,64 @@ onMounted(async () => {
   // Fetch from API directly using the numeric ID
   invoice.value = await invoiceStore.fetchInvoiceById(invoiceId);
 
-  // Handle Gateway Redirect Race-condition
-  if (route.query.status === "success" && invoice.value?.status !== "Paid") {
+  // Handle Gateway Redirects
+  const query = route.query;
+  const isBillplzRedirect = !!query["billplz[id]"];
+  const isToyyibRedirect = !!query.billcode;
+  const isSuccessRedirect = query.status === "success";
+  const isFailRedirect = query.status === "fail" || query.status === "failed";
+  const billplzExplicitlyFailed = isBillplzRedirect && (query["billplz[paid]"] === "false" || query["billplz[paid]"] === false);
+
+  if (billplzExplicitlyFailed || (isToyyibRedirect && isFailRedirect)) {
+    // Explicit failure redirect — don't attempt verification
+    toast.value = { message: "Payment was cancelled or declined. You can try again.", type: "error" };
+  } else if ((isSuccessRedirect || isBillplzRedirect) && invoice.value?.status !== "Paid") {
     toast.value = { message: "Verifying secure payment...", type: "success" };
-    
+
     try {
       const { $api } = useNuxtApp();
-        const verifyRes = await $api.get(`/pay/invoice/${invoiceId}/verify`, {
-          params: {
-            billcode: route.query.billcode || "",
-            transaction_id: route.query.transaction_id || "",
-            "billplz[paid]": route.query["billplz[paid]"] || "",
-            "billplz[id]": route.query["billplz[id]"] || "",
-          }
-        });
-      
+      const verifyRes = await $api.get(`/pay/invoice/${invoiceId}/verify`, {
+        params: {
+          billcode: query.billcode || "",
+          transaction_id: query.transaction_id || "",
+          "billplz[paid]": query["billplz[paid]"] || "",
+          "billplz[id]": query["billplz[id]"] || "",
+        }
+      });
+
       if (verifyRes.data?.status === "Paid") {
         invoice.value.status = "Paid";
         toast.value = { message: "Payment successful and verified!", type: "success" };
       } else {
-        // Fallback polling just in case Toyyibpay API is slow to update internally
-        for (let i = 0; i < 4; i++) {
-           await new Promise((r) => setTimeout(r, 2000));
-           const pollRes = await $api.get(`/pay/invoice/${invoiceId}/verify`, {
-             params: { billcode: route.query.billcode || "" }
-           });
-           if (pollRes.data?.status === "Paid") {
+        // Fallback polling for ToyyibPay which may be slow to update internally
+        if (isToyyibRedirect) {
+          for (let i = 0; i < 4; i++) {
+            await new Promise((r) => setTimeout(r, 2000));
+            const pollRes = await $api.get(`/pay/invoice/${invoiceId}/verify`, {
+              params: { billcode: query.billcode || "" }
+            });
+            if (pollRes.data?.status === "Paid") {
               invoice.value.status = "Paid";
               toast.value = { message: "Payment successful and verified!", type: "success" };
               break;
-           }
+            }
+          }
+        }
+
+        // If still not paid after all checks
+        if (invoice.value?.status !== "Paid") {
+          toast.value = { message: "Payment could not be verified. Please contact support if you were charged.", type: "error" };
         }
       }
     } catch(err) {
       console.error("Verification failed", err);
+      toast.value = { message: "Verification error. Please refresh the page.", type: "error" };
     }
+  }
 
-    // Clean URL
-    if (window.history.replaceState) {
-      window.history.replaceState(null, null, window.location.pathname);
-    }
+  // Clean URL regardless of outcome
+  if (window.history.replaceState && (isBillplzRedirect || isToyyibRedirect || isSuccessRedirect || isFailRedirect)) {
+    window.history.replaceState(null, null, window.location.pathname);
   }
 
   loading.value = false;
