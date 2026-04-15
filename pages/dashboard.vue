@@ -434,17 +434,30 @@
           </div>
           <div class="grid grid-cols-3 gap-6">
             <!-- Activity History -->
-            <div
-              class="bg-white border border-slate-200 shadow-sm rounded-xl p-6 flex flex-col w-full">
-              <div class="flex justify-between items-center mb-6">
+              <div
+                class="bg-white border border-slate-200 shadow-sm rounded-xl p-6 flex flex-col w-full relative group/table">
+                <!-- Table Refresh Button -->
+                <button
+                  @click="dashboardStore.fetchCoreData()"
+                  class="absolute right-3 top-3 z-20 p-1 rounded-md bg-slate-50/80 backdrop-blur-sm border border-slate-200 text-slate-400 hover:text-slate-900 transition-all shadow-sm focus:opacity-100"
+                  title="Refresh Table Data"
+                  type="button">
+                  <UiIcon
+                    icon="heroicons:arrow-path"
+                    :class="{ 'animate-spin': dashboardStore.loading }"
+                    class="w-4 h-4" />
+                </button>
+                <div class="flex justify-between items-center mb-6">
                 <h2 class="text-lg font-semibold text-slate-900 tracking-tight">
                   Activity History
                 </h2>
-                <NuxtLink
-                  to="/invoices"
-                  class="text-xs font-semibold text-slate-400 hover:text-slate-900 uppercase tracking-widest"
-                  >All →</NuxtLink
-                >
+                <div class="flex items-center gap-3">
+                  <NuxtLink
+                    to="/invoices"
+                    class="text-xs font-semibold text-slate-400 hover:text-slate-900 uppercase tracking-widest"
+                    >All →</NuxtLink
+                  >
+                </div>
               </div>
               <ul role="list" class="space-y-5">
                 <li
@@ -486,10 +499,21 @@
               </ul>
             </div>
             <!-- Client Profitability Insights -->
-            <div
-              class="col-span-2 bg-white shadow-sm rounded-xl border border-slate-200 flex flex-col relative">
               <div
-                class="p-6 border-b border-slate-200 flex items-center justify-between bg-white rounded-t-xl z-20">
+                class="col-span-2 bg-white shadow-sm rounded-xl border border-slate-200 flex flex-col relative group/table">
+                <!-- Table Refresh Button -->
+                <button
+                  @click="dashboardStore.fetchCoreData()"
+                  class="absolute right-3 top-3 z-30 p-1 rounded-md bg-slate-50/80 backdrop-blur-sm border border-slate-200 text-slate-400 hover:text-slate-900 transition-all shadow-sm focus:opacity-100"
+                  title="Refresh Table Data"
+                  type="button">
+                  <UiIcon
+                    icon="heroicons:arrow-path"
+                    :class="{ 'animate-spin': dashboardStore.loading }"
+                    class="w-4 h-4" />
+                </button>
+                <div
+                  class="p-6 border-b border-slate-200 flex items-center justify-between bg-white rounded-t-xl z-20">
                 <div>
                   <div class="flex items-center gap-2">
                     <h3
@@ -527,10 +551,22 @@
                     AI analysis ranking clients by effective margin.
                   </p>
                 </div>
-                <UiSelect
-                  v-model="profitabilityFilter"
-                  :options="rankOptions"
-                  custom-class="!w-32 !py-1 !text-xs !font-semibold !uppercase !tracking-wider !bg-slate-50" />
+                <div class="flex items-center gap-3">
+                  <button
+                    @click="dashboardStore.fetchCoreData()"
+                    class="p-1 text-slate-400 hover:text-slate-900 transition-all"
+                    title="Refresh Profitability"
+                    :disabled="dashboardStore.loading">
+                    <UiIcon
+                      icon="heroicons:arrow-path"
+                      :class="{ 'animate-spin': dashboardStore.loading }"
+                      class="w-4 h-4" />
+                  </button>
+                  <UiSelect
+                    v-model="profitabilityFilter"
+                    :options="rankOptions"
+                    custom-class="!w-32 !py-1 !text-xs !font-semibold !uppercase !tracking-wider !bg-slate-50" />
+                </div>
               </div>
 
               <!-- Table Content Area -->

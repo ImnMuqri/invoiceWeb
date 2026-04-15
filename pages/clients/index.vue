@@ -29,7 +29,9 @@
     <UiTable
       :loading="clientStore.loading"
       :is-empty="filteredClients.length === 0"
-      :column-count="8">
+      :column-count="8"
+      show-refresh
+      @refresh="clientStore.fetchClients()">
       <template #header>
         <th
           scope="col"

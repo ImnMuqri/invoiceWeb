@@ -11,8 +11,8 @@
         </p>
       </div>
         <div class="flex items-center gap-3">
-          <button
-            @click="uiStore.openModuleHelp('invoices')"
+        <button
+          @click="uiStore.openModuleHelp('invoices')"
             class="text-slate-400 hover:text-blue-600 transition-colors p-1"
             title="Invoices Help">
             <UiIcon icon="formkit:help" custom-class="w-5 h-5" />
@@ -36,7 +36,9 @@
     <UiTable
       :loading="invoiceStore.loading"
       :is-empty="filteredInvoices.length === 0"
-      :column-count="10">
+      :column-count="10"
+      show-refresh
+      @refresh="invoiceStore.fetchInvoices()">
       <template #header>
         <th
           scope="col"

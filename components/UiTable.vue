@@ -3,7 +3,19 @@
     <div class="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
       <div class="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
         <div
-          class="overflow-hidden shadow-sm border border-slate-200 bg-white sm:rounded-xl">
+          class="overflow-hidden shadow-sm border border-slate-200 bg-white sm:rounded-xl relative group/table">
+          <!-- Table Refresh Button -->
+          <button
+            v-if="showRefresh"
+            @click="$emit('refresh')"
+            class="absolute right-4 top-3.5 z-20 p-1 rounded-md backdrop-blur-sm text-slate-400 hover:text-slate-900 transition-all focus:opacity-100"
+            title="Refresh Table Data"
+            type="button">
+            <UiIcon
+              icon="heroicons:arrow-path"
+              :class="{ 'animate-spin': loading }"
+              class="w-4 h-4" />
+          </button>
           <table class="min-w-full divide-y divide-slate-200">
             <thead class="bg-slate-50 border-b border-slate-200">
               <tr>
@@ -85,5 +97,11 @@ defineProps({
     type: Number,
     required: true,
   },
+  showRefresh: {
+    type: Boolean,
+    default: false,
+  },
 });
+
+defineEmits(["refresh"]);
 </script>

@@ -112,6 +112,9 @@
                 <h2 class="text-lg font-bold text-slate-900 tracking-tight">
                   {{ invoice.invoiceName }}
                 </h2>
+                <p class="text-sm text-slate-500 mt-0.5" v-if="invoice.subject">
+                  {{ invoice.subject }}
+                </p>
               </div>
 
               <p

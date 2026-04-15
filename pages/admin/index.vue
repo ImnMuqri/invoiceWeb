@@ -598,19 +598,15 @@ onMounted(async () => {
                 placeholder="Search users..."
                 class="w-full pl-9 pr-4 py-2 text-sm border border-slate-200 rounded-lg outline-none focus:ring-1 focus:ring-slate-950 px-3 font-medium text-slate-600" />
             </div>
-            <button
-              @click="adminStore.fetchUsers()"
-              class="p-2 hover:bg-slate-100 rounded-lg text-slate-400"
-              title="Refresh Users">
-              <UiIcon icon="heroicons:arrow-path" class="w-5 h-5" />
-            </button>
           </div>
         </div>
 
         <UiTable
           :loading="adminStore.loading"
           :is-empty="filteredUsers.length === 0"
-          :column-count="7">
+          :column-count="7"
+          show-refresh
+          @refresh="adminStore.fetchUsers()">
           <template #header>
             <th
               class="py-4 pl-6 pr-3 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest">
@@ -1101,18 +1097,15 @@ onMounted(async () => {
                 placeholder="Search transactions..."
                 class="w-full pl-9 pr-4 py-2 text-sm border border-slate-200 rounded-lg outline-none focus:ring-1 focus:ring-slate-950 font-medium text-slate-600" />
             </div>
-            <button
-              @click="adminStore.fetchTransactions()"
-              class="p-2 hover:bg-slate-100 rounded-lg text-slate-400">
-              <UiIcon icon="heroicons:arrow-path" class="w-5 h-5" />
-            </button>
           </div>
         </div>
 
         <UiTable
           :loading="adminStore.loading"
           :is-empty="filteredTransactions.length === 0"
-          :column-count="5">
+          :column-count="5"
+          show-refresh
+          @refresh="adminStore.fetchTransactions()">
           <template #header>
             <th
               class="py-4 pl-6 pr-3 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest">
@@ -1214,19 +1207,15 @@ onMounted(async () => {
               class="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-md text-[12px] font-bold hover:bg-slate-800 transition-all shrink-0">
               New Code
             </button>
-            <button
-              @click="promoStore.fetchAllPromoCodes()"
-              class="p-2 hover:bg-slate-100 rounded-lg text-slate-400"
-              title="Refresh Promo Codes">
-              <UiIcon icon="heroicons:arrow-path" class="w-5 h-5" />
-            </button>
           </div>
         </div>
 
         <UiTable
           :loading="false"
           :is-empty="filteredPromoCodes.length === 0"
-          :column-count="6">
+          :column-count="6"
+          show-refresh
+          @refresh="promoStore.fetchAllPromoCodes()">
           <template #header>
             <th
               class="py-4 pl-6 pr-3 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest">
