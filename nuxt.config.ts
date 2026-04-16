@@ -26,5 +26,14 @@ export default defineNuxtConfig({
     options: {
       strict: false
     }
+  },
+  nitro: {
+    routeRules: {
+      '/**': {
+        headers: {
+          'Permissions-Policy': 'unload=()'
+        }
+      }
+    }
   }
 })

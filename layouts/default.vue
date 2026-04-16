@@ -167,7 +167,7 @@
               System Management
             </NuxtLink>
             <NuxtLink
-              to="/admin/tickets/"
+              to="/admin/tickets"
               class="flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
               active-class="bg-[#ebebec] text-slate-900"
               :class="{
@@ -613,7 +613,7 @@
                         System Management
                       </NuxtLink>
                       <NuxtLink
-                        to="/admin/tickets/"
+                        to="/admin/tickets"
                         @click="isMobileMenuOpen = false"
                         class="flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
                         active-class="bg-[#ebebec] text-slate-900"
