@@ -145,12 +145,11 @@ const replyContent = ref('');
 const closeOnReply = ref(false);
 
 async function fetchTicket() {
+  const { $api } = useNuxtApp();
   loading.value = true;
   try {
-    const data = await $fetch(`/api/support/${route.params.id}`, {
-      headers: authStore.authHeaders
-    });
-    ticket.value = data;
+    const response = await $api.get(`/support/${route.params.id}`);
+    ticket.value = response.data;
   } catch (err) {
     console.error('Failed to fetch ticket:', err);
   } finally {
@@ -159,16 +158,13 @@ async function fetchTicket() {
 }
 
 async function sendReply() {
+  const { $api } = useNuxtApp();
   if (!replyContent.value || sending.value) return;
   sending.value = true;
   try {
-    await $fetch(`/api/support/${route.params.id}/reply`, {
-      method: 'POST',
-      headers: authStore.authHeaders,
-      body: {
-        content: replyContent.value,
-        closeTicket: closeOnReply.value
-      }
+    await $api.post(`/support/${route.params.id}/reply`, {
+      content: replyContent.value,
+      closeTicket: closeOnReply.value
     });
     replyContent.value = '';
     await fetchTicket(); // Refresh thread
@@ -180,12 +176,9 @@ async function sendReply() {
 }
 
 async function updateStatus(status) {
+  const { $api } = useNuxtApp();
   try {
-    await $fetch(`/api/support/${route.params.id}/status`, {
-      method: 'PATCH',
-      headers: authStore.authHeaders,
-      body: { status }
-    });
+    await $api.patch(`/support/${route.params.id}/status`, { status });
     await fetchTicket();
   } catch (err) {
     alert('Failed to update status.');
