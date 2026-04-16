@@ -324,7 +324,8 @@
               <template #default="{ close }">
                 <div
                   class="w-[320px] max-h-[400px] flex flex-col overflow-hidden rounded-2xl">
-                  <div class="px-3 py-2 border-b border-slate-100 bg-slate-50/80 backdrop-blur w-[320px]">
+                  <div
+                    class="px-3 py-2 border-b border-slate-100 bg-slate-50/80 backdrop-blur w-[320px]">
                     <span class="text-[12px] font-semibold text-slate-500"
                       >Notifications</span
                     >
@@ -335,7 +336,9 @@
                       Mark all read
                     </button>
                   </div>
-                  <div class="p-2 overflow-y-auto flex-1 custom-scrollbar w-[320px]" style="scrollbar-gutter: stable;">
+                  <div
+                    class="p-2 overflow-y-auto flex-1 custom-scrollbar w-[320px]"
+                    style="scrollbar-gutter: stable">
                     <div
                       v-if="notificationStore.notifications.length === 0"
                       class="text-center py-8 text-xs text-slate-500">
@@ -413,14 +416,35 @@
               <template #default="{ close }">
                 <div class="w-[200px] rounded-2xl bg-white overflow-hidden">
                   <div
-                    class="px-4 py-3 border-b border-slate-100 bg-slate-50/50">
-                    <p class="text-[11px] font-bold text-slate-900 truncate">
+                    class="flex items-center justify-between gap-2 px-4 py-3 border-b border-slate-100 bg-slate-50/50">
+                    <p class="text-[12px] font-bold text-slate-900 truncate">
                       {{ authStore.user?.name || "User" }}
                     </p>
-                    <p
-                      class="text-[10px] font-bold text-slate-400 uppercase tracking-widest truncate">
-                      {{ authStore.user?.plan || "Free" }} Plan
-                    </p>
+                    <div
+                      :class="[
+                        'w-fit py-1 px-2 rounded-[4px]',
+                        authStore.user?.plan === 'STARTER'
+                          ? 'bg-emerald-500'
+                          : authStore.user?.plan === 'PRO'
+                            ? 'bg-black'
+                            : authStore.user?.plan === 'MAX'
+                              ? 'bg-purple-950'
+                              : 'bg-slate-200',
+                      ]">
+                      <p
+                        :class="[
+                          'text-[10px] font-bold truncate capitalize',
+                          authStore.user?.plan === 'STARTER'
+                            ? 'text-white'
+                            : authStore.user?.plan === 'PRO'
+                              ? 'text-slate-400'
+                              : authStore.user?.plan === 'MAX'
+                                ? 'text-purple-100'
+                                : 'text-slate-600',
+                        ]">
+                        {{ authStore.user?.plan || "Free" }}
+                      </p>
+                    </div>
                   </div>
 
                   <div class="p-2">

@@ -4,17 +4,41 @@
       class="bg-[#f8fafc] min-h-[111.11vh] w-full relative overflow-x-hidden font-sans text-slate-900 flex flex-col selection:bg-emerald-600/20">
       <!-- Navigation -->
       <nav
-        class="relative z-50 px-6 py-6 md:px-12 flex items-center justify-between pointer-events-auto">
-        <UiLogo size="md" />
+        class="sticky top-0 z-[100] px-6 py-4 md:px-12 flex items-center justify-between transition-all duration-300 border-b border-transparent"
+        :class="{
+          'bg-white/80 backdrop-blur-xl shadow-sm border-slate-200/50 py-3':
+            isScrolled,
+        }">
+        <div class="flex items-center gap-12">
+          <UiLogo
+            size="md"
+            @click="scrollToSection('hero')"
+            class="cursor-pointer" />
+
+          <!-- Desktop Nav Links -->
+          <div class="hidden lg:flex items-center gap-8">
+            <button
+              v-for="link in navLinks"
+              :key="link.id"
+              @click="scrollToSection(link.id)"
+              class="text-sm font-semibold text-slate-500 hover:text-slate-900 transition-colors">
+              {{ link.name }}
+            </button>
+          </div>
+        </div>
+
         <div class="flex items-center">
-          <NuxtLink
-            to="/login"
-            class="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors mr-6"
-            >Sign In</NuxtLink
-          >
+          <div class="hidden sm:flex items-center mr-6">
+            <NuxtLink
+              to="/login"
+              class="text-sm font-bold text-slate-600 hover:text-slate-900 transition-colors"
+              >Sign In</NuxtLink
+            >
+          </div>
+
           <NuxtLink
             to="/dashboard"
-            class="group relative inline-flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-slate-900 rounded-full border border-transparent hover:bg-slate-800 transition-all duration-300 hover:scale-105 active:scale-95 shadow-sm hover:shadow-md">
+            class="group relative inline-flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-bold text-white bg-slate-900 rounded-full border border-transparent hover:bg-slate-800 transition-all duration-300 hover:scale-105 active:scale-95 shadow-sm hover:shadow-md">
             <span>Enter App</span>
             <svg
               class="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1"
@@ -28,8 +52,80 @@
                 d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
             </svg>
           </NuxtLink>
+
+          <!-- Mobile Menu Trigger -->
+          <button
+            @click="isMobileMenuOpen = true"
+            class="lg:hidden ml-4 p-2 text-slate-600 hover:text-slate-900 transition-colors">
+            <svg
+              class="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 6h16M4 12h16m-7 6h7"></path>
+            </svg>
+          </button>
         </div>
       </nav>
+
+      <!-- Mobile Menu Overlay -->
+      <Transition name="fade">
+        <div v-if="isMobileMenuOpen" class="fixed inset-0 z-[200] lg:hidden">
+          <div
+            class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+            @click="isMobileMenuOpen = false"></div>
+          <Transition name="slide">
+            <div
+              class="absolute right-0 top-0 bottom-0 w-full bg-white shadow-2xl p-8 flex flex-col">
+              <div class="flex justify-between items-center mb-12">
+                <UiLogo size="md" />
+                <button
+                  @click="isMobileMenuOpen = false"
+                  class="p-2 text-slate-400 hover:text-slate-900 transition-colors">
+                  <svg
+                    class="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M6 18L18 6M6 6l12 12"></path>
+                  </svg>
+                </button>
+              </div>
+
+              <div class="flex flex-col gap-6">
+                <button
+                  v-for="link in navLinks"
+                  :key="link.id"
+                  @click="scrollToSection(link.id)"
+                  class="text-left text-lg font-bold text-slate-900 hover:text-emerald-600 transition-colors">
+                  {{ link.name }}
+                </button>
+                <hr class="border-slate-100 my-4" />
+                <NuxtLink to="/login" class="text-lg font-bold text-slate-600"
+                  >Sign In</NuxtLink
+                >
+                <NuxtLink
+                  to="/register"
+                  class="text-lg font-bold text-emerald-600"
+                  >Create Account</NuxtLink
+                >
+              </div>
+
+              <div class="mt-auto text-xs text-slate-400 font-medium">
+                © 2024 InvoKita. All rights reserved.
+              </div>
+            </div>
+          </Transition>
+        </div>
+      </Transition>
 
       <!-- Animated Background Orbs (Simple & Professional) -->
       <div
@@ -132,7 +228,8 @@
 
       <!-- Hero Section -->
       <main
-        class="relative z-20 flex-1 flex flex-col items-center justify-center px-6 pt-20 pb-32 pointer-events-none min-h-[90vh]">
+        id="hero"
+        class="relative z-20 flex-1 flex flex-col items-center justify-center px-6 pt-32 pb-32 pointer-events-none min-h-[90vh]">
         <div
           class="max-w-4xl mx-auto text-center pointer-events-auto mt-12 md:mt-24">
           <div
@@ -185,7 +282,8 @@
 
       <!-- How It Works Section -->
       <section
-        class="relative z-20 py-24 px-6 md:px-12 bg-white/50 backdrop-blur-md border-y border-slate-200/50">
+        id="how-it-works"
+        class="relative z-20 py-24 px-6 md:px-12 bg-white/50 backdrop-blur-md border-y border-slate-200/50 scroll-mt-24">
         <div class="max-w-6xl mx-auto">
           <div class="text-center mb-16 reveal-item reveal-up">
             <h2
@@ -208,7 +306,7 @@
             <div
               class="reveal-item reveal-up delay-100 group relative bg-white/70 backdrop-blur-md rounded-3xl p-8 border border-slate-200/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-xl transition-all hover:-translate-y-2">
               <div
-                class="w-14 h-14 rounded-2xl bg-slate-100 shadow-inner border border-slate-200 flex items-center justify-center text-slate-900 font-black text-2xl mb-8 group-hover:scale-110 transition-transform">
+                class="w-14 h-14 rounded-2xl bg-slate-100 shadow-inner border border-slate-200 flex items-center justify-center text-slate-900 font-bold text-2xl mb-8 group-hover:scale-110 transition-transform">
                 1
               </div>
               <h3 class="text-xl font-semibold text-slate-900 mb-3">Create</h3>
@@ -231,7 +329,7 @@
             <div
               class="reveal-item reveal-up delay-200 group relative bg-white/70 backdrop-blur-md rounded-3xl p-8 border border-slate-200/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-xl transition-all hover:-translate-y-2 md:mt-12">
               <div
-                class="w-14 h-14 rounded-2xl bg-emerald-50 shadow-inner border border-emerald-100 flex items-center justify-center text-emerald-600 font-black text-2xl mb-8 group-hover:scale-110 transition-transform">
+                class="w-14 h-14 rounded-2xl bg-emerald-50 shadow-inner border border-emerald-100 flex items-center justify-center text-emerald-600 font-bold text-2xl mb-8 group-hover:scale-110 transition-transform">
                 2
               </div>
               <h3 class="text-xl font-semibold text-slate-900 mb-3">Send</h3>
@@ -272,7 +370,7 @@
             <div
               class="reveal-item reveal-up delay-300 group relative bg-white/70 backdrop-blur-md rounded-3xl p-8 border border-slate-200/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-xl transition-all hover:-translate-y-2 md:mt-24">
               <div
-                class="w-14 h-14 rounded-2xl bg-amber-50 shadow-inner border border-amber-100 flex items-center justify-center text-amber-600 font-black text-2xl mb-8 group-hover:scale-110 transition-transform">
+                class="w-14 h-14 rounded-2xl bg-amber-50 shadow-inner border border-amber-100 flex items-center justify-center text-amber-600 font-bold text-2xl mb-8 group-hover:scale-110 transition-transform">
                 3
               </div>
               <h3 class="text-xl font-semibold text-slate-900 mb-3">
@@ -296,8 +394,352 @@
         </div>
       </section>
 
-      <!-- Core Modules Section -->
+      <!-- Detailed Workflow Section (The Closing the Loop) -->
+      <section
+        id="how-it-works-detailed"
+        class="relative z-20 py-24 px-6 md:px-12 bg-slate-50 overflow-hidden border-y border-slate-200/50 scroll-mt-24">
+        <div class="max-w-6xl mx-auto">
+          <div class="flex flex-col lg:flex-row items-center gap-16">
+            <!-- Left: Visual Flow -->
+            <div class="lg:w-1/2 reveal-item reveal-left relative">
+              <div
+                class="relative z-10 bg-white rounded-2xl p-8 shadow-2xl border border-slate-200">
+                <div class="space-y-8">
+                  <!-- Step 1: Webhook -->
+                  <div class="flex items-center gap-4 relative">
+                    <div
+                      class="absolute left-6 top-12 bottom-[-2rem] w-px bg-emerald-500"></div>
+                    <div
+                      class="w-12 h-12 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0 shadow-sm border border-indigo-100">
+                      <svg
+                        class="w-6 h-6"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                      </svg>
+                    </div>
+                    <div>
+                      <h4
+                        class="font-semibold text-slate-900 leading-none mb-1 text-sm md:text-base">
+                        Instant Webhooks
+                      </h4>
+                      <p class="text-[10px] text-slate-500 leading-tight">
+                        Billplz & ToyyibPay notify us the millisecond a payment
+                        is made.
+                      </p>
+                    </div>
+                    <div class="ml-auto">
+                      <div
+                        class="bg-indigo-50 text-indigo-600 text-[11px] font-semibold px-2 py-1 rounded-full">
+                        Active
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Step 2: Processing -->
+                  <div class="flex items-center gap-4 relative">
+                    <div
+                      class="absolute left-6 top-12 bottom-[-2rem] w-px bg-emerald-500"></div>
+                    <div
+                      class="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0 shadow-sm border border-emerald-100">
+                      <svg
+                        class="w-6 h-6"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                      </svg>
+                    </div>
+                    <div>
+                      <h4
+                        class="font-semibold text-slate-900 leading-none mb-1 text-sm md:text-base">
+                        Auto-Reconciliation
+                      </h4>
+                      <p class="text-[10px] text-slate-500 leading-tight">
+                        Our system matches the transaction and marks the invoice
+                        as "Paid".
+                      </p>
+                    </div>
+                  </div>
+
+                  <!-- Step 3: Action -->
+                  <div class="flex items-center gap-4">
+                    <div
+                      class="w-12 h-12 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600 shrink-0 shadow-sm border border-amber-100">
+                      <svg
+                        class="w-6 h-6"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                      </svg>
+                    </div>
+                    <div>
+                      <h4
+                        class="font-semibold text-slate-900 leading-none mb-1 text-sm md:text-base">
+                        Automatic Silence
+                      </h4>
+                      <p class="text-[10px] text-slate-500 leading-tight">
+                        All scheduled reminders for this invoice are killed
+                        instantly.
+                      </p>
+                    </div>
+                    <div class="ml-auto">
+                      <div
+                        class="bg-amber-100 text-amber-900 text-[11px] font-semibold px-2 py-1 rounded-full">
+                        Reminder Disabled
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Decorative background elements -->
+              <div
+                class="absolute -top-6 -right-6 w-32 h-32 bg-emerald-100 rounded-full blur-3xl opacity-60"></div>
+              <div
+                class="absolute -bottom-10 -left-10 w-40 h-40 bg-indigo-100 rounded-full blur-3xl opacity-60"></div>
+            </div>
+
+            <!-- Right: Content -->
+            <div
+              class="lg:w-1/2 reveal-item reveal-right text-center lg:text-left">
+              <div
+                class="inline-flex items-center gap-2 px-3 py-1 mb-6 rounded-full bg-emerald-100/50 border border-emerald-200 backdrop-blur-sm">
+                <span class="text-[12px] font-semibold text-emerald-700"
+                  >Automated Payment Detection</span
+                >
+              </div>
+              <h2
+                class="text-3xl md:text-4xl font-semibold text-slate-900 mb-4">
+                Closing the loop.<br />
+                <span class="text-emerald-600">Completely automated.</span>
+              </h2>
+              <p class="text-slate-600 mb-8 leading-relaxed text-sm">
+                InvoKita isn't just a drafting tool. It's an autonomous
+                collection engine. We've built deep integrations with
+                <b>Billplz</b> and <b>ToyyibPay</b> to ensure your bank and your
+                invoices are always in sync.
+              </p>
+
+              <div class="grid sm:grid-cols-2 gap-6 mb-10">
+                <div
+                  class="p-5 bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+                  <div class="font-bold text-slate-900 mb-2 leading-tight">
+                    Zero-Touch Billing
+                  </div>
+                  <p class="text-[11px] text-slate-500 leading-relaxed">
+                    From creation to collection, the system handles the entire
+                    lifecycle without you clicking a button.
+                  </p>
+                </div>
+                <div
+                  class="p-5 bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+                  <div class="font-bold text-slate-900 mb-2 leading-tight">
+                    Happier Clients
+                  </div>
+                  <p class="text-[11px] text-slate-500 leading-relaxed">
+                    Clients never receive annoying reminders for invoices
+                    they've already paid. We stop them instantly.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Security & Built for Malaysia Sections -->
       <section class="relative z-20 py-24 px-6 md:px-12 bg-white">
+        <div class="max-w-6xl mx-auto">
+          <div class="grid lg:grid-cols-2 gap-16 items-center">
+            <!-- Bank-Level Security -->
+            <div class="reveal-item reveal-up">
+              <div
+                class="inline-flex items-center gap-2 px-3 py-1 mb-6 rounded-full bg-slate-100 border border-slate-200">
+                <svg
+                  class="w-3 h-3 text-slate-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                </svg>
+                <span class="text-[11px] font-semibold text-slate-600"
+                  >Enterprise-Grade Security</span
+                >
+              </div>
+              <h2
+                class="text-2xl md:text-3xl font-semibold text-slate-900 mb-8">
+                Your data is safe.<br />
+                <span class="text-slate-500">Period.</span>
+              </h2>
+
+              <div class="space-y-6">
+                <!-- Security Item 1 -->
+                <div class="flex items-start gap-4">
+                  <div
+                    class="mt-1 w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center text-white shrink-0">
+                    <svg
+                      class="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 class="font-bold text-slate-900">AES-256 Encryption</h4>
+                    <p class="text-sm text-slate-500 leading-relaxed">
+                      Every byte of your data is encrypted both at rest and in
+                      transit using the same standard as international banks.
+                    </p>
+                  </div>
+                </div>
+                <!-- Security Item 2 -->
+                <div class="flex items-start gap-4">
+                  <div
+                    class="mt-1 w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center text-white shrink-0">
+                    <svg
+                      class="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 class="font-bold text-slate-900">
+                      Absolute Data Isolation
+                    </h4>
+                    <p class="text-sm text-slate-500 leading-relaxed">
+                      Our multi-layered authorization system ensures that your
+                      business data is never accessible by anyone but you.
+                    </p>
+                  </div>
+                </div>
+                <!-- Security Item 3 -->
+                <div class="flex items-start gap-4">
+                  <div
+                    class="mt-1 w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center text-white shrink-0">
+                    <svg
+                      class="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 class="font-bold text-slate-900">
+                      Automated Daily Backups
+                    </h4>
+                    <p class="text-sm text-slate-500 leading-relaxed">
+                      We snapshot your entire database every 24 hours to ensure
+                      your business continuity is never at risk.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Built for Malaysia -->
+            <div
+              class="reveal-item reveal-right p-8 md:p-12 bg-slate-50 rounded-[3rem] border border-slate-200 relative overflow-hidden group">
+              <div class="relative z-10">
+                <div
+                  class="inline-flex items-center gap-2 px-3 py-1 mb-6 rounded-full bg-emerald-100 border border-emerald-200">
+                  <span class="text-[11px] font-semibold text-emerald-700"
+                    >Proudly Malaysian</span
+                  >
+                </div>
+                <h2
+                  class="text-3xl font-semibold tracking-tight text-slate-900 mb-4 leading-tight">
+                  Built specifically for<br />
+                  Malaysian Business and Freelancers.
+                </h2>
+                <p class="text-slate-600 mb-8 leading-relaxed">
+                  Invoicing should feel local, not foreign. We've optimized
+                  every touchpoint to match how business is done in Malaysia.
+                </p>
+
+                <div class="grid grid-cols-2 gap-4">
+                  <div
+                    class="flex flex-col gap-4 p-4 bg-white rounded-2xl transition-shadow font-semibold text-sm text-slate-400">
+                    <img
+                      src="https://make-cxp-documentation.ams3.digitaloceanspaces.com/apps-center-icons/billplz.png"
+                      class="w-10 h-8 object-contain"
+                      alt="Billplz" />
+
+                    Billplz Integration
+                  </div>
+                  <div
+                    class="flex flex-col gap-2 p-4 bg-white rounded-2xl transition-shadow font-semibold text-sm text-slate-400">
+                    <img
+                      src="https://images.crunchbase.com/image/upload/c_pad,h_256,w_256,f_auto,q_auto:eco,dpr_1/e2hhr8kgl2hq5bkkqueq?ik-sanitizeSvg=true"
+                      class="w-10 h-10 object-contain"
+                      alt="ToyyibPay" />
+                    ToyyibPay Integration
+                  </div>
+                  <div
+                    class="flex flex-col gap-4 p-4 bg-white rounded-2xl transition-shadow font-semibold text-sm text-slate-400">
+                    <img
+                      src="https://avatars.githubusercontent.com/u/67738149?s=280&v=4"
+                      class="w-8 h-8 object-contain"
+                      alt="HitPay" />
+                    HitPay Integration
+                  </div>
+                  <div
+                    class="flex flex-col gap-4 p-4 bg-white rounded-2xl transition-shadow font-semibold text-sm text-slate-400">
+                    <img
+                      src="https://media.glassdoor.com/sqll/5772920/senangpay-squareLogo-1701835868144.png"
+                      class="w-8 h-8 object-contain rounded-lg"
+                      alt="SenangPay" />
+                    SenangPay Integration
+                  </div>
+                </div>
+              </div>
+
+              <!-- Background Graphic -->
+              <div
+                class="absolute -bottom-20 -right-20 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl opacity-50 group-hover:scale-110 transition-transform duration-700"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Core Modules Section -->
+      <section
+        id="features"
+        class="relative z-20 py-24 px-6 md:px-12 bg-white scroll-mt-24">
         <div class="max-w-6xl mx-auto">
           <div class="text-center mb-16 reveal-item reveal-up">
             <h2
@@ -820,7 +1262,8 @@
 
       <!-- Pricing Section -->
       <section
-        class="relative z-20 py-24 px-6 md:px-12 bg-white/50 backdrop-blur-md border-y border-slate-200/50">
+        id="pricing"
+        class="relative z-20 py-24 px-6 md:px-12 bg-slate-50 scroll-mt-24">
         <div class="max-w-7xl mx-auto">
           <div class="text-center mb-16 reveal-item reveal-up">
             <h2
@@ -1003,48 +1446,121 @@
         </div>
       </section>
 
-      <!-- FAQ Section -->
-      <section class="relative z-20 py-24 px-6 md:px-12 bg-transparent">
+      <section
+        id="faq"
+        class="relative z-20 py-24 px-6 md:px-12 bg-transparent scroll-mt-24">
         <div class="max-w-3xl mx-auto">
           <div class="text-center mb-16">
             <h2
               class="text-3xl md:text-4xl font-semibold tracking-tight text-slate-900 mb-4">
-              Frequently Asked Questions
+              Common Questions
             </h2>
+            <p class="text-slate-600">
+              Everything you need to know about InvoKita.
+            </p>
           </div>
 
           <div class="space-y-4">
             <div
-              class="reveal-item reveal-up delay-100 bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-              <h4 class="text-lg font-semibold text-slate-900 mb-2">
-                Can I cancel my subscription at any time?
-              </h4>
-              <p class="text-slate-600">
-                Yes! InvoKita is a month-to-month service. You can cancel,
-                downgrade, or upgrade your plan at any time from your billing
-                settings.
-              </p>
+              v-for="(item, index) in faqItems"
+              :key="index"
+              class="group reveal-item reveal-up"
+              :style="{ 'transition-delay': index * 50 + 'ms' }">
+              <button
+                @click="toggleFaq(index)"
+                class="w-full flex items-center justify-between p-6 bg-white rounded-2xl border border-slate-200 transition-all text-left"
+                :class="{
+                  'border-emerald-200 ring-2 ring-emerald-600/5 shadow-sm':
+                    activeFaqIndex === index,
+                }">
+                <span class="font-bold text-slate-900 pr-8">{{
+                  item.question
+                }}</span>
+                <div
+                  class="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:text-slate-900 transition-all"
+                  :class="{
+                    'rotate-180 bg-emerald-50 text-emerald-600':
+                      activeFaqIndex === index,
+                  }">
+                  <svg
+                    class="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 9l-7 7-7-7"></path>
+                  </svg>
+                </div>
+              </button>
+
+              <div
+                class="grid transition-all duration-300 ease-in-out"
+                :class="
+                  activeFaqIndex === index
+                    ? 'grid-rows-[1fr] opacity-100 mt-4'
+                    : 'grid-rows-[0fr] opacity-0'
+                ">
+                <div class="overflow-hidden">
+                  <div
+                    class="p-6 text-slate-600 leading-relaxed bg-white border border-slate-100 rounded-2xl">
+                    {{ item.answer }}
+                  </div>
+                </div>
+              </div>
             </div>
-            <div
-              class="reveal-item reveal-up delay-200 bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-              <h4 class="text-lg font-semibold text-slate-900 mb-2">
-                Does InvoKita support international currencies?
-              </h4>
-              <p class="text-slate-600">
-                Absolutely. You can issue invoices in over 135 currencies.
-                Exchange rates are handled seamlessly if you accept digital
-                payments.
-              </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Bottom CTA Banner -->
+      <section class="relative z-20 py-24 px-6 md:px-12 bg-white">
+        <div class="max-w-6xl mx-auto">
+          <div
+            class="relative overflow-hidden bg-gradient-to-br from-emerald-900 via-slate-800 to-emerald-900 rounded-[3rem] p-12 md:p-20 text-center shadow-2xl">
+            <!-- Background effects -->
+            <div class="absolute top-0 left-0 w-full h-full opacity-30">
+              <div
+                class="absolute top-[-10%] left-[-10%] w-64 h-64 bg-emerald-500 rounded-full blur-[100px]"></div>
+              <div
+                class="absolute bottom-[-10%] right-[-10%] w-64 h-64 bg-indigo-500 rounded-full blur-[100px]"></div>
             </div>
-            <div
-              class="reveal-item reveal-up delay-300 bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-              <h4 class="text-lg font-semibold text-slate-900 mb-2">
-                Is my data secure?
-              </h4>
-              <p class="text-slate-600">
-                We take security seriously. All data is encrypted at rest and in
-                transit using bank-level AES-256 encryption.
+
+            <div class="relative z-10">
+              <h2 class="text-4xl md:text-6xl font-semibold text-white mb-6">
+                Ready to reclaim<br />your focus?
+              </h2>
+              <p
+                class="text-slate-400 text-md md:text-lg max-w-2xl mx-auto mb-10 font-medium">
+                Join thousands of business owners who let InvoKita handle the
+                chasers while they focus on growth.
               </p>
+              <div
+                class="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <NuxtLink
+                  to="/register"
+                  class="group relative w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 text-base font-bold text-slate-900 bg-white rounded-full hover:bg-slate-100 transition-all duration-300 hover:scale-105 active:scale-95 shadow-xl">
+                  Get Started Free
+                  <svg
+                    class="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2.5"
+                      d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                  </svg>
+                </NuxtLink>
+                <NuxtLink
+                  to="/login"
+                  class="text-white/80 hover:text-white font-bold transition-colors py-2 px-4">
+                  Already have an account? Sign In
+                </NuxtLink>
+              </div>
             </div>
           </div>
         </div>
@@ -1133,6 +1649,7 @@
             </ul>
           </div>
         </div>
+
         <div
           class="max-w-6xl mx-auto pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4">
           <div class="text-sm">© 2024 InvoKita. All rights reserved.</div>
@@ -1159,13 +1676,31 @@
                 viewBox="0 0 24 24"
                 aria-hidden="true">
                 <path
-                  d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84" /></svg
+                  d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.095 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84" /></svg
             ></a>
           </div>
         </div>
       </footer>
 
-      <!-- Original Footer fade overlay is no longer needed at bottom, but keep wrapper -->
+      <!-- Scroll to Top Button -->
+      <Transition name="fade">
+        <button
+          v-if="showToTop"
+          @click="scrollToTop"
+          class="fixed bottom-8 right-8 z-[90] p-4 bg-white shadow-2xl rounded-2xl border border-slate-200 text-slate-900 hover:bg-slate-50 hover:scale-110 active:scale-95 transition-all duration-300 group">
+          <svg
+            class="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
+          </svg>
+        </button>
+      </Transition>
     </div>
   </div>
 </template>
@@ -1177,6 +1712,82 @@ import { useAuthStore } from "~/stores/authStore";
 const authStore = useAuthStore();
 const previewTab = ref("ai");
 const dynamicPlans = ref([]);
+const isScrolled = ref(false);
+const showToTop = ref(false);
+const isMobileMenuOpen = ref(false);
+const activeFaqIndex = ref(null);
+
+const faqItems = [
+  {
+    question: "Can I really draft an invoice using AI?",
+    answer:
+      "Yes! InvoKita includes an AI Builder that allows you to simply describe your work or paste a conversation. It instantly drafts a complete invoice with items, quantities, and totals ready for your review.",
+  },
+  {
+    question: "How does automated payment detection work?",
+    answer:
+      "We've integrated directly with Billplz and ToyyibPay. Once your client pays via FPX or Credit Card, those gateways send a signal to InvoKita. Our system automatically marks the invoice as Paid and reconciliation is handled instantly.",
+  },
+  {
+    question: "Do I need to manually send reminders to my clients?",
+    answer:
+      "Only if you want to. InvoKita features an 'Auto-Chaser' that sends scheduled WhatsApp and Email reminders. The best part? Once a payment is detected via Billplz or ToyyibPay, all future reminders for that invoice are disabled automatically.",
+  },
+  {
+    question: "Is my business data secure?",
+    answer:
+      "Security is our top priority. We use bank-level AES-256 encryption for all data and have implemented strict per-user isolation. Your financial information and client data are only accessible by you.",
+  },
+  {
+    question: "Does it support Malaysian Ringgit (MYR) and SST?",
+    answer:
+      "Absolutely. InvoKita was built for the Malaysian market. It supports MYR as the native currency, and you can easily configure SST or other tax rates in your global settings.",
+  },
+  {
+    question: "Can I cancel my subscription at any time?",
+    answer:
+      "Yes. InvoKita is a month-to-month service. There are no long-term contracts, and you can upgrade, downgrade, or cancel your plan at any time through your dashboard.",
+  },
+];
+
+const toggleFaq = (index) => {
+  activeFaqIndex.value = activeFaqIndex.value === index ? null : index;
+};
+
+const navLinks = [
+  { name: "Features", id: "features" },
+  { name: "How it works", id: "how-it-works" },
+  { name: "Pricing", id: "pricing" },
+  { name: "FAQ", id: "faq" },
+];
+
+const scrollToSection = (id) => {
+  isMobileMenuOpen.value = false;
+  const targetId = id;
+  const element = document.getElementById(targetId);
+  if (element) {
+    const navHeight = 80;
+    const elementPosition = element.getBoundingClientRect().top;
+    const offsetPosition = elementPosition + window.pageYOffset - navHeight;
+
+    window.scrollTo({
+      top: offsetPosition,
+      behavior: "smooth",
+    });
+  }
+};
+
+const handleScroll = () => {
+  isScrolled.value = window.scrollY > 20;
+  showToTop.value = window.scrollY > 500;
+};
+
+const scrollToTop = () => {
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth",
+  });
+};
 
 const fetchPlans = async () => {
   const { $api } = useNuxtApp();
@@ -1212,6 +1823,9 @@ const initObserver = () => {
 onMounted(async () => {
   // Initialize for static items
   initObserver();
+
+  // Scroll listener
+  window.addEventListener("scroll", handleScroll);
 
   // Fetch plans
   await fetchPlans();
@@ -1352,5 +1966,24 @@ definePageMeta({
 }
 .anim-p-3 {
   animation: float-particle 14s ease-in-out infinite -7s;
+}
+
+/* Mobile Menu Transitions */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+.slide-enter-active,
+.slide-leave-active {
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.slide-enter-from,
+.slide-leave-to {
+  transform: translateX(100%);
 }
 </style>

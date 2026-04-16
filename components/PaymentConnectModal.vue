@@ -117,19 +117,38 @@ const isOpen = computed({
   set: (value) => emit("update:modelValue", value),
 });
 
-const providerName = computed(() =>
-  props.provider === "TOYYIBPAY" ? "ToyyibPay" : "Billplz",
-);
+const providerName = computed(() => {
+  if (props.provider === "TOYYIBPAY") return "ToyyibPay";
+  if (props.provider === "BILLPLZ") return "Billplz";
+  if (props.provider === "HITPAY") return "HitPay";
+  if (props.provider === "SENANGPAY") return "SenangPay";
+  return "Unknown";
+});
 const providerLogo = computed(() => {
-  return props.provider === "TOYYIBPAY"
-    ? "https://images.crunchbase.com/image/upload/c_pad,h_256,w_256,f_auto,q_auto:eco,dpr_1/e2hhr8kgl2hq5bkkqueq?ik-sanitizeSvg=true"
-    : "https://make-cxp-documentation.ams3.digitaloceanspaces.com/apps-center-icons/billplz.png";
+  if (props.provider === "TOYYIBPAY")
+    return "https://images.crunchbase.com/image/upload/c_pad,h_256,w_256,f_auto,q_auto:eco,dpr_1/e2hhr8kgl2hq5bkkqueq?ik-sanitizeSvg=true";
+  if (props.provider === "BILLPLZ")
+    return "https://make-cxp-documentation.ams3.digitaloceanspaces.com/apps-center-icons/billplz.png";
+  if (props.provider === "HITPAY")
+    return "https://www.hitpayapp.com/static/favicons/apple-touch-icon.png";
+  if (props.provider === "SENANGPAY")
+    return "https://pbs.twimg.com/profile_images/718283577546059777/jA21-7N__400x400.jpg";
+  return "";
 });
 const providerDescription = computed(() => {
   if (props.provider === "TOYYIBPAY") {
     return "Accept FPX online banking easily with industry-low flat rates.";
   }
-  return "Seamlessly collect payments via FPX, cards, and e-wallets.";
+  if (props.provider === "BILLPLZ") {
+    return "Seamlessly collect payments via FPX, cards, and e-wallets.";
+  }
+  if (props.provider === "HITPAY") {
+    return "Modern payment collection for freelancers and small businesses with zero monthly fees.";
+  }
+  if (props.provider === "SENANGPAY") {
+    return "Powerful Malaysian gateway with support for FPX and Credit Card installments.";
+  }
+  return "";
 });
 const title = computed(() => `Connect to ${providerName.value}`);
 
@@ -141,11 +160,28 @@ const instructions = computed(() => {
       "Copy the Secret Key and Category Code from your dashboard settings.",
     ];
   }
-  return [
-    "Create a Billplz account at billplz.com.",
-    "Create a Collection in the Billplz dashboard.",
-    "Copy the API Key, Collection ID, and X Signature Key from your account settings.",
-  ];
+  if (props.provider === "BILLPLZ") {
+    return [
+      "Create a Billplz account at billplz.com.",
+      "Create a Collection in the Billplz dashboard.",
+      "Copy the API Key, Collection ID, and X Signature Key from your account settings.",
+    ];
+  }
+  if (props.provider === "HITPAY") {
+    return [
+      "Login to your HitPay dashboard at hitpayapp.com.",
+      "Navigate to Settings > API Keys.",
+      "Copy your Business API Key and Salt.",
+    ];
+  }
+  if (props.provider === "SENANGPAY") {
+    return [
+      "Login to your SenangPay dashboard.",
+      "Navigate to Settings > Profile.",
+      "Generate and copy your Merchant ID and Secret Key.",
+    ];
+  }
+  return [];
 });
 
 const fields = computed(() => {
@@ -157,39 +193,77 @@ const fields = computed(() => {
         label: "Secret Key",
         type: "password",
         placeholder: isEditing
-          ? "Leave blank to keep the current data"
-          : "Enter your ToyyibPay Secret Key",
+          ? "Leave blank to keep current"
+          : "Enter ToyyibPay Secret Key",
       },
       {
         key: "categoryCode",
         label: "Category Code",
-        placeholder: "Enter your Category Code",
+        placeholder: "Enter Category Code",
       },
     ];
   }
-  return [
-    {
-      key: "apiKey",
-      label: "API Key",
-      type: "password",
-      placeholder: isEditing
-        ? "Leave blank to keep the current data"
-        : "Enter your Billplz API Key",
-    },
-    {
-      key: "collectionId",
-      label: "Collection ID",
-      placeholder: "Enter your Collection ID",
-    },
-    {
-      key: "xSignatureKey",
-      label: "X Signature Key",
-      type: "password",
-      placeholder: isEditing
-        ? "Leave blank to keep the current data"
-        : "Enter your X Signature Key",
-    },
-  ];
+  if (props.provider === "BILLPLZ") {
+    return [
+      {
+        key: "apiKey",
+        label: "API Key",
+        type: "password",
+        placeholder: isEditing
+          ? "Leave blank to keep current"
+          : "Enter Billplz API Key",
+      },
+      {
+        key: "collectionId",
+        label: "Collection ID",
+        placeholder: "Enter Collection ID",
+      },
+      {
+        key: "xSignatureKey",
+        label: "X Signature Key",
+        type: "password",
+        placeholder: isEditing
+          ? "Leave blank to keep current"
+          : "Enter X Signature Key",
+      },
+    ];
+  }
+  if (props.provider === "HITPAY") {
+    return [
+      {
+        key: "apiKey",
+        label: "Business API Key",
+        type: "password",
+        placeholder: isEditing
+          ? "Leave blank to keep current"
+          : "Enter HitPay API Key",
+      },
+      {
+        key: "salt",
+        label: "Salt Key",
+        type: "password",
+        placeholder: isEditing ? "Leave blank to keep current" : "Enter Salt",
+      },
+    ];
+  }
+  if (props.provider === "SENANGPAY") {
+    return [
+      {
+        key: "merchantId",
+        label: "Merchant ID",
+        placeholder: "Enter SenangPay Merchant ID",
+      },
+      {
+        key: "secretKey",
+        label: "Secret Key",
+        type: "password",
+        placeholder: isEditing
+          ? "Leave blank to keep current"
+          : "Enter SenangPay Secret Key",
+      },
+    ];
+  }
+  return [];
 });
 
 watch(

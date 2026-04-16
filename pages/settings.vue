@@ -774,22 +774,14 @@
                 </div>
 
                 <div v-if="isProviderConnected('TOYYIBPAY')" class="mt-auto">
-                    <div class="flex flex-col gap-1 mb-4">
-                      <div class="flex items-center gap-2">
-                        <div class="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
-                        <span class="text-[12px] font-bold text-emerald-600"
-                          >Connected</span
-                        >
-                      </div>
-                      <div class="pl-3.5 space-y-0.5">
-                        <p v-if="paymentProviders.find(p => p.provider === 'TOYYIBPAY')?.categoryCode" class="text-[10px] text-slate-500 font-medium text-left px-0">
-                          Category: {{ paymentProviders.find(p => p.provider === 'TOYYIBPAY').categoryCode }}
-                        </p>
-                        <p v-if="paymentProviders.find(p => p.provider === 'TOYYIBPAY')?.hasSecretKey" class="text-[10px] text-slate-500 font-medium italic text-left px-0">
-                          Secret Key: Configured
-                        </p>
-                      </div>
+                  <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-2">
+                      <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
+                      <span class="text-[12px] font-bold text-emerald-600"
+                        >Connected</span
+                      >
                     </div>
+                  </div>
                   <div class="flex gap-2">
                     <button
                       @click="openConnectModal('TOYYIBPAY')"
@@ -857,23 +849,12 @@
                 </div>
 
                 <div v-if="isProviderConnected('BILLPLZ')" class="mt-auto">
-                  <div class="flex flex-col gap-1 mb-4">
+                  <div class="flex items-center justify-between mb-4">
                     <div class="flex items-center gap-2">
-                      <div class="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+                      <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
                       <span class="text-[12px] font-bold text-emerald-600"
                         >Connected</span
                       >
-                    </div>
-                    <div class="pl-3.5 space-y-0.5 text-left">
-                      <p v-if="paymentProviders.find(p => p.provider === 'BILLPLZ')?.collectionId" class="text-[10px] text-slate-500 font-medium">
-                        Collection: {{ paymentProviders.find(p => p.provider === 'BILLPLZ').collectionId }}
-                      </p>
-                      <p v-if="paymentProviders.find(p => p.provider === 'BILLPLZ')?.hasApiKey" class="text-[10px] text-slate-500 font-medium italic">
-                        API Key: Configured
-                      </p>
-                      <p v-if="paymentProviders.find(p => p.provider === 'BILLPLZ')?.hasXSignatureKey" class="text-[10px] text-slate-500 font-medium italic text-left">
-                        X-Signature: Configured
-                      </p>
                     </div>
                   </div>
                   <div class="flex gap-2">
@@ -892,6 +873,153 @@
                 <button
                   v-else
                   @click="openConnectModal('BILLPLZ')"
+                  class="mt-auto w-full py-2.5 bg-slate-900 text-white text-xs font-bold rounded-md hover:bg-slate-800 transition-all">
+                  Connect
+                </button>
+              </div>
+
+              <!-- HitPay -->
+              <div
+                class="relative border rounded-2xl p-6 shadow-sm flex flex-col transition-all"
+                :class="
+                  isProviderPreferred('HITPAY')
+                    ? 'border-emerald-300 bg-emerald-50/20 hover:border-emerald-400'
+                    : 'border-slate-200 bg-white hover:border-slate-300'
+                ">
+                <div
+                  v-if="
+                    isProviderConnected('HITPAY') && paymentProviders.length > 1
+                  "
+                  @click="setPreferred('HITPAY')"
+                  class="absolute top-5 right-5 w-5 h-5 rounded-full border-2 flex items-center justify-center cursor-pointer transition-all shadow-sm hover:shadow"
+                  :class="
+                    isProviderPreferred('HITPAY')
+                      ? 'border-emerald-600 bg-emerald-600'
+                      : 'border-slate-300 hover:border-slate-400 bg-white'
+                  ">
+                  <UiIcon
+                    v-if="isProviderPreferred('HITPAY')"
+                    icon="material-symbols:check-rounded"
+                    custom-class="w-4 h-4 text-white stroke-[4px]" />
+                </div>
+
+                <div class="flex items-center gap-4 mb-6">
+                  <div
+                    class="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100 overflow-hidden">
+                    <img
+                      src="https://avatars.githubusercontent.com/u/67738149?s=280&v=4"
+                      class="w-8 h-8 object-contain"
+                      alt="HitPay" />
+                  </div>
+                  <div class="text-left">
+                    <h4 class="text-sm font-bold text-slate-900 text-left">
+                      HitPay
+                    </h4>
+                    <p class="text-[10px] text-slate-500 font-medium text-left">
+                      Card, FPX, and E-Wallets
+                    </p>
+                  </div>
+                </div>
+
+                <div v-if="isProviderConnected('HITPAY')" class="mt-auto">
+                  <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-2">
+                      <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
+                      <span class="text-[12px] font-bold text-emerald-600"
+                        >Connected</span
+                      >
+                    </div>
+                  </div>
+                  <div class="flex gap-2">
+                    <button
+                      @click="openConnectModal('HITPAY')"
+                      class="flex-1 py-2 text-xs font-bold text-slate-600 border border-slate-200 rounded-md hover:bg-slate-50 transition-all">
+                      Edit
+                    </button>
+                    <button
+                      @click="disconnectProvider('HITPAY')"
+                      class="px-3 py-2 text-xs font-bold text-red-600 border border-red-100 rounded-md hover:bg-red-50 transition-all">
+                      Disconnect
+                    </button>
+                  </div>
+                </div>
+                <button
+                  v-else
+                  @click="openConnectModal('HITPAY')"
+                  class="mt-auto w-full py-2.5 bg-slate-900 text-white text-xs font-bold rounded-md hover:bg-slate-800 transition-all">
+                  Connect
+                </button>
+              </div>
+
+              <!-- SenangPay -->
+              <div
+                class="relative border rounded-2xl p-6 shadow-sm flex flex-col transition-all"
+                :class="
+                  isProviderPreferred('SENANGPAY')
+                    ? 'border-emerald-300 bg-emerald-50/20 hover:border-emerald-400'
+                    : 'border-slate-200 bg-white hover:border-slate-300'
+                ">
+                <div
+                  v-if="
+                    isProviderConnected('SENANGPAY') &&
+                    paymentProviders.length > 1
+                  "
+                  @click="setPreferred('SENANGPAY')"
+                  class="absolute top-5 right-5 w-5 h-5 rounded-full border-2 flex items-center justify-center cursor-pointer transition-all shadow-sm hover:shadow"
+                  :class="
+                    isProviderPreferred('SENANGPAY')
+                      ? 'border-emerald-600 bg-emerald-600'
+                      : 'border-slate-300 hover:border-slate-400 bg-white'
+                  ">
+                  <UiIcon
+                    v-if="isProviderPreferred('SENANGPAY')"
+                    icon="material-symbols:check-rounded"
+                    custom-class="w-4 h-4 text-white stroke-[4px]" />
+                </div>
+
+                <div class="flex items-center gap-4 mb-6">
+                  <div
+                    class="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100 overflow-hidden">
+                    <img
+                      src="https://media.glassdoor.com/sqll/5772920/senangpay-squareLogo-1701835868144.png"
+                      class="w-8 h-8 object-contain rounded-lg"
+                      alt="SenangPay" />
+                  </div>
+                  <div class="text-left">
+                    <h4 class="text-sm font-bold text-slate-900 text-left">
+                      SenangPay
+                    </h4>
+                    <p class="text-[10px] text-slate-500 font-medium text-left">
+                      Card and FPX payments
+                    </p>
+                  </div>
+                </div>
+
+                <div v-if="isProviderConnected('SENANGPAY')" class="mt-auto">
+                  <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-2">
+                      <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
+                      <span class="text-[12px] font-bold text-emerald-600"
+                        >Connected</span
+                      >
+                    </div>
+                  </div>
+                  <div class="flex gap-2">
+                    <button
+                      @click="openConnectModal('SENANGPAY')"
+                      class="flex-1 py-2 text-xs font-bold text-slate-600 border border-slate-200 rounded-md hover:bg-slate-50 transition-all">
+                      Edit
+                    </button>
+                    <button
+                      @click="disconnectProvider('SENANGPAY')"
+                      class="px-3 py-2 text-xs font-bold text-red-600 border border-red-100 rounded-md hover:bg-red-50 transition-all">
+                      Disconnect
+                    </button>
+                  </div>
+                </div>
+                <button
+                  v-else
+                  @click="openConnectModal('SENANGPAY')"
                   class="mt-auto w-full py-2.5 bg-slate-900 text-white text-xs font-bold rounded-md hover:bg-slate-800 transition-all">
                   Connect
                 </button>
@@ -2110,10 +2238,15 @@ const setPreferred = async (p) => {
     if (provider) {
       await authStore.setPreferredPaymentProvider(provider.id);
       await fetchProviders();
+      const providerNameDisplay = {
+        TOYYIBPAY: "ToyyibPay",
+        BILLPLZ: "Billplz",
+        HITPAY: "HitPay",
+        SENANGPAY: "SenangPay",
+      }[p];
+
       toast.value = {
-        message: `${
-          p === "TOYYIBPAY" ? "ToyyibPay" : "Billplz"
-        } set as preferred`,
+        message: `${providerNameDisplay} set as preferred`,
         type: "success",
       };
     }
