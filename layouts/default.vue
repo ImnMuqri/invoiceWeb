@@ -308,9 +308,14 @@
                 <button
                   class="p-2.5 bg-white border border-[#e5e5e5] shadow-[0_2px_12px_rgba(0,0,0,0.03)] text-slate-500 hover:text-slate-900 hover:bg-slate-50 rounded-xl relative transition-all"
                   :class="{
-                    'ring-2 ring-slate-900 border-transparent': isOpen,
+                    'ring-2 ring-emerald-500 border-transparent': isOpen,
                   }">
-                  <UiIcon icon="heroicons:bell" class="w-5 h-5" />
+                  <UiIcon
+                    icon="heroicons:bell"
+                    class="w-5 h-5"
+                    :custom-class="{
+                      'text-emerald-500 w-4 h-4  ': isOpen,
+                    }" />
                   <span
                     v-if="notificationStore.unreadCount > 0"
                     class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 border-2 border-white rounded-full"></span>
@@ -390,7 +395,7 @@
                 <div
                   class="flex items-center gap-3 px-3 py-2 bg-white rounded-xl border border-[#e5e5e5] shadow-[0_2px_12px_rgba(0,0,0,0.03)] cursor-pointer group hover:bg-slate-50 transition-all"
                   :class="{
-                    'ring-2 ring-slate-900 border-transparent': isOpen,
+                    'ring-2 ring-emerald-500 border-transparent': isOpen,
                   }">
                   <div
                     class="w-8 h-8 rounded-md bg-emerald-600 flex items-center justify-center text-white text-[11px] font-bold shadow-sm shrink-0 uppercase">
@@ -407,8 +412,7 @@
                 </div>
               </template>
               <template #default="{ close }">
-                <div
-                  class="w-[200px] mt-1 shadow-2xl border border-slate-100 rounded-2xl bg-white overflow-hidden">
+                <div class="w-[200px] rounded-2xl bg-white overflow-hidden">
                   <div
                     class="px-4 py-3 border-b border-slate-100 bg-slate-50/50">
                     <p class="text-[11px] font-bold text-slate-900 truncate">

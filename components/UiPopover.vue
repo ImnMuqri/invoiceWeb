@@ -37,8 +37,8 @@ const props = defineProps({
   },
   class: {
     type: String,
-    default: "inline-block"
-  }
+    default: "inline-block",
+  },
 });
 
 const isOpen = ref(false);
@@ -52,7 +52,7 @@ const updatePosition = () => {
 
   const rect = triggerRef.value.getBoundingClientRect();
   const offset = 8;
-  
+
   let top = rect.bottom + offset;
   let left = rect.left;
 
@@ -82,12 +82,12 @@ const updatePosition = () => {
   if (popoverRef.value) {
     const popoverRect = popoverRef.value.getBoundingClientRect();
     const viewportHeight = window.innerHeight;
-    
+
     // If it goes off the bottom, shift it up
     if (top + popoverRect.height > viewportHeight) {
       top = viewportHeight - popoverRect.height - offset;
     }
-    
+
     // Ensure it doesn't go off the top
     if (top < offset) {
       top = offset;
