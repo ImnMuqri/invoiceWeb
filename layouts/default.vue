@@ -166,6 +166,18 @@
                 class="w-[18px] h-[18px] mr-3 opacity-70" />
               System Management
             </NuxtLink>
+            <NuxtLink
+              to="/admin/tickets/"
+              class="flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
+              active-class="bg-[#ebebec] text-slate-900"
+              :class="{
+                'bg-[#ebebec] text-slate-900': $route.path.startsWith('/admin/tickets'),
+              }">
+              <UiIcon
+                icon="heroicons:ticket"
+                class="w-[18px] h-[18px] mr-3 opacity-70" />
+              Support Tickets
+            </NuxtLink>
           </template>
         </nav>
         <div v-if="!authStore.isPro" class="px-4 mb-4">
@@ -599,6 +611,20 @@
                           icon="heroicons:command-line"
                           class="w-[18px] h-[18px] mr-3 opacity-70" />
                         System Management
+                      </NuxtLink>
+                      <NuxtLink
+                        to="/admin/tickets/"
+                        @click="isMobileMenuOpen = false"
+                        class="flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
+                        active-class="bg-[#ebebec] text-slate-900"
+                        :class="{
+                          'bg-[#ebebec] text-slate-900':
+                            $route.path.startsWith('/admin/tickets'),
+                        }">
+                        <UiIcon
+                          icon="heroicons:ticket"
+                          class="w-[18px] h-[18px] mr-3 opacity-70" />
+                        Support Tickets
                       </NuxtLink>
                     </template>
                   </nav>
