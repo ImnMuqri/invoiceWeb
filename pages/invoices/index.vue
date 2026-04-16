@@ -144,8 +144,12 @@
         </td>
         <td
           class="whitespace-nowrap px-3 py-4 text-sm font-semibold text-slate-900">
-          {{ invoice?.currency === "MYR" ? "RM" : "$"
-          }}{{ invoice?.amount?.toLocaleString() || "0" }}
+          <div class="flex flex-col">
+            <span>{{ invoice?.currency === "MYR" ? "RM" : "$" }}{{ invoice?.amount?.toLocaleString() || "0" }}</span>
+            <span v-if="invoice?.amountPaid > 0 && invoice?.status !== 'Paid'" class="text-[10px] text-slate-500 font-medium">
+              Paid: {{ invoice?.currency === "MYR" ? "RM" : "$" }}{{ invoice?.amountPaid?.toLocaleString() }}
+            </span>
+          </div>
         </td>
         <td class="whitespace-nowrap px-3 py-4 text-sm">
           <span
@@ -157,6 +161,11 @@
             v-else-if="invoice?.status === 'Overdue'"
             class="inline-flex items-center rounded-md bg-red-50 px-2 py-1 text-xs font-semibold text-red-700 border border-red-100"
             >Overdue</span
+          >
+          <span
+            v-else-if="invoice?.status === 'Partially Paid'"
+            class="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-semibold text-blue-700 border border-blue-100"
+            >Partially Paid</span
           >
           <span
             v-else-if="invoice?.status === 'Cancelled'"
@@ -463,6 +472,17 @@
               </div>
 
               <div class="p-1">
+                <button
+                  v-if="invoice?.status !== 'Paid' && invoice?.status !== 'Cancelled'"
+                  @click="
+                    close();
+                    openPaymentModal(invoice);
+                  "
+                  class="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 rounded-md transition-all text-left">
+                  <UiIcon icon="heroicons:currency-dollar" custom-class="w-4 h-4" />
+                  Record Payment
+                </button>
+
                 <NuxtLink
                   v-if="invoice?.id"
                   :to="`/invoices/edit/${invoice.id}`"
@@ -531,11 +551,49 @@
         </div>
       </div>
     </UiModal>
+
+    <!-- Record Payment Modal -->
+    <UiModal
+      v-model="isPaymentModalOpen"
+      maxWidth="sm"
+      :title="`Record Payment for ${invoiceToPay?.invoiceNumber || invoiceToPay?.id}`"
+      description="Enter the amount that the client has paid.">
+      <div class="p-6">
+        <div class="flex flex-col mb-6">
+          <label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Amount Received</label>
+          <div class="relative">
+            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-semibold">{{ invoiceToPay?.currency === 'MYR' ? 'RM' : '$' }}</span>
+            <input type="number" step="0.01" v-model="paymentAmount" class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-bold focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all outline-none" placeholder="0.00" />
+          </div>
+          <div class="flex justify-between mt-2 text-[11px] font-semibold text-slate-500">
+            <span>Total: {{ invoiceToPay?.currency === 'MYR' ? 'RM' : '$' }}{{ invoiceToPay?.amount?.toLocaleString() }}</span>
+            <span>Due: {{ invoiceToPay?.currency === 'MYR' ? 'RM' : '$' }}{{ (invoiceToPay?.amount - (invoiceToPay?.amountPaid || 0)).toLocaleString() }}</span>
+          </div>
+        </div>
+        <div class="flex flex-col gap-3">
+          <button
+            @click="submitPayment"
+            :disabled="isSubmittingPayment || paymentAmount <= 0"
+            class="w-full inline-flex justify-center items-center rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 disabled:opacity-50 transition-colors">
+            <UiIcon
+              v-if="isSubmittingPayment"
+              icon="heroicons:arrow-path"
+              custom-class="w-4 h-4 mr-2 animate-spin text-white" />
+            {{ isSubmittingPayment ? "Saving..." : "Record Payment" }}
+          </button>
+          <button
+            @click="isPaymentModalOpen = false"
+            class="w-full inline-flex justify-center rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50 transition-colors">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </UiModal>
   </div>
 </template>
 
 <script setup>
-import { computed, ref, onMounted } from "vue";
+import { computed, ref, onMounted, reactive } from "vue";
 import { useInvoiceStore } from "~/stores/invoiceStore";
 import { useAuthStore } from "~/stores/authStore";
 import { useUiStore } from "~/stores/uiStore";
@@ -602,6 +660,11 @@ const invoiceToDelete = ref(null);
 const isDeleting = ref(false);
 const toast = ref({ message: "", type: "success" });
 
+const isPaymentModalOpen = ref(false);
+const invoiceToPay = ref(null);
+const paymentAmount = ref(0);
+const isSubmittingPayment = ref(false);
+
 const loadingInvoices = reactive({});
 
 const openDeleteModal = (invoice) => {
@@ -630,6 +693,38 @@ const confirmDelete = async () => {
   } finally {
     isDeleting.value = false;
     invoiceToDelete.value = null;
+  }
+};
+
+const openPaymentModal = (invoice) => {
+  invoiceToPay.value = invoice;
+  paymentAmount.value = (invoice.amount || 0) - (invoice.amountPaid || 0); // Default to full remaining
+  isPaymentModalOpen.value = true;
+};
+
+const submitPayment = async () => {
+  if (!invoiceToPay.value || paymentAmount.value <= 0) return;
+  isSubmittingPayment.value = true;
+  
+  // Calculate new total amount paid
+  const newAmountPaid = (invoiceToPay.value.amountPaid || 0) + Number(paymentAmount.value);
+
+  try {
+    const res = await invoiceStore.updateInvoice(
+      invoiceToPay.value.id,
+      { amountPaid: newAmountPaid },
+      true
+    );
+    isPaymentModalOpen.value = false;
+    toast.value = { message: res?.message || "Payment recorded successfully", type: "success" };
+    // Fetch specifically is not required as Pinia updates the invoice if it's there
+  } catch (err) {
+    toast.value = {
+      message: err.response?.data?.message || "Failed to record payment",
+      type: "error",
+    };
+  } finally {
+    isSubmittingPayment.value = false;
   }
 };
 

@@ -432,11 +432,12 @@
               </ClientOnly>
             </div>
           </div>
-          <div class="grid grid-cols-3 gap-6">
+          <div
+            class="grid grid-cols-1 lg:grid-cols-3 lg:gap-6 space-y-6 lg:space-y-0">
             <!-- Activity History -->
-              <div
-                class="bg-white border border-slate-200 shadow-sm rounded-xl p-6 flex flex-col w-full">
-                <div class="flex justify-between items-center mb-6">
+            <div
+              class="bg-white border border-slate-200 shadow-sm rounded-xl p-6 flex flex-col w-full">
+              <div class="flex justify-between items-center mb-6">
                 <h2 class="text-lg font-semibold text-slate-900 tracking-tight">
                   Activity History
                 </h2>
@@ -488,10 +489,10 @@
               </ul>
             </div>
             <!-- Client Profitability Insights -->
+            <div
+              class="col-span-2 bg-white shadow-sm rounded-xl border border-slate-200 flex flex-col relative">
               <div
-                class="col-span-2 bg-white shadow-sm rounded-xl border border-slate-200 flex flex-col relative">
-                <div
-                  class="p-6 border-b border-slate-200 flex items-center justify-between bg-white rounded-t-xl z-20">
+                class="p-6 border-b border-slate-200 flex items-center justify-between bg-white rounded-t-xl z-20">
                 <div>
                   <div class="flex items-center gap-2">
                     <h3
@@ -826,7 +827,7 @@
                   >My Credits</span
                 >
                 <span class="text-lg font-bold text-emerald-600">{{
-                  authStore.user?.referralCredits || 0
+                  referralStore.stats.referralCredits ?? 0
                 }}</span>
               </div>
 
@@ -834,7 +835,7 @@
               <div class="flex items-center gap-2">
                 <div
                   class="flex-1 bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm font-mono text-slate-700">
-                  {{ authStore.user?.referralCode || "..." }}
+                  {{ referralStore.stats.referralCode || "..." }}
                 </div>
                 <button
                   @click="copyReferralCode"
@@ -928,7 +929,7 @@ const fetchCoreData = async (params = {}) => {
 };
 
 const copyReferralCode = () => {
-  const code = authStore.user?.referralCode;
+  const code = referralStore.stats.referralCode;
   if (code) {
     navigator.clipboard.writeText(code);
     toast.value = { message: "Referral code copied!", type: "success" };

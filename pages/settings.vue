@@ -752,7 +752,7 @@
                   <UiIcon
                     v-if="isProviderPreferred('TOYYIBPAY')"
                     icon="material-symbols:check-rounded"
-                    custom-class="w-4 h-4 text-white stroke-[4px]" />
+                    custom-class="w-4 h-4 text-white" />
                 </div>
 
                 <div class="flex items-center gap-4 mb-6">

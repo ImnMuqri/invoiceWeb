@@ -66,29 +66,21 @@
       class="h-[111.11vh] bg-slate-50 flex overflow-hidden font-sans text-sm">
       <!-- Sidebar -->
       <aside
-        class="hidden w-[280px] md:flex flex-col bg-[#f7f7f9] border-r border-[#e5e5e5] flex-shrink-0 z-10 transition-colors">
-        <div class="h-20 flex items-center px-6 mt-2">
-          <UiLogo size="md" />
+        class="hidden w-[270px] md:flex flex-col bg-[#f7f7f9] flex-shrink-0 z-10 transition-colors">
+        <div class="h-20 flex items-center justify-center mt-2">
+          <UiLogo size="lg" />
         </div>
         <nav class="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
           <!-- Search -->
-          <div class="mb-6 px-2">
+          <div class="mb-6">
             <div class="relative">
-              <svg
-                class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-              </svg>
+              <UiIcon
+                icon="heroicons:magnifying-glass"
+                class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input
                 type="text"
                 placeholder="Search"
-                class="w-full bg-[#ebebec] border-none rounded-xl py-2 pl-9 pr-8 text-sm text-slate-700 placeholder:text-slate-500 focus:ring-2 focus:ring-slate-300 transition-shadow" />
+                class="w-full bg-[#ebebec] border-none rounded-xl py-2.5 pl-9 pr-8 text-sm text-slate-700 placeholder:text-slate-500 focus:ring-2 focus:ring-slate-300 transition-shadow" />
               <div
                 class="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-400 px-1.5 py-0.5 rounded bg-white shadow-sm border border-[#e5e5e5]">
                 /
@@ -100,17 +92,9 @@
             to="/dashboard/"
             class="flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
             active-class="bg-[#ebebec] text-slate-900">
-            <svg
-              class="w-[18px] h-[18px] mr-3 opacity-70"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
-            </svg>
+            <UiIcon
+              icon="heroicons:home"
+              class="w-[18px] h-[18px] mr-3 opacity-70" />
             Dashboard
           </NuxtLink>
 
@@ -130,34 +114,18 @@
               'bg-[#ebebec] text-slate-900 flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl':
                 $route.path.startsWith('/invoices'),
             }">
-            <svg
-              class="w-[18px] h-[18px] mr-3 opacity-70"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-            </svg>
+            <UiIcon
+              icon="heroicons:document-text"
+              class="w-[18px] h-[18px] mr-3 opacity-70" />
             Invoices
           </NuxtLink>
           <NuxtLink
             to="/clients/"
             class="flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
             active-class="bg-[#ebebec] text-slate-900">
-            <svg
-              class="w-[18px] h-[18px] mr-3 opacity-70"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-            </svg>
+            <UiIcon
+              icon="heroicons:users"
+              class="w-[18px] h-[18px] mr-3 opacity-70" />
             Clients
           </NuxtLink>
           <!-- SYSTEM -->
@@ -172,22 +140,9 @@
             to="/settings/"
             class="flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
             active-class="bg-[#ebebec] text-slate-900">
-            <svg
-              class="w-[18px] h-[18px] mr-3 opacity-70"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-            </svg>
+            <UiIcon
+              icon="heroicons:cog-6-tooth"
+              class="w-[18px] h-[18px] mr-3 opacity-70" />
             Settings
           </NuxtLink>
 
@@ -239,96 +194,11 @@
           </div>
         </div>
 
-        <div class="px-4 mt-auto mb-4 space-y-4">
-          <!-- User Profile (Sidebar Bottom) -->
-          <UiPopover placement="right-end" class="w-full">
-            <template #trigger="{ isOpen }">
-              <div
-                class="flex items-center gap-3 px-3 py-3 bg-white rounded-2xl border border-[#e5e5e5] shadow-[0_2px_12px_rgba(0,0,0,0.03)] cursor-pointer group hover:bg-slate-50 transition-all"
-                :class="{ 'ring-2 ring-slate-900 border-transparent': isOpen }">
-                <div
-                  class="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center text-white text-sm font-bold shadow-sm shrink-0 uppercase">
-                  {{ (authStore.user?.name || "U").charAt(0) }}
-                </div>
-                <div class="min-w-0 flex-1">
-                  <p class="text-sm font-bold text-slate-900 truncate">
-                    {{ authStore.user?.name || "User" }}
-                  </p>
-                  <p
-                    class="text-[10px] font-bold text-slate-400 uppercase tracking-widest truncate">
-                    {{ authStore.user?.plan || "Free" }} Plan
-                  </p>
-                </div>
-                <svg
-                  class="w-4 h-4 text-slate-400 group-hover:text-slate-600 transition-colors shrink-0"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24">
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M19 9l-7 7-7-7"></path>
-                </svg>
-              </div>
-            </template>
-            <template #default="{ close }">
-              <div class="w-[200px]">
-                <div
-                  class="px-2 py-1.5 border-b border-slate-100 bg-slate-50/50">
-                  <span
-                    class="text-[10px] font-bold text-slate-400 uppercase tracking-wider"
-                    >Account</span
-                  >
-                </div>
-
-                <div class="p-2">
-                  <NuxtLink
-                    to="/settings/"
-                    @click="close"
-                    class="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-600 hover:text-green-600 hover:bg-green-50 rounded-md transition-all">
-                    <svg
-                      class="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24">
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                    </svg>
-                    User Settings
-                  </NuxtLink>
-                  <div class="h-px bg-slate-100 my-1 mx-2"></div>
-                  <button
-                    @click="
-                      isLogoutModalOpen = true;
-                      close();
-                    "
-                    class="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 rounded-md transition-all text-left border-none bg-transparent">
-                    <svg
-                      class="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24">
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-                    </svg>
-                    Sign Out
-                  </button>
-                </div>
-              </div>
-            </template>
-          </UiPopover>
+        <div class="px-4 mt-auto mb-8 text-center shrink-0">
+          <p
+            class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">
+            invokita v1.0.0
+          </p>
         </div>
       </aside>
 
@@ -338,26 +208,250 @@
         <header
           class="md:hidden h-16 flex items-center justify-between px-4 bg-white border-b border-slate-200">
           <UiLogo size="sm" />
-          <button
-            @click="isMobileMenuOpen = true"
-            class="p-2 text-slate-500 hover:bg-gray-50 rounded-md">
-            <svg
-              class="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M4 6h16M4 12h16M4 18h16"></path>
-            </svg>
-          </button>
+          <div class="flex items-center gap-2">
+            <UiPopover placement="bottom-end">
+              <template #trigger="{ isOpen }">
+                <button
+                  class="p-2 text-slate-500 hover:bg-gray-50 rounded-md relative"
+                  :class="{ 'bg-gray-50 text-slate-900': isOpen }">
+                  <UiIcon icon="heroicons:bell" custom-class="w-4 h-4" />
+                  <span
+                    v-if="notificationStore.unreadCount > 0"
+                    class="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 border-2 border-white rounded-full"></span>
+                </button>
+              </template>
+              <template #default="{ close }">
+                <div
+                  class="w-[280px] max-h-[400px] flex flex-col shadow-xl border border-slate-100 rounded-xl bg-white overflow-hidden">
+                  <div
+                    class="flex items-center justify-between px-3 py-2 border-b border-slate-100 bg-slate-50/50">
+                    <span
+                      class="text-[10px] font-bold text-slate-400 uppercase tracking-wider"
+                      >Updates</span
+                    >
+                    <button
+                      v-if="notificationStore.unreadCount > 0"
+                      @click="notificationStore.markAllAsRead()"
+                      class="text-[10px] font-bold text-emerald-600 uppercase tracking-wider hover:text-emerald-700">
+                      Mark all read
+                    </button>
+                  </div>
+                  <div class="p-2 overflow-y-auto flex-1 custom-scrollbar">
+                    <div
+                      v-if="notificationStore.notifications.length === 0"
+                      class="text-center py-6 text-xs text-slate-500">
+                      <UiIcon
+                        icon="heroicons:bell-slash"
+                        class="w-8 h-8 mx-auto mb-2 text-slate-200" />
+                      No new notifications
+                    </div>
+                    <div v-else class="space-y-1">
+                      <div
+                        v-for="notif in notificationStore.notifications"
+                        :key="notif.id"
+                        @click="
+                          notificationStore.markAsRead(notif.id);
+                          close();
+                        "
+                        class="p-2.5 rounded-xl text-left cursor-pointer transition-all border border-transparent hover:border-slate-100"
+                        :class="
+                          notif.isRead
+                            ? 'bg-transparent hover:bg-slate-50'
+                            : 'bg-blue-50/50 hover:bg-blue-50'
+                        ">
+                        <div
+                          class="flex items-start justify-between gap-2 mb-1">
+                          <span
+                            class="font-bold text-xs"
+                            :class="
+                              notif.isRead ? 'text-slate-700' : 'text-slate-900'
+                            "
+                            >{{ notif.title }}</span
+                          >
+                        </div>
+                        <p
+                          class="text-xs text-slate-500 leading-relaxed truncate"
+                          :class="{
+                            'font-medium text-slate-600': !notif.isRead,
+                          }">
+                          {{ notif.message }}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </template>
+            </UiPopover>
+            <button
+              @click="isMobileMenuOpen = true"
+              class="p-2 text-slate-500 hover:bg-gray-50 rounded-md">
+              <UiIcon icon="heroicons:bars-3" class="w-6 h-6" />
+            </button>
+          </div>
+        </header>
+
+        <!-- Header (Desktop) -->
+        <header
+          class="hidden md:flex h-[80px] shrink-0 items-center justify-between pl-8 pr-10 bg-[#f7f7f9] w-full border-b border-slate-100/50">
+          <div class="flex items-center gap-4">
+            <h3 class="text-lg font-semibold text-slate-400 capitalize">
+              Workspace /
+              <span class="text-slate-900">{{
+                route.meta.title || route.name
+              }}</span>
+            </h3>
+          </div>
+          <div class="flex items-center gap-4">
+            <!-- Notifications Popover -->
+            <UiPopover placement="bottom-end">
+              <template #trigger="{ isOpen }">
+                <button
+                  class="p-2.5 bg-white border border-[#e5e5e5] shadow-[0_2px_12px_rgba(0,0,0,0.03)] text-slate-500 hover:text-slate-900 hover:bg-slate-50 rounded-xl relative transition-all"
+                  :class="{
+                    'ring-2 ring-slate-900 border-transparent': isOpen,
+                  }">
+                  <UiIcon icon="heroicons:bell" class="w-5 h-5" />
+                  <span
+                    v-if="notificationStore.unreadCount > 0"
+                    class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 border-2 border-white rounded-full"></span>
+                </button>
+              </template>
+              <template #default="{ close }">
+                <div
+                  class="w-[320px] max-h-[400px] flex flex-col shadow-2xl border border-slate-100 rounded-2xl bg-white overflow-hidden mt-1">
+                  <div
+                    class="flex items-center justify-between px-4 py-3 border-b border-slate-100 bg-slate-50/80 backdrop-blur">
+                    <span
+                      class="text-[11px] font-bold text-slate-500 uppercase tracking-wider"
+                      >Notifications</span
+                    >
+                    <button
+                      v-if="notificationStore.unreadCount > 0"
+                      @click="notificationStore.markAllAsRead()"
+                      class="text-[10px] font-bold text-emerald-600 uppercase tracking-wider hover:text-emerald-700 transition-colors">
+                      Mark all read
+                    </button>
+                  </div>
+                  <div class="p-2 overflow-y-auto flex-1 custom-scrollbar">
+                    <div
+                      v-if="notificationStore.notifications.length === 0"
+                      class="text-center py-8 text-xs text-slate-500">
+                      <UiIcon
+                        icon="heroicons:bell-slash"
+                        class="w-10 h-10 mx-auto mb-3 text-slate-200" />
+                      You're all caught up!
+                    </div>
+                    <div v-else class="space-y-1">
+                      <div
+                        v-for="notif in notificationStore.notifications"
+                        :key="notif.id"
+                        @click="
+                          notificationStore.markAsRead(notif.id);
+                          close();
+                        "
+                        class="p-3 rounded-xl text-left cursor-pointer transition-all border border-transparent hover:border-slate-100"
+                        :class="
+                          notif.isRead
+                            ? 'bg-transparent hover:bg-slate-50'
+                            : 'bg-blue-50/40 hover:bg-blue-50/80'
+                        ">
+                        <div
+                          class="flex items-start justify-between gap-3 mb-1.5">
+                          <span
+                            class="font-semibold text-[13px]"
+                            :class="
+                              notif.isRead ? 'text-slate-700' : 'text-slate-900'
+                            "
+                            >{{ notif.title }}</span
+                          >
+                          <span
+                            class="text-[10px] font-medium text-slate-400 whitespace-nowrap mt-0.5"
+                            >{{ formatDate(notif.createdAt) }}</span
+                          >
+                        </div>
+                        <p
+                          class="text-[12px] text-slate-500 leading-relaxed"
+                          :class="{
+                            'font-medium text-slate-600': !notif.isRead,
+                          }">
+                          {{ notif.message }}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </template>
+            </UiPopover>
+
+            <div class="w-px h-6 bg-slate-200 mx-1"></div>
+
+            <!-- User Profile Popover -->
+            <UiPopover placement="bottom-end">
+              <template #trigger="{ isOpen }">
+                <div
+                  class="flex items-center gap-3 px-3 py-1.5 bg-white rounded-xl border border-[#e5e5e5] shadow-[0_2px_12px_rgba(0,0,0,0.03)] cursor-pointer group hover:bg-slate-50 transition-all"
+                  :class="{
+                    'ring-2 ring-slate-900 border-transparent': isOpen,
+                  }">
+                  <div
+                    class="w-8 h-8 rounded-full bg-slate-900 flex items-center justify-center text-white text-[11px] font-bold shadow-sm shrink-0 uppercase">
+                    {{ (authStore.user?.name || "U").charAt(0) }}
+                  </div>
+                  <div class="hidden sm:block min-w-0">
+                    <p class="text-xs font-bold text-slate-900 truncate">
+                      {{ authStore.user?.name || "User" }}
+                    </p>
+                  </div>
+                  <UiIcon
+                    icon="heroicons:chevron-down"
+                    class="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600 transition-colors shrink-0" />
+                </div>
+              </template>
+              <template #default="{ close }">
+                <div
+                  class="w-[200px] mt-1 shadow-2xl border border-slate-100 rounded-2xl bg-white overflow-hidden">
+                  <div
+                    class="px-4 py-3 border-b border-slate-100 bg-slate-50/50">
+                    <p class="text-[11px] font-bold text-slate-900 truncate">
+                      {{ authStore.user?.name || "User" }}
+                    </p>
+                    <p
+                      class="text-[10px] font-bold text-slate-400 uppercase tracking-widest truncate">
+                      {{ authStore.user?.plan || "Free" }} Plan
+                    </p>
+                  </div>
+
+                  <div class="p-2">
+                    <NuxtLink
+                      to="/settings/"
+                      @click="close"
+                      class="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-600 hover:text-green-600 hover:bg-green-50 rounded-md transition-all">
+                      <UiIcon icon="heroicons:cog-8-tooth" class="w-4 h-4" />
+                      User Settings
+                    </NuxtLink>
+                    <div class="h-px bg-slate-100 my-1 mx-2"></div>
+                    <button
+                      @click="
+                        isLogoutModalOpen = true;
+                        close();
+                      "
+                      class="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 rounded-md transition-all text-left border-none bg-transparent">
+                      <UiIcon
+                        icon="heroicons:arrow-right-on-rectangle"
+                        class="w-4 h-4" />
+                      Sign Out
+                    </button>
+                  </div>
+                </div>
+              </template>
+            </UiPopover>
+          </div>
         </header>
 
         <main
-          class="flex-1 overflow-y-auto pt-10 p-4 md:px-6 lg:px-8 relative min-h-0">
-          <div class="w-full h-full">
+          class="flex-1 overflow-y-auto pt-[20px] md:pt-0 relative min-h-0 bg-[#f7f7f9]">
+          <div
+            class="w-full h-full bg-white border border-[#e5e5e5] rounded-tl-2xl p-6 md:p-10 h-full overflow-y-auto overflow-x-hidden">
             <slot />
           </div>
         </main>
@@ -393,17 +487,7 @@
                       class="relative rounded-md text-slate-400 hover:text-slate-600 focus:outline-none">
                       <span class="absolute -inset-2.5"></span>
                       <span class="sr-only">Close panel</span>
-                      <svg
-                        class="h-6 w-6"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke-width="2.5"
-                        stroke="currentColor">
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          d="M6 18L18 6M6 6l12 12" />
-                      </svg>
+                      <UiIcon icon="heroicons:x-mark" class="h-6 w-6" />
                     </button>
                   </div>
 
@@ -414,17 +498,9 @@
                       @click="isMobileMenuOpen = false"
                       class="flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
                       active-class="bg-[#ebebec] text-slate-900">
-                      <svg
-                        class="w-[18px] h-[18px] mr-3 opacity-70"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24">
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
-                      </svg>
+                      <UiIcon
+                        icon="heroicons:home"
+                        class="w-[18px] h-[18px] mr-3 opacity-70" />
                       Dashboard
                     </NuxtLink>
 
@@ -443,17 +519,9 @@
                         'bg-[#ebebec] text-slate-900 flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl':
                           $route.path.startsWith('/invoices'),
                       }">
-                      <svg
-                        class="w-[18px] h-[18px] mr-3 opacity-70"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24">
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                      </svg>
+                      <UiIcon
+                        icon="heroicons:document-text"
+                        class="w-[18px] h-[18px] mr-3 opacity-70" />
                       Invoices
                     </NuxtLink>
                     <NuxtLink
@@ -461,17 +529,9 @@
                       @click="isMobileMenuOpen = false"
                       class="flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
                       active-class="bg-[#ebebec] text-slate-900">
-                      <svg
-                        class="w-[18px] h-[18px] mr-3 opacity-70"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24">
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                      </svg>
+                      <UiIcon
+                        icon="heroicons:users"
+                        class="w-[18px] h-[18px] mr-3 opacity-70" />
                       Clients
                     </NuxtLink>
 
@@ -486,26 +546,13 @@
                       @click="isMobileMenuOpen = false"
                       class="flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
                       active-class="bg-[#ebebec] text-slate-900">
-                      <svg
-                        class="w-[18px] h-[18px] mr-3 opacity-70"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24">
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                      </svg>
+                      <UiIcon
+                        icon="heroicons:cog-6-tooth"
+                        class="w-[18px] h-[18px] mr-3 opacity-70" />
                       Settings
                     </NuxtLink>
 
-                    <!-- ADMIN (Mobile) -->
+                    <!-- ADMIN -->
                     <template v-if="authStore.isAdmin">
                       <div class="pt-6 pb-2 px-4">
                         <h4
@@ -578,17 +625,9 @@
       <div class="p-6">
         <div
           class="flex items-center justify-center w-12 h-12 mx-auto bg-slate-100 rounded-full mb-4">
-          <svg
-            class="w-6 h-6 text-slate-600"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-          </svg>
+          <UiIcon
+            icon="heroicons:arrow-right-on-rectangle"
+            class="w-6 h-6 text-slate-600" />
         </div>
         <div class="text-center">
           <h3 class="text-lg font-semibold text-slate-900">Sign Out?</h3>
@@ -614,21 +653,31 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from "vue";
+import { ref, watch, onMounted, onUnmounted } from "vue";
 import { useRoute } from "vue-router";
 import { useAuthStore } from "~/stores/authStore";
 import { useSystemStore } from "~/stores/systemStore";
 import { useUiStore } from "~/stores/uiStore";
+import { useNotificationStore } from "~/stores/notificationStore";
+import { formatDate } from "~/utils/date";
 
 const route = useRoute();
 const authStore = useAuthStore();
 const systemStore = useSystemStore();
 const uiStore = useUiStore();
+const notificationStore = useNotificationStore();
 const isMobileMenuOpen = ref(false);
 const isLogoutModalOpen = ref(false);
 
 onMounted(() => {
   systemStore.fetchSystemConfig();
+  if (authStore.user) {
+    notificationStore.startPolling();
+  }
+});
+
+onUnmounted(() => {
+  notificationStore.stopPolling();
 });
 
 watch(isMobileMenuOpen, (isOpen) => {
@@ -646,10 +695,12 @@ watch(isMobileMenuOpen, (isOpen) => {
 /* Custom Scrollbar for scrollable containers */
 .overflow-y-auto::-webkit-scrollbar {
   width: 6px;
+  padding-right: 6px;
 }
 
 .overflow-y-auto::-webkit-scrollbar-track {
   background: transparent;
+  padding-right: 100px;
 }
 
 .overflow-y-auto::-webkit-scrollbar-thumb {

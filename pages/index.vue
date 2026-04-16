@@ -136,7 +136,7 @@
         <div
           class="max-w-4xl mx-auto text-center pointer-events-auto mt-12 md:mt-24">
           <div
-            class="inline-flex items-center gap-2 px-3 py-1 mb-8 rounded-full bg-white/60 border border-slate-200 backdrop-blur-sm shadow-sm float-subtle">
+            class="reveal-item reveal-up delay-100 inline-flex items-center gap-2 px-3 py-1 mb-8 rounded-full bg-white/60 border border-slate-200 backdrop-blur-sm shadow-sm float-subtle">
             <span class="flex h-2 w-2 relative">
               <span
                 class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -150,19 +150,19 @@
           </div>
 
           <h1
-            class="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter leading-[1.1] pb-8 bg-clip-text text-transparent bg-gradient-to-br from-slate-900 via-slate-800 to-slate-500">
+            class="reveal-item reveal-up delay-200 text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter leading-[1.1] pb-8 bg-clip-text text-transparent bg-gradient-to-br from-slate-900 via-slate-800 to-slate-500">
             Invoicing never<br />been easier.
           </h1>
 
           <p
-            class="text-lg md:text-xl text-slate-600 max-w-2xl mx-auto mb-12 leading-relaxed font-medium">
+            class="reveal-item reveal-up delay-300 text-lg md:text-xl text-slate-600 max-w-2xl mx-auto mb-12 leading-relaxed font-medium">
             Create, send, and track beautiful invoices in seconds. Let InvoKita
             handle the heavy lifting while you focus on your craft. We'll update
             you.
           </p>
 
           <div
-            class="flex flex-col sm:flex-row items-center justify-center gap-4">
+            class="reveal-item reveal-up delay-400 flex flex-col sm:flex-row items-center justify-center gap-4">
             <NuxtLink
               to="/register"
               class="group relative w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 text-base font-semibold text-white bg-slate-900 rounded-full hover:bg-slate-800 transition-all duration-300 hover:scale-105 active:scale-95 shadow-md hover:shadow-lg">
@@ -187,7 +187,7 @@
       <section
         class="relative z-20 py-24 px-6 md:px-12 bg-white/50 backdrop-blur-md border-y border-slate-200/50">
         <div class="max-w-6xl mx-auto">
-          <div class="text-center mb-16">
+          <div class="text-center mb-16 reveal-item reveal-up">
             <h2
               class="text-3xl md:text-4xl font-semibold tracking-tight text-slate-900 mb-4">
               How it works
@@ -206,7 +206,7 @@
 
             <!-- Step 1 -->
             <div
-              class="group relative bg-white/70 backdrop-blur-md rounded-3xl p-8 border border-slate-200/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-xl transition-all hover:-translate-y-2">
+              class="reveal-item reveal-up delay-100 group relative bg-white/70 backdrop-blur-md rounded-3xl p-8 border border-slate-200/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-xl transition-all hover:-translate-y-2">
               <div
                 class="w-14 h-14 rounded-2xl bg-slate-100 shadow-inner border border-slate-200 flex items-center justify-center text-slate-900 font-black text-2xl mb-8 group-hover:scale-110 transition-transform">
                 1
@@ -229,7 +229,7 @@
 
             <!-- Step 2 -->
             <div
-              class="group relative bg-white/70 backdrop-blur-md rounded-3xl p-8 border border-slate-200/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-xl transition-all hover:-translate-y-2 md:mt-12">
+              class="reveal-item reveal-up delay-200 group relative bg-white/70 backdrop-blur-md rounded-3xl p-8 border border-slate-200/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-xl transition-all hover:-translate-y-2 md:mt-12">
               <div
                 class="w-14 h-14 rounded-2xl bg-emerald-50 shadow-inner border border-emerald-100 flex items-center justify-center text-emerald-600 font-black text-2xl mb-8 group-hover:scale-110 transition-transform">
                 2
@@ -270,7 +270,7 @@
 
             <!-- Step 3 -->
             <div
-              class="group relative bg-white/70 backdrop-blur-md rounded-3xl p-8 border border-slate-200/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-xl transition-all hover:-translate-y-2 md:mt-24">
+              class="reveal-item reveal-up delay-300 group relative bg-white/70 backdrop-blur-md rounded-3xl p-8 border border-slate-200/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-xl transition-all hover:-translate-y-2 md:mt-24">
               <div
                 class="w-14 h-14 rounded-2xl bg-amber-50 shadow-inner border border-amber-100 flex items-center justify-center text-amber-600 font-black text-2xl mb-8 group-hover:scale-110 transition-transform">
                 3
@@ -299,7 +299,7 @@
       <!-- Core Modules Section -->
       <section class="relative z-20 py-24 px-6 md:px-12 bg-white">
         <div class="max-w-6xl mx-auto">
-          <div class="text-center mb-16">
+          <div class="text-center mb-16 reveal-item reveal-up">
             <h2
               class="text-3xl md:text-4xl font-semibold tracking-tight text-slate-900 mb-4">
               Everything you need. Nothing you don't.
@@ -313,7 +313,7 @@
           <div class="grid md:grid-cols-2 gap-8">
             <!-- Invoices Module -->
             <div
-              class="group bg-slate-50/50 rounded-3xl p-8 border border-slate-200/70 transition-all hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:border-emerald-200 hover:bg-white cursor-default">
+              class="reveal-item reveal-up delay-100 group bg-slate-50/50 rounded-3xl p-8 border border-slate-200/70 transition-all hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:border-emerald-200 hover:bg-white cursor-default">
               <div
                 class="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 mb-6 group-hover:scale-110 group-hover:bg-emerald-100 transition-all">
                 <svg
@@ -339,7 +339,7 @@
 
             <!-- Clients Module -->
             <div
-              class="group bg-slate-50/50 rounded-3xl p-8 border border-slate-200/70 transition-all hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:border-emerald-200 hover:bg-white cursor-default">
+              class="reveal-item reveal-up delay-200 group bg-slate-50/50 rounded-3xl p-8 border border-slate-200/70 transition-all hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:border-emerald-200 hover:bg-white cursor-default">
               <div
                 class="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 mb-6 group-hover:scale-110 group-hover:bg-emerald-100 transition-all">
                 <svg
@@ -366,7 +366,7 @@
 
             <!-- Dashboard Module -->
             <div
-              class="group bg-slate-50/50 rounded-3xl p-8 border border-slate-200/70 transition-all hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:border-slate-300 hover:bg-white cursor-default">
+              class="reveal-item reveal-up delay-300 group bg-slate-50/50 rounded-3xl p-8 border border-slate-200/70 transition-all hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:border-slate-300 hover:bg-white cursor-default">
               <div
                 class="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-slate-800 mb-6 group-hover:scale-110 group-hover:bg-slate-200 transition-all">
                 <svg
@@ -398,7 +398,7 @@
 
             <!-- Settings Module -->
             <div
-              class="group bg-slate-50/50 rounded-3xl p-8 border border-slate-200/70 transition-all hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:border-amber-200 hover:bg-white cursor-default">
+              class="reveal-item reveal-up delay-400 group bg-slate-50/50 rounded-3xl p-8 border border-slate-200/70 transition-all hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:border-amber-200 hover:bg-white cursor-default">
               <div
                 class="w-12 h-12 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600 mb-6 group-hover:scale-110 group-hover:bg-amber-100 transition-all">
                 <svg
@@ -434,7 +434,7 @@
       <section class="relative z-20 py-24 px-6 md:px-12 bg-transparent">
         <div
           class="max-w-6xl mx-auto flex flex-col lg:flex-row items-center gap-16">
-          <div class="lg:w-1/2">
+          <div class="lg:w-1/2 reveal-item reveal-left">
             <h2
               class="text-3xl md:text-4xl font-semibold tracking-tight text-slate-900 mb-6">
               Designed to help you
@@ -533,7 +533,7 @@
             </ul>
           </div>
           <div
-            class="lg:w-1/2 relative w-full aspect-square md:aspect-video lg:aspect-square bg-slate-100 rounded-3xl border border-slate-200 overflow-hidden shadow-inner flex items-center justify-center">
+            class="reveal-item reveal-right lg:w-1/2 relative w-full aspect-square md:aspect-video lg:aspect-square bg-slate-100 rounded-3xl border border-slate-200 overflow-hidden shadow-inner flex items-center justify-center">
             <div class="text-slate-400 font-medium">
               ✨ AI Generator Preview
             </div>
@@ -822,23 +822,26 @@
       <section
         class="relative z-20 py-24 px-6 md:px-12 bg-white/50 backdrop-blur-md border-y border-slate-200/50">
         <div class="max-w-7xl mx-auto">
-          <div class="text-center mb-16">
+          <div class="text-center mb-16 reveal-item reveal-up">
             <h2
               class="text-3xl md:text-4xl font-semibold tracking-tight text-slate-900 mb-4">
-              Transparent Pricing
+              Simple, transparent pricing.
             </h2>
+
             <p class="text-slate-600 max-w-2xl mx-auto">
-              Choose the plan that fits your business needs. No hidden fees.
+              Choose the plan that's right for your business. No hidden fees.
             </p>
           </div>
 
           <div class="grid md:grid-cols-4 max-w-7xl gap-8 mx-auto items-center">
             <!-- Dynamic Plans -->
             <div
-              v-for="plan in dynamicPlans"
+              v-for="(plan, index) in dynamicPlans"
               :key="plan.id"
+              class="reveal-item reveal-scale relative flex flex-col p-8 rounded-3xl border transition-all h-full"
+              :style="{ 'transition-delay': index * 100 + 'ms' }"
               :class="[
-                'rounded-3xl p-8 border flex flex-col transition-all duration-500 relative self-stretch',
+                'transition-all duration-500 relative self-stretch',
                 plan.name.toUpperCase() === 'FREE'
                   ? 'bg-white border-slate-200 shadow-sm hover:border-slate-300'
                   : '',
@@ -890,7 +893,7 @@
               <div class="mb-6">
                 <span
                   :class="[
-                    'text-4xl font-black tracking-tight',
+                    'text-4xl font-semibold tracking-tight',
                     ['PRO', 'MAX'].includes(plan.name.toUpperCase())
                       ? 'text-white'
                       : 'text-slate-900',
@@ -991,7 +994,7 @@
             <p class="text-sm font-medium text-slate-500">
               Want more power?
               <a
-                href="mailto:contact@invokita.bsyx.my"
+                href="mailto:contact@invokita.my"
                 class="text-emerald-600 hover:text-emerald-700 underline underline-offset-2"
                 >Contact us for enquiry</a
               >
@@ -1012,7 +1015,7 @@
 
           <div class="space-y-4">
             <div
-              class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+              class="reveal-item reveal-up delay-100 bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
               <h4 class="text-lg font-semibold text-slate-900 mb-2">
                 Can I cancel my subscription at any time?
               </h4>
@@ -1023,7 +1026,7 @@
               </p>
             </div>
             <div
-              class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+              class="reveal-item reveal-up delay-200 bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
               <h4 class="text-lg font-semibold text-slate-900 mb-2">
                 Does InvoKita support international currencies?
               </h4>
@@ -1034,7 +1037,7 @@
               </p>
             </div>
             <div
-              class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+              class="reveal-item reveal-up delay-300 bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
               <h4 class="text-lg font-semibold text-slate-900 mb-2">
                 Is my data secure?
               </h4>
@@ -1168,7 +1171,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, nextTick } from "vue";
 import { useAuthStore } from "~/stores/authStore";
 
 const authStore = useAuthStore();
@@ -1185,8 +1188,37 @@ const fetchPlans = async () => {
   }
 };
 
-onMounted(() => {
-  fetchPlans();
+const initObserver = () => {
+  const observerOptions = {
+    threshold: 0.1,
+    rootMargin: "0px 0px -50px 0px",
+  };
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add("reveal-active");
+      }
+    });
+  }, observerOptions);
+
+  document.querySelectorAll(".reveal-item").forEach((el) => {
+    observer.observe(el);
+  });
+
+  return observer;
+};
+
+onMounted(async () => {
+  // Initialize for static items
+  initObserver();
+
+  // Fetch plans
+  await fetchPlans();
+
+  // Re-initialize for dynamic plans after they render
+  await nextTick();
+  initObserver();
 });
 
 definePageMeta({
@@ -1197,6 +1229,59 @@ definePageMeta({
 <style scoped>
 .bg-\[\#f8fafc\] {
   background-color: #f8fafc;
+}
+
+/* Scroll Reveal Animations */
+.reveal-item {
+  opacity: 0;
+  will-change: transform, opacity;
+  transition:
+    transform 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal-up {
+  transform: translateY(40px);
+}
+
+.reveal-down {
+  transform: translateY(-40px);
+}
+
+.reveal-left {
+  transform: translateX(-40px);
+}
+
+.reveal-right {
+  transform: translateX(40px);
+}
+
+.reveal-scale {
+  transform: scale(0.95);
+}
+
+.reveal-item.reveal-active {
+  opacity: 1 !important;
+  transform: translate(0, 0) scale(1) !important;
+}
+
+.delay-100 {
+  transition-delay: 100ms;
+}
+.delay-200 {
+  transition-delay: 200ms;
+}
+.delay-300 {
+  transition-delay: 300ms;
+}
+.delay-400 {
+  transition-delay: 400ms;
+}
+.delay-500 {
+  transition-delay: 500ms;
+}
+.delay-700 {
+  transition-delay: 700ms;
 }
 
 /* Animations Make Magic */
