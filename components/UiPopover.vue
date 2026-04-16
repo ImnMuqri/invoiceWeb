@@ -47,8 +47,19 @@ const triggerRef = ref(null);
 const popoverRef = ref(null);
 const popoverStyle = ref({});
 
-const updatePosition = () => {
+const updatePosition = (event) => {
   if (!triggerRef.value || !isOpen.value) return;
+
+  // If the scroll event came from inside the popover, we don't need to reposition
+  // because the trigger's position relative to the viewport hasn't changed.
+  if (
+    event &&
+    event.type === "scroll" &&
+    popoverRef.value &&
+    popoverRef.value.contains(event.target)
+  ) {
+    return;
+  }
 
   const rect = triggerRef.value.getBoundingClientRect();
   const offset = 8;
@@ -95,8 +106,8 @@ const updatePosition = () => {
   }
 
   popoverStyle.value = {
-    top: `${top}px`,
-    left: `${left}px`,
+    top: `${Math.round(top)}px`,
+    left: `${Math.round(left)}px`,
   };
 };
 

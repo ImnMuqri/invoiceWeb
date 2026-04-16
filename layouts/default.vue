@@ -324,8 +324,7 @@
               <template #default="{ close }">
                 <div
                   class="w-[320px] max-h-[400px] flex flex-col overflow-hidden rounded-2xl">
-                  <div
-                    class="flex items-center justify-between px-4 py-3 border-b border-slate-100 bg-slate-50/80 backdrop-blur">
+                  <div class="px-3 py-2 border-b border-slate-100 bg-slate-50/80 backdrop-blur w-[320px]">
                     <span class="text-[12px] font-semibold text-slate-500"
                       >Notifications</span
                     >
@@ -336,7 +335,7 @@
                       Mark all read
                     </button>
                   </div>
-                  <div class="p-2 overflow-y-auto flex-1 custom-scrollbar">
+                  <div class="p-2 overflow-y-auto flex-1 custom-scrollbar w-[320px]" style="scrollbar-gutter: stable;">
                     <div
                       v-if="notificationStore.notifications.length === 0"
                       class="text-center py-8 text-xs text-slate-500">
