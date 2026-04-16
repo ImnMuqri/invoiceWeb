@@ -12,10 +12,10 @@ export const useNotificationStore = defineStore("notifications", () => {
   const fetchNotifications = async () => {
     loading.value = true;
     try {
-      const res = await $api.get("/api/notifications");
+      const res = await $api.get("/notifications");
       notifications.value = res.data;
       
-      const countRes = await $api.get("/api/notifications/unread-count");
+      const countRes = await $api.get("/notifications/unread-count");
       unreadCount.value = countRes.data.count;
     } catch (error) {
       console.error("Error fetching notifications:", error);
@@ -26,7 +26,7 @@ export const useNotificationStore = defineStore("notifications", () => {
 
   const markAsRead = async (id) => {
     try {
-      await $api.put(`/api/notifications/${id}/read`);
+      await $api.put(`/notifications/${id}/read`);
       const notif = notifications.value.find((n) => n.id === id);
       if (notif && !notif.isRead) {
         notif.isRead = true;
@@ -39,7 +39,7 @@ export const useNotificationStore = defineStore("notifications", () => {
 
   const markAllAsRead = async () => {
     try {
-      await $api.put("/api/notifications/read-all");
+      await $api.put("/notifications/read-all");
       notifications.value.forEach((n) => {
         n.isRead = true;
       });

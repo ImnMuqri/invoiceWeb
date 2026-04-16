@@ -487,7 +487,7 @@
           <button
             type="submit"
             @click="submitInvoice"
-            :disabled="isProcessing || isLocked"
+            :disabled="isAnyActionLoading || isLocked"
             class="inline-flex items-center gap-2 justify-center rounded-md border border-transparent bg-slate-900 py-2 px-4 text-sm font-medium text-white shadow hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
             <UiIcon
               v-if="isProcessing"
@@ -559,15 +559,17 @@
             class="flex items-center gap-3 text-sm font-medium animate-in fade-in slide-in-from-top-2 duration-500">
             <button
               @click="downloadInvoice"
-              class="flex items-center gap-2 px-3 py-1.5 rounded-md bg-emerald-600 text-white shadow-sm hover:bg-emerald-700 transition-colors">
-              <UiIcon icon="heroicons:arrow-down-tray" class="w-4 h-4" />
+              :disabled="isAnyActionLoading"
+              class="flex items-center gap-2 px-3 py-1.5 rounded-md bg-emerald-600 text-white shadow-sm hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+              <UiIcon v-if="!isDownloading" icon="heroicons:arrow-down-tray" class="w-4 h-4" />
+              <UiIcon v-else icon="heroicons:arrow-path" custom-class="w-4 h-4 animate-spin" />
               Download PDF
             </button>
             <div class="relative group">
               <button
                 @click="emailInvoice"
                 :disabled="
-                  isSending || !authStore.isPro || form.status === 'Paid' || !systemStore.isEmailEnabled
+                  isAnyActionLoading || !authStore.isPro || form.status === 'Paid' || !systemStore.isEmailEnabled
                 "
                 class="flex items-center gap-2 px-3 py-1.5 rounded-md bg-white shadow-sm border border-slate-200 text-slate-900 hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 :title="
@@ -602,7 +604,7 @@
             <div class="relative group">
               <button
                 @click="whatsappInvoice"
-                :disabled="!authStore.isPro || form.status === 'Paid' || !systemStore.isWhatsappEnabled"
+                :disabled="isAnyActionLoading || !authStore.isPro || form.status === 'Paid' || !systemStore.isWhatsappEnabled"
                 class="flex items-center gap-2 px-3 py-1.5 rounded-md bg-[#25D366] text-white shadow-sm hover:bg-[#128C7E] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 :title="
                   !systemStore.isWhatsappEnabled
@@ -613,7 +615,8 @@
                         ? 'Cannot WhatsApp paid invoice'
                         : 'WhatsApp'
                 ">
-                <UiIcon icon="simple-icons:whatsapp" class="w-4 h-4" />
+                <UiIcon v-if="!isWhatsApping" icon="simple-icons:whatsapp" class="w-4 h-4" />
+                <UiIcon v-else icon="heroicons:arrow-path" custom-class="w-4 h-4 animate-spin text-white" />
                 <span :class="{ 'opacity-50': !authStore.isPro || !systemStore.isWhatsappEnabled }"
                   >WhatsApp</span
                 >
@@ -1257,6 +1260,9 @@ const processingComplete = ref(false);
 const showActionButtons = ref(false);
 const processingStatus = ref("Preparing Invoice...");
 const isSending = ref(false);
+const isDownloading = ref(false);
+const isWhatsApping = ref(false);
+const isAnyActionLoading = computed(() => isProcessing.value || isSending.value || isDownloading.value || isWhatsApping.value);
 const isLocked = ref(false);
 
 const form = ref({
@@ -1504,10 +1510,20 @@ const submitInvoice = async () => {
 };
 
 const downloadInvoice = async () => {
-  await invoiceStore.downloadPdf(
-    invoiceId,
-    `Invoice-${form.value.invoiceNumber}.pdf`,
-  );
+  isDownloading.value = true;
+  try {
+    await invoiceStore.downloadPdf(
+      invoiceId,
+      `Invoice-${form.value.invoiceNumber}.pdf`,
+    );
+  } catch (err) {
+    toast.value = {
+      message: "Failed to download PDF",
+      type: "error",
+    };
+  } finally {
+    isDownloading.value = false;
+  }
 };
 
 const emailInvoice = async () => {
@@ -1529,6 +1545,7 @@ const emailInvoice = async () => {
 };
 
 const whatsappInvoice = async () => {
+  isWhatsApping.value = true;
   try {
     const result = await invoiceStore.whatsappInvoice(invoiceId);
     toast.value = {
@@ -1540,6 +1557,8 @@ const whatsappInvoice = async () => {
       message: err.response?.data?.message || err.message,
       type: "error",
     };
+  } finally {
+    isWhatsApping.value = false;
   }
 };
 </script>

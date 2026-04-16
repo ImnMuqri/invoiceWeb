@@ -301,7 +301,7 @@
               }}</span>
             </h3>
           </div>
-          <div class="flex items-center gap-4">
+          <div class="flex items-center gap-2">
             <!-- Notifications Popover -->
             <UiPopover placement="bottom-end">
               <template #trigger="{ isOpen }">
@@ -318,11 +318,10 @@
               </template>
               <template #default="{ close }">
                 <div
-                  class="w-[320px] max-h-[400px] flex flex-col shadow-2xl border border-slate-100 rounded-2xl bg-white overflow-hidden mt-1">
+                  class="w-[320px] max-h-[400px] flex flex-col overflow-hidden rounded-2xl">
                   <div
                     class="flex items-center justify-between px-4 py-3 border-b border-slate-100 bg-slate-50/80 backdrop-blur">
-                    <span
-                      class="text-[11px] font-bold text-slate-500 uppercase tracking-wider"
+                    <span class="text-[12px] font-semibold text-slate-500"
                       >Notifications</span
                     >
                     <button
@@ -338,7 +337,7 @@
                       class="text-center py-8 text-xs text-slate-500">
                       <UiIcon
                         icon="heroicons:bell-slash"
-                        class="w-10 h-10 mx-auto mb-3 text-slate-200" />
+                        custom-class="w-6 h-6 mx-auto mb-3 text-slate-200" />
                       You're all caught up!
                     </div>
                     <div v-else class="space-y-1">
@@ -389,12 +388,12 @@
             <UiPopover placement="bottom-end">
               <template #trigger="{ isOpen }">
                 <div
-                  class="flex items-center gap-3 px-3 py-1.5 bg-white rounded-xl border border-[#e5e5e5] shadow-[0_2px_12px_rgba(0,0,0,0.03)] cursor-pointer group hover:bg-slate-50 transition-all"
+                  class="flex items-center gap-3 px-3 py-2 bg-white rounded-xl border border-[#e5e5e5] shadow-[0_2px_12px_rgba(0,0,0,0.03)] cursor-pointer group hover:bg-slate-50 transition-all"
                   :class="{
                     'ring-2 ring-slate-900 border-transparent': isOpen,
                   }">
                   <div
-                    class="w-8 h-8 rounded-full bg-slate-900 flex items-center justify-center text-white text-[11px] font-bold shadow-sm shrink-0 uppercase">
+                    class="w-8 h-8 rounded-md bg-emerald-600 flex items-center justify-center text-white text-[11px] font-bold shadow-sm shrink-0 uppercase">
                     {{ (authStore.user?.name || "U").charAt(0) }}
                   </div>
                   <div class="hidden sm:block min-w-0">
