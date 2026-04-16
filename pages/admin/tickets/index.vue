@@ -4,11 +4,11 @@
     <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
       <div class="space-y-1">
         <div class="flex items-center gap-2 mb-1">
-          <h1 class="text-3xl font-bold text-slate-900 tracking-tight">
+          <h1 class="text-2xl font-bold text-slate-900 tracking-tight">
             Support Tickets
           </h1>
         </div>
-        <p class="text-[14px] text-slate-500 font-medium">
+        <p class="text-[12px] text-slate-500 font-medium">
           Manage and respond to user inquiries from Resend.
         </p>
       </div>
@@ -78,8 +78,8 @@
         <div
           class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-6">
           <UiIcon
-            icon="heroicons:ticket-slash"
-            class="w-10 h-10 text-slate-200" />
+            icon="carbon:no-ticket"
+            custom-class="w-10 h-10 text-slate-200" />
         </div>
         <h3 class="text-lg font-bold text-slate-900 mb-1">No tickets found</h3>
         <p class="text-sm text-slate-400 max-w-[240px]">

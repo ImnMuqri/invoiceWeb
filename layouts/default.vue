@@ -159,7 +159,8 @@
               class="flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
               active-class="bg-[#ebebec] text-slate-900"
               :class="{
-                'bg-[#ebebec] text-slate-900': $route.path.startsWith('/admin'),
+                'bg-[#ebebec] text-slate-900':
+                  $route.path === '/admin/' || $route.path === '/admin',
               }">
               <UiIcon
                 icon="heroicons:command-line"
@@ -171,7 +172,8 @@
               class="flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
               active-class="bg-[#ebebec] text-slate-900"
               :class="{
-                'bg-[#ebebec] text-slate-900': $route.path.startsWith('/admin/tickets'),
+                'bg-[#ebebec] text-slate-900':
+                  $route.path.startsWith('/admin/tickets'),
               }">
               <UiIcon
                 icon="heroicons:ticket"
@@ -337,15 +339,15 @@
                 <div
                   class="w-[320px] max-h-[400px] flex flex-col overflow-hidden rounded-2xl">
                   <div
-                    class="px-3 py-2 border-b border-slate-100 bg-slate-50/80 backdrop-blur w-[320px]">
-                    <span class="text-[12px] font-semibold text-slate-500"
+                    class="flex items-center justify-between px-3 py-3 border-b border-slate-100 bg-slate-50/80 backdrop-blur w-[320px]">
+                    <span class="text-[13px] font-semibold text-slate-500"
                       >Notifications</span
                     >
                     <button
                       v-if="notificationStore.unreadCount > 0"
                       @click="notificationStore.markAllAsRead()"
-                      class="text-[10px] font-bold text-emerald-600 uppercase tracking-wider hover:text-emerald-700 transition-colors">
-                      Mark all read
+                      class="text-[11px] font-bold text-emerald-600 hover:text-emerald-700 transition-colors">
+                      Mark all as read
                     </button>
                   </div>
                   <div
@@ -605,7 +607,8 @@
                         active-class="bg-[#ebebec] text-slate-900"
                         :class="{
                           'bg-[#ebebec] text-slate-900':
-                            $route.path.startsWith('/admin'),
+                            $route.path === '/admin/' ||
+                            $route.path === '/admin',
                         }">
                         <UiIcon
                           icon="heroicons:command-line"
