@@ -99,7 +99,7 @@
                   custom-class="w-5 h-5 text-blue-600 shrink-0" />
                 <p class="text-[11px] text-blue-800 leading-relaxed">
                   <strong>Credentials change:</strong> Please contact us at
-                  help@invokita to change your name
+                  support@invokita.my to change your name
                 </p>
               </div>
             </div>
@@ -774,14 +774,22 @@
                 </div>
 
                 <div v-if="isProviderConnected('TOYYIBPAY')" class="mt-auto">
-                  <div class="flex items-center justify-between mb-4">
-                    <div class="flex items-center gap-2">
-                      <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
-                      <span class="text-[12px] font-bold text-emerald-600"
-                        >Connected</span
-                      >
+                    <div class="flex flex-col gap-1 mb-4">
+                      <div class="flex items-center gap-2">
+                        <div class="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+                        <span class="text-[12px] font-bold text-emerald-600"
+                          >Connected</span
+                        >
+                      </div>
+                      <div class="pl-3.5 space-y-0.5">
+                        <p v-if="paymentProviders.find(p => p.provider === 'TOYYIBPAY')?.categoryCode" class="text-[10px] text-slate-500 font-medium text-left px-0">
+                          Category: {{ paymentProviders.find(p => p.provider === 'TOYYIBPAY').categoryCode }}
+                        </p>
+                        <p v-if="paymentProviders.find(p => p.provider === 'TOYYIBPAY')?.hasSecretKey" class="text-[10px] text-slate-500 font-medium italic text-left px-0">
+                          Secret Key: Configured
+                        </p>
+                      </div>
                     </div>
-                  </div>
                   <div class="flex gap-2">
                     <button
                       @click="openConnectModal('TOYYIBPAY')"
@@ -849,12 +857,23 @@
                 </div>
 
                 <div v-if="isProviderConnected('BILLPLZ')" class="mt-auto">
-                  <div class="flex items-center justify-between mb-4">
+                  <div class="flex flex-col gap-1 mb-4">
                     <div class="flex items-center gap-2">
-                      <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
+                      <div class="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
                       <span class="text-[12px] font-bold text-emerald-600"
                         >Connected</span
                       >
+                    </div>
+                    <div class="pl-3.5 space-y-0.5 text-left">
+                      <p v-if="paymentProviders.find(p => p.provider === 'BILLPLZ')?.collectionId" class="text-[10px] text-slate-500 font-medium">
+                        Collection: {{ paymentProviders.find(p => p.provider === 'BILLPLZ').collectionId }}
+                      </p>
+                      <p v-if="paymentProviders.find(p => p.provider === 'BILLPLZ')?.hasApiKey" class="text-[10px] text-slate-500 font-medium italic">
+                        API Key: Configured
+                      </p>
+                      <p v-if="paymentProviders.find(p => p.provider === 'BILLPLZ')?.hasXSignatureKey" class="text-[10px] text-slate-500 font-medium italic text-left">
+                        X-Signature: Configured
+                      </p>
                     </div>
                   </div>
                   <div class="flex gap-2">
