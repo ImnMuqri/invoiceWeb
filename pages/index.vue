@@ -1583,68 +1583,30 @@
             <h4 class="text-slate-50 font-semibold mb-4">Product</h4>
             <ul class="space-y-2 text-sm">
               <li>
-                <a href="#" class="hover:text-white transition-colors"
-                  >Features</a
-                >
+                <button 
+                  @click="scrollToSection('features')" 
+                  class="hover:text-white transition-colors border-none bg-transparent p-0 text-slate-400 font-medium cursor-pointer"
+                >Features</button>
               </li>
               <li>
-                <a href="#" class="hover:text-white transition-colors"
-                  >Pricing</a
-                >
-              </li>
-              <li>
-                <a href="#" class="hover:text-white transition-colors"
-                  >Integrations</a
-                >
-              </li>
-              <li>
-                <a href="#" class="hover:text-white transition-colors"
-                  >Changelog</a
-                >
+                <button 
+                  @click="scrollToSection('pricing')" 
+                  class="hover:text-white transition-colors border-none bg-transparent p-0 text-slate-400 font-medium cursor-pointer"
+                >Pricing</button>
               </li>
             </ul>
           </div>
           <div>
-            <h4 class="text-slate-50 font-semibold mb-4">Resources</h4>
+            <h4 class="text-slate-50 font-semibold mb-4">Legal</h4>
             <ul class="space-y-2 text-sm">
               <li>
-                <a href="#" class="hover:text-white transition-colors"
-                  >Documentation</a
-                >
+                <NuxtLink to="/legal/terms" class="hover:text-white transition-colors">Terms of Service</NuxtLink>
               </li>
               <li>
-                <a href="#" class="hover:text-white transition-colors">Blog</a>
+                <NuxtLink to="/legal/privacy" class="hover:text-white transition-colors">Privacy Policy</NuxtLink>
               </li>
               <li>
-                <a href="#" class="hover:text-white transition-colors"
-                  >Templates</a
-                >
-              </li>
-              <li>
-                <a href="#" class="hover:text-white transition-colors"
-                  >Help Center</a
-                >
-              </li>
-            </ul>
-          </div>
-          <div>
-            <h4 class="text-slate-50 font-semibold mb-4">Company</h4>
-            <ul class="space-y-2 text-sm">
-              <li>
-                <a href="#" class="hover:text-white transition-colors">About</a>
-              </li>
-              <li>
-                <a href="#" class="hover:text-white transition-colors"
-                  >Careers</a
-                >
-              </li>
-              <li>
-                <a href="#" class="hover:text-white transition-colors">Legal</a>
-              </li>
-              <li>
-                <a href="#" class="hover:text-white transition-colors"
-                  >Contact</a
-                >
+                <NuxtLink to="/legal/refund" class="hover:text-white transition-colors">Refund Policy</NuxtLink>
               </li>
             </ul>
           </div>
@@ -1652,7 +1614,10 @@
 
         <div
           class="max-w-6xl mx-auto pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4">
-          <div class="text-sm">© 2024 InvoKita. All rights reserved.</div>
+          <div class="text-sm flex flex-col items-center md:items-start gap-1">
+            <span>© 2026 InvoKita. All rights reserved.</span>
+            <span class="text-slate-600 text-[10px] font-bold uppercase tracking-widest">BSYX LABS (202603086039)</span>
+          </div>
           <div class="flex gap-4">
             <a
               href="#"

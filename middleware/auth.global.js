@@ -8,12 +8,13 @@ export default defineNuxtRouteMiddleware((to, from) => {
 
   const path = to.path;
 
-  const publicRoutes = ["/login", "/register", "/", "/pay"];
+  const publicRoutes = ["/login", "/register", "/", "/pay", "/legal"];
   const isPublicRoute = publicRoutes.some(
     (route) =>
       path === route ||
       (route !== "/" && path === route + "/") ||
       path.startsWith("/pay/") ||
+      path.startsWith("/legal/") ||
       (path.startsWith("/invoices/") && path.endsWith("/export")) ||
       to.name === "pay-id",
   );
