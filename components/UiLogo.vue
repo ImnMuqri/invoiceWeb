@@ -13,8 +13,11 @@
     </div>
     <span
       v-if="showText"
-      :class="textClasses[size]"
-      class="font-bold tracking-tighter text-slate-900 normal-case">
+      :class="[
+        textClasses[size],
+        theme === 'dark' ? 'text-slate-900' : 'text-white',
+      ]"
+      class="font-bold tracking-tighter normal-case">
       InvoKita<span class="text-emerald-600">.</span>
     </span>
   </div>
@@ -34,7 +37,10 @@ const props = defineProps({
     type: String,
     default: "",
   },
-  
+  theme: {
+    type: String,
+    default: "dark", // dark, light
+  },
 });
 
 const sizeClasses = {

@@ -1,1672 +1,884 @@
 <template>
-  <div style="zoom: 0.9">
-    <div
-      class="bg-[#f8fafc] min-h-[111.11vh] w-full relative overflow-x-hidden font-sans text-slate-900 flex flex-col selection:bg-emerald-600/20">
-      <!-- Navigation -->
-      <nav
-        class="sticky top-0 z-[100] px-6 py-4 md:px-12 flex items-center justify-between transition-all duration-300 border-b border-transparent"
-        :class="{
-          'bg-white/80 backdrop-blur-xl shadow-sm border-slate-200/50 py-3':
-            isScrolled,
-        }">
-        <div class="flex items-center gap-12">
-          <UiLogo
-            size="md"
-            @click="scrollToSection('hero')"
-            class="cursor-pointer" />
+  <div class="root">
+    <!-- ══════════════════ NAV ══════════════════ -->
+    <nav class="nav" :class="{ 'nav--scrolled': isScrolled }">
+      <div class="nav__inner">
+        <UiLogo
+          size="md"
+          @click="scrollToSection('hero')"
+          class="cursor-pointer" />
 
-          <!-- Desktop Nav Links -->
-          <div class="hidden lg:flex items-center gap-8">
-            <button
-              v-for="link in navLinks"
-              :key="link.id"
-              @click="scrollToSection(link.id)"
-              class="text-sm font-semibold text-slate-500 hover:text-slate-900 transition-colors">
-              {{ link.name }}
-            </button>
-          </div>
-        </div>
-
-        <div class="flex items-center">
-          <div class="hidden sm:flex items-center mr-6">
-            <NuxtLink
-              to="/login"
-              class="text-sm font-bold text-slate-600 hover:text-slate-900 transition-colors"
-              >Sign In</NuxtLink
-            >
-          </div>
-
-          <NuxtLink
-            to="/dashboard"
-            class="group relative inline-flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-bold text-white bg-slate-900 rounded-full border border-transparent hover:bg-slate-800 transition-all duration-300 hover:scale-105 active:scale-95 shadow-sm hover:shadow-md">
-            <span>Enter App</span>
-            <svg
-              class="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
-            </svg>
-          </NuxtLink>
-
-          <!-- Mobile Menu Trigger -->
+        <div class="nav__links">
           <button
-            @click="isMobileMenuOpen = true"
-            class="lg:hidden ml-4 p-2 text-slate-600 hover:text-slate-900 transition-colors">
-            <svg
-              class="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M4 6h16M4 12h16m-7 6h7"></path>
-            </svg>
+            v-for="link in navLinks"
+            :key="link.id"
+            @click="scrollToSection(link.id)"
+            class="nav__link">
+            {{ link.name }}
           </button>
         </div>
-      </nav>
 
-      <!-- Mobile Menu Overlay -->
-      <Transition name="fade">
-        <div v-if="isMobileMenuOpen" class="fixed inset-0 z-[200] lg:hidden">
-          <div
-            class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
-            @click="isMobileMenuOpen = false"></div>
-          <Transition name="slide">
-            <div
-              class="absolute right-0 top-0 bottom-0 w-full bg-white shadow-2xl p-8 flex flex-col">
-              <div class="flex justify-between items-center mb-12">
-                <UiLogo size="md" />
-                <button
-                  @click="isMobileMenuOpen = false"
-                  class="p-2 text-slate-400 hover:text-slate-900 transition-colors">
-                  <svg
-                    class="w-6 h-6"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24">
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M6 18L18 6M6 6l12 12"></path>
-                  </svg>
-                </button>
-              </div>
-
-              <div class="flex flex-col gap-6">
-                <button
-                  v-for="link in navLinks"
-                  :key="link.id"
-                  @click="scrollToSection(link.id)"
-                  class="text-left text-lg font-bold text-slate-900 hover:text-emerald-600 transition-colors">
-                  {{ link.name }}
-                </button>
-                <hr class="border-slate-100 my-4" />
-                <NuxtLink to="/login" class="text-lg font-bold text-slate-600"
-                  >Sign In</NuxtLink
-                >
-                <NuxtLink
-                  to="/register"
-                  class="text-lg font-bold text-emerald-600"
-                  >Create Account</NuxtLink
-                >
-              </div>
-
-              <div class="mt-auto text-xs text-slate-400 font-medium">
-                © 2024 InvoKita. All rights reserved.
-              </div>
-            </div>
-          </Transition>
+        <div class="nav__actions">
+          <NuxtLink to="/login" class="nav__signin">Sign in</NuxtLink>
+          <NuxtLink to="/dashboard" class="btn btn--dark">Enter App</NuxtLink>
+          <button
+            @click="isMobileMenuOpen = true"
+            class="nav__hamburger lg:hidden"
+            aria-label="Open menu">
+            <span></span><span></span>
+          </button>
         </div>
-      </Transition>
+      </div>
+    </nav>
 
-      <!-- Animated Background Orbs (Simple & Professional) -->
+    <!-- Mobile drawer -->
+    <Transition name="menu-fade">
       <div
-        class="absolute inset-x-0 top-0 h-screen z-0 pointer-events-none overflow-hidden opacity-40">
-        <div
-          class="orb orb-1 absolute w-[600px] h-[600px] rounded-full bg-slate-200/40 blur-[120px] -top-[10%] -right-[10%]"></div>
-        <div
-          class="orb orb-2 absolute w-[500px] h-[500px] rounded-full bg-emerald-100/30 blur-[120px] bottom-[10%] -left-[10%]"></div>
-        <div
-          class="orb orb-3 absolute w-[400px] h-[400px] rounded-full bg-slate-100/60 blur-[100px] top-[40%] left-[30%]"></div>
+        v-if="isMobileMenuOpen"
+        class="drawer-overlay"
+        @click="isMobileMenuOpen = false">
+        <Transition name="menu-slide">
+          <div class="drawer" @click.stop>
+            <div class="drawer__head">
+              <UiLogo size="md" />
+              <button
+                @click="isMobileMenuOpen = false"
+                class="drawer__close"
+                aria-label="Close">
+                ✕
+              </button>
+            </div>
+            <nav class="drawer__nav">
+              <button
+                v-for="link in navLinks"
+                :key="link.id"
+                @click="scrollToSection(link.id)"
+                class="drawer__link">
+                {{ link.name }}
+              </button>
+            </nav>
+            <div class="drawer__footer">
+              <NuxtLink to="/login" class="drawer__link">Sign in</NuxtLink>
+              <NuxtLink to="/register" class="btn btn--dark w-full text-center"
+                >Get Started Free</NuxtLink
+              >
+            </div>
+          </div>
+        </Transition>
+      </div>
+    </Transition>
+
+    <!-- ══════════════════ HERO ══════════════════ -->
+    <section id="hero" class="hero" aria-labelledby="hero-heading">
+      <!-- Thin drifting lines (the only decoration) -->
+      <div class="lines" aria-hidden="true">
+        <svg
+          class="lines__svg"
+          viewBox="0 0 1200 700"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          preserveAspectRatio="xMidYMid slice">
+          <path
+            class="line line--1"
+            d="M-100 350 Q300 100 600 350 Q900 600 1300 350"
+            stroke-width="1.5"
+            fill="none" />
+          <path
+            class="line line--2"
+            d="M-100 420 Q250 200 600 420 Q950 640 1300 420"
+            stroke-width="1"
+            fill="none" />
+          <path
+            class="line line--3"
+            d="M100 600 Q400 200 700 500 Q900 700 1300 300"
+            stroke-width="1"
+            fill="none" />
+          <circle class="dot dot--1" r="3" fill="currentColor" />
+          <circle class="dot dot--2" r="2" fill="currentColor" />
+          <circle class="dot dot--3" r="2.5" fill="currentColor" />
+        </svg>
       </div>
 
-      <!-- Floating UI Elements -->
-      <div
-        class="absolute inset-x-0 top-0 h-screen z-10 pointer-events-none flex justify-center items-center overflow-hidden">
-        <!-- Floating Card 1 -->
-        <div
-          class="float-slow absolute -left-12 md:left-24 top-1/4 w-64 h-32 bg-white/80 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-4 shadow-[0_8px_30px_rgb(0,0,0,0.04)] rotate-[-6deg] hidden sm:block">
-          <div class="flex items-center gap-3 mb-3">
-            <div
-              class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center">
-              <div class="w-2 h-2 rounded-full bg-emerald-600"></div>
-            </div>
-            <div>
-              <div class="text-xs font-semibold text-slate-800">
-                Invoice Paid
-              </div>
-              <div class="text-[10px] text-slate-500">Just now</div>
-            </div>
-          </div>
-          <div class="text-2xl font-semibold tracking-tight text-slate-900">
-            $4,250.00
-          </div>
+      <div class="hero__body">
+        <div class="hero__eyebrow ri" style="--d: 0">
+          <span class="hero__tag">For Malaysian businesses</span>
         </div>
 
-        <!-- Floating Card 2 -->
-        <div
-          class="float-medium absolute -right-8 md:right-32 bottom-1/3 w-48 h-48 bg-white/80 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] rotate-[8deg] hidden lg:flex flex-col">
-          <div class="text-xs font-semibold text-slate-500 mb-4">
-            Weekly Revenue
-          </div>
-          <div class="flex items-end gap-2 h-16 mt-auto">
-            <div class="w-full bg-slate-100 rounded-t-sm h-[40%]"></div>
-            <div class="w-full bg-slate-100 rounded-t-sm h-[60%]"></div>
-            <div class="w-full bg-slate-100 rounded-t-sm h-[30%]"></div>
-            <div class="w-full bg-emerald-600 rounded-t-sm h-[90%] relative">
-              <div
-                class="absolute -top-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-white rounded-full shadow-sm"></div>
-            </div>
-            <div class="w-full bg-slate-100 rounded-t-sm h-[70%]"></div>
-          </div>
-        </div>
+        <h1 id="hero-heading" class="hero__h1 ri" style="--d: 1">
+          Billing that<br />
+          <em class="hero__em">gets out of your way.</em>
+        </h1>
 
-        <!-- Floating Card 3 -->
-        <div
-          class="float-subtle absolute right-8 md:right-48 top-20 w-56 h-auto bg-white/80 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-4 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hidden md:block"
-          style="--rotation: 4deg">
-          <div class="flex items-center gap-3">
-            <div
-              class="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 font-semibold overflow-hidden">
-              <img
-                src="https://i.pravatar.cc/100?img=33"
-                alt="Avatar"
-                class="w-full h-full object-cover opacity-90" />
-            </div>
-            <div>
-              <div class="text-sm font-semibold text-slate-800">Iman Muqri</div>
-              <div class="text-[10px] text-slate-500">New Client Added</div>
-            </div>
-          </div>
-        </div>
+        <p class="hero__sub ri" style="--d: 2">
+          InvoKita is an AI-powered invoicing platform built for Malaysian
+          freelancers and businesses. Create, send, and get paid. Simple as that
+        </p>
 
-        <!-- Floating Card 4 -->
-        <div
-          class="float-slow absolute left-8 md:left-32 bottom-24 w-auto bg-white/80 backdrop-blur-xl border border-slate-200/60 rounded-full py-2.5 px-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hidden sm:flex items-center gap-2"
-          style="--rotation: -4deg; animation-delay: 2s">
-          <div class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></div>
-          <span class="text-xs font-semibold text-slate-600"
-            >3 Invoices Pending</span
+        <div class="hero__cta ri" style="--d: 3">
+          <NuxtLink to="/register" class="btn btn--dark btn--lg"
+            >Start for free</NuxtLink
+          >
+          <NuxtLink to="/login" class="btn btn--ghost btn--lg"
+            >Sign in</NuxtLink
           >
         </div>
 
-        <!-- Subtle particles -->
-        <div
-          class="particle anim-p-1 absolute top-[20%] right-[25%] w-2 h-2 rounded-full bg-slate-300 blur-[1px]"></div>
-        <div
-          class="particle anim-p-2 absolute bottom-[30%] left-[40%] w-1.5 h-1.5 rounded-full bg-emerald-300 blur-[1px]"></div>
-        <div
-          class="particle anim-p-3 absolute top-[60%] right-[15%] w-2.5 h-2.5 rounded-full bg-slate-200 blur-[2px]"></div>
-        <div
-          class="particle anim-p-1 absolute top-[40%] left-[20%] w-3 h-3 rounded-full bg-slate-200 blur-[2px]"
-          style="animation-delay: 1s"></div>
-        <div
-          class="particle anim-p-2 absolute bottom-[20%] right-[30%] w-2 h-2 rounded-full bg-emerald-200 blur-[1px]"
-          style="animation-delay: 2.5s"></div>
-        <div
-          class="particle anim-p-3 absolute top-[15%] left-[60%] w-1.5 h-1.5 rounded-full bg-slate-200 blur-[1px]"
-          style="animation-delay: 4s"></div>
+        <p class="hero__note ri" style="--d: 4">
+          No credit card required &middot; Free plan available
+        </p>
       </div>
 
-      <!-- Hero Section -->
-      <main
-        id="hero"
-        class="relative z-20 flex-1 flex flex-col items-center justify-center px-6 pt-32 pb-32 pointer-events-none min-h-[90vh]">
-        <div
-          class="max-w-4xl mx-auto text-center pointer-events-auto mt-12 md:mt-24">
+      <!-- Stat strip -->
+      <div class="hero__stats ri" style="--d: 5">
+        <div class="stat" v-for="s in stats" :key="s.label">
+          <span class="stat__val">{{ s.val }}</span>
+          <span class="stat__label">{{ s.label }}</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════ MARQUEE ══════════════════ -->
+    <div class="marquee-wrap" aria-hidden="true">
+      <div class="marquee">
+        <span v-for="n in 3" :key="n" class="marquee__track">
+          <span
+            v-for="item in marqueeItems"
+            :key="item"
+            class="marquee__item"
+            >{{ item }}</span
+          >
+        </span>
+      </div>
+    </div>
+
+    <!-- ══════════════════ HOW IT WORKS ══════════════════ -->
+    <section id="how-it-works" class="section" aria-labelledby="hiw-heading">
+      <div class="wrap">
+        <header class="section__head ri">
+          <span class="eyebrow">Process</span>
+          <h2 id="hiw-heading" class="h2">Three steps.<br />Zero friction.</h2>
+        </header>
+
+        <div class="steps">
           <div
-            class="reveal-item reveal-up delay-100 inline-flex items-center gap-2 px-3 py-1 mb-8 rounded-full bg-white/60 border border-slate-200 backdrop-blur-sm shadow-sm float-subtle">
-            <span class="flex h-2 w-2 relative">
-              <span
-                class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span
-                class="relative inline-flex rounded-full h-2 w-2 bg-emerald-600"></span>
-            </span>
-            <span
-              class="text-xs font-semibold tracking-wide text-slate-700 uppercase"
-              >AI-Powered Billing</span
-            >
+            class="step ri"
+            v-for="(step, i) in steps"
+            :key="step.title"
+            :style="{ '--d': i + 1 }">
+            <div class="step__n">{{ String(i + 1).padStart(2, "0") }}</div>
+            <div class="step__divider"></div>
+            <h3 class="step__title">{{ step.title }}</h3>
+            <p class="step__body">{{ step.body }}</p>
           </div>
+        </div>
+      </div>
+    </section>
 
-          <h1
-            class="reveal-item reveal-up delay-200 text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter leading-[1.1] pb-8 bg-clip-text text-transparent bg-gradient-to-br from-slate-900 via-slate-800 to-slate-500">
-            Invoicing never<br />been easier.
-          </h1>
+    <!-- ══════════════════ FEATURES ══════════════════ -->
+    <section
+      id="features"
+      class="section section--dark"
+      aria-labelledby="feat-heading">
+      <div class="wrap">
+        <header class="section__head ri">
+          <span class="eyebrow eyebrow--light">Capabilities</span>
+          <h2 id="feat-heading" class="h2 h2--light">
+            Everything you need.<br />Nothing you don't.
+          </h2>
+        </header>
 
-          <p
-            class="reveal-item reveal-up delay-300 text-lg md:text-xl text-slate-600 max-w-2xl mx-auto mb-12 leading-relaxed font-medium">
-            Create, send, and track beautiful invoices in seconds. Let InvoKita
-            handle the heavy lifting while you focus on your craft. We'll update
-            you.
-          </p>
-
-          <div
-            class="reveal-item reveal-up delay-400 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <NuxtLink
-              to="/register"
-              class="group relative w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 text-base font-semibold text-white bg-slate-900 rounded-full hover:bg-slate-800 transition-all duration-300 hover:scale-105 active:scale-95 shadow-md hover:shadow-lg">
-              Get Started Free
+        <div class="feat-grid">
+          <article
+            v-for="(f, i) in features"
+            :key="f.title"
+            class="feat-card ri"
+            :style="{ '--d': i * 0.5 + 1 }">
+            <div class="feat-card__icon">
               <svg
-                class="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1"
+                viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
-                viewBox="0 0 24 24">
+                stroke-width="1.5">
                 <path
                   stroke-linecap="round"
                   stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                  :d="f.icon" />
               </svg>
+            </div>
+            <h3 class="feat-card__title">{{ f.title }}</h3>
+            <p class="feat-card__body">{{ f.body }}</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════ AUTOMATION ══════════════════ -->
+    <section class="section" aria-labelledby="auto-heading">
+      <div class="wrap">
+        <div class="split">
+          <div class="split__copy ri">
+            <span class="eyebrow">Automation</span>
+            <h2 id="auto-heading" class="h2">
+              Payment detection,<br /><span class="accent">on autopilot.</span>
+            </h2>
+            <p class="body-text">
+              We've built direct integrations with Billplz and ToyyibPay. The
+              moment your client pays, InvoKita marks the invoice as Paid and
+              silences all pending reminders — automatically.
+            </p>
+            <ul class="check-list">
+              <li v-for="item in autoPoints" :key="item">{{ item }}</li>
+            </ul>
+          </div>
+
+          <div class="split__visual ri" style="--d: 2">
+            <div class="flow-panel">
+              <div
+                class="flow-step"
+                v-for="(step, i) in flowSteps"
+                :key="step.label">
+                <div
+                  class="flow-step__icon"
+                  :class="`flow-step__icon--${step.color}`">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    class="w-4 h-4">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      :d="step.icon" />
+                  </svg>
+                </div>
+                <div class="flow-step__text">
+                  <span class="flow-step__label">{{ step.label }}</span>
+                  <span class="flow-step__sub">{{ step.sub }}</span>
+                </div>
+                <span
+                  class="flow-step__badge"
+                  :class="`flow-step__badge--${step.color}`"
+                  >{{ step.tag }}</span
+                >
+                <div
+                  v-if="i < flowSteps.length - 1"
+                  class="flow-step__connector"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════ LOCAL ══════════════════ -->
+    <section class="section section--tinted" aria-labelledby="local-heading">
+      <div class="wrap">
+        <div class="split split--flip">
+          <div class="split__copy ri">
+            <span class="eyebrow">Built for Malaysia</span>
+            <h2 id="local-heading" class="h2">
+              Local payment gateways,<br /><span class="accent"
+                >natively integrated.</span
+              >
+            </h2>
+            <p class="body-text">
+              Invoicing should feel local, not foreign. InvoKita supports MYR
+              natively, SST configuration, and deep integrations with the
+              gateways Malaysians trust.
+            </p>
+          </div>
+
+          <div class="gw-grid ri" style="--d: 2">
+            <div class="gw-card" v-for="gw in gateways" :key="gw.name">
+              <img
+                :src="gw.logo"
+                :alt="gw.name"
+                class="gw-card__logo"
+                loading="lazy" />
+              <span class="gw-card__name">{{ gw.name }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════ AI DEMO ══════════════════ -->
+    <section class="section" aria-labelledby="ai-heading">
+      <div class="wrap">
+        <header class="section__head ri">
+          <span class="eyebrow">AI Builder</span>
+          <h2 id="ai-heading" class="h2">Describe it.<br />Invoice sent.</h2>
+          <p class="h2__sub">
+            Type a sentence. Get a complete, ready-to-send invoice in seconds.
+          </p>
+        </header>
+
+        <div class="demo-win ri" style="--d: 2">
+          <!-- Tabs -->
+          <div class="demo-tabs">
+            <button
+              class="demo-tab"
+              :class="previewTab === 'manual' ? 'demo-tab--active' : ''"
+              @click="previewTab = 'manual'">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                style="width: 14px; height: 14px">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              Manual Entry
+            </button>
+            <button
+              class="demo-tab"
+              :class="previewTab === 'ai' ? 'demo-tab--ai' : ''"
+              @click="previewTab = 'ai'">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                style="width: 14px; height: 14px">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              AI Builder Chat
+            </button>
+          </div>
+
+          <!-- ── MANUAL ENTRY ── -->
+          <div v-show="previewTab === 'manual'" class="demo-panel">
+            <p class="demo-section-title">Invoice Details</p>
+
+            <div class="df-group">
+              <label class="df-label"
+                >People <span class="df-required">*</span></label
+              >
+              <div class="df-client-box">
+                <div class="df-avatar">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    style="width: 16px; height: 16px; color: #9ca3af">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                </div>
+                <div style="flex: 1">
+                  <div class="df-client-name">Select Client</div>
+                  <div class="df-client-sub">No email set</div>
+                </div>
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  style="width: 14px; height: 14px; color: #9ca3af">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+              <button class="df-add-link">+ Add New Client Details</button>
+            </div>
+
+            <div class="df-group">
+              <label class="df-label">Invoice Name</label>
+              <div class="df-field">Website Overhaul</div>
+            </div>
+
+            <div class="df-group">
+              <label class="df-label">Subject</label>
+              <div class="df-field">Service per June 2023</div>
+            </div>
+
+            <div class="df-row">
+              <div class="df-group" style="flex: 1">
+                <label class="df-label df-label--sm">Due Date</label>
+                <div class="df-field df-field--row">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    style="
+                      width: 12px;
+                      height: 12px;
+                      color: #9ca3af;
+                      flex-shrink: 0;
+                    ">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  6 May 2026
+                </div>
+              </div>
+              <div class="df-group" style="flex: 1">
+                <label class="df-label df-label--sm">Currency</label>
+                <div class="df-field df-field--row">
+                  MYR (RM)
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    style="
+                      width: 12px;
+                      height: 12px;
+                      color: #9ca3af;
+                      margin-left: auto;
+                    ">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <div class="df-group">
+              <label class="df-label df-label--sm">Status</label>
+              <div class="df-field df-field--row">
+                Pending
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  style="
+                    width: 12px;
+                    height: 12px;
+                    color: #9ca3af;
+                    margin-left: auto;
+                  ">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
+
+            <div class="df-group">
+              <label class="df-label">Invoice Theme</label>
+              <div class="df-themes">
+                <div class="df-theme df-theme--active">
+                  <div class="df-theme-mock">
+                    <div
+                      style="
+                        height: 6px;
+                        background: #e5e7eb;
+                        border-radius: 2px;
+                        margin-bottom: 4px;
+                      "></div>
+                    <div
+                      style="
+                        height: 4px;
+                        background: #f3f4f6;
+                        border-radius: 2px;
+                        width: 60%;
+                      "></div>
+                  </div>
+                </div>
+                <div class="df-theme">
+                  <div class="df-theme-mock df-theme-mock--dark">
+                    <div
+                      style="
+                        width: 28px;
+                        background: #1a1d23;
+                        height: 100%;
+                        border-radius: 4px 0 0 4px;
+                      "></div>
+                    <div style="flex: 1; padding: 6px 4px">
+                      <div
+                        style="
+                          height: 4px;
+                          background: #e5e7eb;
+                          border-radius: 2px;
+                          margin-bottom: 3px;
+                        "></div>
+                      <div
+                        style="
+                          height: 3px;
+                          background: #f3f4f6;
+                          border-radius: 2px;
+                          width: 50%;
+                        "></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="demo-footer">
+              <span class="demo-footer__saved"
+                >Last saved: Today at 4:30 PM</span
+              >
+              <div class="demo-footer__btns">
+                <button class="demo-cancel">Cancel</button>
+                <button class="demo-process">Process Invoice</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── AI CHAT ── -->
+          <div v-show="previewTab === 'ai'" class="demo-panel demo-panel--chat">
+            <div class="dc-msgs">
+              <div class="dc-msg dc-msg--bot">
+                <div class="dc-avatar">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    style="width: 14px; height: 14px">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                </div>
+                <div class="dc-bubble dc-bubble--bot">
+                  Hi! I can help you draft this invoice instantly. Try
+                  typing:<br />
+                  <em class="dc-example"
+                    >"create invoice for Wayne, software RM1200"</em
+                  ><br />
+                  <em class="dc-example"
+                    >"due on 15 Nov, currency USD, subject: Web Design"</em
+                  >
+                </div>
+              </div>
+
+              <div class="dc-msg dc-msg--user">
+                <div class="dc-bubble dc-bubble--user">
+                  create invoice for Wayne, software RM1200
+                </div>
+              </div>
+
+              <div class="dc-msg dc-msg--bot">
+                <div class="dc-avatar">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    style="width: 14px; height: 14px">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                </div>
+                <div class="dc-bubble dc-bubble--bot">
+                  Draft updated! I've applied those changes to the invoice based
+                  on your instructions.
+                </div>
+              </div>
+            </div>
+
+            <div class="dc-input-row">
+              <div class="dc-input">Message AI Builder...</div>
+              <button class="dc-send">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  style="width: 14px; height: 14px">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                </svg>
+              </button>
+            </div>
+
+            <div class="demo-footer">
+              <span class="demo-footer__saved"
+                >Last saved: Today at 4:30 PM</span
+              >
+              <div class="demo-footer__btns">
+                <button class="demo-cancel">Cancel</button>
+                <button class="demo-process">Process Invoice</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════ SECURITY ══════════════════ -->
+    <section class="section section--dark" aria-labelledby="sec-heading">
+      <div class="wrap">
+        <header class="section__head ri">
+          <span class="eyebrow eyebrow--light">Trust & Security</span>
+          <h2 id="sec-heading" class="h2 h2--light">
+            Bank-grade security.<br />No compromises.
+          </h2>
+        </header>
+        <div class="sec-grid">
+          <div
+            class="sec-item ri"
+            v-for="(item, i) in secItems"
+            :key="item.title"
+            :style="{ '--d': i * 0.5 + 1 }">
+            <div class="sec-item__num">
+              {{ String(i + 1).padStart(2, "0") }}
+            </div>
+            <h3 class="sec-item__title">{{ item.title }}</h3>
+            <p class="sec-item__body">{{ item.body }}</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════ PRICING ══════════════════ -->
+    <section id="pricing" class="section" aria-labelledby="price-heading">
+      <div class="wrap">
+        <header class="section__head ri">
+          <span class="eyebrow">Pricing</span>
+          <h2 id="price-heading" class="h2">
+            Simple pricing.<br />Serious value.
+          </h2>
+          <p class="h2__sub">No hidden fees. Cancel anytime.</p>
+        </header>
+
+        <!-- Skeleton while loading -->
+        <div v-if="dynamicPlans.length === 0" class="pricing-grid">
+          <div v-for="n in 4" :key="n" class="plan plan--skeleton">
+            <div class="skel skel--sm"></div>
+            <div class="skel skel--lg" style="margin: 1rem 0"></div>
+            <div class="skel skel--sm" style="width: 70%"></div>
+            <div
+              style="
+                margin-top: 1.5rem;
+                display: flex;
+                flex-direction: column;
+                gap: 0.625rem;
+              ">
+              <div class="skel skel--sm" v-for="i in 4" :key="i"></div>
+            </div>
+            <div
+              class="skel skel--btn"
+              style="margin-top: auto; padding-top: 2rem"></div>
+          </div>
+        </div>
+
+        <div v-else class="pricing-grid">
+          <div
+            v-for="(plan, i) in dynamicPlans"
+            :key="plan.id"
+            class="plan ri"
+            :style="{ '--d': i * 0.5 + 1 }"
+            :class="{
+              'plan--featured': plan.name.toUpperCase() === 'PRO',
+              'plan--max': plan.name.toUpperCase() === 'MAX',
+            }">
+            <div class="plan__header">
+              <span class="plan__name">{{ plan.name }}</span>
+              <span v-if="plan.name.toUpperCase() === 'PRO'" class="plan__badge"
+                >Popular</span
+              >
+            </div>
+            <div class="plan__price">
+              <span class="plan__amount"
+                >{{ plan.currency }} {{ plan.price }}</span
+              >
+              <span v-if="plan.price > 0" class="plan__period"
+                >/{{ plan.interval }}</span
+              >
+            </div>
+            <p class="plan__desc">{{ plan.description }}</p>
+            <ul class="plan__features">
+              <li v-for="feat in plan.features" :key="feat">
+                <span class="plan__check">✓</span> {{ feat }}
+              </li>
+            </ul>
+            <NuxtLink
+              :to="authStore.isAuthenticated ? '/dashboard' : '/register'"
+              class="plan__cta"
+              :class="{
+                'plan__cta--featured': plan.name.toUpperCase() === 'PRO',
+                'plan__cta--max': plan.name.toUpperCase() === 'MAX',
+              }">
+              {{
+                plan.name.toUpperCase() === "FREE"
+                  ? "Get started"
+                  : plan.name.toUpperCase() === "STARTER"
+                    ? "Get Starter"
+                    : plan.name.toUpperCase() === "PRO"
+                      ? "Go Pro"
+                      : "Get Max"
+              }}
             </NuxtLink>
           </div>
         </div>
-      </main>
 
-      <!-- How It Works Section -->
-      <section
-        id="how-it-works"
-        class="relative z-20 py-24 px-6 md:px-12 bg-white/50 backdrop-blur-md border-y border-slate-200/50 scroll-mt-24">
-        <div class="max-w-6xl mx-auto">
-          <div class="text-center mb-16 reveal-item reveal-up">
-            <h2
-              class="text-3xl md:text-4xl font-semibold tracking-tight text-slate-900 mb-4">
-              How it works
-            </h2>
-            <p class="text-slate-600 max-w-2xl mx-auto">
-              Our automated flow takes the pain out of billing. See how simple
-              it is to get paid faster.
-            </p>
-          </div>
+        <p class="pricing-note ri" style="--d: 5">
+          Need a custom plan?
+          <a href="mailto:contact@invokita.my" class="link">Contact us</a>
+        </p>
+      </div>
+    </section>
 
-          <div
-            class="grid md:grid-cols-3 gap-8 md:gap-12 relative max-w-5xl mx-auto">
-            <!-- Connecting Line -->
-            <div
-              class="hidden md:block absolute top-14 left-[16%] right-[16%] h-0.5 bg-gradient-to-r from-slate-200 via-emerald-200 to-slate-200 -z-10"></div>
+    <!-- ══════════════════ FAQ ══════════════════ -->
+    <section
+      id="faq"
+      class="section section--tinted"
+      aria-labelledby="faq-heading">
+      <div class="wrap wrap--narrow">
+        <header class="section__head ri">
+          <span class="eyebrow">FAQ</span>
+          <h2 id="faq-heading" class="h2">Questions answered.</h2>
+        </header>
 
-            <!-- Step 1 -->
-            <div
-              class="reveal-item reveal-up delay-100 group relative bg-white/70 backdrop-blur-md rounded-3xl p-8 border border-slate-200/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-xl transition-all hover:-translate-y-2">
-              <div
-                class="w-14 h-14 rounded-2xl bg-slate-100 shadow-inner border border-slate-200 flex items-center justify-center text-slate-900 font-bold text-2xl mb-8 group-hover:scale-110 transition-transform">
-                1
-              </div>
-              <h3 class="text-xl font-semibold text-slate-900 mb-3">Create</h3>
-              <p class="text-slate-600 text-sm leading-relaxed mb-6">
-                Use our intuitive <b>form builder</b> for full control, or
-                command our <b>AI Helper</b> to generate a complete draft in
-                seconds.
-              </p>
-              <div
-                class="bg-slate-50 border border-slate-200 rounded-xl p-4 relative overflow-hidden group-hover:border-slate-300 transition-colors">
-                <div class="h-2 bg-slate-200 rounded w-1/3 mb-3"></div>
-                <div class="h-2 bg-slate-200/50 rounded w-full mb-2"></div>
-                <div class="h-2 bg-slate-200/50 rounded w-5/6"></div>
-                <div
-                  class="absolute inset-0 bg-gradient-to-t from-slate-50/80 to-transparent"></div>
-              </div>
-            </div>
-
-            <!-- Step 2 -->
-            <div
-              class="reveal-item reveal-up delay-200 group relative bg-white/70 backdrop-blur-md rounded-3xl p-8 border border-slate-200/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-xl transition-all hover:-translate-y-2 md:mt-12">
-              <div
-                class="w-14 h-14 rounded-2xl bg-emerald-50 shadow-inner border border-emerald-100 flex items-center justify-center text-emerald-600 font-bold text-2xl mb-8 group-hover:scale-110 transition-transform">
-                2
-              </div>
-              <h3 class="text-xl font-semibold text-slate-900 mb-3">Send</h3>
-              <p class="text-slate-600 text-sm leading-relaxed mb-6">
-                Dispatch secure web links via <b>Email</b> or <b>WhatsApp</b>,
-                or download as a <b>PDF</b>. Automated reminders keep your
-                clients on track.
-              </p>
-              <div
-                class="bg-emerald-50 border border-emerald-100 rounded-xl p-4 flex items-center gap-3 group-hover:border-emerald-200 transition-colors">
-                <div
-                  class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center">
-                  <svg
-                    class="w-4 h-4 text-emerald-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor">
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-                  </svg>
-                </div>
-                <div>
-                  <div
-                    class="text-[10px] text-emerald-600 font-semibold uppercase tracking-wider">
-                    Sent
-                  </div>
-                  <div class="text-xs font-semibold text-emerald-900">
-                    Invoice #INVK-2024
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Step 3 -->
-            <div
-              class="reveal-item reveal-up delay-300 group relative bg-white/70 backdrop-blur-md rounded-3xl p-8 border border-slate-200/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-xl transition-all hover:-translate-y-2 md:mt-24">
-              <div
-                class="w-14 h-14 rounded-2xl bg-amber-50 shadow-inner border border-amber-100 flex items-center justify-center text-amber-600 font-bold text-2xl mb-8 group-hover:scale-110 transition-transform">
-                3
-              </div>
-              <h3 class="text-xl font-semibold text-slate-900 mb-3">
-                Get Paid
-              </h3>
-              <p class="text-slate-600 text-sm leading-relaxed mb-6">
-                Accept payments globally.
-                <b>Track invoice views and active payment status</b> directly
-                from your dashboard.
-              </p>
-              <div
-                class="bg-amber-50 border border-amber-100 rounded-xl p-4 text-center group-hover:border-amber-200 transition-colors">
-                <div class="text-xl font-black text-amber-900">$2,400.00</div>
-                <div
-                  class="text-[10px] text-amber-600/80 uppercase tracking-widest font-semibold mt-1">
-                  Paid in full
-                </div>
-              </div>
-            </div>
-          </div>
+        <div class="faq-list">
+          <details
+            v-for="(item, i) in faqItems"
+            :key="i"
+            class="faq ri"
+            :style="{ '--d': i * 0.3 + 1 }">
+            <summary class="faq__q">{{ item.question }}</summary>
+            <div class="faq__a">{{ item.answer }}</div>
+          </details>
         </div>
-      </section>
+      </div>
+    </section>
 
-      <!-- Detailed Workflow Section (The Closing the Loop) -->
-      <section
-        id="how-it-works-detailed"
-        class="relative z-20 py-24 px-6 md:px-12 bg-slate-50 overflow-hidden border-y border-slate-200/50 scroll-mt-24">
-        <div class="max-w-6xl mx-auto">
-          <div class="flex flex-col lg:flex-row items-center gap-16">
-            <!-- Left: Visual Flow -->
-            <div class="lg:w-1/2 reveal-item reveal-left relative">
-              <div
-                class="relative z-10 bg-white rounded-2xl p-8 shadow-2xl border border-slate-200">
-                <div class="space-y-8">
-                  <!-- Step 1: Webhook -->
-                  <div class="flex items-center gap-4 relative">
-                    <div
-                      class="absolute left-6 top-12 bottom-[-2rem] w-px bg-emerald-500"></div>
-                    <div
-                      class="w-12 h-12 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0 shadow-sm border border-indigo-100">
-                      <svg
-                        class="w-6 h-6"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24">
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                      </svg>
-                    </div>
-                    <div>
-                      <h4
-                        class="font-semibold text-slate-900 leading-none mb-1 text-sm md:text-base">
-                        Instant Webhooks
-                      </h4>
-                      <p class="text-[10px] text-slate-500 leading-tight">
-                        Billplz & ToyyibPay notify us the millisecond a payment
-                        is made.
-                      </p>
-                    </div>
-                    <div class="ml-auto">
-                      <div
-                        class="bg-indigo-50 text-indigo-600 text-[11px] font-semibold px-2 py-1 rounded-full">
-                        Active
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Step 2: Processing -->
-                  <div class="flex items-center gap-4 relative">
-                    <div
-                      class="absolute left-6 top-12 bottom-[-2rem] w-px bg-emerald-500"></div>
-                    <div
-                      class="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0 shadow-sm border border-emerald-100">
-                      <svg
-                        class="w-6 h-6"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24">
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                      </svg>
-                    </div>
-                    <div>
-                      <h4
-                        class="font-semibold text-slate-900 leading-none mb-1 text-sm md:text-base">
-                        Auto-Reconciliation
-                      </h4>
-                      <p class="text-[10px] text-slate-500 leading-tight">
-                        Our system matches the transaction and marks the invoice
-                        as "Paid".
-                      </p>
-                    </div>
-                  </div>
-
-                  <!-- Step 3: Action -->
-                  <div class="flex items-center gap-4">
-                    <div
-                      class="w-12 h-12 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600 shrink-0 shadow-sm border border-amber-100">
-                      <svg
-                        class="w-6 h-6"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24">
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                      </svg>
-                    </div>
-                    <div>
-                      <h4
-                        class="font-semibold text-slate-900 leading-none mb-1 text-sm md:text-base">
-                        Automatic Silence
-                      </h4>
-                      <p class="text-[10px] text-slate-500 leading-tight">
-                        All scheduled reminders for this invoice are killed
-                        instantly.
-                      </p>
-                    </div>
-                    <div class="ml-auto">
-                      <div
-                        class="bg-amber-100 text-amber-900 text-[11px] font-semibold px-2 py-1 rounded-full">
-                        Reminder Disabled
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Decorative background elements -->
-              <div
-                class="absolute -top-6 -right-6 w-32 h-32 bg-emerald-100 rounded-full blur-3xl opacity-60"></div>
-              <div
-                class="absolute -bottom-10 -left-10 w-40 h-40 bg-indigo-100 rounded-full blur-3xl opacity-60"></div>
-            </div>
-
-            <!-- Right: Content -->
-            <div
-              class="lg:w-1/2 reveal-item reveal-right text-center lg:text-left">
-              <div
-                class="inline-flex items-center gap-2 px-3 py-1 mb-6 rounded-full bg-emerald-100/50 border border-emerald-200 backdrop-blur-sm">
-                <span class="text-[12px] font-semibold text-emerald-700"
-                  >Automated Payment Detection</span
-                >
-              </div>
-              <h2
-                class="text-3xl md:text-4xl font-semibold text-slate-900 mb-4">
-                Closing the loop.<br />
-                <span class="text-emerald-600">Completely automated.</span>
-              </h2>
-              <p class="text-slate-600 mb-8 leading-relaxed text-sm">
-                InvoKita isn't just a drafting tool. It's an autonomous
-                collection engine. We've built deep integrations with
-                <b>Billplz</b> and <b>ToyyibPay</b> to ensure your bank and your
-                invoices are always in sync.
-              </p>
-
-              <div class="grid sm:grid-cols-2 gap-6 mb-10">
-                <div
-                  class="p-5 bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-                  <div class="font-bold text-slate-900 mb-2 leading-tight">
-                    Zero-Touch Billing
-                  </div>
-                  <p class="text-[11px] text-slate-500 leading-relaxed">
-                    From creation to collection, the system handles the entire
-                    lifecycle without you clicking a button.
-                  </p>
-                </div>
-                <div
-                  class="p-5 bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-                  <div class="font-bold text-slate-900 mb-2 leading-tight">
-                    Happier Clients
-                  </div>
-                  <p class="text-[11px] text-slate-500 leading-relaxed">
-                    Clients never receive annoying reminders for invoices
-                    they've already paid. We stop them instantly.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Security & Built for Malaysia Sections -->
-      <section class="relative z-20 py-24 px-6 md:px-12 bg-white">
-        <div class="max-w-6xl mx-auto">
-          <div class="grid lg:grid-cols-2 gap-16 items-center">
-            <!-- Bank-Level Security -->
-            <div class="reveal-item reveal-up">
-              <div
-                class="inline-flex items-center gap-2 px-3 py-1 mb-6 rounded-full bg-slate-100 border border-slate-200">
-                <svg
-                  class="w-3 h-3 text-slate-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24">
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
-                </svg>
-                <span class="text-[11px] font-semibold text-slate-600"
-                  >Enterprise-Grade Security</span
-                >
-              </div>
-              <h2
-                class="text-2xl md:text-3xl font-semibold text-slate-900 mb-8">
-                Your data is safe.<br />
-                <span class="text-slate-500">Period.</span>
-              </h2>
-
-              <div class="space-y-6">
-                <!-- Security Item 1 -->
-                <div class="flex items-start gap-4">
-                  <div
-                    class="mt-1 w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center text-white shrink-0">
-                    <svg
-                      class="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24">
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-                    </svg>
-                  </div>
-                  <div>
-                    <h4 class="font-bold text-slate-900">AES-256 Encryption</h4>
-                    <p class="text-sm text-slate-500 leading-relaxed">
-                      Every byte of your data is encrypted both at rest and in
-                      transit using the same standard as international banks.
-                    </p>
-                  </div>
-                </div>
-                <!-- Security Item 2 -->
-                <div class="flex items-start gap-4">
-                  <div
-                    class="mt-1 w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center text-white shrink-0">
-                    <svg
-                      class="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24">
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                    </svg>
-                  </div>
-                  <div>
-                    <h4 class="font-bold text-slate-900">
-                      Absolute Data Isolation
-                    </h4>
-                    <p class="text-sm text-slate-500 leading-relaxed">
-                      Our multi-layered authorization system ensures that your
-                      business data is never accessible by anyone but you.
-                    </p>
-                  </div>
-                </div>
-                <!-- Security Item 3 -->
-                <div class="flex items-start gap-4">
-                  <div
-                    class="mt-1 w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center text-white shrink-0">
-                    <svg
-                      class="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24">
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                    </svg>
-                  </div>
-                  <div>
-                    <h4 class="font-bold text-slate-900">
-                      Automated Daily Backups
-                    </h4>
-                    <p class="text-sm text-slate-500 leading-relaxed">
-                      We snapshot your entire database every 24 hours to ensure
-                      your business continuity is never at risk.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Built for Malaysia -->
-            <div
-              class="reveal-item reveal-right p-8 md:p-12 bg-slate-50 rounded-[3rem] border border-slate-200 relative overflow-hidden group">
-              <div class="relative z-10">
-                <div
-                  class="inline-flex items-center gap-2 px-3 py-1 mb-6 rounded-full bg-emerald-100 border border-emerald-200">
-                  <span class="text-[11px] font-semibold text-emerald-700"
-                    >Proudly Malaysian</span
-                  >
-                </div>
-                <h2
-                  class="text-3xl font-semibold tracking-tight text-slate-900 mb-4 leading-tight">
-                  Built specifically for<br />
-                  Malaysian Business and Freelancers.
-                </h2>
-                <p class="text-slate-600 mb-8 leading-relaxed">
-                  Invoicing should feel local, not foreign. We've optimized
-                  every touchpoint to match how business is done in Malaysia.
-                </p>
-
-                <div class="grid grid-cols-2 gap-4">
-                  <div
-                    class="flex flex-col gap-4 p-4 bg-white rounded-2xl transition-shadow font-semibold text-sm text-slate-400">
-                    <img
-                      src="https://make-cxp-documentation.ams3.digitaloceanspaces.com/apps-center-icons/billplz.png"
-                      class="w-10 h-8 object-contain"
-                      alt="Billplz" />
-
-                    Billplz Integration
-                  </div>
-                  <div
-                    class="flex flex-col gap-2 p-4 bg-white rounded-2xl transition-shadow font-semibold text-sm text-slate-400">
-                    <img
-                      src="https://images.crunchbase.com/image/upload/c_pad,h_256,w_256,f_auto,q_auto:eco,dpr_1/e2hhr8kgl2hq5bkkqueq?ik-sanitizeSvg=true"
-                      class="w-10 h-10 object-contain"
-                      alt="ToyyibPay" />
-                    ToyyibPay Integration
-                  </div>
-                  <div
-                    class="flex flex-col gap-4 p-4 bg-white rounded-2xl transition-shadow font-semibold text-sm text-slate-400">
-                    <img
-                      src="https://avatars.githubusercontent.com/u/67738149?s=280&v=4"
-                      class="w-8 h-8 object-contain"
-                      alt="HitPay" />
-                    HitPay Integration
-                  </div>
-                  <div
-                    class="flex flex-col gap-4 p-4 bg-white rounded-2xl transition-shadow font-semibold text-sm text-slate-400">
-                    <img
-                      src="https://media.glassdoor.com/sqll/5772920/senangpay-squareLogo-1701835868144.png"
-                      class="w-8 h-8 object-contain rounded-lg"
-                      alt="SenangPay" />
-                    SenangPay Integration
-                  </div>
-                </div>
-              </div>
-
-              <!-- Background Graphic -->
-              <div
-                class="absolute -bottom-20 -right-20 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl opacity-50 group-hover:scale-110 transition-transform duration-700"></div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Core Modules Section -->
-      <section
-        id="features"
-        class="relative z-20 py-24 px-6 md:px-12 bg-white scroll-mt-24">
-        <div class="max-w-6xl mx-auto">
-          <div class="text-center mb-16 reveal-item reveal-up">
-            <h2
-              class="text-3xl md:text-4xl font-semibold tracking-tight text-slate-900 mb-4">
-              Everything you need. Nothing you don't.
-            </h2>
-            <p class="text-slate-600 max-w-2xl mx-auto">
-              A beautifully cohesive toolkit designed specifically to streamline
-              your business administration.
-            </p>
-          </div>
-
-          <div class="grid md:grid-cols-2 gap-8">
-            <!-- Invoices Module -->
-            <div
-              class="reveal-item reveal-up delay-100 group bg-slate-50/50 rounded-3xl p-8 border border-slate-200/70 transition-all hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:border-emerald-200 hover:bg-white cursor-default">
-              <div
-                class="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 mb-6 group-hover:scale-110 group-hover:bg-emerald-100 transition-all">
-                <svg
-                  class="w-6 h-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor">
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                </svg>
-              </div>
-              <h3 class="text-xl font-semibold text-slate-900 mb-3">
-                Smart Invoicing
-              </h3>
-              <p class="text-slate-600 text-sm leading-relaxed">
-                Create and manage beautiful, professional invoices. With smart
-                autofill, discounts, taxes and one-click duplication.
-              </p>
-            </div>
-
-            <!-- Clients Module -->
-            <div
-              class="reveal-item reveal-up delay-200 group bg-slate-50/50 rounded-3xl p-8 border border-slate-200/70 transition-all hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:border-emerald-200 hover:bg-white cursor-default">
-              <div
-                class="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 mb-6 group-hover:scale-110 group-hover:bg-emerald-100 transition-all">
-                <svg
-                  class="w-6 h-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor">
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                </svg>
-              </div>
-              <h3 class="text-xl font-semibold text-slate-900 mb-3">
-                Client CRM
-              </h3>
-              <p class="text-slate-600 text-sm leading-relaxed">
-                Centralize your client base. Store contact details, billing
-                preferences, and automatically track each client's lifetime
-                profitability.
-              </p>
-            </div>
-
-            <!-- Dashboard Module -->
-            <div
-              class="reveal-item reveal-up delay-300 group bg-slate-50/50 rounded-3xl p-8 border border-slate-200/70 transition-all hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:border-slate-300 hover:bg-white cursor-default">
-              <div
-                class="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-slate-800 mb-6 group-hover:scale-110 group-hover:bg-slate-200 transition-all">
-                <svg
-                  class="w-6 h-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor">
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path>
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path>
-                </svg>
-              </div>
-              <h3 class="text-xl font-semibold text-slate-900 mb-3">
-                Financial Dashboard
-              </h3>
-              <p class="text-slate-600 text-sm leading-relaxed">
-                Get a bird's eye view of your business health. Featuring revenue
-                graphs, outstanding balance tracking, and AI-powered actionable
-                suggestions.
-              </p>
-            </div>
-
-            <!-- Settings Module -->
-            <div
-              class="reveal-item reveal-up delay-400 group bg-slate-50/50 rounded-3xl p-8 border border-slate-200/70 transition-all hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:border-amber-200 hover:bg-white cursor-default">
-              <div
-                class="w-12 h-12 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600 mb-6 group-hover:scale-110 group-hover:bg-amber-100 transition-all">
-                <svg
-                  class="w-6 h-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor">
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                </svg>
-              </div>
-              <h3 class="text-xl font-semibold text-slate-900 mb-3">
-                Custom Settings
-              </h3>
-              <p class="text-slate-600 text-sm leading-relaxed">
-                Personalize your workspace. Set your profile, establish default
-                invoice prefixes, and maintain your brand identity effortlessly.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- How It Can Help Section -->
-      <section class="relative z-20 py-24 px-6 md:px-12 bg-transparent">
-        <div
-          class="max-w-6xl mx-auto flex flex-col lg:flex-row items-center gap-16">
-          <div class="lg:w-1/2 reveal-item reveal-left">
-            <h2
-              class="text-3xl md:text-4xl font-semibold tracking-tight text-slate-900 mb-6">
-              Designed to help you
-              <span class="text-emerald-600">grow faster.</span>
-            </h2>
-            <p class="text-slate-600 mb-8 leading-relaxed">
-              Stop chasing emails and tracking spreadsheets. InvoKita
-              centralizes your entire billing workflow so you never lose
-              visibility on your revenue stream again.
-            </p>
-
-            <ul class="space-y-6">
-              <li class="flex items-start gap-4">
-                <div
-                  class="mt-1 w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center shrink-0">
-                  <svg
-                    class="w-4 h-4 text-emerald-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor">
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                  </svg>
-                </div>
-                <div>
-                  <h4 class="font-semibold text-slate-900 mb-1">
-                    AI Invoice Helper
-                  </h4>
-                  <p class="text-sm text-slate-600">
-                    Just type
-                    <span
-                      class="text-emerald-600 font-medium bg-emerald-50 px-1 rounded"
-                      >"Create invoice for Batman, UGC videos RM2000"</span
-                    >
-                    and watch the magic happen instantly.
-                  </p>
-                </div>
-              </li>
-              <li class="flex items-start gap-4">
-                <div
-                  class="mt-1 w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center shrink-0">
-                  <svg
-                    class="w-4 h-4 text-emerald-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor">
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
-                  </svg>
-                </div>
-                <div>
-                  <h4 class="font-semibold text-slate-900 mb-1">
-                    WhatsApp Delivery
-                  </h4>
-                  <p class="text-sm text-slate-600">
-                    Skip the inbox. Send beautifully formatted invoice links
-                    directly to your clients via WhatsApp for faster response
-                    times.
-                  </p>
-                </div>
-              </li>
-              <li class="flex items-start gap-4">
-                <div
-                  class="mt-1 w-8 h-8 rounded-full bg-amber-50 flex items-center justify-center shrink-0">
-                  <svg
-                    class="w-4 h-4 text-amber-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor">
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
-                  </svg>
-                </div>
-                <div>
-                  <h4 class="font-semibold text-slate-900 mb-1">
-                    Smart Public Links
-                  </h4>
-                  <p class="text-sm text-slate-600">
-                    Clients view their invoice securely online (e.g.,
-                    <span
-                      class="font-mono text-xs bg-slate-100 px-1 py-0.5 rounded text-amber-600"
-                      >InvoKita.com/INV1201</span
-                    >) and pay with one tap. No PDF downloads required.
-                  </p>
-                </div>
-              </li>
-            </ul>
-          </div>
-          <div
-            class="reveal-item reveal-right lg:w-1/2 relative w-full aspect-square md:aspect-video lg:aspect-square bg-slate-100 rounded-3xl border border-slate-200 overflow-hidden shadow-inner flex items-center justify-center">
-            <div class="text-slate-400 font-medium">
-              ✨ AI Generator Preview
-            </div>
-            <!-- Mock up overlay graphic -->
-            <div
-              class="absolute w-[90%] md:w-[85%] bg-white rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden">
-              <!-- Input Mode Tabs -->
-              <div
-                class="flex border-b border-slate-200 bg-slate-50/50 px-4 pt-4 gap-4 relative z-20">
-                <button
-                  type="button"
-                  @click="previewTab = 'manual'"
-                  class="pb-2 text-[10px] font-semibold border-b-2 transition-colors flex items-center gap-1.5"
-                  :class="
-                    previewTab === 'manual'
-                      ? 'border-slate-900 text-slate-900'
-                      : 'border-transparent text-slate-500 hover:text-slate-700'
-                  ">
-                  <svg
-                    class="w-3 h-3"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24">
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                  </svg>
-                  Manual Entry
-                </button>
-                <button
-                  type="button"
-                  @click="previewTab = 'ai'"
-                  class="pb-2 text-[10px] font-semibold border-b-2 transition-colors flex items-center gap-1.5"
-                  :class="
-                    previewTab === 'ai'
-                      ? 'border-emerald-600 text-emerald-600'
-                      : 'border-transparent text-slate-500 hover:text-slate-700'
-                  ">
-                  <svg
-                    class="w-3 h-3"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24">
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                  </svg>
-                  AI Builder Chat
-                </button>
-              </div>
-
-              <!-- Content Mockups -->
-              <div
-                class="p-5 flex flex-col gap-4 relative min-h-[350px] bg-slate-50/30">
-                <!-- Manual Entry Mockup -->
-                <div
-                  v-show="previewTab === 'manual'"
-                  class="absolute inset-x-0 top-0 bottom-0 p-5">
-                  <div
-                    class="w-full bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col gap-3">
-                    <!-- Header -->
-                    <div class="border-b border-slate-100 pb-2 mb-1">
-                      <div
-                        class="text-xs font-semibold tracking-tight text-slate-900">
-                        Create Invoice
-                      </div>
-                    </div>
-
-                    <!-- Invoice Details Section -->
-                    <div>
-                      <div
-                        class="text-[10px] font-semibold text-slate-900 mb-2 tracking-tight">
-                        Invoice Details
-                      </div>
-                      <div class="space-y-2">
-                        <!-- People Input -->
-                        <div>
-                          <div
-                            class="text-[8px] font-medium text-slate-700 mb-1">
-                            People <span class="text-red-500">*</span>
-                          </div>
-                          <div
-                            class="flex items-center justify-between p-2 border border-slate-200 rounded-md bg-white shadow-sm gap-2">
-                            <div
-                              class="flex items-center gap-2 flex-1 relative z-10">
-                              <div
-                                class="w-6 h-6 rounded-full bg-slate-200 flex-shrink-0 flex items-center justify-center"></div>
-                              <div class="flex-1">
-                                <div
-                                  class="h-1.5 w-20 bg-slate-300 rounded"></div>
-                                <div
-                                  class="h-1.5 w-12 bg-slate-200 rounded mt-1"></div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        <!-- Invoice Name & Subject -->
-                        <div class="flex gap-2">
-                          <div class="flex-1">
-                            <div
-                              class="text-[8px] font-medium text-slate-700 mb-1">
-                              Invoice Name
-                            </div>
-                            <div
-                              class="h-7 w-full border border-slate-200 rounded-md bg-white shadow-sm flex items-center px-2">
-                              <div
-                                class="h-1.5 w-16 bg-slate-300 rounded"></div>
-                            </div>
-                          </div>
-                          <div class="flex-1">
-                            <div
-                              class="text-[8px] font-medium text-slate-700 mb-1">
-                              Subject
-                            </div>
-                            <div
-                              class="h-7 w-full border border-slate-200 rounded-md bg-white shadow-sm flex items-center px-2">
-                              <div
-                                class="h-1.5 w-20 bg-slate-300 rounded"></div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <hr class="border-slate-100 my-1" />
-
-                    <!-- Product Section -->
-                    <div>
-                      <div
-                        class="text-[10px] font-semibold text-slate-900 mb-2 tracking-tight">
-                        Product
-                      </div>
-                      <!-- Line Item -->
-                      <div
-                        class="flex items-center gap-2 p-2 border border-slate-200 rounded-lg bg-white shadow-sm">
-                        <div
-                          class="w-6 h-6 rounded bg-slate-50 border border-slate-200 flex-shrink-0 flex items-center justify-center"></div>
-                        <div class="flex-1 flex flex-col gap-1">
-                          <div
-                            class="text-[6px] font-semibold text-slate-400 uppercase tracking-wider hidden sm:block">
-                            Product Description
-                          </div>
-                          <div class="h-1.5 w-24 bg-slate-300 rounded"></div>
-                          <div
-                            class="h-1.5 w-12 bg-slate-200 rounded mt-0.5"></div>
-                        </div>
-                        <div class="w-10">
-                          <div
-                            class="text-[6px] font-semibold text-slate-400 uppercase tracking-wider text-center hidden sm:block mb-1">
-                            Qty
-                          </div>
-                          <div
-                            class="h-6 w-full border border-slate-200 rounded-md bg-white flex items-center justify-center shadow-sm">
-                            <div class="h-1.5 w-3 bg-slate-900 rounded"></div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- AI Mode Mockup -->
-                <div
-                  v-show="previewTab === 'ai'"
-                  class="absolute inset-x-0 top-0 bottom-0 flex flex-col bg-slate-50/50">
-                  <!-- Chat messages area -->
-                  <div class="flex-1 overflow-y-auto px-4 py-6 space-y-4">
-                    <!-- AI Greeting -->
-                    <div class="flex items-start gap-2">
-                      <div
-                        class="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm">
-                        <svg
-                          class="w-3.5 h-3.5 text-white"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24">
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
-                        </svg>
-                      </div>
-                      <div
-                        class="bg-white border border-slate-200 rounded-2xl rounded-tl-sm px-3 py-2 text-[10px] text-slate-700 leading-relaxed max-w-[85%] shadow-sm">
-                        Hi! I can help you draft this invoice instantly.
-                      </div>
-                    </div>
-
-                    <!-- User Message -->
-                    <div class="flex items-start gap-2 flex-row-reverse">
-                      <div
-                        class="bg-emerald-600 text-white rounded-2xl rounded-tr-sm px-3 py-2 text-[10px] leading-relaxed max-w-[85%] shadow-sm break-words">
-                        Create invoice for Batman, UGC videos RM2000
-                      </div>
-                    </div>
-
-                    <!-- AI Response / Draft Output Mock -->
-                    <div class="flex items-start gap-2">
-                      <div
-                        class="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm">
-                        <svg
-                          class="w-3.5 h-3.5 text-white"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24">
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
-                        </svg>
-                      </div>
-                      <div
-                        class="bg-white border border-emerald-100 rounded-xl rounded-tl-sm p-3 shadow-md relative overflow-hidden w-full max-w-[85%]">
-                        <div
-                          class="absolute top-0 left-0 w-1 h-full bg-emerald-600"></div>
-                        <div class="flex justify-between items-start mb-3">
-                          <div>
-                            <div
-                              class="text-[8px] font-semibold text-emerald-600 uppercase tracking-widest mb-0.5">
-                              Draft Ready
-                            </div>
-                            <div
-                              class="text-[10px] font-semibold text-slate-900">
-                              Wayne Enterprises
-                            </div>
-                          </div>
-                          <div class="text-[10px] font-black text-slate-900">
-                            RM 2,000.00
-                          </div>
-                        </div>
-                        <div
-                          class="bg-slate-50 rounded p-1.5 flex justify-between items-center border border-slate-100 mb-2">
-                          <div class="text-[8px] text-slate-600">UGC Video</div>
-                          <div class="text-[8px] font-semibold text-slate-900">
-                            RM 2,000
-                          </div>
-                        </div>
-                        <div
-                          class="h-6 w-full bg-slate-900 rounded-lg flex items-center justify-center text-[8px] font-semibold text-white uppercase tracking-wider shadow-sm">
-                          Send via WhatsApp
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Chat Input Area -->
-                  <div class="p-3 bg-white border-t border-slate-100 mt-auto">
-                    <div class="relative">
-                      <div
-                        class="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 pl-3 pr-8 text-[10px] text-slate-400">
-                        Message AI Builder...
-                        <span class="animate-pulse font-bold text-emerald-500"
-                          >|</span
-                        >
-                      </div>
-                      <div
-                        class="absolute right-1.5 top-1/2 -translate-y-1/2 p-1 rounded bg-slate-300 text-white">
-                        <svg
-                          class="w-3 h-3"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24">
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
-                        </svg>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Pricing Section -->
-      <section
-        id="pricing"
-        class="relative z-20 py-24 px-6 md:px-12 bg-slate-50 scroll-mt-24">
-        <div class="max-w-7xl mx-auto">
-          <div class="text-center mb-16 reveal-item reveal-up">
-            <h2
-              class="text-3xl md:text-4xl font-semibold tracking-tight text-slate-900 mb-4">
-              Simple, transparent pricing.
-            </h2>
-
-            <p class="text-slate-600 max-w-2xl mx-auto">
-              Choose the plan that's right for your business. No hidden fees.
-            </p>
-          </div>
-
-          <div class="grid md:grid-cols-4 max-w-7xl gap-8 mx-auto items-center">
-            <!-- Dynamic Plans -->
-            <div
-              v-for="(plan, index) in dynamicPlans"
-              :key="plan.id"
-              class="reveal-item reveal-scale relative flex flex-col p-8 rounded-3xl border transition-all h-full"
-              :style="{ 'transition-delay': index * 100 + 'ms' }"
-              :class="[
-                'transition-all duration-500 relative self-stretch',
-                plan.name.toUpperCase() === 'FREE'
-                  ? 'bg-white border-slate-200 shadow-sm hover:border-slate-300'
-                  : '',
-                plan.name.toUpperCase() === 'STARTER'
-                  ? 'bg-emerald-50 border-emerald-100 shadow-sm hover:border-emerald-200'
-                  : '',
-                plan.name.toUpperCase() === 'PRO'
-                  ? 'bg-slate-900 border-slate-800 shadow-2xl  z-10'
-                  : '',
-                plan.name.toUpperCase() === 'MAX'
-                  ? 'bg-gradient-to-br from-indigo-900 via-slate-900 to-indigo-950 border-indigo-500/30 shadow-xl hover:border-indigo-500/50'
-                  : '',
-              ]">
-              <!-- Badge for PRO -->
-              <div
-                v-if="plan.name.toUpperCase() === 'PRO'"
-                class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-emerald-600 text-white px-3 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase shadow-lg shadow-emerald-600/20">
-                Most Popular
-              </div>
-
-              <!-- Badge for MAX -->
-              <div
-                v-if="plan.name.toUpperCase() === 'MAX'"
-                class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-indigo-600 text-white px-3 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase shadow-lg shadow-indigo-600/20">
-                Ultimate Power
-              </div>
-
-              <h3
-                :class="[
-                  'text-xl font-bold mb-2 tracking-tight uppercase',
-                  ['PRO', 'MAX'].includes(plan.name.toUpperCase())
-                    ? 'text-white'
-                    : 'text-slate-900',
-                ]">
-                {{ plan.name }}
-              </h3>
-              <p
-                :class="[
-                  'text-sm mb-6 font-medium leading-relaxed',
-                  plan.name.toUpperCase() === 'PRO'
-                    ? 'text-slate-400'
-                    : plan.name.toUpperCase() === 'MAX'
-                      ? 'text-indigo-200/70'
-                      : 'text-slate-500',
-                ]">
-                {{ plan.description }}
-              </p>
-
-              <div class="mb-6">
-                <span
-                  :class="[
-                    'text-4xl font-semibold tracking-tight',
-                    ['PRO', 'MAX'].includes(plan.name.toUpperCase())
-                      ? 'text-white'
-                      : 'text-slate-900',
-                  ]"
-                  >{{ plan.currency }} {{ plan.price }}</span
-                >
-                <span
-                  v-if="plan.price > 0"
-                  :class="[
-                    'font-bold text-sm ml-1',
-                    plan.name.toUpperCase() === 'PRO'
-                      ? 'text-slate-500'
-                      : plan.name.toUpperCase() === 'MAX'
-                        ? 'text-indigo-400'
-                        : 'text-slate-400',
-                  ]"
-                  >/{{ plan.interval }}</span
-                >
-              </div>
-
-              <ul class="space-y-4 mb-8 flex-1">
-                <li
-                  v-for="feature in plan.features"
-                  :key="feature"
-                  class="flex items-center gap-3 text-sm font-medium"
-                  :class="
-                    plan.name.toUpperCase() === 'PRO'
-                      ? 'text-slate-300'
-                      : plan.name.toUpperCase() === 'MAX'
-                        ? 'text-indigo-100/90'
-                        : 'text-slate-600'
-                  ">
-                  <div
-                    class="w-5 h-5 rounded-full flex items-center justify-center shrink-0"
-                    :class="
-                      plan.name.toUpperCase() === 'PRO'
-                        ? 'bg-emerald-500/10'
-                        : plan.name.toUpperCase() === 'MAX'
-                          ? 'bg-indigo-500/20'
-                          : 'bg-emerald-50'
-                    ">
-                    <svg
-                      class="w-3 h-3"
-                      :class="
-                        plan.name.toUpperCase() === 'PRO'
-                          ? 'text-emerald-400'
-                          : plan.name.toUpperCase() === 'MAX'
-                            ? 'text-indigo-400'
-                            : 'text-emerald-600'
-                      "
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor">
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2.5"
-                        d="M5 13l4 4L19 7"></path>
-                    </svg>
-                  </div>
-                  {{ feature }}
-                </li>
-              </ul>
-
-              <NuxtLink
-                :to="authStore.isAuthenticated ? '/dashboard' : '/register'"
-                class="w-full py-3.5 rounded-2xl font-bold transition-all text-center no-underline inline-block text-sm tracking-wide group"
-                :class="[
-                  plan.name.toUpperCase() === 'FREE'
-                    ? 'border-2 border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300'
-                    : '',
-                  plan.name.toUpperCase() === 'STARTER'
-                    ? 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-lg shadow-emerald-600/20 hover:scale-[1.02]'
-                    : '',
-                  plan.name.toUpperCase() === 'PRO'
-                    ? 'bg-white text-slate-900 hover:bg-slate-100 shadow-lg hover:scale-[1.02]'
-                    : '',
-                  plan.name.toUpperCase() === 'MAX'
-                    ? 'bg-indigo-600 text-white hover:bg-indigo-500 shadow-lg shadow-indigo-600/30 hover:scale-[1.02]'
-                    : '',
-                ]">
-                <span class="flex items-center justify-center gap-2">
-                  {{
-                    plan.name.toUpperCase() === "FREE"
-                      ? "Get Started"
-                      : plan.name.toUpperCase() === "STARTER"
-                        ? "Get Starter"
-                        : plan.name.toUpperCase() === "PRO"
-                          ? "Go Pro"
-                          : "Get Max"
-                  }}
-                </span>
-              </NuxtLink>
-            </div>
-          </div>
-
-          <div class="mt-12 text-center">
-            <p class="text-sm font-medium text-slate-500">
-              Want more power?
-              <a
-                href="mailto:contact@invokita.my"
-                class="text-emerald-600 hover:text-emerald-700 underline underline-offset-2"
-                >Contact us for enquiry</a
-              >
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <section
-        id="faq"
-        class="relative z-20 py-24 px-6 md:px-12 bg-transparent scroll-mt-24">
-        <div class="max-w-3xl mx-auto">
-          <div class="text-center mb-16">
-            <h2
-              class="text-3xl md:text-4xl font-semibold tracking-tight text-slate-900 mb-4">
-              Common Questions
-            </h2>
-            <p class="text-slate-600">
-              Everything you need to know about InvoKita.
-            </p>
-          </div>
-
-          <div class="space-y-4">
-            <div
-              v-for="(item, index) in faqItems"
-              :key="index"
-              class="group reveal-item reveal-up"
-              :style="{ 'transition-delay': index * 50 + 'ms' }">
-              <button
-                @click="toggleFaq(index)"
-                class="w-full flex items-center justify-between p-6 bg-white rounded-2xl border border-slate-200 transition-all text-left"
-                :class="{
-                  'border-emerald-200 ring-2 ring-emerald-600/5 shadow-sm':
-                    activeFaqIndex === index,
-                }">
-                <span class="font-bold text-slate-900 pr-8">{{
-                  item.question
-                }}</span>
-                <div
-                  class="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:text-slate-900 transition-all"
-                  :class="{
-                    'rotate-180 bg-emerald-50 text-emerald-600':
-                      activeFaqIndex === index,
-                  }">
-                  <svg
-                    class="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24">
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M19 9l-7 7-7-7"></path>
-                  </svg>
-                </div>
-              </button>
-
-              <div
-                class="grid transition-all duration-300 ease-in-out"
-                :class="
-                  activeFaqIndex === index
-                    ? 'grid-rows-[1fr] opacity-100 mt-4'
-                    : 'grid-rows-[0fr] opacity-0'
-                ">
-                <div class="overflow-hidden">
-                  <div
-                    class="p-6 text-slate-600 leading-relaxed bg-white border border-slate-100 rounded-2xl">
-                    {{ item.answer }}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Bottom CTA Banner -->
-      <section class="relative z-20 py-24 px-6 md:px-12 bg-white">
-        <div class="max-w-6xl mx-auto">
-          <div
-            class="relative overflow-hidden bg-gradient-to-br from-emerald-900 via-slate-800 to-emerald-900 rounded-[3rem] p-12 md:p-20 text-center shadow-2xl">
-            <!-- Background effects -->
-            <div class="absolute top-0 left-0 w-full h-full opacity-30">
-              <div
-                class="absolute top-[-10%] left-[-10%] w-64 h-64 bg-emerald-500 rounded-full blur-[100px]"></div>
-              <div
-                class="absolute bottom-[-10%] right-[-10%] w-64 h-64 bg-indigo-500 rounded-full blur-[100px]"></div>
-            </div>
-
-            <div class="relative z-10">
-              <h2 class="text-4xl md:text-6xl font-semibold text-white mb-6">
-                Ready to reclaim<br />your focus?
-              </h2>
-              <p
-                class="text-slate-400 text-md md:text-lg max-w-2xl mx-auto mb-10 font-medium">
-                Join thousands of business owners who let InvoKita handle the
-                chasers while they focus on growth.
-              </p>
-              <div
-                class="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <NuxtLink
-                  to="/register"
-                  class="group relative w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 text-base font-bold text-slate-900 bg-white rounded-full hover:bg-slate-100 transition-all duration-300 hover:scale-105 active:scale-95 shadow-xl">
-                  Get Started Free
-                  <svg
-                    class="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24">
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2.5"
-                      d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
-                  </svg>
-                </NuxtLink>
-                <NuxtLink
-                  to="/login"
-                  class="text-white/80 hover:text-white font-bold transition-colors py-2 px-4">
-                  Already have an account? Sign In
-                </NuxtLink>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Footer -->
-      <footer
-        class="relative z-20 bg-slate-900 pt-16 pb-8 px-6 md:px-12 text-slate-400 border-t border-slate-800">
-        <div
-          class="max-w-6xl mx-auto grid grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
-          <div class="col-span-2 lg:col-span-1">
-            <span class="font-semibold tracking-tighter text-white text-2xl">
-              InvoKita<span class="text-emerald-600">.</span></span
+    <!-- ══════════════════ CTA STRIPE ══════════════════ -->
+    <section class="cta-stripe">
+      <div class="wrap">
+        <div class="cta-stripe__inner ri">
+          <h2 class="cta-stripe__h2">
+            Start invoicing<br /><em>the right way.</em>
+          </h2>
+          <div class="cta-stripe__actions">
+            <NuxtLink to="/register" class="btn btn--white btn--lg"
+              >Get started free</NuxtLink
             >
-            <p class="text-sm text-slate-500 mb-6">
-              Invoicing that feels weightless. Designed for modern businesses.
+            <NuxtLink to="/login" class="cta-stripe__secondary"
+              >Already have an account →</NuxtLink
+            >
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════ FOOTER ══════════════════ -->
+    <footer class="footer">
+      <div class="wrap">
+        <div class="footer__grid">
+          <div class="footer__brand">
+            <span class="footer__logo"
+              >InvoKita<span class="footer__dot">.</span></span
+            >
+            <p class="footer__tagline">
+              Invoicing made effortless for Malaysian businesses.
             </p>
           </div>
+
           <div>
-            <h4 class="text-slate-50 font-semibold mb-4">Product</h4>
-            <ul class="space-y-2 text-sm">
+            <p class="footer__col-title">Product</p>
+            <ul class="footer__col">
               <li>
-                <button 
-                  @click="scrollToSection('features')" 
-                  class="hover:text-white transition-colors border-none bg-transparent p-0 text-slate-400 font-medium cursor-pointer"
-                >Features</button>
+                <button
+                  @click="scrollToSection('features')"
+                  class="footer__link">
+                  Features
+                </button>
               </li>
               <li>
-                <button 
-                  @click="scrollToSection('pricing')" 
-                  class="hover:text-white transition-colors border-none bg-transparent p-0 text-slate-400 font-medium cursor-pointer"
-                >Pricing</button>
+                <button
+                  @click="scrollToSection('pricing')"
+                  class="footer__link">
+                  Pricing
+                </button>
+              </li>
+              <li>
+                <button
+                  @click="scrollToSection('how-it-works')"
+                  class="footer__link">
+                  How it works
+                </button>
+              </li>
+              <li>
+                <button @click="scrollToSection('faq')" class="footer__link">
+                  FAQ
+                </button>
               </li>
             </ul>
           </div>
+
           <div>
-            <h4 class="text-slate-50 font-semibold mb-4">Legal</h4>
-            <ul class="space-y-2 text-sm">
+            <p class="footer__col-title">Legal</p>
+            <ul class="footer__col">
               <li>
-                <NuxtLink to="/legal/terms" class="hover:text-white transition-colors">Terms of Service</NuxtLink>
+                <NuxtLink to="/legal/terms" class="footer__link"
+                  >Terms of Service</NuxtLink
+                >
               </li>
               <li>
-                <NuxtLink to="/legal/privacy" class="hover:text-white transition-colors">Privacy Policy</NuxtLink>
+                <NuxtLink to="/legal/privacy" class="footer__link"
+                  >Privacy Policy</NuxtLink
+                >
               </li>
               <li>
-                <NuxtLink to="/legal/refund" class="hover:text-white transition-colors">Refund Policy</NuxtLink>
+                <NuxtLink to="/legal/refund" class="footer__link"
+                  >Refund Policy</NuxtLink
+                >
+              </li>
+            </ul>
+          </div>
+
+          <div>
+            <p class="footer__col-title">Company</p>
+            <ul class="footer__col">
+              <li>
+                <a href="mailto:contact@invokita.my" class="footer__link"
+                  >Contact</a
+                >
+              </li>
+              <li>
+                <a href="mailto:support@invokita.my" class="footer__link"
+                  >Support</a
+                >
               </li>
             </ul>
           </div>
         </div>
 
-        <div
-          class="max-w-6xl mx-auto pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4">
-          <div class="text-sm flex flex-col items-center md:items-start gap-1">
-            <span>© 2026 InvoKita. All rights reserved.</span>
-            <span class="text-slate-600 text-[10px] font-bold uppercase tracking-widest">BSYX LABS (202603086039)</span>
-          </div>
-          <div class="flex gap-4">
-            <a
-              href="#"
-              class="text-slate-500 hover:text-white transition-colors"
-              ><svg
-                class="w-5 h-5"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-                aria-hidden="true">
-                <path
-                  fill-rule="evenodd"
-                  d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z"
-                  clip-rule="evenodd" /></svg
-            ></a>
-            <a
-              href="#"
-              class="text-slate-500 hover:text-white transition-colors"
-              ><svg
-                class="w-5 h-5"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-                aria-hidden="true">
-                <path
-                  d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.095 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84" /></svg
-            ></a>
-          </div>
+        <div class="footer__bottom">
+          <span>© 2026 InvoKita — BSYX LABS SDN BHD (202603086039)</span>
         </div>
-      </footer>
+      </div>
+    </footer>
 
-      <!-- Scroll to Top Button -->
-      <Transition name="fade">
-        <button
-          v-if="showToTop"
-          @click="scrollToTop"
-          class="fixed bottom-8 right-8 z-[90] p-4 bg-white shadow-2xl rounded-2xl border border-slate-200 text-slate-900 hover:bg-slate-50 hover:scale-110 active:scale-95 transition-all duration-300 group">
-          <svg
-            class="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
-          </svg>
-        </button>
-      </Transition>
-    </div>
+    <!-- Scroll-to-top -->
+    <Transition name="fade">
+      <button
+        v-if="showToTop"
+        @click="scrollToTop"
+        class="to-top"
+        aria-label="Back to top">
+        ↑
+      </button>
+    </Transition>
   </div>
 </template>
 
@@ -1674,51 +886,82 @@
 import { ref, onMounted, nextTick } from "vue";
 import { useAuthStore } from "~/stores/authStore";
 
+// ── SEO ──────────────────────────────────────────────────
+useHead({
+  title: "InvoKita — AI-Powered Invoicing for Malaysian Businesses",
+  meta: [
+    {
+      name: "description",
+      content:
+        "Create, send, and track professional invoices in seconds. InvoKita is the AI-powered billing platform built for Malaysian freelancers and businesses — with Billplz, ToyyibPay & WhatsApp integration.",
+    },
+    {
+      name: "keywords",
+      content:
+        "invoicing Malaysia, invoice software, billing platform, AI invoice, Billplz, ToyyibPay, WhatsApp invoice, freelance MYR",
+    },
+    { name: "author", content: "BSYX LABS SDN BHD" },
+    { name: "robots", content: "index, follow" },
+    { property: "og:type", content: "website" },
+    { property: "og:url", content: "https://invokita.my/" },
+    {
+      property: "og:title",
+      content: "InvoKita — AI-Powered Invoicing for Malaysian Businesses",
+    },
+    {
+      property: "og:description",
+      content:
+        "AI-powered billing for Malaysian businesses. Create invoices in seconds.",
+    },
+    { property: "og:site_name", content: "InvoKita" },
+    { name: "twitter:card", content: "summary_large_image" },
+    { name: "twitter:title", content: "InvoKita — AI-Powered Invoicing" },
+    {
+      name: "twitter:description",
+      content: "AI-powered billing for Malaysian freelancers and businesses.",
+    },
+    { name: "theme-color", content: "#f8f9fa" },
+  ],
+  link: [
+    { rel: "canonical", href: "https://invokita.my/" },
+    { rel: "preconnect", href: "https://fonts.googleapis.com" },
+    { rel: "preconnect", href: "https://fonts.gstatic.com", crossorigin: "" },
+    {
+      rel: "stylesheet",
+      href: "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap",
+    },
+  ],
+  script: [
+    {
+      type: "application/ld+json",
+      children: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        name: "InvoKita",
+        applicationCategory: "BusinessApplication",
+        operatingSystem: "Web",
+        offers: { "@type": "Offer", price: "0", priceCurrency: "MYR" },
+        description: "AI-powered invoicing platform for Malaysian businesses.",
+        url: "https://invokita.my",
+        publisher: {
+          "@type": "Organization",
+          name: "BSYX LABS SDN BHD",
+          url: "https://invokita.my",
+        },
+      }),
+    },
+  ],
+});
+
+// ── STATE ────────────────────────────────────────────────
 const authStore = useAuthStore();
 const previewTab = ref("ai");
 const dynamicPlans = ref([]);
 const isScrolled = ref(false);
 const showToTop = ref(false);
 const isMobileMenuOpen = ref(false);
-const activeFaqIndex = ref(null);
 
-const faqItems = [
-  {
-    question: "Can I really draft an invoice using AI?",
-    answer:
-      "Yes! InvoKita includes an AI Builder that allows you to simply describe your work or paste a conversation. It instantly drafts a complete invoice with items, quantities, and totals ready for your review.",
-  },
-  {
-    question: "How does automated payment detection work?",
-    answer:
-      "We've integrated directly with Billplz and ToyyibPay. Once your client pays via FPX or Credit Card, those gateways send a signal to InvoKita. Our system automatically marks the invoice as Paid and reconciliation is handled instantly.",
-  },
-  {
-    question: "Do I need to manually send reminders to my clients?",
-    answer:
-      "Only if you want to. InvoKita features an 'Auto-Chaser' that sends scheduled WhatsApp and Email reminders. The best part? Once a payment is detected via Billplz or ToyyibPay, all future reminders for that invoice are disabled automatically.",
-  },
-  {
-    question: "Is my business data secure?",
-    answer:
-      "Security is our top priority. We use bank-level AES-256 encryption for all data and have implemented strict per-user isolation. Your financial information and client data are only accessible by you.",
-  },
-  {
-    question: "Does it support Malaysian Ringgit (MYR) and SST?",
-    answer:
-      "Absolutely. InvoKita was built for the Malaysian market. It supports MYR as the native currency, and you can easily configure SST or other tax rates in your global settings.",
-  },
-  {
-    question: "Can I cancel my subscription at any time?",
-    answer:
-      "Yes. InvoKita is a month-to-month service. There are no long-term contracts, and you can upgrade, downgrade, or cancel your plan at any time through your dashboard.",
-  },
-];
-
-const toggleFaq = (index) => {
-  activeFaqIndex.value = activeFaqIndex.value === index ? null : index;
-};
-
+// ── CONTENT ──────────────────────────────────────────────
 const navLinks = [
   { name: "Features", id: "features" },
   { name: "How it works", id: "how-it-works" },
@@ -1726,229 +969,2295 @@ const navLinks = [
   { name: "FAQ", id: "faq" },
 ];
 
+const stats = [
+  { val: "2,000+", label: "Active businesses" },
+  { val: "RM 12M+", label: "Invoiced via platform" },
+  { val: "< 60s", label: "Avg. invoice creation" },
+  { val: "99.9%", label: "Uptime SLA" },
+];
+
+const marqueeItems = [
+  "Billplz",
+  "ToyyibPay",
+  "HitPay",
+  "SenangPay",
+  "WhatsApp",
+  "FPX",
+  "Credit Card",
+  "Auto-Reconciliation",
+  "AI Invoice",
+  "MYR",
+  "SST",
+  "PDF Export",
+];
+
+const steps = [
+  {
+    title: "Create",
+    body: "Use our intuitive form builder or let the AI draft your invoice from a single sentence. Either way, you're done in under a minute.",
+  },
+  {
+    title: "Send",
+    body: "Dispatch a secure payment link via Email or WhatsApp. Automated reminders keep clients on track — without you lifting a finger.",
+  },
+  {
+    title: "Get paid",
+    body: "Accept payments through Billplz or ToyyibPay. The moment they pay, your invoice is reconciled and reminders are silenced. Automatically.",
+  },
+];
+
+const features = [
+  {
+    title: "Smart Invoicing",
+    body: "Create professional invoices with smart autofill, line-item discounts, SST/tax support, and one-click duplication.",
+    icon: "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z",
+  },
+  {
+    title: "AI Invoice Builder",
+    body: "Just describe what you need. The AI drafts a complete invoice — client, items, amounts — ready in seconds.",
+    icon: "M13 10V3L4 14h7v7l9-11h-7z",
+  },
+  {
+    title: "WhatsApp Delivery",
+    body: "Send a beautiful payment link directly via WhatsApp. No PDF attachments, no inbox clutter. Just a tap to pay.",
+    icon: "M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z",
+  },
+  {
+    title: "Client CRM",
+    body: "Centralize your client base. Store contact details, billing preferences, and track lifetime revenue per client.",
+    icon: "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z",
+  },
+  {
+    title: "Financial Dashboard",
+    body: "Bird's eye view of your business health. Revenue graphs, outstanding balances, and AI-powered suggestions.",
+    icon: "M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z",
+  },
+  {
+    title: "Auto-Reminders",
+    body: "Schedule payment reminders that go out automatically. And stop automatically the moment your client pays.",
+    icon: "M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9",
+  },
+];
+
+const autoPoints = [
+  "Billplz & ToyyibPay webhook integration",
+  "Instant invoice reconciliation on payment",
+  "Auto-silence all pending reminders",
+  "Zero manual intervention required",
+];
+
+const flowSteps = [
+  {
+    label: "Webhook received",
+    sub: "Billplz / ToyyibPay fires instantly",
+    tag: "Active",
+    color: "indigo",
+    icon: "M13 10V3L4 14h7v7l9-11h-7z",
+  },
+  {
+    label: "Invoice reconciled",
+    sub: "Matched and marked as Paid",
+    tag: "Done",
+    color: "green",
+    icon: "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z",
+  },
+  {
+    label: "Reminders silenced",
+    sub: "All future chasers cancelled",
+    tag: "Stopped",
+    color: "amber",
+    icon: "M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z",
+  },
+];
+
+const gateways = [
+  {
+    name: "Billplz",
+    logo: "https://make-cxp-documentation.ams3.digitaloceanspaces.com/apps-center-icons/billplz.png",
+  },
+  {
+    name: "ToyyibPay",
+    logo: "https://images.crunchbase.com/image/upload/c_pad,h_256,w_256,f_auto,q_auto:eco,dpr_1/e2hhr8kgl2hq5bkkqueq?ik-sanitizeSvg=true",
+  },
+  {
+    name: "HitPay",
+    logo: "https://avatars.githubusercontent.com/u/67738149?s=280&v=4",
+  },
+  {
+    name: "SenangPay",
+    logo: "https://media.glassdoor.com/sqll/5772920/senangpay-squareLogo-1701835868144.png",
+  },
+];
+
+const secItems = [
+  {
+    title: "AES-256 Encryption",
+    body: "Every byte encrypted at rest and in transit. Same standard as international banks.",
+  },
+  {
+    title: "Absolute Data Isolation",
+    body: "Multi-layer authorization ensures your business data is never accessible by anyone but you.",
+  },
+  {
+    title: "Daily Automated Backups",
+    body: "Database snapshots every 24 hours. Your business continuity is never at risk.",
+  },
+  {
+    title: "Secure Public Links",
+    body: "Invoice payment links are tokenized, expirable, and tied to a single transaction.",
+  },
+];
+
+const faqItems = [
+  {
+    question: "Can I really draft an invoice using AI?",
+    answer:
+      "Yes. InvoKita includes an AI Builder that lets you describe your work in plain language. It instantly drafts a complete invoice with items, quantities, and totals ready for your review.",
+  },
+  {
+    question: "How does automated payment detection work?",
+    answer:
+      "We integrate directly with Billplz and ToyyibPay. When your client pays, those gateways fire a webhook to InvoKita, which marks the invoice as Paid and cancels all pending reminders instantly.",
+  },
+  {
+    question: "Do I need to manually send reminders?",
+    answer:
+      "Only if you want to. The Auto-Chaser sends scheduled WhatsApp and Email reminders. Once a payment is detected, all future reminders for that invoice are disabled automatically.",
+  },
+  {
+    question: "Is my data secure?",
+    answer:
+      "Security is our top priority. We use AES-256 encryption and strict per-user data isolation. Your financial information is only accessible by you.",
+  },
+  {
+    question: "Does it support MYR and SST?",
+    answer:
+      "InvoKita was built for Malaysia. It supports MYR natively, and you can configure SST or other tax rates globally in your settings.",
+  },
+  {
+    question: "Can I cancel anytime?",
+    answer:
+      "Yes. No long-term contracts. Upgrade, downgrade, or cancel any time from your dashboard.",
+  },
+];
+
+// ── METHODS ──────────────────────────────────────────────
 const scrollToSection = (id) => {
   isMobileMenuOpen.value = false;
-  const targetId = id;
-  const element = document.getElementById(targetId);
-  if (element) {
-    const navHeight = 80;
-    const elementPosition = element.getBoundingClientRect().top;
-    const offsetPosition = elementPosition + window.pageYOffset - navHeight;
-
+  const el = document.getElementById(id);
+  if (el)
     window.scrollTo({
-      top: offsetPosition,
+      top: el.getBoundingClientRect().top + window.pageYOffset - 80,
       behavior: "smooth",
     });
-  }
 };
 
 const handleScroll = () => {
   isScrolled.value = window.scrollY > 20;
-  showToTop.value = window.scrollY > 500;
+  showToTop.value = window.scrollY > 600;
 };
 
-const scrollToTop = () => {
-  window.scrollTo({
-    top: 0,
-    behavior: "smooth",
-  });
-};
+const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
 
 const fetchPlans = async () => {
   const { $api } = useNuxtApp();
   try {
     const { data } = await $api.get("/plans");
     dynamicPlans.value = data;
-  } catch (err) {
-    console.error("Failed to fetch plans", err);
+  } catch (e) {
+    console.error("Plans fetch failed", e);
   }
 };
 
+let _observer = null;
+
 const initObserver = () => {
-  const observerOptions = {
-    threshold: 0.1,
-    rootMargin: "0px 0px -50px 0px",
-  };
-
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add("reveal-active");
-      }
-    });
-  }, observerOptions);
-
-  document.querySelectorAll(".reveal-item").forEach((el) => {
-    observer.observe(el);
-  });
-
-  return observer;
+  if (_observer) {
+    _observer.disconnect();
+  }
+  _observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((e) => {
+        if (e.isIntersecting) {
+          e.target.classList.add("ri--in");
+          _observer.unobserve(e.target);
+        }
+      });
+    },
+    { threshold: 0.06, rootMargin: "0px 0px -40px 0px" },
+  );
+  document
+    .querySelectorAll(".ri:not(.ri--in)")
+    .forEach((el) => _observer.observe(el));
 };
 
 onMounted(async () => {
-  // Initialize for static items
+  // Reveal items already in viewport immediately
   initObserver();
+  window.addEventListener("scroll", handleScroll, { passive: true });
 
-  // Scroll listener
-  window.addEventListener("scroll", handleScroll);
-
-  // Fetch plans
   await fetchPlans();
-
-  // Re-initialize for dynamic plans after they render
   await nextTick();
+  // Re-scan for newly rendered pricing cards
   initObserver();
+
+  // Safety net: keep re-scanning for 3s in case of render delays
+  const intervals = [300, 600, 1200, 2400];
+  intervals.forEach((ms) => setTimeout(initObserver, ms));
 });
 
-definePageMeta({
-  layout: false,
-});
+definePageMeta({ layout: false });
 </script>
 
 <style scoped>
-.bg-\[\#f8fafc\] {
-  background-color: #f8fafc;
+/* ─────────────── TOKENS ─────────────── */
+/* Using hardcoded values since CSS custom properties in scoped
+   styles can have inconsistent behavior in Nuxt SSR */
+
+/* ─────────────── RESET ─────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-/* Scroll Reveal Animations */
-.reveal-item {
-  opacity: 0;
-  will-change: transform, opacity;
+.root {
+  font-family:
+    "Inter",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  background: #f8f9fa;
+  color: #1a1d23;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─────────────── NAV ─────────────── */
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  padding: 1.125rem 2rem;
   transition:
-    transform 0.8s cubic-bezier(0.16, 1, 0.3, 1),
-    opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    background 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+    padding 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.reveal-up {
-  transform: translateY(40px);
+.nav--scrolled {
+  background: rgba(248, 249, 250, 0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08);
+  padding: 0.875rem 2rem;
 }
 
-.reveal-down {
-  transform: translateY(-40px);
+.nav__inner {
+  max-width: 1120px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
 }
 
-.reveal-left {
-  transform: translateX(-40px);
+.nav__links {
+  display: none;
+  align-items: center;
+  gap: 1.75rem;
+}
+@media (min-width: 1024px) {
+  .nav__links {
+    display: flex;
+  }
 }
 
-.reveal-right {
-  transform: translateX(40px);
+.nav__link {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #6b7280;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.15s ease;
+  letter-spacing: -0.01em;
+}
+.nav__link:hover {
+  color: #1a1d23;
 }
 
-.reveal-scale {
-  transform: scale(0.95);
+.nav__actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
-.reveal-item.reveal-active {
+.nav__signin {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #6b7280;
+  text-decoration: none;
+  transition: color 0.15s ease;
+  display: none;
+}
+@media (min-width: 640px) {
+  .nav__signin {
+    display: inline;
+  }
+}
+.nav__signin:hover {
+  color: #1a1d23;
+}
+
+.nav__hamburger {
+  background: none;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  cursor: pointer;
+}
+@media (min-width: 1024px) {
+  .nav__hamburger {
+    display: none;
+  }
+}
+.nav__hamburger span {
+  display: block;
+  width: 16px;
+  height: 1.5px;
+  background: #1a1d23;
+  border-radius: 2px;
+}
+
+/* ─────────────── BUTTONS ─────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  font-family:
+    "Inter",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  padding: 0.5625rem 1.125rem;
+  border-radius: 9999px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+}
+.btn--lg {
+  font-size: 0.9375rem;
+  padding: 0.75rem 1.625rem;
+}
+
+.btn--dark {
+  background: #1a1d23;
+  color: #fff;
+}
+.btn--dark:hover {
+  background: #2d3748;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.btn--ghost {
+  background: transparent;
+  color: #1a1d23;
+  border-color: rgba(0, 0, 0, 0.12);
+}
+.btn--ghost:hover {
+  background: #fff;
+  border-color: rgba(0, 0, 0, 0.2);
+}
+
+.btn--white {
+  background: #fff;
+  color: #1a1d23;
+  border-color: transparent;
+}
+.btn--white:hover {
+  background: #f0f2f5;
+  transform: translateY(-1px);
+}
+
+/* ─────────────── DRAWER ─────────────── */
+.drawer-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(15, 17, 23, 0.5);
+  backdrop-filter: blur(4px);
+}
+.drawer {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: min(380px, 100%);
+  background: #fff;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+.drawer__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.drawer__close {
+  background: none;
+  border: none;
+  font-size: 1.125rem;
+  cursor: pointer;
+  color: #6b7280;
+  line-height: 1;
+  padding: 0.25rem;
+}
+.drawer__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.drawer__link {
+  display: block;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #1a1d23;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  padding: 0.625rem 0;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  transition: color 0.15s ease;
+}
+.drawer__link:hover {
+  color: #059669;
+}
+.drawer__footer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: auto;
+}
+
+/* ─────────────── HERO ─────────────── */
+.hero {
+  position: relative;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8rem 1.5rem 4rem;
+  text-align: center;
+  overflow: hidden;
+}
+
+/* Thin drifting SVG lines */
+.lines {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.lines__svg {
+  width: 100%;
+  height: 100%;
+  opacity: 0.5;
+}
+
+.line {
+  stroke-dasharray: 8 12;
+  animation: dash-drift 20s linear infinite;
+}
+
+.line--1 {
+  stroke: #059669;
+  animation-duration: 18s;
+  opacity: 0.4;
+}
+.line--2 {
+  stroke: #3b82f6;
+  animation-duration: 24s;
+  animation-delay: -8s;
+  opacity: 0.3;
+}
+.line--3 {
+  stroke: #f59e0b;
+  animation-duration: 30s;
+  animation-delay: -15s;
+  opacity: 0.25;
+}
+
+.dot {
+  opacity: 0.5;
+  animation: dot-orbit 14s linear infinite;
+}
+.dot--1 {
+  animation-duration: 18s;
+  color: #059669;
+  offset-path: path("M-100 350 Q300 100 600 350 Q900 600 1300 350");
+}
+.dot--2 {
+  animation-duration: 24s;
+  animation-delay: -8s;
+  color: #3b82f6;
+  offset-path: path("M-100 420 Q250 200 600 420 Q950 640 1300 420");
+}
+.dot--3 {
+  animation-duration: 30s;
+  animation-delay: -15s;
+  color: #f59e0b;
+  offset-path: path("M100 600 Q400 200 700 500 Q900 700 1300 300");
+}
+
+.hero__body {
+  position: relative;
+  z-index: 1;
+  max-width: 760px;
+  width: 100%;
+}
+
+.hero__eyebrow {
+  margin-bottom: 1.75rem;
+}
+
+.hero__tag {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--accent);
+  border: 1px solid var(--accent-light);
+  background: var(--accent-light);
+  padding: 0.3rem 0.875rem;
+  border-radius: var(--radius-pill);
+}
+
+.hero__h1 {
+  font-size: clamp(2.25rem, 5.5vw, 4rem);
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  line-height: 1.1;
+  color: var(--text);
+  margin-bottom: 1.5rem;
+}
+
+.hero__em {
+  font-style: italic;
+  font-weight: 300;
+  color: var(--text-muted);
+}
+
+.hero__sub {
+  font-size: 1.0625rem;
+  font-weight: 400;
+  color: var(--text-muted);
+  line-height: 1.7;
+  max-width: 540px;
+  margin: 0 auto 2.5rem;
+}
+
+.hero__cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+  margin-bottom: 1.25rem;
+}
+
+.hero__note {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+/* Stats strip */
+.hero__stats {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0;
+  margin-top: 5rem;
+  max-width: 600px;
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  background: var(--surface);
+}
+
+@media (min-width: 640px) {
+  .hero__stats {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.25rem 1rem;
+  border-right: 1px solid var(--border);
+}
+.stat:last-child {
+  border-right: none;
+}
+.stat:nth-child(2) {
+  border-right: 1px solid var(--border);
+}
+
+@media (max-width: 639px) {
+  .stat:nth-child(2n) {
+    border-right: none;
+  }
+  .stat:nth-child(1),
+  .stat:nth-child(2) {
+    border-bottom: 1px solid var(--border);
+  }
+}
+
+.stat__val {
+  font-size: 1.125rem;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  color: var(--text);
+}
+.stat__label {
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+  font-weight: 400;
+}
+
+/* ─────────────── MARQUEE ─────────────── */
+.marquee-wrap {
+  overflow: hidden;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 0.875rem 0;
+  background: var(--surface);
+}
+
+.marquee {
+  display: flex;
+  animation: marquee-scroll 30s linear infinite;
+  width: max-content;
+}
+
+.marquee__track {
+  display: flex;
+  gap: 2.5rem;
+  margin-right: 2.5rem;
+}
+
+.marquee__item {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  white-space: nowrap;
+  letter-spacing: 0.01em;
+}
+
+.marquee__item::before {
+  content: "·";
+  margin-right: 2.5rem;
+  color: var(--border);
+}
+.marquee__item:first-child::before {
+  display: none;
+}
+
+/* ─────────────── LAYOUT ─────────────── */
+.section {
+  padding: 7rem 1.5rem;
+}
+.section--dark {
+  background: #0f1117;
+}
+.section--tinted {
+  background: #f0f2f5;
+}
+
+.wrap {
+  max-width: 1120px;
+  margin: 0 auto;
+}
+.wrap--narrow {
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.section__head {
+  margin-bottom: 4rem;
+}
+.section__head.ri {
+  text-align: center;
+}
+
+.eyebrow {
+  display: inline-block;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #059669;
+  margin-bottom: 1rem;
+}
+.eyebrow--light {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.h2 {
+  font-size: clamp(1.75rem, 3.5vw, 2.625rem);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  color: #1a1d23;
+}
+
+.h2--light {
+  color: #fff;
+}
+
+.h2__sub {
+  margin-top: 1rem;
+  font-size: 1rem;
+  font-weight: 400;
+  color: #6b7280;
+  max-width: 480px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.6;
+}
+
+.accent {
+  color: #059669;
+}
+
+.body-text {
+  font-size: 1rem;
+  font-weight: 400;
+  color: #6b7280;
+  line-height: 1.75;
+}
+
+.split {
+  display: grid;
+  gap: 5rem;
+  align-items: center;
+}
+@media (min-width: 1024px) {
+  .split {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.split--flip .split__copy {
+  order: 2;
+}
+.split--flip .split__visual {
+  order: 1;
+}
+@media (min-width: 1024px) {
+  .split--flip .split__copy {
+    order: 2;
+  }
+  .split--flip .split__visual {
+    order: 1;
+  }
+}
+
+/* ─────────────── STEPS ─────────────── */
+.steps {
+  display: grid;
+  gap: 0;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 28px;
+  overflow: hidden;
+  background: #fff;
+}
+
+@media (min-width: 768px) {
+  .steps {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.step {
+  padding: 2.5rem 2rem;
+  border-right: 1px solid rgba(0, 0, 0, 0.08);
+  transition: background 0.2s ease;
+}
+.step:last-child {
+  border-right: none;
+}
+.step:hover {
+  background: #fafafa;
+}
+
+@media (max-width: 767px) {
+  .step {
+    border-right: none;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  }
+  .step:last-child {
+    border-bottom: none;
+  }
+}
+
+.step__n {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: #059669;
+  margin-bottom: 1.25rem;
+}
+
+.step__divider {
+  width: 24px;
+  height: 1px;
+  background: rgba(0, 0, 0, 0.08);
+  margin-bottom: 1.25rem;
+}
+
+.step__title {
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: #1a1d23;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.75rem;
+}
+
+.step__body {
+  font-size: 0.875rem;
+  color: #6b7280;
+  line-height: 1.7;
+}
+
+/* ─────────────── FEATURES GRID ─────────────── */
+.feat-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 28px;
+  overflow: hidden;
+}
+
+@media (min-width: 640px) {
+  .feat-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (min-width: 1024px) {
+  .feat-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.feat-card {
+  background: #16191f;
+  padding: 2rem;
+  transition: background 0.2s ease;
+}
+.feat-card:hover {
+  background: #1c1f27;
+}
+
+.feat-card__icon {
+  width: 2rem;
+  height: 2rem;
+  margin-bottom: 1.25rem;
+  color: #059669;
+}
+
+.feat-card__title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #f1f5f9;
+  letter-spacing: -0.015em;
+  margin-bottom: 0.5rem;
+}
+
+.feat-card__body {
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.45);
+  line-height: 1.7;
+}
+
+/* ─────────────── AUTOMATION FLOW ─────────────── */
+.check-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  margin-top: 1.5rem;
+}
+
+.check-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.check-list li::before {
+  content: "✓";
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.flow-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.flow-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  position: relative;
+  padding-bottom: 2rem;
+}
+
+.flow-step:last-child {
+  padding-bottom: 0;
+}
+
+.flow-step__connector {
+  position: absolute;
+  left: 1.125rem;
+  top: 2.5rem;
+  bottom: 0;
+  width: 1px;
+  background: linear-gradient(to bottom, var(--border), transparent);
+}
+
+.flow-step__icon {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.flow-step__icon--indigo {
+  background: #eef2ff;
+  color: #4f46e5;
+}
+.flow-step__icon--green {
+  background: #d1fae5;
+  color: #059669;
+}
+.flow-step__icon--amber {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.flow-step__text {
+  flex: 1;
+}
+.flow-step__label {
+  display: block;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+.flow-step__sub {
+  display: block;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.flow-step__badge {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  padding: 0.25rem 0.625rem;
+  border-radius: var(--radius-pill);
+  flex-shrink: 0;
+}
+.flow-step__badge--indigo {
+  background: #eef2ff;
+  color: #4f46e5;
+}
+.flow-step__badge--green {
+  background: #d1fae5;
+  color: #065f46;
+}
+.flow-step__badge--amber {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+/* ─────────────── GATEWAYS ─────────────── */
+.gw-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.gw-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.5rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.gw-card:hover {
+  border-color: rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+}
+
+.gw-card__logo {
+  width: 2.5rem;
+  height: 2.5rem;
+  object-fit: contain;
+  border-radius: 8px;
+}
+.gw-card__name {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+/* ─────────────── TERMINAL ─────────────── */
+.terminal {
+  max-width: 680px;
+  margin: 0 auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.06);
+  background: var(--surface);
+}
+
+.terminal__bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.terminal__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+.terminal__dot--red {
+  background: #ef4444;
+}
+.terminal__dot--yellow {
+  background: #f59e0b;
+}
+.terminal__dot--green {
+  background: #22c55e;
+}
+
+.terminal__title {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin-left: 0.5rem;
+}
+
+.terminal__tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  padding: 0 1.25rem;
+  background: #fafafa;
+}
+
+.terminal__tab {
+  padding: 0.75rem 0.875rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: color 0.15s ease;
+  margin-bottom: -1px;
+}
+.terminal__tab--active {
+  color: var(--text);
+  border-bottom-color: var(--text);
+}
+.terminal__tab--active-green {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+.terminal__panel {
+  padding: 1.5rem;
+  min-height: 300px;
+}
+
+/* Manual form mock */
+.mock-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.mock-row {
+  display: flex;
+  gap: 0.75rem;
+}
+.mock-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  flex: 1;
+}
+.mock-label {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+.mock-input {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fafafa;
+  min-height: 2.5rem;
+}
+.mock-input--tall {
+  align-items: flex-start;
+  min-height: 5rem;
+  padding-top: 0.75rem;
+  flex-direction: column;
+}
+.mock-chip {
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 50%;
+  background: #e5e7eb;
+  flex-shrink: 0;
+}
+.mock-text {
+  height: 8px;
+  border-radius: 4px;
+  background: #e5e7eb;
+}
+.mock-btn-wrap {
+  display: flex;
+  align-items: flex-end;
+}
+.mock-send-btn {
+  background: #1a1d23;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.625rem 1rem;
+  border-radius: 10px;
+  cursor: default;
+}
+
+/* Chat mock */
+.chat {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 0;
+}
+.chat__msg {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+.chat__msg--user {
+  flex-direction: row-reverse;
+}
+.chat__avatar {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  background: #0f1117;
+  color: #fff;
+  font-size: 0.625rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.chat__bubble {
+  background: #f3f4f6;
+  border-radius: 1rem;
+  border-top-left-radius: 4px;
+  padding: 0.625rem 0.875rem;
+  font-size: 0.8125rem;
+  color: #1a1d23;
+  max-width: 80%;
+  line-height: 1.5;
+}
+.chat__bubble--user {
+  background: #1a1d23;
+  color: #fff;
+  border-radius: 1rem;
+  border-top-right-radius: 4px;
+}
+.chat__draft {
+  background: #fff;
+  border: 1px solid #a7f3d0;
+  border-radius: 0.875rem;
+  border-top-left-radius: 4px;
+  padding: 1rem;
+  max-width: 90%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.chat__draft-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+.chat__draft-ready {
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: #059669;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.chat__draft-client {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1a1d23;
+  letter-spacing: -0.01em;
+}
+.chat__draft-amount {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1a1d23;
+  letter-spacing: -0.02em;
+}
+.chat__draft-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: #6b7280;
+  background: #f9fafb;
+  padding: 0.5rem 0.625rem;
+  border-radius: 8px;
+}
+.chat__draft-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+.chat__draft-send {
+  flex: 1;
+  background: #1a1d23;
+  color: #fff;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  padding: 0.5rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.chat__draft-edit {
+  background: #f3f4f6;
+  color: #1a1d23;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  padding: 0.5rem 0.75rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.chat__input {
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  padding: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.8125rem;
+  color: #9ca3af;
+  background: #fafafa;
+}
+.chat__placeholder {
+}
+.chat__cursor {
+  animation: cursor-blink 1s step-end infinite;
+  color: #059669;
+  font-weight: 600;
+}
+
+/* ─────────────── DEMO WINDOW ─────────────── */
+.demo-win {
+  max-width: 760px;
+  margin: 0 auto;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 16px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 4px 32px rgba(0, 0, 0, 0.07);
+}
+
+/* Tabs row */
+.demo-tabs {
+  display: flex;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  padding: 0 1.25rem;
+  background: #fff;
+}
+
+.demo-tab {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.875rem 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #6b7280;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: color 0.15s ease;
+  margin-bottom: -1px;
+  font-family: "Inter", sans-serif;
+}
+.demo-tab:hover {
+  color: #1a1d23;
+}
+.demo-tab--active {
+  color: #1a1d23;
+  border-bottom-color: #1a1d23;
+}
+.demo-tab--ai {
+  color: #059669;
+  border-bottom-color: #059669;
+}
+
+/* Panel */
+.demo-panel {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.demo-panel--chat {
+  padding: 0;
+}
+
+.demo-section-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #1a1d23;
+  letter-spacing: -0.015em;
+  margin-bottom: 1.25rem;
+}
+
+/* Form fields */
+.df-group {
+  margin-bottom: 1.125rem;
+}
+.df-row {
+  display: flex;
+  gap: 1rem;
+}
+.df-label {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 0.375rem;
+}
+.df-label--sm {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #6b7280;
+}
+.df-required {
+  color: #ef4444;
+}
+
+.df-client-box {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0.875rem;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 10px;
+  cursor: default;
+}
+.df-avatar {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.df-client-name {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #1a1d23;
+}
+.df-client-sub {
+  font-size: 0.6875rem;
+  color: #9ca3af;
+}
+.df-add-link {
+  background: none;
+  border: none;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #059669;
+  cursor: pointer;
+  padding: 0;
+  margin-top: 0.375rem;
+  font-family: "Inter", sans-serif;
+}
+
+.df-field {
+  display: flex;
+  align-items: center;
+  padding: 0.5625rem 0.875rem;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 10px;
+  font-size: 0.8125rem;
+  color: #1a1d23;
+  gap: 0.5rem;
+}
+.df-field--row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.df-themes {
+  display: flex;
+  gap: 0.75rem;
+}
+.df-theme {
+  border: 2px solid transparent;
+  border-radius: 10px;
+  overflow: hidden;
+  cursor: pointer;
+  padding: 2px;
+}
+.df-theme--active {
+  border-color: #059669;
+}
+.df-theme-mock {
+  width: 80px;
+  height: 52px;
+  background: #f9fafb;
+  border-radius: 6px;
+  padding: 8px;
+}
+.df-theme-mock--dark {
+  display: flex;
+  background: #f9fafb;
+  width: 80px;
+  height: 52px;
+  border-radius: 6px;
+  overflow: hidden;
+  padding: 0;
+}
+
+/* Footer bar */
+.demo-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.875rem 1.5rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.07);
+  background: #fafafa;
+  margin-top: 1.25rem;
+  margin-left: -1.5rem;
+  margin-right: -1.5rem;
+  margin-bottom: -1.5rem;
+}
+.demo-panel--chat .demo-footer {
+  margin: 0;
+}
+.demo-footer__saved {
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+.demo-footer__btns {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.demo-cancel {
+  background: none;
+  border: none;
+  font-size: 0.8125rem;
+  color: #6b7280;
+  cursor: pointer;
+  font-family: "Inter", sans-serif;
+}
+.demo-cancel:hover {
+  color: #1a1d23;
+}
+.demo-process {
+  background: #1a1d23;
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: "Inter", sans-serif;
+  transition: background 0.15s ease;
+}
+.demo-process:hover {
+  background: #2d3748;
+}
+
+/* AI Chat */
+.dc-msgs {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.25rem 1.25rem 0.5rem;
+  min-height: 280px;
+}
+
+.dc-msg {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+}
+.dc-msg--user {
+  flex-direction: row-reverse;
+}
+
+.dc-avatar {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: #059669;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.dc-bubble {
+  max-width: 75%;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  padding: 0.75rem 0.875rem;
+  border-radius: 1rem;
+}
+
+.dc-bubble--bot {
+  background: #f3f4f6;
+  color: #1a1d23;
+  border-top-left-radius: 4px;
+}
+
+.dc-bubble--user {
+  background: #059669;
+  color: #fff;
+  border-radius: 1rem;
+  border-top-right-radius: 4px;
+}
+
+.dc-example {
+  display: inline-block;
+  font-style: italic;
+  color: #059669;
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
+}
+.dc-bubble--bot .dc-example {
+  color: #059669;
+}
+
+.dc-input-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.dc-input {
+  flex: 1;
+  font-size: 0.8125rem;
+  color: #9ca3af;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  background: #f9fafb;
+}
+
+.dc-send {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: #f3f4f6;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #6b7280;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+.dc-send:hover {
+  background: #1a1d23;
+  color: #fff;
+  border-color: #1a1d23;
+}
+
+/* ─────────────── SECURITY ─────────────── */
+.sec-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 28px;
+  overflow: hidden;
+}
+@media (min-width: 640px) {
+  .sec-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.sec-item {
+  background: #16191f;
+  padding: 2.5rem 2rem;
+  transition: background 0.2s ease;
+}
+.sec-item:hover {
+  background: #1c1f27;
+}
+
+.sec-item__num {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.25);
+  margin-bottom: 1.5rem;
+}
+
+.sec-item__title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #f1f5f9;
+  letter-spacing: -0.015em;
+  margin-bottom: 0.5rem;
+}
+.sec-item__body {
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.4);
+  line-height: 1.65;
+}
+
+/* ─────────────── PRICING ─────────────── */
+.pricing-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+}
+@media (min-width: 768px) {
+  .pricing-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (min-width: 1024px) {
+  .pricing-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.plan {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 2rem;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 20px;
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.plan:hover {
+  border-color: rgba(0, 0, 0, 0.15);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.06);
+}
+
+.plan--featured {
+  background: #1a1d23;
+  border-color: #1a1d23;
+}
+.plan--featured:hover {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+}
+
+.plan--max {
+  background: linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%);
+  border-color: rgba(99, 102, 241, 0.3);
+}
+
+.plan__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+
+.plan__name {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #1a1d23;
+}
+.plan--featured .plan__name {
+  color: rgba(255, 255, 255, 0.65);
+}
+.plan--max .plan__name {
+  color: rgba(165, 180, 252, 0.7);
+}
+
+.plan__badge {
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #059669;
+  background: #d1fae5;
+  padding: 0.2rem 0.5rem;
+  border-radius: 9999px;
+}
+
+.plan__price {
+  margin-bottom: 0.5rem;
+}
+.plan__amount {
+  font-size: 2.25rem;
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  color: #1a1d23;
+}
+.plan--featured .plan__amount {
+  color: #ffffff;
+}
+.plan--max .plan__amount {
+  color: #ffffff;
+}
+.plan__period {
+  font-size: 0.8125rem;
+  font-weight: 400;
+  color: #6b7280;
+}
+.plan--featured .plan__period {
+  color: rgba(255, 255, 255, 0.45);
+}
+.plan--max .plan__period {
+  color: rgba(165, 180, 252, 0.6);
+}
+
+.plan__desc {
+  font-size: 0.8125rem;
+  color: #6b7280;
+  line-height: 1.5;
+  margin-bottom: 1.5rem;
+}
+.plan--featured .plan__desc {
+  color: rgba(255, 255, 255, 0.45);
+}
+.plan--max .plan__desc {
+  color: rgba(165, 180, 252, 0.65);
+}
+
+.plan__features {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 2rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+.plan__features li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  color: #6b7280;
+  line-height: 1.5;
+}
+.plan--featured .plan__features li {
+  color: rgba(255, 255, 255, 0.6);
+}
+.plan--max .plan__features li {
+  color: rgba(165, 180, 252, 0.8);
+}
+
+.plan__check {
+  color: #059669;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.plan--featured .plan__check {
+  color: #6ee7b7;
+}
+.plan--max .plan__check {
+  color: #818cf8;
+}
+
+.plan__cta {
+  display: block;
+  text-align: center;
+  padding: 0.75rem;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  color: #1a1d23;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.plan__cta:hover {
+  border-color: rgba(0, 0, 0, 0.2);
+  background: #f9fafb;
+}
+
+.plan__cta--featured {
+  background: #ffffff;
+  color: #1a1d23;
+  border-color: transparent;
+}
+.plan__cta--featured:hover {
+  background: #f3f4f6;
+}
+
+.plan__cta--max {
+  background: rgba(99, 102, 241, 0.15);
+  color: #a5b4fc;
+  border-color: rgba(99, 102, 241, 0.3);
+}
+.plan__cta--max:hover {
+  background: rgba(99, 102, 241, 0.25);
+}
+
+.pricing-note {
+  text-align: center;
+  margin-top: 2.5rem;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.link {
+  color: var(--accent);
+  font-weight: 500;
+}
+
+/* ─────────────── FAQ ─────────────── */
+.faq-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.faq {
+  border-bottom: 1px solid var(--border);
+}
+.faq:first-child {
+  border-top: 1px solid var(--border);
+}
+
+.faq__q {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.375rem 0;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--text);
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+.faq__q::-webkit-details-marker {
+  display: none;
+}
+.faq__q::after {
+  content: "+";
+  font-size: 1.125rem;
+  font-weight: 300;
+  color: var(--text-muted);
+  transition: transform 0.3s var(--ease);
+  flex-shrink: 0;
+  margin-left: 1rem;
+}
+details[open] .faq__q::after {
+  transform: rotate(45deg);
+  color: var(--accent);
+}
+
+.faq__a {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.75;
+  padding-bottom: 1.5rem;
+  max-width: 88%;
+}
+
+/* ─────────────── CTA STRIPE ─────────────── */
+.cta-stripe {
+  background: #0f1117;
+  padding: 7rem 1.5rem;
+}
+
+.cta-stripe__inner {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2.5rem;
+}
+
+@media (min-width: 768px) {
+  .cta-stripe__inner {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+}
+
+.cta-stripe__h2 {
+  font-size: clamp(2rem, 4vw, 3.25rem);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  color: #fff;
+  max-width: 520px;
+}
+
+.cta-stripe__h2 em {
+  font-style: italic;
+  font-weight: 300;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.cta-stripe__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-shrink: 0;
+}
+@media (min-width: 640px) {
+  .cta-stripe__actions {
+    align-items: flex-end;
+  }
+}
+
+.cta-stripe__secondary {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.45);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+.cta-stripe__secondary:hover {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* ─────────────── FOOTER ─────────────── */
+.footer {
+  background: #0f1117;
+  padding: 4rem 1.5rem 2.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.footer__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2.5rem;
+  margin-bottom: 3.5rem;
+}
+@media (min-width: 640px) {
+  .footer__grid {
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+  }
+}
+
+.footer__logo {
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  color: #fff;
+}
+.footer__dot {
+  color: #059669;
+}
+.footer__tagline {
+  margin-top: 0.625rem;
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.35);
+  line-height: 1.6;
+}
+
+.footer__col-title {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.35);
+  margin-bottom: 1rem;
+}
+
+.footer__col {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.footer__link {
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.45);
+  text-decoration: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font-family:
+    "Inter",
+    -apple-system,
+    sans-serif;
+  transition: color 0.15s ease;
+  text-align: left;
+}
+.footer__link:hover {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.footer__bottom {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: 2rem;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* ─────────────── SCROLL TOP ─────────────── */
+.to-top {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 90;
+  width: 2.25rem;
+  height: 2.25rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 1rem;
+  cursor: pointer;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  transition: all 0.2s var(--ease);
+}
+.to-top:hover {
+  transform: translateY(-2px);
+  color: var(--text);
+}
+
+/* ─────────────── REVEAL ANIMATIONS ─────────────── */
+.ri {
+  opacity: 0;
+  transform: translateY(18px);
+  will-change: opacity, transform;
+  transition:
+    opacity 0.6s var(--ease),
+    transform 0.6s var(--ease);
+  transition-delay: calc(var(--d, 0) * 0.07s);
+}
+
+.ri--in {
   opacity: 1 !important;
-  transform: translate(0, 0) scale(1) !important;
+  transform: translateY(0) !important;
 }
 
-.delay-100 {
-  transition-delay: 100ms;
+/* Ensure dark-section items that fail to animate are still readable */
+.section--dark .ri,
+.cta-stripe .ri {
+  opacity: 0;
 }
-.delay-200 {
-  transition-delay: 200ms;
-}
-.delay-300 {
-  transition-delay: 300ms;
-}
-.delay-400 {
-  transition-delay: 400ms;
-}
-.delay-500 {
-  transition-delay: 500ms;
-}
-.delay-700 {
-  transition-delay: 700ms;
+.section--dark .ri--in,
+.cta-stripe .ri--in {
+  opacity: 1 !important;
 }
 
-/* Animations Make Magic */
-@keyframes float {
-  0%,
-  100% {
-    transform: translateY(0) rotate(var(--rotation, 0deg));
-  }
-  50% {
-    transform: translateY(-20px) rotate(calc(var(--rotation, 0deg) + 2deg));
-  }
-}
-
-@keyframes float-orb {
-  0%,
-  100% {
-    transform: translate(0, 0) scale(1);
-  }
-  33% {
-    transform: translate(30px, -50px) scale(1.1);
-  }
-  66% {
-    transform: translate(-20px, 20px) scale(0.9);
-  }
-}
-
-@keyframes float-particle {
-  0%,
-  100% {
-    transform: translateY(0) translateX(0);
-    opacity: 0.5;
-  }
-  50% {
-    transform: translateY(-30px) translateX(10px);
+/* Reduced motion — skip animation entirely */
+@media (prefers-reduced-motion: reduce) {
+  .ri {
     opacity: 1;
+    transform: none;
+    transition: none;
   }
 }
 
-.float-slow {
-  --rotation: -6deg;
-  animation: float 8s ease-in-out infinite;
+/* ─────────────── SKELETON ─────────────── */
+.plan--skeleton {
+  pointer-events: none;
+  opacity: 1 !important;
+  transform: none !important;
 }
 
-.float-medium {
-  --rotation: 8deg;
-  animation: float 6s ease-in-out infinite 1s;
+.skel {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 6px;
 }
 
-.float-subtle {
-  animation: float 4s ease-in-out infinite;
+.skel--sm {
+  height: 10px;
+  width: 100%;
+}
+.skel--lg {
+  height: 40px;
+  width: 60%;
+}
+.skel--btn {
+  height: 42px;
+  width: 100%;
+  border-radius: 12px;
 }
 
-.orb-1 {
-  animation: float-orb 15s ease-in-out infinite;
-}
-.orb-2 {
-  animation: float-orb 18s ease-in-out infinite -5s;
-}
-.orb-3 {
-  animation: float-orb 20s ease-in-out infinite -10s;
-}
-
-.anim-p-1 {
-  animation: float-particle 10s ease-in-out infinite;
-}
-.anim-p-2 {
-  animation: float-particle 12s ease-in-out infinite -3s;
-}
-.anim-p-3 {
-  animation: float-particle 14s ease-in-out infinite -7s;
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 
-/* Mobile Menu Transitions */
+/* ─────────────── TRANSITIONS ─────────────── */
+.menu-fade-enter-active,
+.menu-fade-leave-active {
+  transition: opacity 0.25s ease;
+}
+.menu-fade-enter-from,
+.menu-fade-leave-to {
+  opacity: 0;
+}
+.menu-slide-enter-active,
+.menu-slide-leave-active {
+  transition: transform 0.35s var(--ease);
+}
+.menu-slide-enter-from,
+.menu-slide-leave-to {
+  transform: translateX(100%);
+}
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.3s ease;
+  transition: opacity 0.2s ease;
 }
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
 }
 
-.slide-enter-active,
-.slide-leave-active {
-  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+/* ─────────────── KEYFRAMES ─────────────── */
+@keyframes dash-drift {
+  0% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: -200;
+  }
 }
-.slide-enter-from,
-.slide-leave-to {
-  transform: translateX(100%);
+
+@keyframes marquee-scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-33.333%);
+  }
+}
+
+@keyframes cursor-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
 }
 </style>
