@@ -74,7 +74,7 @@
       <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
         <!-- Revenue Card -->
         <div
-          class="bg-indigo-50/50 border border-indigo-100 rounded-xl p-6 shadow-sm hover:border-indigo-200 transition-colors">
+          class="bg-indigo-50/50 border border-indigo-100 dark:bg-indigo-200 dark:border-indigo-900 rounded-xl p-6 shadow-sm hover:border-indigo-200 transition-colors">
           <dt class="text-sm font-semibold text-indigo-800 mb-1">
             Total Revenue
           </dt>
@@ -85,7 +85,7 @@
         </div>
         <!-- Outstanding Card -->
         <div
-          class="bg-amber-50/50 border border-amber-100 rounded-xl p-6 shadow-sm hover:border-amber-200 transition-colors">
+          class="bg-amber-50/50 border border-amber-100 dark:bg-amber-200 dark:border-amber-900 rounded-xl p-6 shadow-sm hover:border-amber-200 transition-colors">
           <dt class="text-sm font-semibold text-amber-800 mb-1">
             Outstanding Invoices
           </dt>
@@ -96,7 +96,7 @@
         </div>
         <!-- Active Clients Card -->
         <div
-          class="bg-emerald-50/50 border border-emerald-100 rounded-xl p-6 shadow-sm hover:border-emerald-200 transition-colors">
+          class="bg-emerald-50/50 border border-emerald-100 dark:bg-emerald-200 dark:border-emerald-900 rounded-xl p-6 shadow-sm hover:border-emerald-200 transition-colors">
           <dt class="text-sm font-semibold text-emerald-800 mb-1">
             Active Clients
           </dt>
@@ -106,7 +106,7 @@
         </div>
         <!-- Overdue Card -->
         <div
-          class="bg-rose-50/50 border border-rose-100 rounded-xl p-6 shadow-sm hover:border-rose-200 transition-colors">
+          class="bg-rose-50/50 border border-rose-100 dark:bg-rose-200 dark:border-rose-900 rounded-xl p-6 shadow-sm hover:border-rose-200 transition-colors">
           <dt class="text-sm font-semibold text-rose-800 mb-1">Overdue</dt>
           <dd class="text-2xl font-semibold text-rose-600 tracking-tight">
             {{ dashboardStore.stats.overdueCount }}

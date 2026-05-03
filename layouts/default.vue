@@ -212,6 +212,15 @@
           class="md:hidden h-16 flex items-center justify-between px-4 bg-white border-b border-slate-200">
           <UiLogo size="sm" />
           <div class="flex items-center gap-2">
+            <!-- Dark Mode Toggle (Mobile) -->
+            <button
+              @click="themeStore.toggleTheme()"
+              class="p-2 text-slate-500 hover:bg-gray-50 rounded-md relative transition-all"
+              title="Toggle Dark Mode">
+              <UiIcon
+                :icon="themeStore.isDark ? 'heroicons:sun' : 'heroicons:moon'"
+                custom-class="w-4 h-4" />
+            </button>
             <UiPopover placement="bottom-end">
               <template #trigger="{ isOpen }">
                 <button
@@ -295,7 +304,7 @@
 
         <!-- Header (Desktop) -->
         <header
-          class="hidden md:flex h-[80px] shrink-0 items-center justify-between pl-8 pr-10 bg-[#f7f7f9] w-full border-b border-slate-100/50">
+          class="hidden md:flex h-[80px] shrink-0 items-center justify-between pl-8 pr-10 bg-[#f7f7f9] w-full">
           <div class="flex items-center gap-4">
             <h3 class="text-lg font-semibold text-slate-400 capitalize">
               Workspace /
@@ -305,6 +314,16 @@
             </h3>
           </div>
           <div class="flex items-center gap-2">
+            <!-- Dark Mode Toggle (Desktop) -->
+            <button
+              @click="themeStore.toggleTheme()"
+              class="p-2.5 bg-white border border-[#e5e5e5] shadow-[0_2px_12px_rgba(0,0,0,0.03)] text-slate-500 hover:text-slate-900 hover:bg-slate-50 rounded-xl relative transition-all mr-1"
+              title="Toggle Dark Mode">
+              <UiIcon
+                :icon="themeStore.isDark ? 'heroicons:sun' : 'heroicons:moon'"
+                class="w-5 h-5" />
+            </button>
+
             <!-- Notifications Popover -->
             <UiPopover placement="bottom-end">
               <template #trigger="{ isOpen }">
@@ -703,6 +722,7 @@ import { useAuthStore } from "~/stores/authStore";
 import { useSystemStore } from "~/stores/systemStore";
 import { useUiStore } from "~/stores/uiStore";
 import { useNotificationStore } from "~/stores/notificationStore";
+import { useThemeStore } from "~/stores/themeStore";
 import { formatDate } from "~/utils/date";
 
 const route = useRoute();
@@ -710,11 +730,15 @@ const authStore = useAuthStore();
 const systemStore = useSystemStore();
 const uiStore = useUiStore();
 const notificationStore = useNotificationStore();
+const themeStore = useThemeStore();
 const isMobileMenuOpen = ref(false);
 const isLogoutModalOpen = ref(false);
 
-onMounted(() => {
-  systemStore.fetchSystemConfig();
+onMounted(async () => {
+  themeStore.initTheme();
+  try {
+    await systemStore.fetchPublicConfig();
+  } catch (e) {}
   if (authStore.user) {
     notificationStore.startPolling();
   }
