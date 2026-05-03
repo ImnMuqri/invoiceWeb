@@ -66,7 +66,7 @@
       class="h-[111.11vh] bg-slate-50 flex overflow-hidden font-sans text-sm">
       <!-- Sidebar -->
       <aside
-        class="hidden w-[270px] md:flex flex-col bg-[#f7f7f9] flex-shrink-0 z-10 transition-colors">
+        class="app-sidebar hidden w-[270px] md:flex flex-col bg-[#f7f7f9] flex-shrink-0 z-10 transition-colors">
         <div class="h-20 flex items-center justify-center mt-2">
           <UiLogo size="lg" />
         </div>
@@ -90,8 +90,8 @@
 
           <NuxtLink
             to="/dashboard/"
-            class="flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
-            active-class="bg-[#ebebec] text-slate-900">
+            class="nav-link flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
+            active-class="nav-link--active">
             <UiIcon
               icon="heroicons:home"
               class="w-[18px] h-[18px] mr-3 opacity-70" />
@@ -100,19 +100,15 @@
 
           <!-- DATA -->
           <div class="pt-6 pb-2 px-4">
-            <h4
-              class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-              DATA
-            </h4>
+            <h4 class="nav-section-title">DATA</h4>
           </div>
 
           <NuxtLink
             to="/invoices/"
-            class="flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
-            active-class="bg-[#ebebec] text-slate-900"
+            class="nav-link flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
+            active-class="nav-link--active"
             :class="{
-              'bg-[#ebebec] text-slate-900 flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl':
-                $route.path.startsWith('/invoices'),
+              'nav-link--active': $route.path.startsWith('/invoices'),
             }">
             <UiIcon
               icon="heroicons:document-text"
@@ -121,8 +117,8 @@
           </NuxtLink>
           <NuxtLink
             to="/clients/"
-            class="flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
-            active-class="bg-[#ebebec] text-slate-900">
+            class="nav-link flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
+            active-class="nav-link--active">
             <UiIcon
               icon="heroicons:users"
               class="w-[18px] h-[18px] mr-3 opacity-70" />
@@ -130,16 +126,13 @@
           </NuxtLink>
           <!-- SYSTEM -->
           <div class="pt-6 pb-2 px-4">
-            <h4
-              class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-              SYSTEM
-            </h4>
+            <h4 class="nav-section-title">SYSTEM</h4>
           </div>
 
           <NuxtLink
             to="/settings/"
-            class="flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
-            active-class="bg-[#ebebec] text-slate-900">
+            class="nav-link flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
+            active-class="nav-link--active">
             <UiIcon
               icon="heroicons:cog-6-tooth"
               class="w-[18px] h-[18px] mr-3 opacity-70" />
@@ -149,17 +142,14 @@
           <!-- ADMIN -->
           <template v-if="authStore.isAdmin">
             <div class="pt-6 pb-2 px-4">
-              <h4
-                class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-                ADMIN
-              </h4>
+              <h4 class="nav-section-title">ADMIN</h4>
             </div>
             <NuxtLink
               to="/admin/"
-              class="flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
-              active-class="bg-[#ebebec] text-slate-900"
+              class="nav-link flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
+              active-class="nav-link--active"
               :class="{
-                'bg-[#ebebec] text-slate-900':
+                'nav-link--active':
                   $route.path === '/admin/' || $route.path === '/admin',
               }">
               <UiIcon
@@ -169,11 +159,10 @@
             </NuxtLink>
             <NuxtLink
               to="/admin/tickets"
-              class="flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
-              active-class="bg-[#ebebec] text-slate-900"
+              class="nav-link flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
+              active-class="nav-link--active"
               :class="{
-                'bg-[#ebebec] text-slate-900':
-                  $route.path.startsWith('/admin/tickets'),
+                'nav-link--active': $route.path.startsWith('/admin/tickets'),
               }">
               <UiIcon
                 icon="heroicons:ticket"
@@ -747,23 +736,70 @@ watch(isMobileMenuOpen, (isOpen) => {
 </script>
 
 <style scoped>
-/* Custom Scrollbar for scrollable containers */
-.overflow-y-auto::-webkit-scrollbar {
-  width: 6px;
-  padding-right: 6px;
+/* ── InvoKita Design Tokens ── */
+/* Matching index.vue + login.vue: Inter font, #1a1d23 text,
+   #059669 emerald accent, spring easing transitions */
+
+/* ── Sidebar shell ── */
+.app-sidebar {
+  background: #f8f9fa;
+  font-family:
+    "Inter",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
 }
 
+/* ── Nav section eyebrow labels ── */
+.nav-section-title {
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #9ca3af;
+}
+
+/* ── Nav links ── */
+.nav-link {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #6b7280;
+  border-radius: 10px;
+  transition:
+    color 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+    background 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.nav-link:hover {
+  background: rgba(0, 0, 0, 0.04);
+  color: #1a1d23;
+}
+
+/* Active state: emerald accent to match landing + auth pages */
+.nav-link--active,
+.nav-link.nav-link--active {
+  background: #ecfdf5 !important;
+  color: #059669 !important;
+  font-weight: 600;
+}
+.nav-link--active :deep(.iconify),
+.nav-link--active :deep(svg) {
+  opacity: 1 !important;
+  color: #059669;
+}
+
+/* ── Scrollbars ── */
+.overflow-y-auto::-webkit-scrollbar {
+  width: 4px;
+}
 .overflow-y-auto::-webkit-scrollbar-track {
   background: transparent;
-  padding-right: 100px;
 }
-
 .overflow-y-auto::-webkit-scrollbar-thumb {
-  background-color: #cbd5e1; /* slate-300 */
-  border-radius: 20px;
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: 99px;
 }
-
 .overflow-y-auto::-webkit-scrollbar-thumb:hover {
-  background-color: #94a3b8; /* slate-400 */
+  background-color: #059669;
 }
 </style>

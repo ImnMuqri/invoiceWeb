@@ -1,5 +1,5 @@
 <template>
-  <div class="md:min-w-[1400px] max-w-[1500px] w-fit">
+  <div class="w-full max-w-[1500px]">
     <div class="flex items-center justify-between mb-8">
       <div>
         <h2 class="text-2xl font-bold text-slate-900 tracking-tight">

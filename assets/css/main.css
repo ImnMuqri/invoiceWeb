@@ -2,28 +2,291 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ═══════════════════════════════════════════
+   InvoKita Global Design System
+   Tokens: #1a1d23 text | #059669 emerald | Inter
+   ═══════════════════════════════════════════ */
+
 @layer base {
+  :root {
+    --ik-text:       #1a1d23;
+    --ik-muted:      #6b7280;
+    --ik-accent:     #059669;
+    --ik-accent-bg:  #ecfdf5;
+    --ik-border:     rgba(0, 0, 0, 0.08);
+    --ik-card:       #ffffff;
+    --ik-surface:    #f8f9fa;
+    --ik-ease:       cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
   body {
     @apply bg-slate-50 text-slate-900;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    color: var(--ik-text);
   }
 
-  /* Standardize weights: limit bold to semibold as per user request */
-  .font-bold, font-bold {
-    font-weight: 600 !important; /* Semibold */
+  /* Standardize weights */
+  .font-bold {
+    font-weight: 600 !important;
+  }
+
+  /* Focus ring: emerald across all interactive elements */
+  *:focus-visible {
+    outline: 2px solid var(--ik-accent);
+    outline-offset: 2px;
   }
 }
 
-/* Filter Expansion Transition */
+@layer components {
+
+  /* ── Page Header ── */
+  /* Consistent page title + subtitle across all pages */
+  .page-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    color: var(--ik-text);
+    line-height: 1.2;
+  }
+  .page-subtitle {
+    font-size: 0.8125rem;
+    color: var(--ik-muted);
+    margin-top: 0.2rem;
+  }
+
+  /* ── Primary CTA Button ── */
+  /* Dark pill button matching landing + login */
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    padding: 0.625rem 1.25rem;
+    background: var(--ik-text);
+    color: #fff;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition:
+      background 0.2s var(--ik-ease),
+      transform 0.2s var(--ik-ease),
+      box-shadow 0.2s var(--ik-ease);
+  }
+  .btn-primary:hover:not(:disabled) {
+    background: #2d3748;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.14);
+  }
+  .btn-primary:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  /* Emerald accent variant */
+  .btn-accent {
+    background: var(--ik-accent);
+  }
+  .btn-accent:hover:not(:disabled) {
+    background: #047857;
+  }
+
+  /* Ghost / outline variant */
+  .btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.625rem 1.25rem;
+    background: transparent;
+    color: var(--ik-text);
+    font-size: 0.875rem;
+    font-weight: 500;
+    border: 1px solid var(--ik-border);
+    border-radius: 10px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.2s var(--ik-ease), border-color 0.2s var(--ik-ease);
+  }
+  .btn-ghost:hover:not(:disabled) {
+    background: var(--ik-surface);
+    border-color: rgba(0,0,0,0.14);
+  }
+
+  /* ── Form inputs ── */
+  /* Upgraded from Tailwind defaults to match login.vue */
+  .ik-input {
+    width: 100%;
+    padding: 0.6875rem 0.875rem;
+    font-size: 0.875rem;
+    font-family: inherit;
+    color: var(--ik-text);
+    background: #fff;
+    border: 1px solid var(--ik-border);
+    border-radius: 10px;
+    outline: none;
+    transition:
+      border-color 0.15s ease,
+      box-shadow 0.15s ease;
+    -webkit-appearance: none;
+  }
+  .ik-input::placeholder { color: #9ca3af; }
+  .ik-input:focus {
+    border-color: var(--ik-accent);
+    box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.12);
+  }
+
+  /* Also upgrade existing Tailwind form inputs globally */
+  input[type="text"]:not(.no-ik),
+  input[type="email"]:not(.no-ik),
+  input[type="password"]:not(.no-ik),
+  input[type="number"]:not(.no-ik),
+  input[type="tel"]:not(.no-ik),
+  input[type="url"]:not(.no-ik),
+  input[type="search"]:not(.no-ik),
+  textarea:not(.no-ik),
+  select:not(.no-ik) {
+    transition:
+      border-color 0.15s ease,
+      box-shadow 0.15s ease;
+  }
+  input[type="text"]:focus:not(.no-ik),
+  input[type="email"]:focus:not(.no-ik),
+  input[type="password"]:focus:not(.no-ik),
+  input[type="number"]:focus:not(.no-ik),
+  input[type="tel"]:focus:not(.no-ik),
+  input[type="url"]:focus:not(.no-ik),
+  input[type="search"]:focus:not(.no-ik),
+  textarea:focus:not(.no-ik) {
+    border-color: var(--ik-accent) !important;
+    box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.12) !important;
+    outline: none;
+    ring: none;
+  }
+
+  /* ── Stat / KPI Cards ── */
+  .ik-stat-card {
+    background: var(--ik-card);
+    border: 1px solid var(--ik-border);
+    border-radius: 14px;
+    padding: 1.5rem;
+    transition:
+      transform 0.25s var(--ik-ease),
+      box-shadow 0.25s var(--ik-ease),
+      border-color 0.2s ease;
+  }
+  .ik-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.07);
+  }
+
+  /* ── Content Cards ── */
+  .ik-card {
+    background: var(--ik-card);
+    border: 1px solid var(--ik-border);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+
+  /* ── Table rows ── */
+  .ik-table tr {
+    transition: background 0.15s var(--ik-ease);
+  }
+  .ik-table tr:hover td {
+    background: var(--ik-surface);
+  }
+
+  /* ── Eyebrow labels ── */
+  /* Matching the landing page section eyebrows */
+  .ik-eyebrow {
+    display: inline-block;
+    font-size: 0.625rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ik-accent);
+  }
+
+  /* ── Section dividers inside pages ── */
+  .ik-section-title {
+    font-size: 1.0625rem;
+    font-weight: 600;
+    color: var(--ik-text);
+    letter-spacing: -0.02em;
+  }
+
+  /* ── Badge / status pills ── */
+  .ik-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem 0.625rem;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    border-radius: 99px;
+    letter-spacing: 0.02em;
+  }
+
+  /* ── Action icon buttons ── */
+  .ik-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem;
+    border-radius: 8px;
+    color: #9ca3af;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition:
+      color 0.15s var(--ik-ease),
+      background 0.15s var(--ik-ease);
+  }
+  .ik-icon-btn:hover {
+    color: var(--ik-accent);
+    background: var(--ik-accent-bg);
+  }
+
+  /* ── Upgrade / Pro locked blur overlays ── */
+  .ik-locked-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 10;
+    backdrop-filter: blur(4px);
+    background: rgba(255, 255, 255, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: inherit;
+  }
+  .ik-locked-cta {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ik-accent);
+    border: 1px solid rgba(5, 150, 105, 0.3);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    background: transparent;
+    text-decoration: none;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .ik-locked-cta:hover {
+    background: var(--ik-accent-bg);
+    border-color: var(--ik-accent);
+  }
+}
+
+/* ── Filter Expansion Transition ── */
 .filter-grow-enter-active,
 .filter-grow-leave-active {
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   max-width: 400px;
   overflow: hidden;
 }
-
 .filter-grow-enter-from,
 .filter-grow-leave-to {
   max-width: 0 !important;
@@ -33,3 +296,16 @@
   margin-left: 0 !important;
   margin-right: 0 !important;
 }
+
+/* ── Page entry animation ── */
+/* Adds a subtle fade-up when navigating between pages */
+.page-enter-active,
+.page-leave-active {
+  transition: opacity 0.2s var(--ik-ease), transform 0.2s var(--ik-ease);
+}
+.page-enter-from,
+.page-leave-to {
+  opacity: 0;
+  transform: translateY(5px);
+}
+

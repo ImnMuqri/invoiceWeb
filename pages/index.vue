@@ -1,6 +1,9 @@
 <template>
   <div class="root">
     <!-- ══════════════════ NAV ══════════════════ -->
+    <!-- Scroll progress bar -->
+    <div class="scroll-progress" :style="{ transform: `scaleX(${scrollProgress})` }" aria-hidden="true"></div>
+
     <nav class="nav" :class="{ 'nav--scrolled': isScrolled }">
       <div class="nav__inner">
         <UiLogo
@@ -19,7 +22,7 @@
         </div>
 
         <div class="nav__actions">
-          <NuxtLink to="/login" class="nav__signin">Sign in</NuxtLink>
+          <NuxtLink to="/register" class="nav__signin">Register </NuxtLink>
           <NuxtLink to="/dashboard" class="btn btn--dark">Enter App</NuxtLink>
           <button
             @click="isMobileMenuOpen = true"
@@ -71,7 +74,7 @@
     <!-- ══════════════════ HERO ══════════════════ -->
     <section id="hero" class="hero" aria-labelledby="hero-heading">
       <!-- Thin drifting lines (the only decoration) -->
-      <div class="lines" aria-hidden="true">
+      <div class="lines" aria-hidden="true" ref="heroLinesRef">
         <svg
           class="lines__svg"
           viewBox="0 0 1200 700"
@@ -99,7 +102,7 @@
         </svg>
       </div>
 
-      <div class="hero__body">
+      <div class="hero__body" ref="heroBodyRef">
         <div class="hero__eyebrow ri" style="--d: 0">
           <span class="hero__tag">For Malaysian businesses</span>
         </div>
@@ -129,9 +132,9 @@
       </div>
 
       <!-- Stat strip -->
-      <div class="hero__stats ri" style="--d: 5">
+      <div class="hero__stats ri" style="--d: 5" ref="statsRef">
         <div class="stat" v-for="s in stats" :key="s.label">
-          <span class="stat__val">{{ s.val }}</span>
+          <span class="stat__val">{{ s.label === 'Active businesses' ? animatedStats.businesses : s.label === 'Invoiced via platform' ? animatedStats.invoiced : s.label === 'Avg. invoice creation' ? animatedStats.speed : animatedStats.uptime }}</span>
           <span class="stat__label">{{ s.label }}</span>
         </div>
       </div>
@@ -161,10 +164,10 @@
 
         <div class="steps">
           <div
-            class="step ri"
+            class="step ri ri--scale"
             v-for="(step, i) in steps"
             :key="step.title"
-            :style="{ '--d': i + 1 }">
+            :style="{ '--d': i * 0.8 + 1 }">
             <div class="step__n">{{ String(i + 1).padStart(2, "0") }}</div>
             <div class="step__divider"></div>
             <h3 class="step__title">{{ step.title }}</h3>
@@ -216,7 +219,7 @@
     <section class="section" aria-labelledby="auto-heading">
       <div class="wrap">
         <div class="split">
-          <div class="split__copy ri">
+          <div class="split__copy ri ri--left">
             <span class="eyebrow">Automation</span>
             <h2 id="auto-heading" class="h2">
               Payment detection,<br /><span class="accent">on autopilot.</span>
@@ -231,7 +234,7 @@
             </ul>
           </div>
 
-          <div class="split__visual ri" style="--d: 2">
+          <div class="split__visual ri ri--right" style="--d: 2">
             <div class="flow-panel">
               <div
                 class="flow-step"
@@ -275,7 +278,7 @@
     <section class="section section--tinted" aria-labelledby="local-heading">
       <div class="wrap">
         <div class="split split--flip">
-          <div class="split__copy ri">
+          <div class="split__copy ri ri--right">
             <span class="eyebrow">Built for Malaysia</span>
             <h2 id="local-heading" class="h2">
               Local payment gateways,<br /><span class="accent"
@@ -289,7 +292,7 @@
             </p>
           </div>
 
-          <div class="gw-grid ri" style="--d: 2">
+          <div class="gw-grid ri ri--left" style="--d: 2">
             <div class="gw-card" v-for="gw in gateways" :key="gw.name">
               <img
                 :src="gw.logo"
@@ -626,8 +629,7 @@
     <!-- ══════════════════ SECURITY ══════════════════ -->
     <section class="section section--dark" aria-labelledby="sec-heading">
       <div class="wrap">
-        <header class="section__head ri">
-          <span class="eyebrow eyebrow--light">Trust & Security</span>
+        <header class="section__head ri">`n          <span class="eyebrow eyebrow--light">Trust & Security</span>
           <h2 id="sec-heading" class="h2 h2--light">
             Bank-grade security.<br />No compromises.
           </h2>
@@ -764,7 +766,7 @@
     <!-- ══════════════════ CTA STRIPE ══════════════════ -->
     <section class="cta-stripe">
       <div class="wrap">
-        <div class="cta-stripe__inner ri">
+        <div class="cta-stripe__inner ri ri--scale">
           <h2 class="cta-stripe__h2">
             Start invoicing<br /><em>the right way.</em>
           </h2>
@@ -885,6 +887,41 @@
 <script setup>
 import { ref, onMounted, nextTick } from "vue";
 import { useAuthStore } from "~/stores/authStore";
+
+// ── SCROLL PROGRESS & PARALLAX ───────────────────────────
+const scrollProgress = ref(0);
+const heroBodyRef = ref(null);
+const heroLinesRef = ref(null);
+const statsRef = ref(null);
+const statsAnimated = ref(false);
+
+const animatedStats = ref({
+  businesses: '0',
+  invoiced: 'RM 0',
+  speed: '0s',
+  uptime: '0%',
+});
+
+const animateCounter = (from, to, duration, formatter, key) => {
+  const start = performance.now();
+  const update = (now) => {
+    const elapsed = now - start;
+    const progress = Math.min(elapsed / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3); // ease-out-cubic
+    animatedStats.value[key] = formatter(Math.round(from + (to - from) * eased));
+    if (progress < 1) requestAnimationFrame(update);
+  };
+  requestAnimationFrame(update);
+};
+
+const triggerStatsAnimation = () => {
+  if (statsAnimated.value) return;
+  statsAnimated.value = true;
+  animateCounter(0, 2000, 1800, (v) => v.toLocaleString() + '+', 'businesses');
+  animateCounter(0, 12, 2000, (v) => `RM ${v}M+`, 'invoiced');
+  setTimeout(() => { animatedStats.value.speed = '< 60s'; }, 800);
+  setTimeout(() => { animatedStats.value.uptime = '99.9%'; }, 1000);
+};
 
 // ── SEO ──────────────────────────────────────────────────
 useHead({
@@ -1170,6 +1207,7 @@ const fetchPlans = async () => {
 };
 
 let _observer = null;
+let _statsObserver = null;
 
 const initObserver = () => {
   if (_observer) {
@@ -1191,10 +1229,45 @@ const initObserver = () => {
     .forEach((el) => _observer.observe(el));
 };
 
+const initStatsObserver = () => {
+  if (!statsRef.value) return;
+  _statsObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((e) => {
+        if (e.isIntersecting) {
+          triggerStatsAnimation();
+          _statsObserver.unobserve(e.target);
+        }
+      });
+    },
+    { threshold: 0.5 },
+  );
+  _statsObserver.observe(statsRef.value);
+};
+
+const handleScrollAnimations = () => {
+  const winH = window.innerHeight;
+  const docH = document.documentElement.scrollHeight - winH;
+  scrollProgress.value = docH > 0 ? window.scrollY / docH : 0;
+
+  // Parallax: hero decoration lines scroll slower than content (depth effect)
+  if (heroLinesRef.value) {
+    const offset = window.scrollY * 0.4;
+    heroLinesRef.value.style.transform = `translateY(${offset}px)`;
+  }
+  // Subtle counter-parallax on hero text (moves up slightly slower)
+  if (heroBodyRef.value && window.scrollY < winH) {
+    const offset = window.scrollY * 0.15;
+    heroBodyRef.value.style.transform = `translateY(${offset}px)`;
+  }
+};
+
 onMounted(async () => {
   // Reveal items already in viewport immediately
   initObserver();
   window.addEventListener("scroll", handleScroll, { passive: true });
+  window.addEventListener("scroll", handleScrollAnimations, { passive: true });
+  initStatsObserver();
 
   await fetchPlans();
   await nextTick();
@@ -3134,20 +3207,58 @@ details[open] .faq__q::after {
   color: var(--text);
 }
 
+/* ─────────────── SCROLL PROGRESS BAR ─────────────── */
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #059669, #3b82f6);
+  transform-origin: left;
+  z-index: 9999;
+  will-change: transform;
+  pointer-events: none;
+}
+
 /* ─────────────── REVEAL ANIMATIONS ─────────────── */
 .ri {
   opacity: 0;
-  transform: translateY(18px);
+  transform: translateY(22px);
   will-change: opacity, transform;
   transition:
-    opacity 0.6s var(--ease),
-    transform 0.6s var(--ease);
-  transition-delay: calc(var(--d, 0) * 0.07s);
+    opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: calc(var(--d, 0) * 0.08s);
 }
 
 .ri--in {
   opacity: 1 !important;
   transform: translateY(0) !important;
+}
+
+/* Slide from left */
+.ri--left {
+  transform: translateX(-32px) translateY(0);
+}
+.ri--left.ri--in {
+  transform: translateX(0) !important;
+}
+
+/* Slide from right */
+.ri--right {
+  transform: translateX(32px) translateY(0);
+}
+.ri--right.ri--in {
+  transform: translateX(0) !important;
+}
+
+/* Scale up */
+.ri--scale {
+  transform: scale(0.96) translateY(12px);
+}
+.ri--scale.ri--in {
+  transform: scale(1) translateY(0) !important;
 }
 
 /* Ensure dark-section items that fail to animate are still readable */
@@ -3162,10 +3273,16 @@ details[open] .faq__q::after {
 
 /* Reduced motion — skip animation entirely */
 @media (prefers-reduced-motion: reduce) {
-  .ri {
+  .ri, .ri--left, .ri--right, .ri--scale {
     opacity: 1;
     transform: none;
     transition: none;
+  }
+  .scroll-progress {
+    display: none;
+  }
+  [ref="heroBodyRef"] {
+    transform: none !important;
   }
 }
 
