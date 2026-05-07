@@ -115,6 +115,66 @@
                 Set your business details and address for invoice headers.
               </p>
               <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                <!-- Logo Upload -->
+                <div class="sm:col-span-6 mb-2">
+                  <label
+                    class="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-4"
+                    >Company Logo</label
+                  >
+                  <div class="flex items-center gap-6">
+                    <div
+                      class="relative w-24 h-24 rounded-2xl bg-slate-50 border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden group transition-all hover:border-slate-300">
+                      <img
+                        v-if="authStore.user?.profile?.logoUrl"
+                        :src="authStore.user.profile.logoUrl"
+                        class="w-full h-full object-contain" />
+                      <div v-else class="text-slate-300">
+                        <UiIcon icon="heroicons:photo" class="w-8 h-8" />
+                      </div>
+
+                      <!-- Loading Overlay -->
+                      <div
+                        v-if="uploadingLogo"
+                        class="absolute inset-0 bg-white/80 flex items-center justify-center">
+                        <div
+                          class="w-5 h-5 border-2 border-slate-900 border-t-transparent rounded-full animate-spin"></div>
+                      </div>
+                    </div>
+
+                    <div class="flex flex-col gap-2">
+                      <div class="flex items-center gap-2">
+                        <button
+                          type="button"
+                          @click="$refs.logoInput.click()"
+                          :disabled="uploadingLogo"
+                          class="px-4 py-2 bg-slate-900 text-white text-[11px] font-bold rounded-lg hover:bg-slate-800 transition-all shadow-sm active:scale-95 disabled:opacity-50">
+                          {{
+                            authStore.user?.profile?.logoUrl
+                              ? "Change Logo"
+                              : "Upload Logo"
+                          }}
+                        </button>
+                        <button
+                          v-if="authStore.user?.profile?.logoUrl"
+                          type="button"
+                          @click="removeLogo"
+                          :disabled="uploadingLogo"
+                          class="px-4 py-2 bg-white text-red-600 border border-red-100 text-[11px] font-bold rounded-lg hover:bg-red-50 transition-all active:scale-95 disabled:opacity-50">
+                          Remove
+                        </button>
+                      </div>
+                      <p class="text-[10px] text-slate-400 font-medium">
+                        JPG, PNG or SVG. Max 5MB.
+                      </p>
+                    </div>
+                    <input
+                      ref="logoInput"
+                      type="file"
+                      class="hidden"
+                      accept="image/*"
+                      @change="handleLogoUpload" />
+                  </div>
+                </div>
                 <div class="sm:col-span-6">
                   <label
                     class="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2"
@@ -1644,6 +1704,67 @@
             </div>
           </div>
 
+          <!-- Security Tab -->
+          <div v-if="activeTab === 'security'" class="p-6">
+            <h3 class="text-base font-semibold text-slate-900 tracking-tight">
+              Security Settings
+            </h3>
+            <p class="text-sm text-slate-500 mb-6">
+              Update your account password to keep your account secure.
+            </p>
+
+            <form @submit.prevent="handlePasswordChange" class="max-w-md space-y-6">
+              <div>
+                <label
+                  class="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2"
+                  >Current Password</label
+                >
+                <input
+                  type="password"
+                  v-model="passwordForm.oldPassword"
+                  required
+                  class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-slate-950 outline-none transition-all" />
+              </div>
+
+              <div>
+                <label
+                  class="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2"
+                  >New Password</label
+                >
+                <input
+                  type="password"
+                  v-model="passwordForm.newPassword"
+                  required
+                  class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-slate-950 outline-none transition-all" />
+              </div>
+
+              <div>
+                <label
+                  class="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2"
+                  >Confirm New Password</label
+                >
+                <input
+                  type="password"
+                  v-model="passwordForm.confirmPassword"
+                  required
+                  class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-slate-950 outline-none transition-all" />
+              </div>
+
+              <div class="pt-4">
+                <button
+                  type="submit"
+                  :disabled="changingPassword"
+                  class="inline-flex justify-center items-center rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 transition-all disabled:opacity-50">
+                  <UiIcon
+                    v-if="changingPassword"
+                    icon="heroicons:arrow-path"
+                    custom-class="w-4 h-4 mr-2 animate-spin text-white" />
+                  {{ changingPassword ? "Updating..." : "Change Password" }}
+                </button>
+              </div>
+            </form>
+          </div>
+
           <!-- Footer Actions -->
           <div
             v-if="activeTab !== 'billing'"
@@ -1904,6 +2025,7 @@ const tabs = [
   },
 
   { id: "billing", name: "Billing", icon: "heroicons:receipt-percent" },
+  { id: "security", name: "Security", icon: "heroicons:shield-check" },
 ];
 
 const isDowngradeModalOpen = ref(false);
@@ -1925,6 +2047,50 @@ const activeTab = ref(route.query.tab || "general");
 const toast = ref({ message: "", type: "success" });
 const currencyOptions = ref([]);
 const dynamicPlans = ref([]);
+const uploadingLogo = ref(false);
+
+const handleLogoUpload = async (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  // Basic validation
+  if (file.size > 5 * 1024 * 1024) {
+    toast.value = {
+      message: "File is too large. Max 5MB allowed.",
+      type: "error",
+    };
+    return;
+  }
+
+  uploadingLogo.value = true;
+  try {
+    await authStore.uploadLogo(file);
+    toast.value = { message: "Logo updated successfully!", type: "success" };
+  } catch (err) {
+    toast.value = {
+      message: err.response?.data?.message || "Failed to upload logo",
+      type: "error",
+    };
+  } finally {
+    uploadingLogo.value = false;
+    // Reset input
+    event.target.value = "";
+  }
+};
+
+const removeLogo = async () => {
+  if (!confirm("Are you sure you want to remove your company logo?")) return;
+
+  uploadingLogo.value = true;
+  try {
+    await authStore.deleteLogo();
+    toast.value = { message: "Logo removed successfully", type: "success" };
+  } catch (err) {
+    toast.value = { message: "Failed to remove logo", type: "error" };
+  } finally {
+    uploadingLogo.value = false;
+  }
+};
 
 const malaysiaBanks = [
   { value: "Maybank", label: "Maybank" },
@@ -2020,6 +2186,50 @@ const settingsForm = ref({
   manualQrCode: "",
   whatsappReminderInterval: 0,
 });
+
+const passwordForm = ref({
+  oldPassword: "",
+  newPassword: "",
+  confirmPassword: "",
+});
+
+const changingPassword = ref(false);
+
+const handlePasswordChange = async () => {
+  if (passwordForm.value.newPassword !== passwordForm.value.confirmPassword) {
+    toast.value = { message: "Passwords do not match", type: "error" };
+    return;
+  }
+
+  if (passwordForm.value.newPassword.length < 6) {
+    toast.value = {
+      message: "Password must be at least 6 characters",
+      type: "error",
+    };
+    return;
+  }
+
+  changingPassword.value = true;
+  try {
+    await authStore.changePassword({
+      oldPassword: passwordForm.value.oldPassword,
+      newPassword: passwordForm.value.newPassword,
+    });
+    toast.value = { message: "Password updated successfully!", type: "success" };
+    passwordForm.value = {
+      oldPassword: "",
+      newPassword: "",
+      confirmPassword: "",
+    };
+  } catch (err) {
+    toast.value = {
+      message: err.response?.data?.message || "Failed to update password",
+      type: "error",
+    };
+  } finally {
+    changingPassword.value = false;
+  }
+};
 
 const promoCodeInput = ref("");
 const isPromoValid = ref(false);

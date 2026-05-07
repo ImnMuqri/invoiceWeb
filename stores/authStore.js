@@ -190,6 +190,20 @@ export const useAuthStore = defineStore("auth", () => {
     }
   }
 
+  async function changePassword(passwords) {
+    const { $api } = useNuxtApp();
+    loading.value = true;
+    try {
+      const { data } = await $api.post("/users/change-password", passwords);
+      return data;
+    } catch (err) {
+      error.value = err.response?.data?.message || "Failed to update password";
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  }
+
   async function fetchSettings() {
     const { $api } = useNuxtApp();
     try {
@@ -315,6 +329,45 @@ export const useAuthStore = defineStore("auth", () => {
     }
   }
 
+  async function uploadLogo(file) {
+    const { $api } = useNuxtApp();
+    const formData = new FormData();
+    formData.append("file", file);
+
+    loading.value = true;
+    try {
+      const { data } = await $api.post("/users/logo", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      // Update local user state
+      if (user.value && user.value.profile) {
+        user.value.profile.logoUrl = data.logoUrl;
+      }
+      return data;
+    } catch (err) {
+      error.value = "Failed to upload logo";
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  async function deleteLogo() {
+    const { $api } = useNuxtApp();
+    loading.value = true;
+    try {
+      await $api.delete("/users/logo");
+      if (user.value && user.value.profile) {
+        user.value.profile.logoUrl = null;
+      }
+    } catch (err) {
+      error.value = "Failed to delete logo";
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  }
+
   async function refreshAccessToken() {
     const { $api } = useNuxtApp();
     if (!refreshToken.value) return false;
@@ -344,6 +397,7 @@ export const useAuthStore = defineStore("auth", () => {
     logout,
     fetchProfile,
     updateProfile,
+    changePassword,
     fetchSettings,
     fetchInvoiceConfig,
     updateSettings,
@@ -353,6 +407,8 @@ export const useAuthStore = defineStore("auth", () => {
     updatePaymentProvider,
     deletePaymentProvider,
     setPreferredPaymentProvider,
+    uploadLogo,
+    deleteLogo,
     refreshAccessToken,
     syncFromCookies,
   };

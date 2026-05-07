@@ -681,14 +681,21 @@
             <template v-if="form.template === 'professional'">
               <div class="p-12 flex flex-col relative pb-10 font-inter">
                 <div class="flex justify-between items-start mb-12">
-                  <div>
-                    <h1
+                  <div class="flex items-start gap-4">
+                    <UiLogo
+                      v-if="authStore.user?.profile?.logoUrl"
+                      class="h-12"
+                      :show-text="false"
+                      user-logo />
+                    <div>
+                      <h1
                       class="text-3xl font-semibold text-slate-900 tracking-tight mb-1">
                       INVOICE
                     </h1>
                     <p class="text-lg text-slate-500">{{ form.invoiceName }}</p>
                   </div>
-                  <div class="text-right">
+                </div>
+                <div class="text-right">
                     <div
                       class="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1">
                       Invoice Number
@@ -918,7 +925,10 @@
                     class="absolute top-0 right-0 w-32 h-32 bg-emerald-600/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl"></div>
                   <div class="relative z-10 flex justify-between items-start">
                     <div>
-                      <UiLogo class="h-6 mb-6 brightness-0 invert opacity-90" />
+                      <UiLogo
+                        class="h-6 mb-6 brightness-0 invert opacity-90"
+                        :show-text="false"
+                        user-logo />
                       <h1
                         class="text-2xl font-extrabold tracking-tight text-white mb-1">
                         {{ form.invoiceName || "New Project" }}
@@ -1465,6 +1475,7 @@ const submitInvoice = async () => {
     fromName: form.value.from.name,
     fromCompanyName: form.value.from.companyName,
     fromEmail: form.value.from.companyEmail,
+    fromPhone: form.value.from.phone,
     fromAddress: form.value.from.companyAddress,
     dueDate: new Date(form.value.dueDate).toISOString(),
     currency: form.value.currency,

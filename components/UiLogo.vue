@@ -1,18 +1,19 @@
 <template>
   <div class="flex items-center gap-2" :class="containerClass">
     <div
+      v-if="finalSrc"
       :class="[
         sizeClasses[size],
         'relative flex items-center justify-center shrink-0',
       ]">
       <!-- Logo Mark -->
       <img
-        src="/InvoKitaLogo.png"
-        alt="InvoKita Logo"
+        :src="finalSrc"
+        alt="Logo"
         class="w-full h-full object-contain" />
     </div>
     <span
-      v-if="showText"
+      v-if="showText && !isCustomLogo"
       :class="[
         textClasses[size],
         theme === 'dark' ? 'text-slate-900' : 'text-white',
@@ -24,6 +25,9 @@
 </template>
 
 <script setup>
+import { computed } from "vue";
+import { useAuthStore } from "~/stores/authStore";
+
 const props = defineProps({
   size: {
     type: String,
@@ -41,6 +45,31 @@ const props = defineProps({
     type: String,
     default: "dark", // dark, light
   },
+  src: {
+    type: String,
+    default: null,
+  },
+  userLogo: {
+    type: Boolean,
+    default: false,
+  },
+});
+
+const authStore = useAuthStore();
+const config = useRuntimeConfig();
+
+const isCustomLogo = computed(() => {
+  return props.src || (props.userLogo && authStore.user?.profile?.logoUrl);
+});
+
+const finalSrc = computed(() => {
+  if (props.src) return props.src;
+  if (props.userLogo && authStore.user?.profile?.logoUrl) {
+    const url = authStore.user.profile.logoUrl;
+    if (url.startsWith("http")) return url;
+    return `${config.public.apiBase}${url}`;
+  }
+  return "/InvoKitaLogo.png";
 });
 
 const sizeClasses = {
