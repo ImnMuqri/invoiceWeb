@@ -8,11 +8,19 @@ export default defineNuxtRouteMiddleware((to, from) => {
 
   const path = to.path;
 
-  const publicRoutes = ["/login", "/register", "/", "/pay", "/legal"];
+  // NOTE: this is a GLOBAL middleware. Nuxt does not reliably hot-reload it —
+  // restart the dev server after changing this file or the change won't apply.
+
+  // "/ms" is the Bahasa Malaysia landing page. Without it here the BM page
+  // redirects logged-out visitors (and every crawler) straight to /login.
+  // The startsWith covers any future /ms/* marketing page too.
+  const publicRoutes = ["/login", "/register", "/", "/ms", "/pay", "/legal"];
   const isPublicRoute = publicRoutes.some(
     (route) =>
       path === route ||
       (route !== "/" && path === route + "/") ||
+      path === "/ms" ||
+      path.startsWith("/ms/") ||
       path.startsWith("/pay/") ||
       path.startsWith("/legal/") ||
       (path.startsWith("/invoices/") && path.endsWith("/export")) ||

@@ -1,0 +1,500 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   InvoKita — Design Tokens
+   Art direction: "KIRIM"
+   SINGLE SOURCE OF TRUTH. No raw hex is permitted in component code.
+
+   ─── LOCKED BRAND COLORS ───────────────────────────────────────────────────
+   These four values are the brand. Hue, saturation and lightness are frozen.
+   Nothing else in this file is invented — every other color is derived from
+   one of these four by the rules stated below, and names its parent.
+
+     --brand-green   #059669   money, paid, accent          (from live app)
+     --brand-ink     #0D1B17   text + dark surfaces
+     --brand-paper   #FAF6EF   dominant light surface
+     --brand-clay    #C05621   unpaid / aging / warm counterweight
+
+   ─── DERIVATION METHOD ─────────────────────────────────────────────────────
+   Ramps generated in OKLCH so steps are perceptually even. For each ramp the
+   parent's hue is held constant, lightness follows a fixed 11-step scale, and
+   chroma follows C(L) = C_parent · (L(1−L)) / (L_p(1−L_p)) — a parabola that
+   falls to zero at both ends so tints desaturate naturally instead of going
+   neon. Out-of-gamut results are chroma-reduced until they fit sRGB. The step
+   nearest the parent's own lightness is pinned to the exact locked hex.
+   Generator: scratchpad/ramp.js
+
+   The gray ramp uses --brand-ink's hue (174.1°) at fixed low chroma (0.010),
+   so neutrals read as belonging to the brand rather than sitting on top of it.
+
+   ─── CONTRAST NOTES (measured, not assumed) ────────────────────────────────
+   Two locked-color combinations fail WCAG AA at default. The brand colors were
+   NOT altered. The layer was changed instead:
+
+   1. white on --brand-green = 3.77:1 (FAIL).
+      -> Primary CTA is ink-950 on green-600 = 4.70:1 PASS.
+      -> Where white-on-green is unavoidable, green-700 is used = 5.28:1 PASS.
+   2. --brand-green as body text on --brand-paper = 3.50:1 (FAIL).
+      -> Green is a surface/accent color, never small text. Body-weight green
+         text uses green-700 = 4.91:1 PASS.
+   3. --brand-clay as body text on --brand-paper = 4.24:1 (FAIL).
+      -> Body-weight clay text uses clay-700 = 5.51:1 PASS.
+   4. gray-600 on paper-50 = 3.65:1 — NOT usable for small text. --text-tertiary
+      is gray-660 (4.99:1 on paper-50, 4.58:1 on the sunken paper-100 surface).
+      gray-620 is exposed separately as --text-muted-large for >=24px only.
+      Body copy uses gray-700 = 5.16:1 PASS.
+
+   Every value above was measured against the rendered page, not assumed —
+   see "Measured audit" in the README for how to re-run the check.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ─────────────────────────────────────────────────────────────────────────
+     1. LOCKED BRAND COLORS
+     ───────────────────────────────────────────────────────────────────────── */
+  --brand-green: #059669;
+  --brand-ink: #0d1b17;
+  --brand-paper: #faf6ef;
+  --brand-clay: #c05621;
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     2. DERIVED RAMPS  (parent named on every line)
+     ───────────────────────────────────────────────────────────────────────── */
+
+  /* GREEN — parent: --brand-green #059669, hue 163.2° */
+  --green-50: #f0faf5;   /* from --brand-green */
+  --green-100: #def3e8;  /* from --brand-green */
+  --green-200: #c1e8d4;  /* from --brand-green */
+  --green-300: #9cd8bb;  /* from --brand-green */
+  --green-400: #72c49f;  /* from --brand-green */
+  --green-500: #48af84;  /* from --brand-green */
+  --green-600: #059669;  /* = --brand-green  (LOCKED, anchor step) */
+  --green-700: #057b56;  /* from --brand-green */
+  --green-800: #065e41;  /* from --brand-green */
+  --green-900: #02402b;  /* from --brand-green */
+  --green-950: #002517;  /* from --brand-green */
+
+  /* INK — parent: --brand-ink #0D1B17, hue 174.1° */
+  --ink-50: #f5f8f7;     /* from --brand-ink */
+  --ink-100: #e9efed;    /* from --brand-ink */
+  --ink-200: #d5e0dc;    /* from --brand-ink */
+  --ink-300: #bdccc7;    /* from --brand-ink */
+  --ink-400: #a2b5af;    /* from --brand-ink */
+  --ink-500: #889f97;    /* from --brand-ink */
+  --ink-600: #6e877f;    /* from --brand-ink */
+  --ink-700: #556e67;    /* from --brand-ink */
+  --ink-800: #3d554e;    /* from --brand-ink */
+  --ink-900: #263b34;    /* from --brand-ink */
+  --ink-950: #0d1b17;    /* = --brand-ink  (LOCKED, anchor step) */
+  --ink-975: #081210;    /* from --brand-ink — one step below the anchor, for
+                            the sunken surface and the dark-mode ink slab */
+
+  /* PAPER — parent: --brand-paper #FAF6EF, hue 81.8°.
+     Steps 300+ read as warm gold/umber; they are legitimate descendants and
+     are used only for rules, stamps and the receipt texture. */
+  --paper-25: #fdfcfa;   /* from --brand-paper — one step above the anchor.
+                            Replaces pure #ffffff for raised cards so that
+                            every colour on the page traces to a locked
+                            parent. Visually indistinguishable from white,
+                            but the inventory now has zero orphans. */
+  --paper-50: #faf6ef;   /* = --brand-paper  (LOCKED, anchor step) */
+  --paper-100: #f4ecde;  /* from --brand-paper */
+  --paper-200: #eadbc2;  /* from --brand-paper */
+  --paper-300: #dbc59f;  /* from --brand-paper */
+  --paper-400: #c8ac79;  /* from --brand-paper */
+  --paper-500: #b49356;  /* from --brand-paper */
+  --paper-600: #9e7a34;  /* from --brand-paper */
+  --paper-700: #85610e;  /* from --brand-paper */
+  --paper-800: #674a05;  /* from --brand-paper */
+  --paper-900: #473102;  /* from --brand-paper */
+  --paper-950: #291b00;  /* from --brand-paper */
+
+  /* CLAY — parent: --brand-clay #C05621, hue 43.8° */
+  --clay-50: #fff5f0;    /* from --brand-clay */
+  --clay-100: #ffe8df;   /* from --brand-clay */
+  --clay-200: #ffd2bf;   /* from --brand-clay */
+  --clay-300: #f9b79b;   /* from --brand-clay */
+  --clay-400: #ec9874;   /* from --brand-clay */
+  --clay-500: #dc7b50;   /* from --brand-clay */
+  --clay-600: #c05621;   /* = --brand-clay  (LOCKED, anchor step) */
+  --clay-700: #ab4303;   /* from --brand-clay */
+  --clay-800: #833304;   /* from --brand-clay */
+  --clay-900: #5b2102;   /* from --brand-clay */
+  --clay-950: #361000;   /* from --brand-clay */
+
+  /* GRAY — parent: --brand-ink #0D1B17 (hue 174.1°) at fixed chroma 0.010.
+     Brand-tinted neutrals: cool green cast, never a pure gray. */
+  --gray-50: #f6f7f7;    /* from --brand-ink */
+  --gray-100: #eceeed;   /* from --brand-ink */
+  --gray-200: #dbdedd;   /* from --brand-ink */
+  --gray-300: #c5c9c8;   /* from --brand-ink */
+  --gray-400: #acb2b0;   /* from --brand-ink */
+  --gray-500: #939a98;   /* from --brand-ink */
+  --gray-480: #9aa29f;   /* from --brand-ink — AA-safe muted step for dark */
+  --gray-600: #7b8280;   /* from --brand-ink */
+  --gray-620: #818986;   /* from --brand-ink — large-text-only muted step */
+  --gray-660: #656c6a;   /* from --brand-ink — smallest AA-safe muted step */
+  --gray-700: #626a68;   /* from --brand-ink */
+  --gray-800: #4a514f;   /* from --brand-ink */
+  --gray-900: #313735;   /* from --brand-ink */
+  --gray-950: #0d1b17;   /* = --brand-ink  (LOCKED, anchor step) */
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     3. ALPHA VARIANTS  (locked colors only, for overlays / glows / noise)
+     ───────────────────────────────────────────────────────────────────────── */
+  --a-green-04: rgb(5 150 105 / 0.04);   /* from --brand-green */
+  --a-green-08: rgb(5 150 105 / 0.08);   /* from --brand-green */
+  --a-green-12: rgb(5 150 105 / 0.12);   /* from --brand-green */
+  --a-green-20: rgb(5 150 105 / 0.2);    /* from --brand-green */
+  --a-green-32: rgb(5 150 105 / 0.32);   /* from --brand-green */
+  --a-green-50: rgb(5 150 105 / 0.5);    /* from --brand-green */
+
+  --a-ink-04: rgb(13 27 23 / 0.04);      /* from --brand-ink */
+  --a-ink-08: rgb(13 27 23 / 0.08);      /* from --brand-ink */
+  --a-ink-12: rgb(13 27 23 / 0.12);      /* from --brand-ink */
+  --a-ink-24: rgb(13 27 23 / 0.24);      /* from --brand-ink */
+  --a-ink-48: rgb(13 27 23 / 0.48);      /* from --brand-ink */
+  --a-ink-72: rgb(13 27 23 / 0.72);      /* from --brand-ink */
+
+  --a-paper-08: rgb(250 246 239 / 0.08); /* from --brand-paper */
+  --a-paper-12: rgb(250 246 239 / 0.12); /* from --brand-paper */
+  --a-paper-24: rgb(250 246 239 / 0.24); /* from --brand-paper */
+  --a-paper-64: rgb(250 246 239 / 0.64); /* from --brand-paper */
+  --a-paper-90: rgb(250 246 239 / 0.9);  /* from --brand-paper */
+
+  --a-clay-08: rgb(192 86 33 / 0.08);    /* from --brand-clay */
+  --a-clay-16: rgb(192 86 33 / 0.16);    /* from --brand-clay */
+  --a-clay-32: rgb(192 86 33 / 0.32);    /* from --brand-clay */
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     4. SEMANTIC STATE COLORS
+     Per the brand rules, states are the one permitted exception. Three of the
+     four are still pure derivations; only `error` introduces a hue the palette
+     does not contain. All four are deliberately kept lower in chroma than the
+     locked colors so they stay visually subordinate to the brand.
+     ───────────────────────────────────────────────────────────────────────── */
+  --state-success: var(--green-700);        /* derived from --brand-green */
+  --state-success-surface: var(--green-50); /* derived from --brand-green */
+  --state-warning: var(--clay-700);         /* derived from --brand-clay */
+  --state-warning-surface: var(--clay-50);  /* derived from --brand-clay */
+  --state-info: var(--ink-800);             /* derived from --brand-ink */
+  --state-info-surface: var(--ink-100);     /* derived from --brand-ink */
+  --state-error: #8e2a1b;                   /* NEW HUE — approved exception.
+                                               Darker + lower chroma than
+                                               --brand-clay so the two never
+                                               read as the same signal.
+                                               7.81:1 on --paper-50. */
+  --state-error-surface: #fdeeea;           /* tint of --state-error */
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     5. SEMANTIC SURFACE / TEXT TOKENS  (light mode)
+     Components reference ONLY these. Dark mode remaps them to different steps
+     of the same ramps — no new hues are introduced anywhere below.
+     ───────────────────────────────────────────────────────────────────────── */
+  --surface-page: var(--paper-50);
+  --surface-raised: var(--paper-25);       /* from --brand-paper */
+  --surface-sunken: var(--paper-100);
+  --surface-inverse: var(--ink-950);
+  --surface-accent: var(--green-600);
+  --surface-accent-soft: var(--green-50);
+  --surface-warm: var(--clay-50);
+
+  --text-primary: var(--ink-950);          /* 16.43:1 on --surface-page */
+  --text-secondary: var(--gray-700);       /*  5.16:1 on --surface-page  AA */
+  --text-tertiary: var(--gray-660);        /*  4.99:1 page / 4.58:1 sunken  AA
+                                              Was gray-600 (3.65:1). An audit of
+                                              every rendered text node found 43
+                                              failures traced to this one token
+                                              being used for 10-14px labels. */
+  --text-muted-large: var(--gray-620);     /*  3.33:1 page / 3.06:1 sunken —
+                                              >=24px ONLY (step numerals) */
+  --text-accent: var(--green-700);         /*  4.91:1 on --surface-page  AA */
+  --text-warm: var(--clay-700);            /*  5.51:1 on --surface-page  AA */
+  --text-inverse: var(--paper-50);         /* 16.43:1 on --surface-inverse */
+  --text-on-accent: var(--ink-950);        /*  4.70:1 on --surface-accent AA */
+
+  --border-subtle: var(--a-ink-08);
+  --border-default: var(--a-ink-12);
+  --border-strong: var(--ink-300);
+  --border-accent: var(--a-green-32);
+
+  --focus-ring: var(--green-700);
+  --focus-ring-offset: var(--surface-page);
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     5b. COMPONENT SURFACE TOKENS
+     Components must never contain a theme conditional of their own — if a
+     surface needs to change between themes, it gets a token here and is
+     remapped in the dark block below. This is what keeps a component rule and
+     a token remap from ever disagreeing.
+     ───────────────────────────────────────────────────────────────────────── */
+
+  /* The ink slab. NOT a semantic inversion: it is a fixed element of the art
+     direction and stays dark with light text in BOTH themes. In dark mode it
+     steps down rather than flipping, so it still reads as a distinct band. */
+  --surface-slab: var(--ink-950);          /* from --brand-ink */
+  --text-on-slab: var(--paper-50);         /* 16.43:1 on --surface-slab */
+  --text-on-slab-muted: var(--gray-400);   /*  8.22:1 on --surface-slab */
+  --text-on-slab-accent: var(--green-400); /*  8.52:1 on --surface-slab */
+  --border-on-slab: var(--a-paper-12);
+  --chip-on-slab-bg: var(--a-paper-08);
+
+  --nav-bg: var(--a-paper-90);
+  --chip-bg: var(--surface-raised);
+  --chip-hover-bg: var(--a-ink-04);
+
+  --bubble-out-bg: var(--green-100);       /* from --brand-green */
+  --bubble-out-text: var(--text-primary);  /* 14.6:1 on --bubble-out-bg */
+  --bubble-in-bg: var(--surface-raised);
+  --bubble-in-text: var(--text-primary);
+  --invoice-card-bg: var(--surface-raised);
+  --phone-frame-top: var(--ink-800);
+  --phone-frame-mid: var(--ink-950);
+  --phone-frame-bot: var(--ink-900);
+
+  --receipt-bg: var(--paper-50);           /* = --brand-paper */
+  --receipt-ink: var(--ink-900);           /* 11.1:1 on --receipt-bg */
+  --receipt-ink-muted: var(--ink-700);     /*  5.9:1 on --receipt-bg */
+  --receipt-rule: var(--ink-400);
+
+  --chart-bar: var(--green-200);           /* from --brand-green */
+  --chart-bar-active: var(--surface-accent);
+
+  --grain-color: var(--ink-800);
+  --grain-blend: multiply;
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     6. TYPE
+     Modular scale, ratio 1.25 (major third), base 1rem = 16px.
+     Fluid via clamp() between the 390px and 1600px breakpoints.
+     ───────────────────────────────────────────────────────────────────────── */
+  --font-sans: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-serif: "Instrument Serif", "Iowan Old Style", Georgia, "Times New Roman", serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", "Segoe UI Mono", Menlo, monospace;
+
+  --text-2xs: 0.64rem;    /* 10.24px — 1.25^-2 */
+  --text-xs: 0.8rem;      /* 12.8px  — 1.25^-1 */
+  --text-sm: 0.875rem;    /* 14px    — optical correction, not scale-derived */
+  --text-base: 1rem;      /* 16px    — 1.25^0 */
+  --text-md: 1.125rem;    /* 18px    — optical, body copy at desktop */
+  --text-lg: 1.25rem;     /* 20px    — 1.25^1 */
+  --text-xl: 1.5625rem;   /* 25px    — 1.25^2 */
+  --text-2xl: 1.9531rem;  /* 31.25px — 1.25^3 */
+  --text-3xl: 2.4414rem;  /* 39.06px — 1.25^4 */
+  --text-4xl: 3.0518rem;  /* 48.83px — 1.25^5 */
+  --text-5xl: 3.8147rem;  /* 61.04px — 1.25^6 */
+  --text-6xl: 4.7684rem;  /* 76.29px — 1.25^7 */
+
+  /* Fluid display sizes — the only sizes that scale with viewport */
+  --text-display: clamp(2.4414rem, 1.6rem + 3.6vw, 4.7684rem);   /* h1 */
+  --text-headline: clamp(1.9531rem, 1.45rem + 2.1vw, 3.0518rem); /* h2 */
+  --text-title: clamp(1.25rem, 1.1rem + 0.7vw, 1.5625rem);       /* h3 */
+
+  --leading-tight: 1.02;
+  --leading-snug: 1.16;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.65;
+
+  --tracking-tighter: -0.035em;
+  --tracking-tight: -0.02em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.02em;
+  --tracking-widest: 0.14em;
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+  --weight-extrabold: 800;
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     7. SPACING — 4px base, geometric-ish so section rhythm can vary
+     ───────────────────────────────────────────────────────────────────────── */
+  --space-0: 0;
+  --space-1: 0.25rem;   /* 4  */
+  --space-2: 0.5rem;    /* 8  */
+  --space-3: 0.75rem;   /* 12 */
+  --space-4: 1rem;      /* 16 */
+  --space-5: 1.5rem;    /* 24 */
+  --space-6: 2rem;      /* 32 */
+  --space-7: 2.5rem;    /* 40 */
+  --space-8: 3rem;      /* 48 */
+  --space-9: 4rem;      /* 64 */
+  --space-10: 5rem;     /* 80 */
+  --space-11: 6.5rem;   /* 104 */
+  --space-12: 8rem;     /* 128 */
+  --space-13: 10rem;    /* 160 */
+
+  /* Deliberately varied section rhythm — sections are NOT uniformly padded */
+  --section-tight: clamp(3rem, 6vw, 4.5rem);
+  --section-normal: clamp(4rem, 9vw, 7rem);
+  --section-loose: clamp(5.5rem, 12vw, 10rem);
+
+  --gutter: clamp(1.25rem, 5vw, 2.5rem);
+  --measure: 34rem;         /* optimal reading width, ~68ch */
+  --measure-narrow: 26rem;
+  --container: 78rem;       /* 1248px */
+  --container-wide: 92rem;  /* 1472px */
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     8. RADII
+     ───────────────────────────────────────────────────────────────────────── */
+  --radius-xs: 3px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-2xl: 32px;
+  --radius-bubble: 18px;    /* chat bubble — matches WhatsApp's optical feel */
+  --radius-bubble-tail: 4px;
+  --radius-full: 999px;
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     9. SHADOWS — tinted with --brand-ink alpha, never neutral black
+     ───────────────────────────────────────────────────────────────────────── */
+  --shadow-xs: 0 1px 2px var(--a-ink-04);
+  --shadow-sm: 0 1px 3px var(--a-ink-08), 0 1px 2px var(--a-ink-04);
+  --shadow-md: 0 4px 12px var(--a-ink-08), 0 1px 3px var(--a-ink-04);
+  --shadow-lg: 0 12px 32px var(--a-ink-12), 0 2px 8px var(--a-ink-04);
+  --shadow-xl: 0 24px 64px var(--a-ink-12), 0 8px 16px var(--a-ink-08);
+  --shadow-accent: 0 8px 24px var(--a-green-20);
+  --shadow-inset-hairline: inset 0 -1px 0 var(--a-ink-08);
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     10. MOTION — "conversation cadence".
+     Nothing moves faster or larger than a message bubble.
+     ───────────────────────────────────────────────────────────────────────── */
+  --dur-instant: 90ms;
+  --dur-fast: 150ms;
+  --dur-base: 220ms;
+  --dur-slow: 300ms;        /* hard ceiling for scroll reveals */
+  --dur-bubble: 260ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-soft: cubic-bezier(0.33, 1, 0.68, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --stagger-bubble: 120ms;  /* message arrival interval */
+  --reveal-distance: 14px;  /* under the 16px ceiling */
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     11. LAYERS
+     ───────────────────────────────────────────────────────────────────────── */
+  --z-base: 0;
+  --z-raised: 10;
+  --z-sticky: 100;
+  --z-nav: 200;
+  --z-overlay: 300;
+  --z-modal: 400;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   DARK MODE
+   Semantic tokens are remapped to different steps of the SAME ramps.
+   No new hue is introduced. Attribute selector supports a landing-scoped
+   toggle; .dark class keeps parity with the existing app's darkMode: 'class'.
+   ═══════════════════════════════════════════════════════════════════════════ */
+:root[data-theme="dark"],
+html.dark {
+  --surface-page: var(--ink-950);
+  --surface-raised: var(--ink-900);
+  --surface-sunken: var(--ink-975);       /* from --brand-ink */
+  --surface-inverse: var(--paper-50);
+  --surface-accent: var(--green-600);
+  --surface-accent-soft: var(--green-950);
+  --surface-warm: var(--clay-950);
+
+  --text-primary: var(--paper-50);        /* 16.43:1 on --surface-page */
+  --text-secondary: var(--gray-400);      /*  8.22:1 on --surface-page  AA */
+  --text-tertiary: var(--gray-480);       /*  6.78:1 page / 4.58:1 raised  AA
+                                             gray-500 passed on the page but
+                                             only reached 4.16:1 on the raised
+                                             ink-900 cards, where most muted
+                                             labels actually sit. */
+  --text-muted-large: var(--gray-600);    /*  4.51:1 on --surface-page  AA */
+  --text-accent: var(--green-400);        /*  8.52:1 on --surface-page  AA */
+  --text-warm: var(--clay-400);           /*  7.85:1 on --surface-page  AA */
+  --text-inverse: var(--ink-950);
+  --text-on-accent: var(--ink-950);       /*  4.70:1 on --surface-accent AA */
+
+  --border-subtle: var(--a-paper-08);
+  --border-default: var(--a-paper-12);
+  --border-strong: var(--ink-800);
+  --border-accent: var(--a-green-32);
+
+  --focus-ring: var(--green-400);
+  --focus-ring-offset: var(--surface-page);
+
+  --state-success: var(--green-400);      /* derived from --brand-green */
+  --state-success-surface: var(--green-950);
+  --state-warning: var(--clay-400);       /* derived from --brand-clay */
+  --state-warning-surface: var(--clay-950);
+  --state-info: var(--ink-300);           /* derived from --brand-ink */
+  --state-info-surface: var(--ink-900);
+  --state-error: #e39383;                 /* tint of --state-error, 7.39:1 on ink-950 */
+  --state-error-surface: #3a1109;         /* shade of --state-error */
+
+  /* Component surfaces. The slab steps DOWN instead of flipping to paper —
+     an "inverse" slab that became light in dark mode was the bug that broke
+     the payments section, since all its text is authored light. */
+  --surface-slab: var(--ink-975);          /* from --brand-ink */
+  --text-on-slab: var(--paper-50);         /* 17.65:1 on --surface-slab */
+  --text-on-slab-muted: var(--gray-400);   /*  8.83:1 on --surface-slab */
+  --text-on-slab-accent: var(--green-400); /*  9.16:1 on --surface-slab */
+  --border-on-slab: var(--a-paper-12);
+  --chip-on-slab-bg: var(--a-paper-08);
+
+  --nav-bg: rgb(13 27 23 / 0.86);          /* alpha of --brand-ink */
+  --chip-bg: var(--a-paper-08);
+  --chip-hover-bg: var(--a-paper-08);
+
+  --bubble-out-bg: var(--green-900);       /* from --brand-green */
+  --bubble-out-text: var(--paper-50);      /* 11.9:1 on --bubble-out-bg */
+  --bubble-in-bg: var(--ink-900);
+  --bubble-in-text: var(--paper-50);       /* 11.1:1 on --bubble-in-bg */
+  --invoice-card-bg: var(--ink-950);
+  --phone-frame-top: var(--ink-700);
+  --phone-frame-mid: var(--ink-900);
+  --phone-frame-bot: var(--ink-800);
+
+  /* The receipt stays paper in dark mode — it is a printed object, and a
+     "dark mode receipt" is not a thing that exists in the world. */
+  --receipt-bg: var(--paper-100);          /* from --brand-paper */
+  --receipt-ink: var(--ink-950);
+  --receipt-ink-muted: var(--ink-700);
+  --receipt-rule: var(--ink-400);
+
+  --chart-bar: var(--green-900);
+  --chart-bar-active: var(--surface-accent);
+
+  --grain-color: var(--ink-400);
+  --grain-blend: screen;
+
+  --shadow-xs: 0 1px 2px rgb(0 0 0 / 0.3);
+  --shadow-sm: 0 1px 3px rgb(0 0 0 / 0.4);
+  --shadow-md: 0 4px 12px rgb(0 0 0 / 0.4);
+  --shadow-lg: 0 12px 32px rgb(0 0 0 / 0.5);
+  --shadow-xl: 0 24px 64px rgb(0 0 0 / 0.6);
+
+  color-scheme: dark;
+}
+
+/* NOTE — there is deliberately NO @media (prefers-color-scheme: dark) block.
+   The OS preference is resolved to an explicit data-theme value by the inline
+   head script in useTheme.ts before first paint. Keeping a media query here as
+   well would create two independent sources of truth for "is it dark", which
+   is exactly how the ink slab ended up light-on-light: the tokens flipped from
+   the media query while the component rules, which only matched [data-theme],
+   did not. One condition, one source of truth. */
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   REDUCED MOTION — collapse every duration and travel distance to zero.
+   ═══════════════════════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-instant: 1ms;
+    --dur-fast: 1ms;
+    --dur-base: 1ms;
+    --dur-slow: 1ms;
+    --dur-bubble: 1ms;
+    --stagger-bubble: 0ms;
+    --reveal-distance: 0px;
+  }
+}

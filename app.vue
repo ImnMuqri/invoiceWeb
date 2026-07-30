@@ -11,14 +11,8 @@ import { useAuthStore } from "~/stores/authStore";
 
 const authStore = useAuthStore();
 
-useHead({
-  link: [
-    { rel: "preconnect", href: "https://fonts.googleapis.com" },
-    { rel: "preconnect", href: "https://fonts.gstatic.com", crossorigin: "" },
-    {
-      rel: "stylesheet",
-      href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
-    },
-  ],
-});
+// Inter is now self-hosted (see assets/css/main.css). The previous Google
+// Fonts <link> was a render-blocking request to a third-party origin on every
+// page — two DNS/TLS round trips before first paint. Removing it is the single
+// largest LCP win available here.
 </script>

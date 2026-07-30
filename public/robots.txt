@@ -1,2 +1,18 @@
-User-Agent: *
-Disallow:
+User-agent: *
+Allow: /
+
+# Tokenised public invoice links. These are unauthenticated URLs containing a
+# customer's name and amount owed — they must never be indexed.
+Disallow: /pay/
+
+# Authenticated application routes. No crawl value, and they render empty to a
+# logged-out crawler, which looks like thin content.
+Disallow: /dashboard
+Disallow: /invoices
+Disallow: /clients
+Disallow: /settings
+Disallow: /admin
+Disallow: /onboarding
+Disallow: /referral-management
+
+Sitemap: https://invokita.my/sitemap.xml

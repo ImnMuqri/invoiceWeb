@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="InvoKita">
+  <!-- Locked brand colours only: ink #0D1B17, green #059669, paper #FAF6EF -->
+  <rect width="64" height="64" rx="15" fill="#0D1B17"/>
+  <!-- message bubble with a tail: the product is an invoice that arrives as a message -->
+  <path d="M16 20h32a4 4 0 0 1 4 4v18a4 4 0 0 1-4 4H30l-9 8v-8h-5a4 4 0 0 1-4-4V24a4 4 0 0 1 4-4Z" fill="#059669"/>
+  <!-- paid tick -->
+  <path d="M23.5 33.5 29.5 39.5 41 27" fill="none" stroke="#FAF6EF" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
