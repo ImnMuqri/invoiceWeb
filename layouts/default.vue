@@ -198,30 +198,16 @@
             </NuxtLink>
           </template>
         </nav>
-        <div v-if="!authStore.isPro" class="px-4 mb-4">
-          <div
-            class="bg-white rounded-2xl p-5 border border-[#e5e5e5] shadow-[0_2px_12px_rgba(0,0,0,0.03)] relative transition-all hover:bg-slate-50/50">
-            <div class="relative">
-              <div class="flex items-center gap-2 mb-2">
-                <h5
-                  class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.1em]">
-                  Limited Plan
-                </h5>
-              </div>
-              <p class="text-[14px] font-bold text-slate-900 mb-1">
-                Upgrade to Pro
-              </p>
-              <p
-                class="text-[12px] text-slate-500 font-medium leading-relaxed mb-4">
-                Get unlimited invoices, WhatsApp reminders and AI drafts.
-              </p>
-              <NuxtLink
-                to="/settings?tab=billing"
-                class="block w-full text-center py-2.5 bg-slate-900 text-white text-[12px] font-bold rounded-xl hover:bg-slate-800 transition-all shadow-sm">
-                Upgrade Now
-              </NuxtLink>
-            </div>
-          </div>
+        <div v-if="boost" class="px-4 mb-4">
+          <section class="boost" aria-labelledby="boost-title">
+            <p class="boost__eyebrow">{{ boost.eyebrow }}</p>
+            <p id="boost-title" class="boost__title">{{ boost.title }}</p>
+            <p class="boost__body">{{ boost.body }}</p>
+            <NuxtLink to="/settings?tab=billing" class="boost__cta">
+              {{ boost.cta }}
+              <UiIcon icon="heroicons:arrow-right" custom-class="w-3.5 h-3.5" />
+            </NuxtLink>
+          </section>
         </div>
 
         <div class="px-4 mt-auto mb-8 text-center shrink-0">
@@ -741,32 +727,19 @@
                     </template>
                   </nav>
 
-                  <div v-if="!authStore.isPro" class="px-4 mb-8">
-                    <div
-                      class="bg-white rounded-2xl p-5 border border-[#e5e5e5] shadow-[0_2px_12px_rgba(0,0,0,0.03)] relative">
-                      <div class="relative">
-                        <div class="flex items-center gap-2 mb-2">
-                          <h5
-                            class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.1em]">
-                            Limited Plan
-                          </h5>
-                        </div>
-                        <p class="text-[14px] font-bold text-slate-900 mb-1">
-                          Upgrade to Pro
-                        </p>
-                        <p
-                          class="text-[12px] text-slate-500 font-medium leading-relaxed mb-4">
-                          Get unlimited invoices, WhatsApp reminders and AI
-                          drafts.
-                        </p>
-                        <NuxtLink
-                          to="/settings/?tab=billing"
-                          @click="isMobileMenuOpen = false"
-                          class="block w-full text-center py-2.5 bg-slate-900 text-white text-[12px] font-bold rounded-xl hover:bg-slate-800 transition-all shadow-sm">
-                          Upgrade Now
-                        </NuxtLink>
-                      </div>
-                    </div>
+                  <div v-if="boost" class="px-4 mb-8">
+                    <section class="boost">
+                      <p class="boost__eyebrow">{{ boost.eyebrow }}</p>
+                      <p class="boost__title">{{ boost.title }}</p>
+                      <p class="boost__body">{{ boost.body }}</p>
+                      <NuxtLink
+                        to="/settings?tab=billing"
+                        class="boost__cta"
+                        @click="isMobileMenuOpen = false">
+                        {{ boost.cta }}
+                        <UiIcon icon="heroicons:arrow-right" custom-class="w-3.5 h-3.5" />
+                      </NuxtLink>
+                    </section>
                   </div>
 
                   <!-- Bottom Sidebar Action -->
@@ -832,6 +805,40 @@ const systemStore = useSystemStore();
 const uiStore = useUiStore();
 const notificationStore = useNotificationStore();
 const progress = useProgress();
+
+/* What to offer at the foot of the sidebar, or null for nothing.
+   Keyed off the plan rather than off isPro: isPro is true for anything that is
+   not FREE, so gating the old card on !isPro meant a Starter customer — the one
+   with the clearest reason to move — never saw it.
+
+   The copy names the actual difference between their tier and the next one.
+   "Upgrade to Pro" tells somebody nothing they cannot already guess; "Pro
+   chases overdue invoices on its own" is the reason they would. */
+const boost = computed(() => {
+  const plan = String(authStore.user?.plan ?? "FREE").toUpperCase();
+
+  if (plan === "STARTER") {
+    return {
+      eyebrow: "On Starter",
+      title: "Still chasing them yourself?",
+      body: "Starter sends reminders when you press send. Pro follows up on overdue invoices on its own, and raises your monthly limits.",
+      cta: "See what Pro adds",
+    };
+  }
+
+  /* FREE, and anything unrecognised — PENDING and CANCELLED both land here,
+     which is right: neither is a paid tier. */
+  if (!["PRO", "MAX"].includes(plan)) {
+    return {
+      eyebrow: "Free plan",
+      title: "Need more power?",
+      body: "Pro lifts you to 100 invoices a month, adds WhatsApp reminders, AI drafts, and chases the late ones for you.",
+      cta: "Get Pro",
+    };
+  }
+
+  return null;
+});
 
 /* The rail is drawn in real pixels, so it has to know how wide the panel is.
    No viewBox on the <svg> means one user unit is one CSS pixel, which keeps the

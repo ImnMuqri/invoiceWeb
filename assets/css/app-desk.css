@@ -3685,6 +3685,76 @@ html.dark .desk-btn--wa {
   }
 }
 
+/* --- Sidebar upgrade card --------------------------------------------------
+   Sits at the foot of the nav, above the version line.
+
+   Was hardcoded bg-white / border-#e5e5e5 / text-slate-900, so in dark mode it
+   was a white slab in a dark rail. Tokenised, and it states its own
+   font-family for the usual reason: the sidebar is not inside .desk, so it
+   inherits nothing.
+
+   Shown to FREE and STARTER. The old gate was `!isPro`, and isPro is true for
+   anything that is not FREE — so a Starter customer, who has the most obvious
+   next step of anyone, was the one person never told about it. */
+.boost {
+  padding: var(--space-4);
+  /* --desk-item, and a control-weight hairline rather than --desk-line.
+     The rail is the shell colour, and --desk-card measured dL* 1.76 against it
+     in light — the card and the rail were effectively the same surface, so the
+     card read as a patch of text rather than a thing. Raising the fill and
+     giving it a boundary the eye can actually find is what separates it. */
+  border: 1px solid var(--desk-control-line);
+  border-radius: var(--desk-radius-shell);
+  background-color: var(--desk-item);
+  font-family: var(--font-sans);
+}
+.boost__eyebrow {
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-widest);
+  text-transform: uppercase;
+  color: var(--desk-text-3);
+}
+.boost__title {
+  margin-top: var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--desk-text);
+}
+.boost__body {
+  margin-top: 4px;
+  font-size: var(--text-xs);
+  line-height: var(--leading-relaxed);
+  color: var(--desk-text-3);
+}
+.boost__cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  min-height: 2.25rem;
+  margin-top: var(--space-3);
+  border-radius: var(--desk-radius-control);
+  background-color: var(--desk-accent);
+  color: #ffffff;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+}
+/* White on the light accent, ink on the dark one — the dark accent is a pale
+   mint and white on it is unreadable. */
+:root[data-theme='dark'] .boost__cta,
+html.dark .boost__cta {
+  color: var(--ink-950);
+}
+.boost__cta:hover {
+  filter: brightness(0.94);
+}
+.boost__cta:focus-visible {
+  outline: 2.5px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
 /* --- Top bar controls -------------------------------------------------------
    The theme toggle, the bell and the profile chip. They were three separately
    invented boxes: the two icon buttons computed to 40px tall (p-2.5 plus a 20px
