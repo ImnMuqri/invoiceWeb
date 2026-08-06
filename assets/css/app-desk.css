@@ -2800,6 +2800,14 @@ i.sk {
 .f__req {
   color: var(--desk-late);
 }
+/* A field that states a value instead of accepting one. Matches .inp's height
+   so a read-only field sitting in a grid beside real inputs keeps the row on
+   one baseline — a chip on its own is 24px tall next to a 40px control. */
+.f__static {
+  display: flex;
+  align-items: center;
+  min-height: 2.5rem;
+}
 .f__hint {
   margin-top: 6px;
   font-size: var(--text-xs);

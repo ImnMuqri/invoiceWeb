@@ -156,7 +156,17 @@
    (about 80em at this scale): overshooting by a few pixels costs a second, blank
    page in every PDF. */
 .doc--print {
-  min-height: 62em;
+  /* The printable box, stated in the same physical units as the page.
+     This was `62em`, which at --doc-fs 13.5px is 837px — against an A4 content
+     box of 1085px (297mm less Puppeteer's 5mm top and bottom margins). The
+     document filled 77% of the sheet and the remaining 248px printed as bare
+     background, which is what "the height is not full" was.
+
+     mm rather than em on purpose: the target is a piece of paper, so tying it
+     to the page geometry means changing --doc-fs can never silently reintroduce
+     the gap. 286mm leaves 1mm of headroom so sub-pixel rounding in Chrome's
+     print path cannot spill a second, empty page. */
+  min-height: 286mm;
 }
 
 /* ─── Masthead ──────────────────────────────────────────────────────────────
@@ -466,12 +476,19 @@
   font-weight: var(--weight-semibold);
   letter-spacing: 0.2em;
   text-transform: uppercase;
+  /* No blanket opacity. It was 0.65 over an already-light --doc-ink-3, and it
+     faded the logo along with the label — a 512px mark printed at 15px and then
+     dimmed to a third of its contrast, which is why it read as missing rather
+     than as discreet. The label carries its own light colour; the mark keeps
+     its own. */
   color: var(--doc-ink-3);
-  opacity: 0.65;
 }
 .doc__foot img,
 .doc__foot svg {
-  height: 1.6em;
+  /* 1.6em of a 0.68em footer is ~15px — a square icon the size of a full stop.
+     Sized against the document instead, so it is legible at print scale while
+     staying quieter than anything the client needs to read. */
+  height: 2.4em;
   width: auto;
 }
 

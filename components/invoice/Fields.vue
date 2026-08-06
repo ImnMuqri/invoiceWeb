@@ -34,6 +34,8 @@ const props = defineProps({
   loading: { type: Boolean, default: false },
   /** 'invoice' | 'quote'. Changes the date field and hides the status picker. */
   kind: { type: String, default: "invoice" },
+  /** Recorded against this invoice so far, for the derived status read-out. */
+  paidSoFar: { type: [Number, String], default: 0 },
 });
 
 const isQuote = computed(() => props.kind === "quote");
@@ -51,11 +53,38 @@ const LAYOUTS = [
   },
 ];
 
-const STATUSES = [
-  { label: "Pending — not paid yet", value: "Pending" },
-  { label: "Paid", value: "Paid" },
-  { label: "Overdue", value: "Overdue" },
-];
+/* Status is derived, not chosen.
+   The backend already computes it from what has actually been paid: the PUT
+   handler sets "Paid" once amountPaid covers the total and "Partially Paid"
+   once it is above zero, and the reminder cron chases ["Pending",
+   "Partially Paid"]. A dropdown that let you pick a different answer was
+   competing with that — picking "Paid" here marked an invoice settled while
+   amountPaid stayed at zero, so the ledger said one thing and the figure said
+   another. Payments are recorded on the invoice list, which is the only place
+   an amount is attached to the change.
+
+   So this is a read-out. "Partially Paid" appears here because it is a real
+   state the backend can put an invoice in and this form previously had no way
+   to show it. */
+const STATUS_VIEW = {
+  Paid: { cls: "chip--paid", label: "Paid in full" },
+  "Partially Paid": { cls: "chip--paid", label: "Partially paid" },
+  Overdue: { cls: "chip--late", label: "Overdue" },
+  Cancelled: { cls: "chip--idle", label: "Cancelled" },
+  Pending: { cls: "chip--idle", label: "Pending — not paid yet" },
+};
+
+/* Reads the live figure where there is one, so recording a payment elsewhere
+   and coming back shows the state that follows from it rather than the string
+   the row happened to be saved with. */
+const statusView = computed(() => {
+  const paid = Number(props.paidSoFar) || 0;
+  const total = Number(sums.value?.total) || 0;
+  if (props.form.status === "Paid" || (total > 0 && paid >= total))
+    return STATUS_VIEW.Paid;
+  if (paid > 0) return STATUS_VIEW["Partially Paid"];
+  return STATUS_VIEW[props.form.status] || STATUS_VIEW.Pending;
+});
 
 const clientOptions = computed(() =>
   props.clients.map((c) => ({
@@ -333,14 +362,21 @@ const removeLine = (index) => {
             :options="currencies"
             placeholder="Pick a currency" />
           <!-- Invoices only. A quotation's status is decided by whether the
-               client accepts it, not by a dropdown on the sender's side. -->
-          <UiSelect
-            v-if="!isQuote"
-            v-model="form.status"
-            label="Status"
-            :disabled="locked"
-            :options="STATUSES"
-            placeholder="Pick a status" />
+               client accepts it, not by a dropdown on the sender's side.
+               Read-only for invoices too, for the reason on STATUS_VIEW. -->
+          <div v-if="!isQuote" class="f" style="margin: 0">
+            <span class="f__label">Status</span>
+            <p class="f__static">
+              <span class="chip" :class="statusView.cls">
+                <i class="chip__dot" aria-hidden="true"></i>
+                {{ statusView.label }}
+              </span>
+            </p>
+            <p class="f__hint">
+              Follows what has been paid. Record a payment from the invoice list
+              to change it.
+            </p>
+          </div>
         </template>
       </div>
 

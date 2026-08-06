@@ -492,7 +492,8 @@ const save = async () => {
               :clients="clientStore.clients"
               :currencies="currencyOptions"
               mode="edit"
-              :locked="locked" />
+              :locked="locked"
+              :paid-so-far="paidSoFar" />
           </template>
         </div>
 
