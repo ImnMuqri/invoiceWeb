@@ -111,16 +111,16 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div ref="root" class="ledger" aria-hidden="true">
+  <div ref="root" class="settle" aria-hidden="true">
     <!-- Slow drifting green wash. CSS, because a single looping transform is
          exactly what keyframes are for and it costs no JS. -->
-    <div class="ledger__wash"></div>
+    <div class="settle__wash"></div>
 
     <!-- Static ruled paper -->
-    <div class="ledger__rules"></div>
+    <div class="settle__rules"></div>
 
     <!-- The rows that settle -->
-    <div class="ledger__rows">
+    <div class="settle__rows">
       <div
         v-for="i in ROWS"
         :key="i"
@@ -145,7 +145,15 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
-.ledger {
+/* Namespaced `settle`, not `ledger`.
+   app-desk.css is a global stylesheet and owns `.ledger` — the table shell used
+   by the invoice, quote, catalogue and admin lists. `<style scoped>` does not
+   protect against that: scoping raises specificity for the properties this
+   block DECLARES, and this block never declared border, background or radius.
+   So the desk shell was handing this element a 1px border, --desk-card and a
+   16px radius, which is why the auth page's left panel had rounded corners and
+   a seam down its right edge. */
+.settle {
   position: absolute;
   inset: 0;
   z-index: -1;
@@ -154,7 +162,7 @@ onBeforeUnmount(() => {
 }
 
 /* ─── Drifting wash — alpha of the locked green only ─────────────────────── */
-.ledger__wash {
+.settle__wash {
   position: absolute;
   inset: -25%;
   background:
@@ -173,7 +181,7 @@ onBeforeUnmount(() => {
 }
 
 /* ─── Ruled paper ───────────────────────────────────────────────────────── */
-.ledger__rules {
+.settle__rules {
   position: absolute;
   inset: 0;
   background-image: repeating-linear-gradient(
@@ -186,7 +194,7 @@ onBeforeUnmount(() => {
 }
 
 /* ─── Settling rows ─────────────────────────────────────────────────────── */
-.ledger__rows {
+.settle__rows {
   position: absolute;
   inset: 0;
 }
@@ -241,7 +249,7 @@ onBeforeUnmount(() => {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ledger__wash {
+  .settle__wash {
     animation: none;
     transform: none;
   }

@@ -472,8 +472,9 @@ onMounted(async () => {
   // Ensure system config is latest
   await systemStore.fetchSystemConfig();
 
-  // Fetch from API directly using the numeric ID
-  invoice.value = await invoiceStore.fetchInvoiceById(invoiceId);
+  /* The public projection, not the full row. A client opening a payment link
+     has no session, and /pay/invoice/:id is the endpoint meant for them. */
+  invoice.value = await invoiceStore.fetchPublicInvoice(invoiceId);
 
   // Handle Gateway Redirects
   const query = route.query;

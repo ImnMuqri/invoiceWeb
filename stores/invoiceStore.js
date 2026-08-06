@@ -22,12 +22,46 @@ export const useInvoiceStore = defineStore("invoice", {
       }
     },
 
-    async fetchInvoiceById(id) {
+    /**
+     * The public view of an invoice, for the pay page.
+     *
+     * /pay/invoice/:id is the endpoint built for this: an unauthenticated client
+     * opening a payment link. It returns a curated projection — the document,
+     * the sender's details, the gateways and the bank block — and nothing else.
+     *
+     * The pay page used to call fetchInvoiceById, which meant GET /invoices/:id
+     * had to stay public for it, and that route returns the whole row. Two
+     * different audiences were being served by one unguarded endpoint.
+     */
+    async fetchPublicInvoice(id) {
       const { $api } = useNuxtApp();
       this.loading = true;
       this.error = null;
       try {
-        const { data } = await $api.get(`/invoices/${id}`);
+        const { data } = await $api.get(`/pay/invoice/${id}`);
+        return data;
+      } catch (err) {
+        this.error = err.response?.data?.message || err.message;
+        throw err;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    /**
+     * `renderToken` is only ever supplied by /invoices/:id/export, the page the
+     * backend prints to PDF. That page has no session — Puppeteer carries no
+     * cookie — so the token is what authorises the read. Every other caller
+     * omits it and is authorised by their own session.
+     */
+    async fetchInvoiceById(id, renderToken = null) {
+      const { $api } = useNuxtApp();
+      this.loading = true;
+      this.error = null;
+      try {
+        const { data } = await $api.get(`/invoices/${id}`, {
+          params: renderToken ? { renderToken } : {},
+        });
         return data;
       } catch (err) {
         this.error = err.response?.data?.message || err.message;

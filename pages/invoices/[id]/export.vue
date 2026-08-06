@@ -34,7 +34,13 @@ const failed = ref(false);
 
 onMounted(async () => {
   try {
-    invoice.value = await invoiceStore.fetchInvoiceById(route.params.id);
+    /* The backend puts a short-lived token on this URL when it opens the page
+       for printing. It is what authorises the API read, since this page renders
+       without a session by design. */
+    invoice.value = await invoiceStore.fetchInvoiceById(
+      route.params.id,
+      route.query.renderToken || null,
+    );
   } catch {
     failed.value = true;
   }

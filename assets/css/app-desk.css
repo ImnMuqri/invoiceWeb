@@ -1945,12 +1945,12 @@ html.dark .pickcard__opt--on .pickcard__mark {
    The "preferred" marker was an absolutely-positioned circle in the corner with
    a click handler and no accessible name — a radio built out of a div. It is a
    real radio input now, in the card's footer where it can carry a label. */
-.gw {
+.desk .gw {
   display: grid;
   gap: var(--desk-gap-tight);
   grid-template-columns: 1fr;
 }
-.gw__card {
+.desk .gw__card {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
@@ -1959,17 +1959,17 @@ html.dark .pickcard__opt--on .pickcard__mark {
   border-radius: var(--desk-radius-inset);
   background-color: var(--desk-item);
 }
-.gw__card--on {
+.desk .gw__card--on {
   border-color: var(--desk-accent-line);
 }
-.gw__head {
+.desk .gw__head {
   display: flex;
   align-items: center;
   gap: var(--space-3);
 }
 /* Fixed box so a 512px logo, a 256px one and a two-letter monogram all occupy
    the same square and the names line up. */
-.gw__logo {
+.desk .gw__logo {
   display: grid;
   place-items: center;
   width: 2.25rem;
@@ -1984,27 +1984,27 @@ html.dark .pickcard__opt--on .pickcard__mark {
   letter-spacing: var(--tracking-wide);
   color: var(--desk-text-3);
 }
-.gw__logo img {
+.desk .gw__logo img {
   width: 100%;
   height: 100%;
   object-fit: contain;
 }
 /* Both are <span> inside a <span>, so they need to be told to stack — inline by
    default ran the name and the description together on one line. */
-.gw__name {
+.desk .gw__name {
   display: block;
   font-size: var(--text-sm);
   font-weight: var(--weight-semibold);
   color: var(--desk-text);
 }
-.gw__note {
+.desk .gw__note {
   display: block;
   margin-top: 1px;
   font-size: var(--text-xs);
   line-height: var(--leading-normal);
   color: var(--desk-text-3);
 }
-.gw__state {
+.desk .gw__state {
   display: flex;
   align-items: center;
   gap: var(--space-2);
@@ -2012,7 +2012,7 @@ html.dark .pickcard__opt--on .pickcard__mark {
   font-weight: var(--weight-medium);
   color: var(--desk-text-3);
 }
-.gw__state::before {
+.desk .gw__state::before {
   content: '';
   width: 6px;
   height: 6px;
@@ -2020,19 +2020,19 @@ html.dark .pickcard__opt--on .pickcard__mark {
   border-radius: var(--radius-full);
   background-color: currentColor;
 }
-.gw__state--on {
+.desk .gw__state--on {
   color: var(--desk-accent);
 }
-.gw__acts {
+.desk .gw__acts {
   display: flex;
   gap: var(--space-2);
   margin-top: auto;
 }
-.gw__acts .desk-btn {
+.desk .gw__acts .desk-btn {
   flex: 1;
 }
 /* The preferred-provider radio, as a row rather than a corner dot. */
-.gw__prefer {
+.desk .gw__prefer {
   display: flex;
   align-items: center;
   gap: var(--space-2);
@@ -2043,7 +2043,7 @@ html.dark .pickcard__opt--on .pickcard__mark {
   color: var(--desk-text-2);
   cursor: pointer;
 }
-.gw__prefer--on {
+.desk .gw__prefer--on {
   color: var(--desk-accent);
 }
 /* The tick itself. .pickcard__mark is only filled by .pickcard__opt--on, and
@@ -2052,13 +2052,13 @@ html.dark .pickcard__opt--on .pickcard__mark {
    invoices". The control disagreed with its own text.
    Paired per theme: white on the accent is right on the light green and wrong
    on the dark one. */
-.gw__prefer--on .pickcard__mark {
+.desk .gw__prefer--on .pickcard__mark {
   border-color: var(--desk-accent);
   background-color: var(--desk-accent);
   color: #ffffff;
 }
-:root[data-theme='dark'] .gw__prefer--on .pickcard__mark,
-html.dark .gw__prefer--on .pickcard__mark {
+:root[data-theme='dark'] .desk .gw__prefer--on .pickcard__mark,
+html.dark .desk .gw__prefer--on .pickcard__mark {
   color: var(--ink-950);
 }
 
@@ -2075,12 +2075,12 @@ html.dark .gw__prefer--on .pickcard__mark {
    recommended — steps up to the ink slab the marketing site already uses for
    emphasis. That scales to a fifth plan without a new colour, and it reads as
    the same product as the landing page. */
-.plans {
+.desk .plans {
   display: grid;
   gap: var(--desk-gap-tight);
   grid-template-columns: 1fr;
 }
-.plan {
+.desk .plan {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
@@ -2090,58 +2090,58 @@ html.dark .gw__prefer--on .pickcard__mark {
   background-color: var(--desk-item);
 }
 /* The slab. One emphasis treatment, from the brand, used for the current plan. */
-.plan--now {
+.desk .plan--now {
   border-color: transparent;
   background-color: var(--ink-950);
 }
-.plan--now .plan__name,
-.plan--now .plan__price,
-.plan--now .plan__feat {
+.desk .plan--now .plan__name,
+.desk .plan--now .plan__price,
+.desk .plan--now .plan__feat {
   color: var(--paper-50);
 }
-.plan--now .plan__desc,
-.plan--now .plan__per {
+.desk .plan--now .plan__desc,
+.desk .plan--now .plan__per {
   color: var(--gray-400);
 }
-.plan--now .plan__feat svg {
+.desk .plan--now .plan__feat svg {
   color: var(--green-400);
 }
 /* The card flips to the ink slab, so the button on it has to flip too. It was
    inheriting the light-theme ghost — dark ink on near-black, 1.46:1 — because
    the slab restyled the text around it and stopped at the control. These are the
    on-slab tokens design-tokens.css already defines for exactly this case. */
-.plan--now .desk-btn--ghost {
+.desk .plan--now .desk-btn--ghost {
   border-color: var(--border-on-slab);
   background-color: var(--chip-on-slab-bg);
   color: var(--text-on-slab);
 }
-.plan--now .desk-btn--ghost:hover:not(:disabled) {
+.desk .plan--now .desk-btn--ghost:hover:not(:disabled) {
   border-color: var(--a-paper-24);
   background-color: var(--a-paper-12);
   color: var(--text-on-slab);
 }
-.plan--now .desk-btn--ghost:disabled {
+.desk .plan--now .desk-btn--ghost:disabled {
   color: var(--text-on-slab-muted);
 }
-.plan__top {
+.desk .plan__top {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--space-3);
 }
-.plan__name {
+.desk .plan__name {
   font-size: var(--text-md);
   font-weight: var(--weight-semibold);
   letter-spacing: var(--tracking-tight);
   color: var(--desk-text);
 }
-.plan__desc {
+.desk .plan__desc {
   margin-top: var(--space-1);
   font-size: var(--text-xs);
   line-height: var(--leading-normal);
   color: var(--desk-text-3);
 }
-.plan__price {
+.desk .plan__price {
   display: flex;
   align-items: baseline;
   flex-wrap: wrap;
@@ -2152,19 +2152,19 @@ html.dark .gw__prefer--on .pickcard__mark {
   line-height: 1;
   color: var(--desk-text);
 }
-.plan__was {
+.desk .plan__was {
   font-size: var(--text-md);
   font-weight: var(--weight-medium);
   color: var(--desk-text-3);
   text-decoration: line-through;
 }
-.plan__per {
+.desk .plan__per {
   font-size: var(--text-xs);
   font-weight: var(--weight-medium);
   letter-spacing: var(--tracking-normal);
   color: var(--desk-text-3);
 }
-.plan__feats {
+.desk .plan__feats {
   display: grid;
   gap: var(--space-2);
   margin: 0;
@@ -2172,7 +2172,7 @@ html.dark .gw__prefer--on .pickcard__mark {
   list-style: none;
   flex: 1;
 }
-.plan__feat {
+.desk .plan__feat {
   display: flex;
   align-items: flex-start;
   gap: var(--space-2);
@@ -2180,14 +2180,14 @@ html.dark .gw__prefer--on .pickcard__mark {
   line-height: var(--leading-normal);
   color: var(--desk-text-2);
 }
-.plan__feat svg {
+.desk .plan__feat svg {
   width: 14px;
   height: 14px;
   flex: none;
   margin-top: 2px;
   color: var(--desk-accent);
 }
-.plan__tag {
+.desk .plan__tag {
   flex: none;
   padding: 2px var(--space-2);
   border-radius: var(--radius-full);
@@ -2259,10 +2259,10 @@ html.dark .gw__prefer--on .pickcard__mark {
   .pickcard--two {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  .gw {
+  .desk .gw {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  .plans {
+  .desk .plans {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
@@ -2270,12 +2270,12 @@ html.dark .gw__prefer--on .pickcard__mark {
   .set {
     grid-template-columns: minmax(0, 13rem) minmax(0, 1fr);
   }
-  .gw {
+  .desk .gw {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 @media (min-width: 1280px) {
-  .plans {
+  .desk .plans {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
@@ -2289,7 +2289,7 @@ html.dark .gw__prefer--on .pickcard__mark {
    already states this exact fact, from the same function, as coloured text: the
    same fact styled as a pill in one table and as text in the other is the drift
    this whole pass has been removing. */
-.pay {
+.desk .pay {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
@@ -2297,7 +2297,7 @@ html.dark .gw__prefer--on .pickcard__mark {
   font-weight: var(--weight-medium);
   color: var(--desk-text-2);
 }
-.pay::before {
+.desk .pay::before {
   content: '';
   width: 6px;
   height: 6px;
@@ -2305,13 +2305,13 @@ html.dark .gw__prefer--on .pickcard__mark {
   border-radius: var(--radius-full);
   background-color: currentColor;
 }
-.pay--high {
+.desk .pay--high {
   color: var(--desk-late);
 }
-.pay--ok {
+.desk .pay--ok {
   color: var(--desk-accent);
 }
-.pay--unknown {
+.desk .pay--unknown {
   color: var(--desk-text-3);
 }
 
