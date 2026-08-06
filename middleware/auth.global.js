@@ -1,3 +1,5 @@
+import { isProtectedRoute } from "~/utils/routeAccess";
+
 export default defineNuxtRouteMiddleware((to, from) => {
   if (import.meta.prerender) return;
 
@@ -11,21 +13,11 @@ export default defineNuxtRouteMiddleware((to, from) => {
   // NOTE: this is a GLOBAL middleware. Nuxt does not reliably hot-reload it —
   // restart the dev server after changing this file or the change won't apply.
 
-  // "/ms" is the Bahasa Malaysia landing page. Without it here the BM page
-  // redirects logged-out visitors (and every crawler) straight to /login.
-  // The startsWith covers any future /ms/* marketing page too.
-  const publicRoutes = ["/login", "/register", "/", "/ms", "/pay", "/legal"];
-  const isPublicRoute = publicRoutes.some(
-    (route) =>
-      path === route ||
-      (route !== "/" && path === route + "/") ||
-      path === "/ms" ||
-      path.startsWith("/ms/") ||
-      path.startsWith("/pay/") ||
-      path.startsWith("/legal/") ||
-      (path.startsWith("/invoices/") && path.endsWith("/export")) ||
-      to.name === "pay-id",
-  );
+  // Routes are PUBLIC unless they are explicitly protected. This used to be an
+  // allowlist of public paths, which meant every new marketing page (like the
+  // Bahasa Malaysia landing at /ms) was login-walled until someone remembered
+  // to add it. See utils/routeAccess.ts.
+  const isProtected = isProtectedRoute(path);
 
   // 🔥 Try cookie first (SSR)
   let cookieToken = useCookie("accessToken").value;
@@ -45,7 +37,7 @@ export default defineNuxtRouteMiddleware((to, from) => {
   const isAuthenticated = !!(cookieToken || storeToken);
 
   // 🚫 Protect routes
-  if (!isAuthenticated && !isPublicRoute) {
+  if (!isAuthenticated && isProtected) {
     return navigateTo("/login");
   }
 
@@ -59,7 +51,9 @@ export default defineNuxtRouteMiddleware((to, from) => {
     const isCompleted = authStore.user?.onboardingCompleted === true;
     const isOnboarding = path === "/onboarding" || path === "/onboarding/";
 
-    if (!isCompleted && !isOnboarding && !isPublicRoute) {
+    // Only nudge into onboarding from inside the app. Doing it on a public page
+    // would hijack a marketing visit for a signed-in reader.
+    if (!isCompleted && !isOnboarding && isProtected) {
       return navigateTo("/onboarding");
     }
 

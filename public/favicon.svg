@@ -1,8 +1,24 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="InvoKita">
-  <!-- Locked brand colours only: ink #0D1B17, green #059669, paper #FAF6EF -->
-  <rect width="64" height="64" rx="15" fill="#0D1B17"/>
-  <!-- message bubble with a tail: the product is an invoice that arrives as a message -->
-  <path d="M16 20h32a4 4 0 0 1 4 4v18a4 4 0 0 1-4 4H30l-9 8v-8h-5a4 4 0 0 1-4-4V24a4 4 0 0 1 4-4Z" fill="#059669"/>
-  <!-- paid tick -->
-  <path d="M23.5 33.5 29.5 39.5 41 27" fill="none" stroke="#FAF6EF" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <!--
+    InvoKita mark — the "K", ink on brand green.
+
+    Locked palette only: green #059669, ink #0D1B17.
+
+    Why this and not a checkmark or a chat bubble: a favicon's job is to be
+    findable in a tab strip. Measured against browser chrome, a green tile is
+    3.77:1 on a light tab bar and 4.27:1 on a dark one; the previous ink tile
+    was 1.10:1 against dark chrome — effectively invisible. Ink on green also
+    measures 4.70:1 for the glyph (vs 3.50:1 for paper on green) and is the
+    same pairing as the primary CTA button, so the system stays coherent.
+
+    A letterform was chosen over a symbol because it survives 16px as something
+    identifiable rather than generic. Tested at 16/20/32/64/180px on both light
+    and dark chrome before being adopted.
+  -->
+  <rect width="64" height="64" rx="15" fill="#059669"/>
+  <g fill="none" stroke="#0D1B17" stroke-width="8.5" stroke-linecap="round">
+    <path d="M21.5 15V49"/>
+    <path d="M25 32 42.5 17"/>
+    <path d="M25 32 44 47"/>
+  </g>
 </svg>

@@ -1,793 +1,908 @@
-<template>
-  <div class="invoices-page">
-    <div
-      class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-      <div>
-        <h2 class="text-2xl font-bold text-slate-900 tracking-tight">
-          Invoices
-        </h2>
-        <p class="text-xs font-medium text-slate-500 mt-1">
-          Manage and track your client billings.
-        </p>
-      </div>
-      <div class="flex items-center gap-3">
-        <button
-          @click="uiStore.openModuleHelp('invoices')"
-          class="text-slate-400 hover:text-blue-600 transition-colors p-1"
-          title="Invoices Help">
-          <UiIcon icon="formkit:help" custom-class="w-5 h-5" />
-        </button>
-        <NuxtLink
-          v-if="systemStore.isInvoiceCreationEnabled"
-          to="/invoices/create"
-          class="inline-flex items-center justify-center rounded-md border border-transparent bg-slate-900 px-6 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2 transition-colors whitespace-nowrap"
-          >Create Invoice</NuxtLink
-        >
-        <button
-          v-else
-          disabled
-          class="inline-flex items-center justify-center rounded-md border border-transparent bg-slate-200 px-6 py-2.5 text-sm font-medium text-slate-400 cursor-not-allowed shadow-sm transition-colors whitespace-nowrap"
-          title="Invoice creation is temporarily disabled by admin">
-          Create Invoice
-        </button>
-      </div>
-    </div>
-
-    <UiTable
-      :loading="invoiceStore.loading"
-      :is-empty="filteredInvoices.length === 0"
-      :column-count="10"
-      show-refresh
-      @refresh="invoiceStore.fetchInvoices()">
-      <template #header>
-        <th
-          scope="col"
-          class="py-4 pl-6 pr-3 text-left text-[10px] font-semibold text-slate-400 tracking-wider uppercase">
-          Invoice ID
-        </th>
-        <th
-          scope="col"
-          class="px-3 py-4 text-left text-[10px] font-semibold text-slate-400 tracking-wider uppercase">
-          Client
-        </th>
-        <th
-          scope="col"
-          class="px-3 py-4 text-left text-[10px] font-semibold text-slate-400 tracking-wider uppercase">
-          Amount
-        </th>
-        <th
-          scope="col"
-          class="px-3 py-4 text-left text-[10px] font-semibold text-slate-400 tracking-wider uppercase">
-          Status
-        </th>
-        <th
-          scope="col"
-          class="px-3 py-4 text-left text-[10px] font-semibold text-slate-400 tracking-wider uppercase whitespace-nowrap">
-          Issued Date
-        </th>
-        <th
-          scope="col"
-          class="px-3 py-4 text-left text-[10px] font-semibold text-slate-400 tracking-wider uppercase whitespace-nowrap">
-          Due Date
-        </th>
-        <th
-          scope="col"
-          class="px-3 py-4 text-left text-[10px] font-semibold text-slate-400 tracking-wider uppercase whitespace-nowrap">
-          Email Sent
-        </th>
-        <th
-          scope="col"
-          class="px-3 py-4 text-left text-[10px] font-semibold text-slate-400 tracking-wider uppercase whitespace-nowrap">
-          WhatsApp Sent
-        </th>
-        <th
-          scope="col"
-          class="px-3 py-4 text-left text-[10px] font-semibold text-slate-400 tracking-wider uppercase whitespace-nowrap">
-          <div class="flex items-center gap-1.5">
-            Late Risk
-            <div class="group relative">
-              <!-- AI Thunder Icon as Tooltip Trigger -->
-              <svg
-                class="w-3.5 h-3.5 text-emerald-600 cursor-help hover:text-emerald-500 transition-colors"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-              </svg>
-
-              <!-- Premium Tooltip -->
-              <div
-                class="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-64 p-3 bg-slate-900 text-white text-[11px] rounded-xl shadow-2xl opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none z-[60] -translate-y-1 group-hover:translate-y-0 text-left normal-case tracking-normal">
-                <p
-                  class="font-bold text-emerald-400 mb-1.5 uppercase tracking-wider">
-                  Predictive Analysis
-                </p>
-                <div class="leading-relaxed text-slate-200">
-                  <p class="whitespace-pre-wrap mb-1">
-                    This predicts the likelihood of late payment based on this
-                    client's historical behavior (**Average Delay Days**).
-                  </p>
-                  <span class="font-bold text-green-400">Low</span>: &lt; 3 days
-                  delay.<br />
-                  <span class="font-bold text-yellow-500">Medium</span>: 4-10
-                  days delay.<br />
-                  <span class="font-bold text-red-500">High</span>: &gt; 10 days
-                  delay.
-                </div>
-                <!-- Arrow pointing up -->
-                <div
-                  class="absolute bottom-full left-1/2 -translate-x-1/2 border-8 border-transparent border-b-slate-900"></div>
-              </div>
-            </div>
-          </div>
-        </th>
-        <th scope="col" class="relative py-4 pl-3 pr-6">
-          <span class="sr-only">Actions</span>
-        </th>
-      </template>
-
-      <tr
-        v-for="invoice in filteredInvoices"
-        :key="invoice?.id || Math.random()"
-        class="hover:bg-slate-50 transition-colors">
-        <td
-          class="whitespace-nowrap py-4 pl-6 pr-3 text-sm font-semibold text-slate-900">
-          {{ invoice?.invoiceNumber || invoice?.id || "N/A" }}
-        </td>
-        <td
-          class="whitespace-nowrap px-3 py-4 text-sm font-semibold text-slate-700">
-          {{ invoice?.client?.name || invoice?.client || "Untitled" }}
-        </td>
-        <td
-          class="whitespace-nowrap px-3 py-4 text-sm font-semibold text-slate-900">
-          <div class="flex flex-col">
-            <span>{{ invoice?.currency === "MYR" ? "RM" : "$" }}{{ invoice?.amount?.toLocaleString() || "0" }}</span>
-            <span v-if="invoice?.amountPaid > 0 && invoice?.status !== 'Paid'" class="text-[10px] text-slate-500 font-medium">
-              Paid: {{ invoice?.currency === "MYR" ? "RM" : "$" }}{{ invoice?.amountPaid?.toLocaleString() }}
-            </span>
-          </div>
-        </td>
-        <td class="whitespace-nowrap px-3 py-4 text-sm">
-          <span
-            v-if="invoice?.status === 'Paid'"
-            class="inline-flex items-center rounded-md bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-700 border border-emerald-100"
-            >Paid</span
-          >
-          <span
-            v-else-if="invoice?.status === 'Overdue'"
-            class="inline-flex items-center rounded-md bg-red-50 px-2 py-1 text-xs font-semibold text-red-700 border border-red-100"
-            >Overdue</span
-          >
-          <span
-            v-else-if="invoice?.status === 'Partially Paid'"
-            class="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-semibold text-blue-700 border border-blue-100"
-            >Partially Paid</span
-          >
-          <span
-            v-else-if="invoice?.status === 'Cancelled'"
-            class="inline-flex items-center rounded-md bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-700 border border-slate-200"
-            >Cancelled</span
-          >
-          <span
-            v-else
-            class="inline-flex items-center rounded-md bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-700 border border-amber-100"
-            >Pending</span
-          >
-        </td>
-        <td
-          class="whitespace-nowrap px-3 py-4 text-sm font-medium text-slate-500">
-          {{ formatDate(invoice?.date) }}
-        </td>
-        <td
-          class="whitespace-nowrap px-3 py-4 text-sm font-medium text-slate-500">
-          {{ formatDate(invoice?.dueDate) }}
-        </td>
-        <td
-          class="whitespace-nowrap px-3 py-4 text-sm font-medium text-slate-500">
-          {{ invoice?.emailLastSent ? formatDate(invoice.emailLastSent) : "-" }}
-        </td>
-        <td
-          class="whitespace-nowrap px-3 py-4 text-sm font-medium text-slate-500">
-          {{
-            invoice?.whatsappLastSent
-              ? formatDate(invoice.whatsappLastSent)
-              : "-"
-          }}
-        </td>
-        <td class="whitespace-nowrap px-3 py-4 text-sm">
-          <div
-            v-if="invoice?.status !== 'Paid'"
-            class="flex items-center gap-1.5"
-            :class="
-              getLateRisk(invoice) === 'High'
-                ? 'text-red-600'
-                : getLateRisk(invoice) === 'Medium'
-                  ? 'text-amber-500'
-                  : 'text-emerald-600'
-            ">
-            <div class="w-1.5 h-1.5 rounded-full bg-current"></div>
-            <span class="font-semibold text-xs">{{
-              getLateRisk(invoice)
-            }}</span>
-          </div>
-          <span
-            v-else
-            class="text-emerald-600 font-bold text-[10px] flex items-center gap-1 capitalize tracking-tight">
-            <UiIcon
-              icon="heroicons:check-circle"
-              custom-class="w-4 h-4 text-emerald-600" />
-          </span>
-        </td>
-        <td
-          class="relative whitespace-nowrap py-4 pl-3 pr-6 text-right text-sm font-semibold flex items-center justify-end gap-1.5 h-full">
-          <!-- Always visible: Public Preview -->
-          <NuxtLink
-            v-if="invoice?.id"
-            :to="`/pay/${invoice.id}`"
-            target="_blank"
-            class="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all"
-            title="View Public Invoice">
-            <UiIcon
-              icon="heroicons:arrow-top-right-on-square"
-              custom-class="w-4 h-4" />
-          </NuxtLink>
-
-          <!-- Quick Status Update Popover -->
-          <UiPopover placement="bottom-end">
-            <template #trigger>
-              <button
-                :disabled="
-                  invoice?.status === 'Paid' ||
-                  invoice?.status === 'Cancelled' ||
-                  loadingInvoices[invoice.id]
-                "
-                class="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed group"
-                :title="
-                  invoice?.status === 'Paid' || invoice?.status === 'Cancelled'
-                    ? `Locked: ${invoice.status}`
-                    : 'Update Status'
-                ">
-                <UiIcon
-                  v-if="loadingInvoices[invoice.id] === 'status'"
-                  icon="heroicons:arrow-path"
-                  custom-class="w-4 h-4 animate-spin text-emerald-600" />
-                <UiIcon
-                  v-else
-                  icon="heroicons:check-badge"
-                  custom-class="w-4 h-4" />
-              </button>
-            </template>
-
-            <template #default="{ close }">
-              <div class="px-3 py-2 border-b border-slate-100 bg-slate-50/50">
-                <span
-                  class="text-[10px] font-bold text-slate-400 uppercase tracking-wider"
-                  >Update Status</span
-                >
-              </div>
-              <div class="p-1 min-w-[160px]">
-                <button
-                  v-if="invoice?.status !== 'Paid'"
-                  @click="updateStatus(invoice, 'Paid')"
-                  :disabled="loadingInvoices[invoice.id]"
-                  class="w-full flex items-center justify-between gap-2 px-3 py-2 text-xs font-semibold text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 rounded-md transition-all text-left disabled:opacity-50">
-                  <div class="flex items-center gap-2">
-                    <div class="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
-                    Mark as Paid
-                  </div>
-                  <UiIcon
-                    v-if="loadingInvoices[invoice.id] === 'Paid'"
-                    icon="heroicons:arrow-path"
-                    custom-class="w-3 h-3 animate-spin text-emerald-600" />
-                </button>
-                <button
-                  v-if="invoice?.status !== 'Overdue'"
-                  @click="updateStatus(invoice, 'Overdue')"
-                  :disabled="loadingInvoices[invoice.id]"
-                  class="w-full flex items-center justify-between gap-2 px-3 py-2 text-xs font-semibold text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-md transition-all text-left disabled:opacity-50">
-                  <div class="flex items-center gap-2">
-                    <div class="w-1.5 h-1.5 rounded-full bg-red-500"></div>
-                    Mark as Overdue
-                  </div>
-                  <UiIcon
-                    v-if="loadingInvoices[invoice.id] === 'Overdue'"
-                    icon="heroicons:arrow-path"
-                    custom-class="w-3 h-3 animate-spin text-red-600" />
-                </button>
-                <button
-                  v-if="invoice?.status !== 'Pending'"
-                  @click="updateStatus(invoice, 'Pending')"
-                  :disabled="loadingInvoices[invoice.id]"
-                  class="w-full flex items-center justify-between gap-2 px-3 py-2 text-xs font-semibold text-slate-600 hover:text-amber-600 hover:bg-amber-50 rounded-md transition-all text-left disabled:opacity-50">
-                  <div class="flex items-center gap-2">
-                    <div class="w-1.5 h-1.5 rounded-full bg-amber-500"></div>
-                    Mark as Pending
-                  </div>
-                  <UiIcon
-                    v-if="loadingInvoices[invoice.id] === 'Pending'"
-                    icon="heroicons:arrow-path"
-                    custom-class="w-3 h-3 animate-spin text-amber-600" />
-                </button>
-                <div
-                  v-if="invoice?.status !== 'Cancelled'"
-                  class="h-px bg-slate-100 my-1 mx-2"></div>
-                <button
-                  v-if="invoice?.status !== 'Cancelled'"
-                  @click="updateStatus(invoice, 'Cancelled')"
-                  :disabled="loadingInvoices[invoice.id]"
-                  class="w-full flex items-center justify-between gap-2 px-3 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-md transition-all text-left disabled:opacity-50">
-                  <div class="flex items-center gap-2">
-                    <div class="w-1.5 h-1.5 rounded-full bg-slate-400"></div>
-                    Cancelled
-                  </div>
-                  <UiIcon
-                    v-if="loadingInvoices[invoice.id] === 'Cancelled'"
-                    icon="heroicons:arrow-path"
-                    custom-class="w-3 h-3 animate-spin text-slate-600" />
-                </button>
-              </div>
-            </template>
-          </UiPopover>
-
-          <!-- Popover for other actions -->
-          <UiPopover placement="bottom-end">
-            <template #trigger>
-              <button
-                :disabled="loadingInvoices[invoice.id]"
-                class="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-all disabled:opacity-30"
-                title="More Actions">
-                <UiIcon
-                  v-if="
-                    ['email', 'reminder', 'whatsapp', 'waReminder'].includes(
-                      loadingInvoices[invoice.id],
-                    )
-                  "
-                  icon="heroicons:arrow-path"
-                  custom-class="w-5 h-5 animate-spin text-slate-600" />
-                <UiIcon
-                  v-else
-                  icon="heroicons:ellipsis-horizontal"
-                  custom-class="w-5 h-5" />
-              </button>
-            </template>
-
-            <template #default="{ close }">
-              <!-- Actions Group: Communications -->
-              <div class="px-2 py-1.5 border-b border-slate-100 bg-slate-50/50">
-                <span
-                  class="text-[10px] font-bold text-slate-400 uppercase tracking-wider"
-                  >Communications</span
-                >
-              </div>
-
-              <div class="p-1">
-                <button
-                  @click="handleSendAction(invoice, 'email', false)"
-                  :disabled="
-                    invoice?.status === 'Paid' ||
-                    !systemStore.isEmailEnabled ||
-                    loadingInvoices[invoice.id]
-                  "
-                  class="w-full flex items-center justify-between gap-2 px-3 py-2 text-xs font-semibold text-slate-600 hover:text-green-600 hover:bg-green-50 rounded-md transition-all text-left disabled:opacity-50 disabled:cursor-not-allowed"
-                  :title="
-                    !systemStore.isEmailEnabled
-                      ? 'Email is temporarily disabled by admin'
-                      : ''
-                  ">
-                  <div class="flex items-center gap-2">
-                    <UiIcon icon="heroicons:envelope" custom-class="w-4 h-4" />
-                    Send Email
-                  </div>
-                  <UiIcon
-                    v-if="loadingInvoices[invoice.id] === 'email'"
-                    icon="heroicons:arrow-path"
-                    custom-class="w-3 h-3 animate-spin text-green-600" />
-                </button>
-                <button
-                  @click="handleSendAction(invoice, 'email', true)"
-                  :disabled="
-                    invoice?.status === 'Paid' ||
-                    !systemStore.isEmailEnabled ||
-                    loadingInvoices[invoice.id]
-                  "
-                  class="w-full flex items-center justify-between gap-2 px-3 py-2 text-xs font-semibold text-slate-600 hover:text-green-600 hover:bg-green-50 rounded-md transition-all text-left disabled:opacity-50 disabled:cursor-not-allowed"
-                  :title="
-                    !systemStore.isEmailEnabled
-                      ? 'Email is temporarily disabled by admin'
-                      : ''
-                  ">
-                  <div class="flex items-center gap-2">
-                    <UiIcon icon="heroicons:bell" custom-class="w-4 h-4" />
-                    Send Reminder Email
-                  </div>
-                  <UiIcon
-                    v-if="loadingInvoices[invoice.id] === 'reminder'"
-                    icon="heroicons:arrow-path"
-                    custom-class="w-3 h-3 animate-spin text-green-600" />
-                </button>
-                <div class="h-px bg-slate-100 my-1 mx-2"></div>
-                <button
-                  v-if="authStore.user?.plan !== 'FREE'"
-                  @click="handleSendAction(invoice, 'whatsapp', false)"
-                  :disabled="
-                    invoice?.status === 'Paid' ||
-                    !systemStore.isWhatsappEnabled ||
-                    loadingInvoices[invoice.id]
-                  "
-                  class="w-full flex items-center justify-between gap-2 px-3 py-2 text-xs font-semibold text-slate-600 hover:text-[#25D366] hover:bg-emerald-50 rounded-md transition-all text-left disabled:opacity-50 disabled:cursor-not-allowed"
-                  :title="
-                    !systemStore.isWhatsappEnabled
-                      ? 'WhatsApp is temporarily disabled by admin'
-                      : ''
-                  ">
-                  <div class="flex items-center gap-2">
-                    <UiIcon
-                      icon="simple-icons:whatsapp"
-                      custom-class="w-4 h-4" />
-                    Send WhatsApp
-                  </div>
-                  <UiIcon
-                    v-if="loadingInvoices[invoice.id] === 'whatsapp'"
-                    icon="heroicons:arrow-path"
-                    custom-class="w-3 h-3 animate-spin text-[#25D366]" />
-                </button>
-                <button
-                  v-if="authStore.user?.plan !== 'FREE'"
-                  @click="handleSendAction(invoice, 'whatsapp', true)"
-                  :disabled="
-                    invoice?.status === 'Paid' ||
-                    !systemStore.isWhatsappEnabled ||
-                    loadingInvoices[invoice.id]
-                  "
-                  class="w-full flex items-center justify-between gap-2 px-3 py-2 text-xs font-semibold text-slate-600 hover:text-[#25D366] hover:bg-emerald-50 rounded-md transition-all text-left disabled:opacity-50 disabled:cursor-not-allowed"
-                  :title="
-                    !systemStore.isWhatsappEnabled
-                      ? 'WhatsApp is temporarily disabled by admin'
-                      : ''
-                  ">
-                  <div class="flex items-center gap-2">
-                    <UiIcon
-                      icon="heroicons:chat-bubble-left-right"
-                      custom-class="w-4 h-4" />
-                    Send Reminder WA
-                  </div>
-                  <UiIcon
-                    v-if="loadingInvoices[invoice.id] === 'waReminder'"
-                    icon="heroicons:arrow-path"
-                    custom-class="w-3 h-3 animate-spin text-[#25D366]" />
-                </button>
-              </div>
-
-              <!-- Actions Group: Management -->
-              <div
-                class="px-2 py-1.5 border-t border-b border-slate-100 bg-slate-50/50">
-                <span
-                  class="text-[10px] font-bold text-slate-400 uppercase tracking-wider"
-                  >Management</span
-                >
-              </div>
-
-              <div class="p-1">
-                <button
-                  v-if="invoice?.status !== 'Paid' && invoice?.status !== 'Cancelled'"
-                  @click="
-                    close();
-                    openPaymentModal(invoice);
-                  "
-                  class="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 rounded-md transition-all text-left">
-                  <UiIcon icon="heroicons:currency-dollar" custom-class="w-4 h-4" />
-                  Record Payment
-                </button>
-
-                <NuxtLink
-                  v-if="invoice?.id"
-                  :to="`/invoices/edit/${invoice.id}`"
-                  class="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-all">
-                  <UiIcon
-                    icon="heroicons:pencil-square"
-                    custom-class="w-4 h-4" />
-                  Edit Invoice
-                </NuxtLink>
-
-                <button
-                  @click="
-                    close();
-                    openDeleteModal(invoice);
-                  "
-                  class="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-md transition-all text-left">
-                  <UiIcon icon="heroicons:trash" custom-class="w-4 h-4" />
-                  Delete Invoice
-                </button>
-              </div>
-            </template>
-          </UiPopover>
-        </td>
-      </tr>
-    </UiTable>
-
-    <!-- Toast Notification -->
-    <UiToast v-model="toast" />
-
-    <!-- Delete Confirmation Modal -->
-    <UiModal
-      v-model="isDeleteModalOpen"
-      maxWidth="md"
-      title="Delete Invoice?"
-      description="Are you sure you want to delete this invoice? This action cannot be undone.">
-      <div class="p-6">
-        <div
-          class="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full mb-4">
-          <UiIcon icon="heroicons:trash" class="w-6 h-6 text-red-600" />
-        </div>
-        <div class="text-center">
-          <p class="mt-2 text-sm text-slate-500">
-            Are you sure you want to delete invoice
-            <span class="font-semibold text-slate-900">{{
-              invoiceToDelete?.invoiceNumber || invoiceToDelete?.id
-            }}</span
-            >? This action cannot be undone.
-          </p>
-        </div>
-        <div class="mt-6 flex flex-col gap-3">
-          <button
-            @click="confirmDelete"
-            :disabled="isDeleting"
-            class="w-full inline-flex justify-center items-center rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-red-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600 disabled:opacity-50 transition-colors">
-            <UiIcon
-              v-if="isDeleting"
-              icon="heroicons:arrow-path"
-              custom-class="w-4 h-4 mr-2 animate-spin text-white" />
-            {{ isDeleting ? "Deleting..." : "Yes, Delete Invoice" }}
-          </button>
-          <button
-            @click="isDeleteModalOpen = false"
-            class="w-full inline-flex justify-center rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50 transition-colors">
-            Cancel
-          </button>
-        </div>
-      </div>
-    </UiModal>
-
-    <!-- Record Payment Modal -->
-    <UiModal
-      v-model="isPaymentModalOpen"
-      maxWidth="sm"
-      :title="`Record Payment for ${invoiceToPay?.invoiceNumber || invoiceToPay?.id}`"
-      description="Enter the amount that the client has paid.">
-      <div class="p-6">
-        <div class="flex flex-col mb-6">
-          <label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Amount Received</label>
-          <div class="relative">
-            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-semibold">{{ invoiceToPay?.currency === 'MYR' ? 'RM' : '$' }}</span>
-            <input type="number" step="0.01" v-model="paymentAmount" class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-bold focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all outline-none" placeholder="0.00" />
-          </div>
-          <div class="flex justify-between mt-2 text-[11px] font-semibold text-slate-500">
-            <span>Total: {{ invoiceToPay?.currency === 'MYR' ? 'RM' : '$' }}{{ invoiceToPay?.amount?.toLocaleString() }}</span>
-            <span>Due: {{ invoiceToPay?.currency === 'MYR' ? 'RM' : '$' }}{{ (invoiceToPay?.amount - (invoiceToPay?.amountPaid || 0)).toLocaleString() }}</span>
-          </div>
-        </div>
-        <div class="flex flex-col gap-3">
-          <button
-            @click="submitPayment"
-            :disabled="isSubmittingPayment || paymentAmount <= 0"
-            class="w-full inline-flex justify-center items-center rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 disabled:opacity-50 transition-colors">
-            <UiIcon
-              v-if="isSubmittingPayment"
-              icon="heroicons:arrow-path"
-              custom-class="w-4 h-4 mr-2 animate-spin text-white" />
-            {{ isSubmittingPayment ? "Saving..." : "Record Payment" }}
-          </button>
-          <button
-            @click="isPaymentModalOpen = false"
-            class="w-full inline-flex justify-center rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50 transition-colors">
-            Cancel
-          </button>
-        </div>
-      </div>
-    </UiModal>
-  </div>
-</template>
-
 <script setup>
-import { computed, ref, onMounted, reactive } from "vue";
+/**
+ * THE LEDGER — /invoices, rebuilt on the dashboard's design layer.
+ *
+ * The old page was a ten-column data grid. Four of those columns were facts
+ * nobody acts on: an "Email Sent" date, a "WhatsApp Sent" date, an "Issued
+ * Date", and a "Late Risk" column whose own tooltip had to explain its scoring
+ * thresholds. Meanwhile the page had a `searchQuery` ref wired into a filter
+ * with no input anywhere on screen to set it, no status filter, and no total —
+ * so the one thing a freelancer opens a list of invoices to do, find the one
+ * they are thinking about, was the one thing it could not do.
+ *
+ * Rebuilt around the three jobs this page actually has:
+ *   1. how much is out there        -> the strip
+ *   2. find the one I mean          -> search + status segments with counts
+ *   3. act on it without leaving    -> row actions, in one menu each
+ *
+ * Nothing was deleted. Every column that came out was re-homed under the
+ * heading whose decision it informs — that is the rent a column pays.
+ *
+ * Styling is app-desk.css, on tokens, no Tailwind utilities and therefore no
+ * dependence on the ~40 `!important` dark-mode utility remaps in main.css. Data
+ * contracts are unchanged: same store, same endpoints.
+ * Previous version: git history / .archive.
+ */
+import { computed, onMounted, reactive, ref } from "vue";
 import { useInvoiceStore } from "~/stores/invoiceStore";
 import { useAuthStore } from "~/stores/authStore";
 import { useUiStore } from "~/stores/uiStore";
 import { useSystemStore } from "~/stores/systemStore";
-import { formatDate } from "~/utils/date";
+import { formatDate, formatRelativeDate } from "~/utils/date";
+import {
+  amountOutstanding,
+  cash,
+  currencySymbol,
+  daysLate,
+  dueInWords,
+  isChased,
+  isSettled,
+  lastNudge,
+  money,
+  payHabit,
+} from "~/utils/invoice";
 
 const invoiceStore = useInvoiceStore();
 const authStore = useAuthStore();
 const uiStore = useUiStore();
 const systemStore = useSystemStore();
 
-const getLateRisk = (invoice) => {
-  // Use existing prediction if available
-  if (invoice?.latePrediction) return invoice.latePrediction;
+const toast = ref({ message: "", type: "success" });
+const search = ref("");
+const view = ref("open");
+const busy = reactive({});
 
-  // Fallback calculation based on client average delay if missing
-  const delay = invoice?.client?.averageDelayDays || 0;
-  if (delay > 10) return "High";
-  if (delay > 3) return "Medium";
-  return "Low";
-};
-
-onMounted(async () => {
+/* ─── Load ─────────────────────────────────────────────────────────────────── */
+const load = async () => {
   try {
     await invoiceStore.fetchInvoices();
   } catch (err) {
     toast.value = {
-      message: err.response?.data?.message || "Failed to fetch invoices",
-      type: "error",
-    };
-  }
-});
-
-const emit = defineEmits(["invoice-updated"]);
-
-const searchQuery = ref("");
-
-const filteredInvoices = computed(() => {
-  const allInvoices = invoiceStore.invoices || [];
-  if (!searchQuery.value) return allInvoices;
-
-  const query = searchQuery.value.toLowerCase().trim();
-  return allInvoices.filter((invoice) => {
-    if (!invoice) return false;
-
-    const clientId = String(invoice.id || "").toLowerCase();
-    const clientName = (
-      invoice.client?.name ||
-      invoice.client ||
-      ""
-    ).toLowerCase();
-    const status = (invoice.status || "").toLowerCase();
-
-    return (
-      clientId.includes(query) ||
-      clientName.includes(query) ||
-      status.includes(query)
-    );
-  });
-});
-
-const isDeleteModalOpen = ref(false);
-const invoiceToDelete = ref(null);
-const isDeleting = ref(false);
-const toast = ref({ message: "", type: "success" });
-
-const isPaymentModalOpen = ref(false);
-const invoiceToPay = ref(null);
-const paymentAmount = ref(0);
-const isSubmittingPayment = ref(false);
-
-const loadingInvoices = reactive({});
-
-const openDeleteModal = (invoice) => {
-  invoiceToDelete.value = invoice;
-  isDeleteModalOpen.value = true;
-};
-
-const confirmDelete = async () => {
-  if (!invoiceToDelete.value) return;
-
-  isDeleting.value = true;
-  try {
-    const res = await invoiceStore.deleteInvoice(invoiceToDelete.value.id);
-    isDeleteModalOpen.value = false;
-    toast.value = {
-      message: res?.message || "Invoice deleted successfully",
-      type: "success",
-    };
-  } catch (err) {
-    toast.value = {
       message:
         err.response?.data?.message ||
-        "Failed to delete invoice. Please try again.",
+        "Could not load your invoices. Try the refresh button.",
       type: "error",
     };
-  } finally {
-    isDeleting.value = false;
-    invoiceToDelete.value = null;
+  }
+};
+onMounted(load);
+
+/* ─── Filtering ─────────────────────────────────────────────────────────────
+   "Open" leads and is the default, because the reason to be here is almost
+   always an invoice that has not been paid. The old page defaulted to
+   everything, sorted by whatever order the API happened to return. */
+const all = computed(() => invoiceStore.invoices || []);
+
+const inView = (inv, key) => {
+  switch (key) {
+    case "open":
+      return !isSettled(inv?.status);
+    case "late":
+      return daysLate(inv) > 0;
+    case "paid":
+      return inv?.status === "Paid";
+    default:
+      return true;
   }
 };
 
-const openPaymentModal = (invoice) => {
-  invoiceToPay.value = invoice;
-  paymentAmount.value = (invoice.amount || 0) - (invoice.amountPaid || 0); // Default to full remaining
-  isPaymentModalOpen.value = true;
+const VIEWS = [
+  { key: "open", label: "Open" },
+  { key: "late", label: "Late" },
+  { key: "paid", label: "Paid" },
+  { key: "all", label: "Everything" },
+];
+
+const viewCounts = computed(() =>
+  VIEWS.reduce((acc, v) => {
+    acc[v.key] = all.value.filter((inv) => inView(inv, v.key)).length;
+    return acc;
+  }, {}),
+);
+
+const rows = computed(() => {
+  const q = search.value.trim().toLowerCase();
+  return all.value
+    .filter((inv) => inv && inView(inv, view.value))
+    .filter((inv) => {
+      if (!q) return true;
+      return [
+        inv.invoiceNumber,
+        inv.invoiceName,
+        inv.subject,
+        inv.client?.name || inv.client,
+        inv.client?.company,
+        inv.status,
+      ]
+        .filter(Boolean)
+        .some((field) => String(field).toLowerCase().includes(q));
+    })
+    /* Most overdue first, then soonest due. The row you need is at the top. */
+    .sort((a, b) => {
+      const late = daysLate(b) - daysLate(a);
+      if (late) return late;
+      return new Date(a.dueDate || 0) - new Date(b.dueDate || 0);
+    });
+});
+
+/* ─── The strip ─────────────────────────────────────────────────────────────
+   Derived from rows already in memory — no extra request, and it stays true as
+   you mark things paid without a refetch. */
+const summary = computed(() => {
+  let outstanding = 0;
+  let overdue = 0;
+  let lateCount = 0;
+  let unattended = 0;
+  const currencies = new Set();
+
+  for (const inv of all.value) {
+    if (isSettled(inv?.status)) continue;
+    const owed = amountOutstanding(inv);
+    outstanding += owed;
+    currencies.add(inv.currency || "MYR");
+    if (daysLate(inv) > 0) {
+      overdue += owed;
+      lateCount += 1;
+      if (!isChased(inv)) unattended += 1;
+    }
+  }
+  return {
+    outstanding,
+    overdue,
+    lateCount,
+    unattended,
+    openCount: viewCounts.value.open || 0,
+    /* Mixed currencies are added up as-is, exactly as the dashboard does, so
+       the figure is labelled rather than silently wrong. */
+    mixed: currencies.size > 1,
+    currency: currencies.size === 1 ? [...currencies][0] : "",
+  };
+});
+
+const sym = (inv) => currencySymbol(inv?.currency || "MYR");
+
+/* Invoice numbers are assigned by the API and can legitimately be null on rows
+   created before numbering existed. Naming an invoice "null" in a confirmation
+   dialog is worse than naming it by id, so there is one helper and no template
+   does its own fallback. */
+const label = (inv) =>
+  inv?.invoiceNumber || "this invoice";
+
+const chip = (inv) => {
+  if (inv?.status === "Paid") return { cls: "chip--paid", label: "Paid" };
+  if (inv?.status === "Cancelled")
+    return { cls: "chip--idle", label: "Cancelled" };
+  if (daysLate(inv) > 0) return { cls: "chip--late", label: "Overdue" };
+  if (inv?.amountPaid > 0)
+    return { cls: "chip--paid", label: "Part paid" };
+  return { cls: "chip--idle", label: "Pending" };
 };
+
+const paidShare = (inv) => {
+  const total = Number(inv?.amount) || 0;
+  if (!total) return 0;
+  return Math.min(100, ((Number(inv?.amountPaid) || 0) / total) * 100);
+};
+
+/* ─── Actions ─────────────────────────────────────────────────────────────── */
+const notify = (message, type = "success") => (toast.value = { message, type });
+
+const act = async (inv, key, fn, done) => {
+  busy[inv.id] = key;
+  try {
+    const res = await fn();
+    notify(done(res));
+  } catch (err) {
+    notify(
+      err.response?.data?.message ||
+        err.message ||
+        "That did not go through. Try again in a moment.",
+      "error",
+    );
+  } finally {
+    delete busy[inv.id];
+  }
+};
+
+const setStatus = (inv, status) =>
+  act(
+    inv,
+    status,
+    () => invoiceStore.updateInvoice(inv.id, { status }, true),
+    () =>
+      status === "Paid"
+        ? `${label(inv)} marked paid. Nothing more to chase.`
+        : `${label(inv)} is now ${status.toLowerCase()}.`,
+  );
+
+const send = (inv, method, isReminder) =>
+  act(
+    inv,
+    method + (isReminder ? "-again" : ""),
+    () => invoiceStore.sendInvoice(inv.id, method, null, isReminder, true),
+    (res) => {
+      if (method === "whatsapp" && res?.waLink) {
+        window.open(res.waLink, "_blank");
+        return "WhatsApp message ready to send.";
+      }
+      return res?.message || (isReminder ? "Reminder sent." : "Invoice sent.");
+    },
+  );
+
+const copyPayLink = async (inv) => {
+  try {
+    await navigator.clipboard.writeText(
+      `${window.location.origin}/pay/${inv.id}`,
+    );
+    notify("Payment link copied. Paste it into a chat.");
+  } catch {
+    notify("Could not reach your clipboard.", "error");
+  }
+};
+
+/* ─── Record a payment ────────────────────────────────────────────────────── */
+const payFor = ref(null);
+const payAmount = ref(0);
+const paying = ref(false);
+
+const openPayment = (inv) => {
+  payFor.value = inv;
+  payAmount.value = amountOutstanding(inv);
+};
+
+const remainingAfter = computed(() => {
+  if (!payFor.value) return 0;
+  return amountOutstanding(payFor.value) - (Number(payAmount.value) || 0);
+});
 
 const submitPayment = async () => {
-  if (!invoiceToPay.value || paymentAmount.value <= 0) return;
-  isSubmittingPayment.value = true;
-  
-  // Calculate new total amount paid
-  const newAmountPaid = (invoiceToPay.value.amountPaid || 0) + Number(paymentAmount.value);
-
+  const inv = payFor.value;
+  if (!inv || Number(payAmount.value) <= 0) return;
+  paying.value = true;
+  const amountPaid = (Number(inv.amountPaid) || 0) + Number(payAmount.value);
+  /* Settle the status here rather than leaving the user to do it in a second
+     menu: if the whole balance has landed, the invoice is paid. */
+  const payload = { amountPaid };
+  if (amountPaid >= (Number(inv.amount) || 0)) payload.status = "Paid";
   try {
-    const res = await invoiceStore.updateInvoice(
-      invoiceToPay.value.id,
-      { amountPaid: newAmountPaid },
-      true
+    await invoiceStore.updateInvoice(inv.id, payload, true);
+    notify(
+      payload.status === "Paid"
+        ? `${label(inv)} is settled in full.`
+        : `Recorded. ${sym(inv)} ${cash(Math.max(0, remainingAfter.value))} still to come.`,
     );
-    isPaymentModalOpen.value = false;
-    toast.value = { message: res?.message || "Payment recorded successfully", type: "success" };
-    // Fetch specifically is not required as Pinia updates the invoice if it's there
+    payFor.value = null;
   } catch (err) {
-    toast.value = {
-      message: err.response?.data?.message || "Failed to record payment",
-      type: "error",
-    };
+    notify(
+      err.response?.data?.message || "Could not record that payment.",
+      "error",
+    );
   } finally {
-    isSubmittingPayment.value = false;
+    paying.value = false;
   }
 };
 
-const updateStatus = async (invoice, newStatus) => {
-  loadingInvoices[invoice.id] = newStatus; // Use status name as loading state for specific button
+/* ─── Delete ──────────────────────────────────────────────────────────────── */
+const deleteFor = ref(null);
+const deleting = ref(false);
+
+const confirmDelete = async () => {
+  const inv = deleteFor.value;
+  if (!inv) return;
+  deleting.value = true;
   try {
-    const res = await invoiceStore.updateInvoice(
-      invoice.id,
-      {
-        status: newStatus,
-      },
-      true, // isLocal = true
-    );
-    toast.value = {
-      message: res?.message || `Invoice marked as ${newStatus}`,
-      type: "success",
-    };
+    await invoiceStore.deleteInvoice(inv.id);
+    notify(`${label(inv)} deleted.`);
+    deleteFor.value = null;
   } catch (err) {
-    toast.value = {
-      message: err.response?.data?.message || "Failed to update status",
-      type: "error",
-    };
+    notify(
+      err.response?.data?.message || "Could not delete that invoice.",
+      "error",
+    );
   } finally {
-    delete loadingInvoices[invoice.id];
+    deleting.value = false;
   }
 };
 
-const handleSendAction = async (invoice, method, isReminder) => {
-  const actionType =
-    method === "whatsapp"
-      ? isReminder
-        ? "waReminder"
-        : "whatsapp"
-      : isReminder
-        ? "reminder"
-        : "email";
-  loadingInvoices[invoice.id] = actionType;
-  try {
-    const res = await invoiceStore.sendInvoice(
-      invoice.id,
-      method,
-      null,
-      isReminder,
-      true, // isLocal = true
-    );
-    if (method === "whatsapp" && res.waLink) {
-      window.open(res.waLink, "_blank");
-      toast.value = { message: "WhatsApp message prepared!", type: "success" };
-    } else {
-      toast.value = {
-        message: res.message || "Message sent successfully!",
-        type: "success",
-      };
-    }
-  } catch (err) {
-    toast.value = {
-      message: err.response?.data?.message || err.message,
-      type: "error",
-    };
-  } finally {
-    delete loadingInvoices[invoice.id];
-  }
-};
+const isPayModalOpen = computed({
+  get: () => !!payFor.value,
+  set: (v) => {
+    if (!v) payFor.value = null;
+  },
+});
+const isDeleteModalOpen = computed({
+  get: () => !!deleteFor.value,
+  set: (v) => {
+    if (!v) deleteFor.value = null;
+  },
+});
 </script>
 
-<style scoped></style>
+<template>
+  <div class="desk">
+    <!-- ── Head ─────────────────────────────────────────────────────────── -->
+    <header class="desk__head">
+      <div>
+        <h1 class="desk__title">Invoices</h1>
+        <p class="desk__sub">
+          Every bill you have sent, and exactly where it stands.
+        </p>
+      </div>
+      <div class="desk__actions">
+        <button
+          type="button"
+          class="desk-btn desk-btn--icon"
+          aria-label="How this page works"
+          @click="uiStore.openModuleHelp('invoices')">
+          <UiIcon icon="formkit:help" custom-class="w-5 h-5" />
+        </button>
+        <button
+          type="button"
+          class="desk-btn desk-btn--icon"
+          aria-label="Reload invoices"
+          @click="load">
+          <UiIcon
+            icon="heroicons:arrow-path"
+            :custom-class="invoiceStore.loading ? 'w-5 h-5 spin' : 'w-5 h-5'" />
+        </button>
+        <NuxtLink
+          v-if="systemStore.isInvoiceCreationEnabled"
+          to="/invoices/create"
+          class="desk-btn desk-btn--primary">
+          New invoice
+        </NuxtLink>
+        <button
+          v-else
+          disabled
+          class="desk-btn desk-btn--ghost"
+          title="An administrator has paused invoice creation. Existing invoices are unaffected.">
+          New invoice
+        </button>
+      </div>
+    </header>
+
+    <!-- ── What is out there ────────────────────────────────────────────── -->
+    <section class="strip" aria-label="Summary">
+      <div>
+        <p class="desk__eyebrow">Still owed to you</p>
+        <p class="strip__v">
+          {{ summary.currency }} {{ money(summary.outstanding) }}
+        </p>
+        <p class="strip__n">
+          {{ summary.openCount }} open
+          {{ summary.openCount === 1 ? "invoice" : "invoices" }}
+          <template v-if="summary.mixed">· mixed currencies, added as-is</template>
+        </p>
+      </div>
+      <div>
+        <p class="desk__eyebrow">Past its due date</p>
+        <p class="strip__v" :class="{ 'strip__v--late': summary.overdue > 0 }">
+          {{ summary.currency }} {{ money(summary.overdue) }}
+        </p>
+        <p class="strip__n">
+          {{ summary.lateCount }}
+          {{ summary.lateCount === 1 ? "invoice" : "invoices" }}
+        </p>
+      </div>
+      <div>
+        <p class="desk__eyebrow">Nobody chasing</p>
+        <p class="strip__v" :class="{ 'strip__v--late': summary.unattended > 0 }">
+          {{ summary.unattended }}
+        </p>
+        <p class="strip__n">
+          <NuxtLink
+            v-if="summary.unattended"
+            to="/clients"
+            class="card__link card__link--target">
+            Turn on chasing &rarr;
+          </NuxtLink>
+          <template v-else>Late invoices are handled for you.</template>
+        </p>
+      </div>
+    </section>
+
+    <!-- ── Find it ──────────────────────────────────────────────────────── -->
+    <div class="bar">
+      <div class="search bar__grow">
+        <label class="sr-only" for="inv-search">Search invoices</label>
+        <span class="search__icon" aria-hidden="true">
+          <UiIcon icon="heroicons:magnifying-glass" custom-class="w-4 h-4" />
+        </span>
+        <input
+          id="inv-search"
+          v-model="search"
+          type="search"
+          class="search__inp no-ik"
+          placeholder="Client, invoice number, or what it was for" />
+        <button
+          v-if="search"
+          type="button"
+          class="search__clear"
+          aria-label="Clear search"
+          @click="search = ''">
+          <UiIcon icon="heroicons:x-mark" custom-class="w-4 h-4" />
+        </button>
+      </div>
+
+      <div class="segs" role="group" aria-label="Filter by status">
+        <button
+          v-for="v in VIEWS"
+          :key="v.key"
+          type="button"
+          class="seg"
+          :class="{ 'seg--on': view === v.key }"
+          :aria-pressed="view === v.key"
+          @click="view = v.key">
+          {{ v.label }}
+          <span class="seg__n">{{ viewCounts[v.key] }}</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ── The ledger ───────────────────────────────────────────────────── -->
+    <div class="ledger">
+      <div class="ledger__scroll">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Invoice</th>
+              <th scope="col">Client</th>
+              <th scope="col" class="num">Amount</th>
+              <th scope="col">Status</th>
+              <th scope="col">Due</th>
+              <th scope="col">Chasing</th>
+              <th scope="col" class="acts">
+                <span class="sr-only">Actions</span>
+              </th>
+            </tr>
+          </thead>
+
+          <!-- Loading: rows shaped like the table, so nothing jumps when the
+               data lands. -->
+          <tbody v-if="invoiceStore.loading && !all.length">
+            <tr v-for="i in 5" :key="i">
+              <td v-for="j in 7" :key="j">
+                <span class="skel" style="display: block"></span>
+              </td>
+            </tr>
+          </tbody>
+
+          <tbody v-else-if="!rows.length">
+            <tr>
+              <td colspan="7">
+                <div class="empty empty--pad">
+                  <template v-if="search">
+                    <p class="empty__title">Nothing matches “{{ search }}”.</p>
+                    <p class="empty__body">
+                      Search covers the client, the invoice number and what the
+                      work was for. Try a shorter word.
+                    </p>
+                    <button
+                      type="button"
+                      class="desk-btn desk-btn--ghost"
+                      @click="search = ''">
+                      Clear the search
+                    </button>
+                  </template>
+                  <template v-else-if="view === 'late'">
+                    <p class="empty__title">Nothing is late.</p>
+                    <p class="empty__body">
+                      Everything you have sent is either paid or still inside its
+                      terms. This is the view worth being empty.
+                    </p>
+                  </template>
+                  <template v-else-if="view === 'paid'">
+                    <p class="empty__title">Nothing settled yet.</p>
+                    <p class="empty__body">
+                      Paid invoices land here and stay, so you always have the
+                      record.
+                    </p>
+                  </template>
+                  <template v-else-if="view === 'open'">
+                    <p class="empty__title">Nothing outstanding.</p>
+                    <p class="empty__body">
+                      Every invoice you have sent has been paid. Enjoy it, then
+                      send the next one.
+                    </p>
+                    <NuxtLink
+                      to="/invoices/create"
+                      class="desk-btn desk-btn--ghost">
+                      New invoice
+                    </NuxtLink>
+                  </template>
+                  <template v-else>
+                    <p class="empty__title">No invoices yet.</p>
+                    <p class="empty__body">
+                      Bill someone and it shows up here with a payment link you
+                      can send over WhatsApp. Takes about a minute.
+                    </p>
+                    <NuxtLink
+                      to="/invoices/create"
+                      class="desk-btn desk-btn--primary">
+                      Send your first invoice
+                    </NuxtLink>
+                  </template>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+
+          <tbody v-else>
+            <tr v-for="inv in rows" :key="inv.id">
+              <!-- Invoice: number, what it was for, when it went out.
+                   "Issued Date" used to be its own column. -->
+              <td>
+                <NuxtLink :to="`/invoices/edit/${inv.id}`" class="cel cel__link">
+                  <span class="cel__main">{{ label(inv) }}</span>
+                  <span class="cel__sub">
+                    {{ inv.invoiceName || inv.subject || "Untitled" }} · sent
+                    {{ formatDate(inv.date) }}
+                  </span>
+                </NuxtLink>
+              </td>
+
+              <!-- Client: who, and how they have behaved before. "Late Risk"
+                   used to be its own column with a tooltip explaining its own
+                   thresholds; the same fact reads better as a sentence. -->
+              <td>
+                <div class="cel">
+                  <span class="cel__main">{{
+                    inv.client?.name || inv.client || "Unknown client"
+                  }}</span>
+                  <span
+                    v-if="payHabit(inv)"
+                    class="cel__sub"
+                    :class="{
+                      'cel__sub--late': payHabit(inv).level === 'high',
+                    }">
+                    {{ payHabit(inv).label }}
+                  </span>
+                  <span v-else-if="inv.client?.company" class="cel__sub">
+                    {{ inv.client.company }}
+                  </span>
+                </div>
+              </td>
+
+              <!-- Amount, and how much of it has actually landed -->
+              <td class="num">
+                <div class="amt">
+                  <span class="amt__v">
+                    {{ sym(inv) }} {{ money(inv.amount) }}
+                  </span>
+                  <template v-if="inv.amountPaid > 0 && inv.status !== 'Paid'">
+                    <span class="amt__bar" aria-hidden="true">
+                      <span
+                        class="amt__fill"
+                        :style="{ width: paidShare(inv) + '%' }"></span>
+                    </span>
+                    <span class="amt__part">
+                      {{ sym(inv) }} {{ money(inv.amountPaid) }} in
+                    </span>
+                  </template>
+                </div>
+              </td>
+
+              <td>
+                <span class="chip" :class="chip(inv).cls">
+                  <i class="chip__dot" aria-hidden="true"></i
+                  >{{ chip(inv).label }}
+                </span>
+              </td>
+
+              <!-- Due: the date, and what it means today -->
+              <td>
+                <div class="cel">
+                  <span class="cel__main" style="font-weight: 600">
+                    {{ formatDate(inv.dueDate) }}
+                  </span>
+                  <span
+                    v-if="dueInWords(inv)"
+                    class="cel__sub"
+                    :class="{ 'cel__sub--late': daysLate(inv) > 0 }">
+                    {{ dueInWords(inv) }}
+                  </span>
+                </div>
+              </td>
+
+              <!-- Chasing: whether anything is being done about it, plus when
+                   it was last nudged. "Email Sent" and "WhatsApp Sent" used to
+                   be two columns of raw dates. -->
+              <td>
+                <div class="cel">
+                  <span
+                    v-if="isSettled(inv.status)"
+                    class="cel__sub">Not needed</span>
+                  <span
+                    v-else-if="isChased(inv)"
+                    class="cel__main cel__sub--ok"
+                    style="font-size: var(--text-2xs)">
+                    On, automatic
+                  </span>
+                  <NuxtLink
+                    v-else
+                    to="/clients"
+                    class="cel__sub cel__sub--late cel__act"
+                    style="text-decoration: underline">
+                    Off — turn on
+                  </NuxtLink>
+                  <span class="cel__sub">
+                    {{
+                      lastNudge(inv)
+                        ? `Last nudge ${formatRelativeDate(lastNudge(inv).at)} · ${lastNudge(inv).via}`
+                        : "Never nudged"
+                    }}
+                  </span>
+                </div>
+              </td>
+
+              <!-- Actions: two clicks maximum to anything -->
+              <td class="acts">
+                <div class="iacts">
+                  <button
+                    type="button"
+                    class="iact"
+                    aria-label="Copy payment link"
+                    title="Copy payment link"
+                    @click="copyPayLink(inv)">
+                    <UiIcon icon="heroicons:link" custom-class="w-4 h-4" />
+                  </button>
+
+                  <NuxtLink
+                    :to="`/pay/${inv.id}`"
+                    target="_blank"
+                    class="iact"
+                    aria-label="See what your client sees"
+                    title="See what your client sees">
+                    <UiIcon
+                      icon="heroicons:arrow-top-right-on-square"
+                      custom-class="w-4 h-4" />
+                  </NuxtLink>
+
+                  <!-- `bare`: the menu below is `.mnu`, which already carries
+                       its own fill, hairline, radius and shadow. Without this
+                       the popover wraps it in a second one. -->
+                  <UiPopover placement="bottom-end" bare>
+                    <template #trigger>
+                      <button
+                        type="button"
+                        class="iact"
+                        :disabled="!!busy[inv.id]"
+                        :aria-label="`Actions for ${label(inv)}`"
+                        title="More">
+                        <UiIcon
+                          :icon="
+                            busy[inv.id]
+                              ? 'heroicons:arrow-path'
+                              : 'heroicons:ellipsis-horizontal'
+                          "
+                          :custom-class="
+                            busy[inv.id] ? 'w-5 h-5 spin' : 'w-5 h-5'
+                          " />
+                      </button>
+                    </template>
+
+                    <template #default="{ close }">
+                      <div class="mnu">
+                        <p class="mnu__head">Money</p>
+                        <button
+                          v-if="!isSettled(inv.status)"
+                          type="button"
+                          class="mnu__item"
+                          @click="close(); openPayment(inv)">
+                          <UiIcon
+                            icon="heroicons:banknotes"
+                            custom-class="w-4 h-4" />
+                          Record a payment
+                        </button>
+                        <button
+                          v-if="inv.status !== 'Paid'"
+                          type="button"
+                          class="mnu__item"
+                          @click="close(); setStatus(inv, 'Paid')">
+                          <i class="mnu__dot mnu__dot--paid" aria-hidden="true"></i>
+                          Mark paid in full
+                        </button>
+                        <button
+                          v-if="!isSettled(inv.status) && inv.status !== 'Overdue'"
+                          type="button"
+                          class="mnu__item"
+                          @click="close(); setStatus(inv, 'Overdue')">
+                          <i class="mnu__dot mnu__dot--late" aria-hidden="true"></i>
+                          Flag as overdue
+                        </button>
+
+                        <div class="mnu__sep" role="none"></div>
+                        <p class="mnu__head">Chasing</p>
+                        <button
+                          type="button"
+                          class="mnu__item"
+                          :disabled="
+                            isSettled(inv.status) || !systemStore.isEmailEnabled
+                          "
+                          :title="
+                            !systemStore.isEmailEnabled
+                              ? 'Email sending is paused for maintenance'
+                              : isSettled(inv.status)
+                                ? 'Nothing left to chase'
+                                : ''
+                          "
+                          @click="close(); send(inv, 'email', false)">
+                          <UiIcon
+                            icon="heroicons:envelope"
+                            custom-class="w-4 h-4" />
+                          Send the invoice
+                        </button>
+                        <button
+                          type="button"
+                          class="mnu__item"
+                          :disabled="
+                            isSettled(inv.status) || !systemStore.isEmailEnabled
+                          "
+                          @click="close(); send(inv, 'email', true)">
+                          <UiIcon icon="heroicons:bell" custom-class="w-4 h-4" />
+                          Send a reminder
+                        </button>
+                        <button
+                          type="button"
+                          class="mnu__item"
+                          :disabled="
+                            isSettled(inv.status) ||
+                            !systemStore.isWhatsappEnabled ||
+                            !authStore.isPro
+                          "
+                          :title="
+                            !authStore.isPro
+                              ? 'WhatsApp sending is a paid feature'
+                              : !systemStore.isWhatsappEnabled
+                                ? 'WhatsApp sending is paused for maintenance'
+                                : ''
+                          "
+                          @click="close(); send(inv, 'whatsapp', false)">
+                          <UiIcon
+                            icon="simple-icons:whatsapp"
+                            custom-class="w-4 h-4" />
+                          Send over WhatsApp
+                          <span v-if="!authStore.isPro" class="mnu__tail">Pro</span>
+                        </button>
+
+                        <div class="mnu__sep" role="none"></div>
+                        <p class="mnu__head">This invoice</p>
+                        <NuxtLink
+                          :to="`/invoices/edit/${inv.id}`"
+                          class="mnu__item">
+                          <UiIcon
+                            icon="heroicons:pencil-square"
+                            custom-class="w-4 h-4" />
+                          Open and edit
+                        </NuxtLink>
+                        <button
+                          v-if="inv.status !== 'Cancelled'"
+                          type="button"
+                          class="mnu__item"
+                          @click="close(); setStatus(inv, 'Cancelled')">
+                          <UiIcon
+                            icon="heroicons:no-symbol"
+                            custom-class="w-4 h-4" />
+                          Cancel it
+                        </button>
+                        <button
+                          type="button"
+                          class="mnu__item mnu__item--danger"
+                          @click="close(); deleteFor = inv">
+                          <UiIcon
+                            icon="heroicons:trash"
+                            custom-class="w-4 h-4" />
+                          Delete for good
+                        </button>
+                      </div>
+                    </template>
+                  </UiPopover>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <p v-if="rows.length" class="bar__count">
+      Showing {{ rows.length }} of {{ all.length }}
+      {{ all.length === 1 ? "invoice" : "invoices" }}, most overdue first.
+    </p>
+
+    <!-- ── Record a payment ─────────────────────────────────────────────── -->
+    <UiModal v-model="isPayModalOpen" max-width="sm">
+      <div class="dlg">
+        <h3 class="dlg__title">
+          Record a payment on {{ label(payFor) }}
+        </h3>
+        <p class="dlg__body">
+          {{ payFor?.client?.name || "Your client" }} owes
+          <b>{{ sym(payFor) }} {{ cash(amountOutstanding(payFor)) }}</b>. Put in
+          what has actually landed — part payments are fine.
+        </p>
+
+        <div class="f" style="margin-top: 1.5rem">
+          <label class="f__label" for="pay-amount">Amount received</label>
+          <div class="money-inp">
+            <span class="money-inp__cur">{{ sym(payFor) }}</span>
+            <input
+              id="pay-amount"
+              v-model.number="payAmount"
+              type="number"
+              step="0.01"
+              min="0"
+              class="money-inp__inp no-ik"
+              placeholder="0.00" />
+          </div>
+          <p class="f__hint">
+            <template v-if="remainingAfter > 0">
+              {{ sym(payFor) }} {{ cash(remainingAfter) }} would still be
+              outstanding, and chasing carries on for the rest.
+            </template>
+            <template v-else-if="remainingAfter < 0">
+              That is more than the balance. Save it and the invoice is marked
+              paid in full.
+            </template>
+            <template v-else>
+              This settles it — we will mark the invoice paid and stop chasing.
+            </template>
+          </p>
+        </div>
+
+        <div class="dlg__acts">
+          <button
+            type="button"
+            class="desk-btn desk-btn--ghost"
+            @click="payFor = null">
+            Never mind
+          </button>
+          <button
+            type="button"
+            class="desk-btn desk-btn--primary"
+            :disabled="paying || !(Number(payAmount) > 0)"
+            @click="submitPayment">
+            <UiIcon
+              v-if="paying"
+              icon="heroicons:arrow-path"
+              custom-class="w-4 h-4 spin" />
+            Record it
+          </button>
+        </div>
+      </div>
+    </UiModal>
+
+    <!-- ── Delete ───────────────────────────────────────────────────────── -->
+    <UiModal v-model="isDeleteModalOpen" max-width="sm">
+      <div class="dlg">
+        <h3 class="dlg__title">Delete {{ label(deleteFor) }}?</h3>
+        <p class="dlg__body">
+          This removes the invoice and its history for good. If you have already
+          sent it, <b>cancel it instead</b> — your client's copy and your records
+          stay intact, and the payment link stops working.
+        </p>
+        <div class="dlg__acts">
+          <button
+            type="button"
+            class="desk-btn desk-btn--ghost"
+            @click="deleteFor = null">
+            Keep it
+          </button>
+          <button
+            type="button"
+            class="desk-btn desk-btn--danger"
+            :disabled="deleting"
+            @click="confirmDelete">
+            <UiIcon
+              v-if="deleting"
+              icon="heroicons:arrow-path"
+              custom-class="w-4 h-4 spin" />
+            {{ deleting ? "Deleting…" : "Delete for good" }}
+          </button>
+        </div>
+      </div>
+    </UiModal>
+
+    <UiToast v-model="toast" />
+  </div>
+</template>

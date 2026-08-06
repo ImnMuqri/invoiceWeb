@@ -1,0 +1,4126 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   THE DESK — product surface layer
+   ═══════════════════════════════════════════════════════════════════════════
+
+   A design layer for the authenticated product, built on the same locked brand
+   tokens as the marketing site (design-tokens.css) so signing up does not drop
+   you into a different product. Where the landing page is generous and slow,
+   this is dense and fast — same voice, different tempo.
+
+   Scoped entirely under `.desk`. It deliberately uses NO Tailwind utilities:
+   the app's dark mode works by overriding ~40 utility classes with
+   `!important`, and every contrast bug found in this project traced back to a
+   utility meaning two different things in two places. Tokens in, no overrides
+   needed, both themes correct by construction.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ─── Radius: three values, assigned by role ────────────────────────────────
+   This used to be `--desk-radius: 14px` and `--desk-radius-lg: 18px` — two
+   numbers that appear nowhere in the project's own radius scale (3/6/10/16/24)
+   and were not derived from anything. They also got handed out by size rather
+   than by role: an inline notice, a list row and a floating menu all took 14px
+   because all three are middling-sized.
+
+   Three roles now, and only three:
+
+     shell     the box that sits ON the page and holds other things
+     control   something you click or type into
+     full      pills — chips, buttons, avatars, the toggle
+
+   ── The inset rule ────────────────────────────────────────────────────────
+   Concentric radii have a correct answer: an inner corner should be the outer
+   radius minus the gap between them, or the two curves are not parallel and
+   the inner box looks like it was dropped in from a different design. With a
+   16px shell and 24px of padding that arithmetic goes negative, which is not a
+   softer curve — it is a square corner.
+
+   So everything nested inside a padded shell is square: line items, totals
+   boxes, work rows, banners, the client fact, the invoice sheet. It is written
+   as `max(0px, calc(shell - padding))` where the padding is small enough to
+   leave something, so the rule stays visible as arithmetic instead of becoming
+   another typed-in number.
+
+   That squareness is the point rather than a side-effect. Uniform soft corners
+   at every level is the single most recognisable tell of a UI nobody made
+   decisions about; hard blocks inside a soft shell is a choice, and it suits a
+   ledger. */
+/* On :root, not on `.desk`, for the same reason the colour tokens are — the
+   popover and the modals are teleported to <body> and would otherwise resolve
+   none of this. */
+:root {
+  --desk-radius-shell: var(--radius-lg);      /* 16px */
+  --desk-radius-control: var(--radius-sm);    /*  6px */
+  --desk-radius-inset: 0px;
+}
+
+.desk {
+  /* Two rhythms, not one. --desk-gap separates whole sections of the page;
+     --desk-gap-tight holds a group together. A single value for both is why
+     every block sat the same distance from every other one and nothing read as
+     belonging to anything. */
+  --desk-gap: clamp(1.25rem, 2.4vw, 1.875rem);
+  --desk-gap-tight: clamp(0.75rem, 1.2vw, 1rem);
+
+  font-family: var(--font-sans);
+  color: var(--desk-text);
+  display: flex;
+  flex-direction: column;
+  gap: var(--desk-gap);
+  padding-bottom: var(--space-8);
+}
+
+/* ─── Surfaces ──────────────────────────────────────────────────────────────
+   Light mode reads off the shell tokens rather than the paper ramp directly.
+   The paper ramp is the *marketing* surface: --paper-50 is the locked brand
+   colour at full strength (#faf6ef, +11 red over blue), which is correct
+   behind a hero and much too cream behind eight hours of invoice work. The
+   shell steps are the same hue at a fraction of the chroma, so the app stays
+   the landing's temperature without the beige. One source of truth, and the
+   desk can no longer drift away from the chrome around it.
+
+   The card step is picked against the pane, not in isolation. The layout wraps
+   every page in a rounded `bg-white` panel — that panel resolves to
+   --shell-card, so a card that also used --shell-card was painting itself the
+   exact same colour as the surface it sits on and leaning entirely on a 12%
+   hairline to exist. Cards therefore sit *down* from the pane in light and
+   *up* from it in dark, the direction each theme reads elevation in.
+
+   The step is sized in ΔL*, not in contrast ratio. Ratio is a text metric and
+   badly overstates how separated two large adjacent fills look: the first
+   attempt used a 1.78 ΔL* step because 1.045:1 read as plausible, and
+   magnified 6× it was barely there — the hairline was carrying the whole card.
+   Shipped light UIs for reference: Tailwind 1.82, Stripe 2.22, GitHub 2.52,
+   Notion 3.12.
+
+     light   pane #fdfcfc -> card #f3f2f0    ΔL* 3.52   (Notion 3.12)
+             card         -> sunken #eeedeb  ΔL* 1.75
+     dark    pane #262c2a -> card #303634    ΔL* 4.63   (Notion 5.92)
+
+   Light reuses --shell-side for the card rather than minting a token; only the
+   inner sunken step is new. Every text token still clears AA on both surfaces —
+   tightest are green-700 at 4.52 and gray-660 at 4.59 on sunken, which is why
+   that step sits where it does and not lower.
+
+   ── Ink and hairlines, retuned toward Notion ──────────────────────────────
+   The surfaces above were right; what was too loud was everything drawn ON
+   them. Primary text was --ink-950, the locked brand anchor, at 15.82:1 on the
+   card — that is print, not interface, and set in extrabold across headings,
+   figures and every table cell it read as stamped on rather than written. The
+   hairline was --a-ink-16 at ΔL* 12.26, nearly double Notion's, so each card,
+   row and section rule drew as hard as the content inside it. Together they
+   gave the surface no quiet register: everything arrived at full strength and
+   nothing could recede.
+
+   Notion is the reference because it holds a genuinely long working session:
+   its body text is #37352F, 11.43:1 on the sidebar — nowhere near black — and
+   its borders sit at 9% ink, ΔL* 6.28. Hierarchy there comes from what is
+   nearest black, not from what is black.
+
+     primary   --ink-950 15.82:1  ->  --gray-900 10.86:1   (Notion 11.43)
+     hairline  --a-ink-16 ΔL* 12.26 -> --a-ink-08 ΔL* 6.04 (Notion  6.28)
+     soft rule --a-ink-08 ΔL*  6.04 -> --a-ink-04 ΔL* 3.15
+
+   Only the top of the range moved. --desk-text-2 (4.96:1) and --desk-text-3
+   (4.80:1) stay where they are: Notion's own secondary and tertiary are 4.18
+   and 2.81, which fail AA for body copy, and matching them would have bought a
+   softer look by making the muted text unreadable. Compressing from the top
+   instead widens the gap between primary and secondary rather than closing it,
+   so the hierarchy is more legible after the change, not less. Every desk
+   surface keeps primary text above 10:1 — card 10.86, sunken 10.38, pane
+   11.86, and both tinted surfaces above 11.3.
+
+   Dark needed no text change: --app-text was already 9.89:1 on the card
+   against Notion's 10.24. Its harshness was entirely in the hairline, handled
+   in the dark block below.
+
+   Not retuned: assets/css/invoice-paper.css. The document is ink on paper in
+   both themes because it is a printed artefact — softening it would soften the
+   PDF the client receives, which is the one surface here that should look
+   printed.
+
+   These are declared on :root, not on `.desk`. They started on `.desk` because
+   only the dashboard consumed them, but every dropdown, popover and modal in
+   this app is `Teleport`-ed to <body> — outside `.desk`, where a `.desk`-scoped
+   custom property does not resolve, so a teleported menu had no choice but to
+   fall back to Tailwind utilities and the !important remaps. On :root they
+   inherit everywhere, including into teleported content, and the invoice
+   module's menus can be built from the same palette as the page that opened
+   them. `.desk` still owns the layout and type below. */
+/* ── --desk-item: the fill for a row or block nested inside a card ──────────
+   A list row inside a card used to take --desk-sunken, one step down, which is
+   ΔL* 1.75 from the card — half the pane→card step and below every shipped
+   reference. Softening the hairline to Notion weight took the other half of its
+   separation away, and the result is what it looked like: a row the same colour
+   as the thing containing it.
+
+   It cannot be fixed by going further down. Light mode has no headroom left
+   below the card: at ΔL* 3.2 recessed, --desk-late lands at 4.27:1 and
+   --desk-text-3 at 4.43:1, so buying the separation costs AA on every muted
+   label sitting in the row.
+
+   So nested items move whichever way the theme has room, and the two themes
+   have room in opposite directions:
+
+     light   card #f3f2f0 -> item #fdfcfc   ΔL* 3.52 raised
+             every text token GAINS contrast: text-3 4.59 -> 5.25,
+             late 4.43 -> 5.06, accent 4.69 -> 5.36
+     dark    card #303634 -> item #262c2a   ΔL* 4.63 recessed
+             which is where it already was, and already verified
+
+   Dark has to go down for the mirror-image reason light has to go up: raising
+   it to --app-4 gives ΔL* 4.93 but drops --desk-text-3 to 3.94:1 and the
+   control hairline to 2.91:1, failing 1.4.3 and 1.4.11 together.
+
+   --desk-sunken stays, and now means something narrower: a well or a groove.
+   The desk the invoice lies on, the builder's footer bar, the segmented control
+   track, a disabled input. Things that are meant to look pressed in, rather
+   than things sitting in a container. */
+/* ── --desk-field: the surface you type on ──────────────────────────────────
+   Every text field on the desk was --desk-card, which is also the fill of the
+   card, the panel, the ledger and the builder pane they sit in. Measured, that
+   is ΔL* 0.00 in both themes: the input was the exact colour of its container
+   and existed only because of its 1px border. A field should be a place, not an
+   outline.
+
+     light   card #f3f2f0 -> field #fdfcfc   ΔL* 3.52 raised, near-white
+     dark    card #303634 -> field #1c2120   ΔL* 9.78 recessed
+
+   Each theme goes the way it reads as "somewhere to write": paper is lighter
+   than the desk it sits on, and a dark well is darker than the panel around it.
+   Dark also gains on every measure by going down — body text 9.89 -> 13.08,
+   placeholder 4.66 -> 6.17, and the control hairline 3.44 -> 4.55.
+
+   `.line` moves back to --desk-sunken because of this. It was raised to
+   --desk-item to stop list rows vanishing into their card, but a line item is
+   not a list row — it is a well full of fields, and at --desk-item it was the
+   same near-white as the inputs inside it. */
+:root {
+  --desk-card: var(--shell-side);
+  --desk-item: var(--shell-card);
+  --desk-field: var(--shell-card);
+  --desk-sunken: var(--shell-sunk);
+  --desk-line: var(--a-ink-08);
+  --desk-line-soft: var(--a-ink-04);
+  --desk-control-line: var(--gray-620);
+  --desk-text: var(--gray-900);
+  --desk-text-2: var(--gray-700);
+  --desk-text-3: var(--gray-660);
+  --desk-accent: var(--green-700);
+  --desk-accent-surface: var(--green-50);
+  --desk-accent-line: var(--a-green-32);
+  --desk-late: var(--clay-700);
+  --desk-late-surface: var(--clay-50);
+  --desk-late-line: var(--a-clay-32);
+  /* Warning. There is no amber ramp in light -- the palette is green and clay --
+     so a warning borrows clay's surface and hairline with the darker clay text,
+     which reads as caution without introducing a fourth hue. Dark has a real
+     amber tint and uses it. */
+  --desk-warn: var(--clay-800);
+  --desk-warn-surface: var(--clay-50);
+  --desk-warn-line: var(--a-clay-32);
+  --desk-skeleton: var(--a-ink-08);
+  --desk-skeleton-sheen: rgb(255 255 255 / 0.55);
+}
+
+:root[data-theme='dark'],
+html.dark {
+  --desk-card: var(--app-3);
+  --desk-item: var(--app-2);
+  --desk-field: var(--app-1);
+  --desk-sunken: var(--app-2);
+  /* Neither solid --app-border step worked here: --app-border was tuned against
+     app-2 and lands at 1.03:1 on the app-3 card, and --app-border-strong that
+     replaced it overshot to ΔL* 12.6 — a hairline you read as a line rather
+     than as an edge, and half of why this theme felt harsh. An alpha hairline
+     re-composites per surface: ΔL* 8.5 on the card, 9.2 on sunken, 10.0 on the
+     page, all within a point of Notion's 9.3, from one declaration. */
+  --desk-line: var(--a-paper-10);
+  --desk-line-soft: var(--a-paper-08);
+  --desk-control-line: var(--gray-620);
+  --desk-text: var(--app-text);
+  --desk-text-2: var(--app-text-2);
+  --desk-text-3: var(--app-text-3);
+  --desk-accent: var(--tint-emerald-text);
+  --desk-accent-surface: var(--tint-emerald);
+  --desk-accent-line: var(--tint-emerald-border);
+  --desk-late: var(--tint-rose-text);
+  --desk-late-surface: var(--tint-rose);
+  --desk-late-line: var(--tint-rose-border);
+  --desk-warn: var(--tint-amber-text);
+  --desk-warn-surface: var(--tint-amber);
+  --desk-warn-line: var(--tint-amber-border);
+  --desk-skeleton: var(--a-paper-08);
+  --desk-skeleton-sheen: rgb(250 246 239 / 0.07);
+}
+
+/* ─── Type ──────────────────────────────────────────────────────────────────
+   The element reset is wrapped in :where() so it contributes zero specificity.
+   Written plainly as `.desk p` it scores (0,1,1) and beats every single-class
+   component rule below it, which is not a hypothetical: `margin: 0` was
+   silently winning over .desk__sub, .money__value and .money__note, so the
+   greeting, the outstanding figure and its footnote were all rendering at a
+   true 0px gap — the crowding was in the CSS, not in the numbers. :where()
+   makes this a floor that components override by simply being declared. */
+.desk :where(h1, h2, h3, p) {
+  margin: 0;
+}
+/* Deliberately no `color` here. `.desk` already sets --desk-text on itself, so
+   headings inherit exactly the same value — but as an element rule this used to
+   *assign* it, at (0,1,1), which beat the inherited colour of anything nested
+   inside. The invoice document found that the hard way: its <h1> is ink on paper
+   in both themes, and in dark mode this rule repainted it --desk-text, i.e. pale
+   grey on cream at 1.22:1. Inheritance reaches the dashboard's headings just as
+   well and stops at a component that declares its own colour. */
+.desk h1,
+.desk h2,
+.desk h3 {
+  letter-spacing: var(--tracking-tight);
+  font-weight: var(--weight-semibold);
+}
+/* Nothing on the desk is set in 800 any more. Weight and darkness stack: the
+   six places that used extrabold — the page title, the outstanding figure, the
+   stat and strip values, the builder's running total, the client initial —
+   were also the places using the darkest ink, so they landed at roughly twice
+   the emphasis they needed and pulled the whole surface up to meet them. 700
+   with --gray-900 reads as the same "this is the number that matters" without
+   it. Notion tops out at 700 for the same reason. */
+/* ── The scale the desk actually uses ──────────────────────────────────────
+   Five steps with real distance between them:
+
+     --text-2xs  10.24  eyebrows and labels
+     --text-xs   12.8   meta, hints, secondary rows
+     --text-sm   14     body and controls
+     --text-md   18     card and section titles
+     --text-xl   25     the page title
+
+   Before this, 48 of 56 font-size declarations on the desk were 2xs/xs/sm —
+   86% of the text within four pixels of itself — while the token file defined
+   a 1.25 scale running up to 76px. A scale nothing climbs is not a scale, and
+   it is why the pages read as evenly grey: hierarchy was being carried almost
+   entirely by weight, which is also why almost everything was bold.
+
+   The page title was a hard-coded 1.375rem at line-height 1.25 — off the scale
+   in both dimensions. 25px is the scale's own 1.25^2 step, and 1.02 leading is
+   what large type wants; 1.25 is body leading applied to a headline, which is
+   the reason it sat in its box looking untended. */
+.desk__title {
+  font-size: var(--text-xl);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tighter);
+  font-weight: var(--weight-bold);
+}
+.desk__sub {
+  margin-top: var(--space-2);
+  max-width: 52ch;
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+  color: var(--desk-text-2);
+}
+.desk__eyebrow {
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-widest);
+  text-transform: uppercase;
+  color: var(--desk-text-3);
+}
+
+/* ─── Head ──────────────────────────────────────────────────────────────── */
+.desk__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+.desk__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* ─── Buttons ───────────────────────────────────────────────────────────── */
+.desk-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 2.5rem;
+  padding: 0 var(--space-5);
+  border: 1px solid transparent;
+  border-radius: var(--radius-full);
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-tight);
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background-color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
+}
+/* The primary button is the one element that must invert between themes, and
+   it previously did not: --surface-accent / --text-on-accent resolve to the
+   same green-600 + ink pair in both, so a mid-bright green with dark text sat
+   on a white page looking like it had wandered in from the dark theme.
+   Buttons carry their own contrast, so each theme gets its own pair:
+
+     light  white  on green-700  5.28:1   hover green-800  7.82:1
+     dark   ink    on green-500  6.53:1   hover green-400  8.52:1
+
+   Light goes darker-and-white so the button is the heaviest thing on a pale
+   page. Dark goes lighter-and-ink so it is the brightest thing on a dark one.
+   Same gesture, opposite mechanics. */
+.desk-btn--primary {
+  --btn-bg: var(--green-700);
+  --btn-bg-hover: var(--green-800);
+  --btn-fg: #ffffff;
+
+  background-color: var(--btn-bg);
+  color: var(--btn-fg);
+}
+:root[data-theme='dark'] .desk-btn--primary,
+html.dark .desk-btn--primary {
+  --btn-bg: var(--green-500);
+  --btn-bg-hover: var(--green-400);
+  --btn-fg: var(--ink-950);
+}
+.desk-btn--primary:hover {
+  background-color: var(--btn-bg-hover);
+  transform: translateY(-1px);
+}
+.desk-btn--primary:active {
+  transform: translateY(0);
+}
+/* Ghost and icon buttons take --desk-control-line, not --desk-line. A card
+   divider is decorative and a faint hairline is right; on these two the border
+   is the ONLY thing that says "this is a button", which WCAG 1.4.11 puts at
+   3:1. gray-620 is the one value that clears it on every desk surface in both
+   themes (3.35 light card, 3.44 dark card), so one token covers both. */
+.desk-btn--ghost {
+  border-color: var(--desk-control-line);
+  color: var(--desk-text);
+  background-color: transparent;
+}
+.desk-btn--ghost:hover {
+  background-color: var(--desk-sunken);
+}
+.desk-btn--icon {
+  min-height: 2.5rem;
+  width: 2.5rem;
+  padding: 0;
+  border-radius: var(--radius-full);
+  border-color: var(--desk-control-line);
+  color: var(--desk-text-2);
+  background: transparent;
+}
+.desk-btn--icon:hover {
+  color: var(--desk-text);
+  background-color: var(--desk-sunken);
+}
+.desk-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ─── Card ──────────────────────────────────────────────────────────────── */
+.card {
+  background-color: var(--desk-card);
+  border: 1px solid var(--desk-line);
+  border-radius: var(--desk-radius-shell);
+  padding: var(--space-5);
+}
+.card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+.card__title {
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+}
+.card__link {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--desk-accent);
+  text-decoration: none;
+}
+.card__link:hover {
+  text-decoration: underline;
+}
+
+/* ─── The money line ────────────────────────────────────────────────────────
+   One band, not four equal tiles. Outstanding leads because it is the number
+   this audience opens the page for; the rest are context at a smaller size. */
+.money {
+  display: grid;
+  gap: var(--desk-gap-tight);
+  grid-template-columns: 1fr;
+  align-items: stretch;
+}
+.money__lead {
+  background-color: var(--desk-card);
+  border: 1px solid var(--desk-line);
+  border-radius: var(--desk-radius-shell);
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-5);
+  position: relative;
+  overflow: hidden;
+}
+/* There used to be a radial green gradient bled into this corner, to keep "the
+   most important card from being a plain box". Reaching for a gradient wash is
+   the reflex this whole pass is about — it decorates a card instead of ranking
+   it, and it was the only gradient in the product, so it read as applied rather
+   than as part of anything.
+
+   What makes this card the most important thing on the page is the 44px figure
+   inside it. That is the job of the type, and the type is now doing it. */
+.money__value {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+  font-size: clamp(2rem, 1.4rem + 2.2vw, 2.75rem);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-tighter);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--desk-text);
+}
+.money__cur {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-medium);
+  color: var(--desk-text-3);
+  letter-spacing: var(--tracking-tight);
+  font-variant-numeric: tabular-nums;
+}
+.money__note {
+  margin-top: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--desk-text-3);
+}
+.money__side {
+  display: grid;
+  gap: var(--desk-gap-tight);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.stat {
+  background-color: var(--desk-card);
+  border: 1px solid var(--desk-line);
+  border-radius: var(--desk-radius-shell);
+  padding: var(--space-4) var(--space-5);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--space-2);
+}
+.stat__value {
+  font-size: var(--text-xl);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-tighter);
+  font-variant-numeric: tabular-nums;
+  color: var(--desk-text);
+  line-height: 1.1;
+}
+.stat--late .stat__value {
+  color: var(--desk-late);
+}
+
+/* ─── Status banner inside the lead card ────────────────────────────────── */
+.banner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--desk-radius-inset);
+  border: 1px solid var(--desk-accent-line);
+  background-color: var(--desk-accent-surface);
+  color: var(--desk-accent);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  text-decoration: none;
+}
+.banner--late {
+  border-color: var(--desk-late-line);
+  background-color: var(--desk-late-surface);
+  color: var(--desk-late);
+}
+.banner__more {
+  margin-left: auto;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  white-space: nowrap;
+}
+.banner svg {
+  width: 18px;
+  height: 18px;
+  flex: none;
+}
+
+/* ─── Worklist ──────────────────────────────────────────────────────────── */
+.work {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.work__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-1) var(--space-4);
+  align-items: center;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--desk-radius-inset);
+  background-color: var(--desk-item);
+  text-decoration: none;
+  /* Hover is a tonal step now, not a border colour — the border it used to
+     brighten no longer exists, so the row had a hover state that changed
+     nothing. Same single mechanism as the resting state. */
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+.work__row:hover {
+  background-color: var(--desk-accent-surface);
+}
+.work__client {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--desk-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.work__meta {
+  grid-column: 1;
+  /* Flex rather than inline flow, so the number and its pill are centred on
+     each other and separated by a real gap instead of a text space that changes
+     width with the font. */
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--desk-text-3);
+  font-variant-numeric: tabular-nums;
+}
+.work__amount {
+  grid-row: 1 / 3;
+  grid-column: 2;
+  text-align: right;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  font-variant-numeric: tabular-nums;
+  color: var(--desk-text);
+}
+
+/* ─── Chips ─────────────────────────────────────────────────────────────── */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  /* An inline-flex takes its baseline from its first flex item. The first item
+     here is .chip__dot, an empty <i> with no text and therefore no baseline, so
+     the browser falls back to the chip's bottom margin edge and the pill sits
+     below the line it is supposed to sit on. Aligning to the middle of the text
+     is what it looked like it was doing all along.
+     No-op where a chip is a flex or grid child — vertical-align does not apply
+     to those — so the table cells are untouched. */
+  vertical-align: middle;
+  gap: 5px;
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-full);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.chip--paid {
+  background-color: var(--desk-accent-surface);
+  color: var(--desk-accent);
+}
+.chip--late {
+  background-color: var(--desk-late-surface);
+  color: var(--desk-late);
+}
+.chip--idle {
+  background-color: var(--desk-sunken);
+  color: var(--desk-text-2);
+  border: 1px solid var(--desk-line);
+}
+.chip__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background-color: currentColor;
+}
+
+/* ─── Empty states: always name the next step ───────────────────────────── */
+/* Empty states are a normal state, not an alarm. On a new account every panel
+   is empty, so a heavy filled block repeated six times becomes the whole page.
+   Hairline, no fill, tight. */
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-5) 0 var(--space-2);
+  border-top: 1px solid var(--desk-line-soft);
+}
+.empty .desk-btn {
+  margin-top: var(--space-2);
+}
+.empty__title {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--desk-text);
+}
+.empty__body {
+  font-size: var(--text-sm);
+  line-height: var(--leading-relaxed);
+  color: var(--desk-text-2);
+  max-width: 40ch;
+}
+
+/* ─── Table ─────────────────────────────────────────────────────────────── */
+.tbl {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+.tbl th {
+  text-align: left;
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--desk-text-3);
+  padding: 0 var(--space-3) var(--space-2);
+}
+.tbl td {
+  padding: var(--space-3);
+  border-top: 1px solid var(--desk-line-soft);
+  color: var(--desk-text-2);
+  vertical-align: middle;
+}
+.tbl td:first-child {
+  color: var(--desk-text);
+  font-weight: var(--weight-semibold);
+}
+.tbl .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ─── Grid ──────────────────────────────────────────────────────────────── */
+.grid2 {
+  display: grid;
+  gap: var(--desk-gap);
+  grid-template-columns: 1fr;
+}
+
+/* ─── Usage strip: account admin, so it looks like a footnote ───────────── */
+.usage {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  border: 1px solid var(--desk-line);
+  border-radius: var(--desk-radius-shell);
+  background-color: var(--desk-sunken);
+}
+.usage__grid {
+  display: grid;
+  gap: var(--space-5);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.meter__top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+  font-size: var(--text-xs);
+  margin-bottom: 6px;
+}
+.meter__label {
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--desk-text-3);
+}
+.meter__val {
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--weight-semibold);
+  color: var(--desk-text);
+}
+.meter__track {
+  height: 5px;
+  border-radius: var(--radius-full);
+  background-color: var(--desk-line);
+  overflow: hidden;
+}
+.meter__fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  background-color: var(--surface-accent);
+}
+.meter__fill--full {
+  background-color: var(--clay-600);
+}
+
+/* ─── Chart shell ───────────────────────────────────────────────────────── */
+.chart {
+  height: 300px;
+}
+.chart--empty {
+  height: auto;
+}
+
+/* ─── Focus: one ring, from the token system ────────────────────────────── */
+/* No `border-radius` here, and it is worth saying why it was wrong.
+
+   This rule scores (0,2,0) — a class plus a pseudo-class — so a 3px radius
+   declared on it beat every component's own single-class radius the moment that
+   component took focus. Keyboard-focusing the invoice search field squared off
+   a pill; the same happened to every button on the desk, which is the more
+   embarrassing half. A control changing shape when you tab to it is not a focus
+   style, it is a bug that looks like one.
+
+   It is also unnecessary: `outline` follows the element's existing
+   border-radius in every browser this app supports, so the ring is already
+   pill-shaped on a pill, 6px on a control and square on an inset without being
+   told. Removing the declaration is the whole fix. */
+.desk :focus-visible {
+  outline: 2.5px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+/* ─── Breakpoints ───────────────────────────────────────────────────────── */
+@media (min-width: 900px) {
+  .money {
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  }
+  .money__side {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .grid2 {
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  }
+  .usage__grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   THE INVOICE MODULE
+   ═══════════════════════════════════════════════════════════════════════════
+
+   Same layer, same tokens, three more surfaces: the ledger (/invoices), the
+   builder (/invoices/create and /invoices/edit/:id) and the menus those two
+   open. Everything below follows the dashboard's rules — no Tailwind utilities,
+   no theme conditionals inside a component, every colour from a token.
+
+   The one thing that does NOT follow those rules is the invoice document
+   itself. It lives in invoice-paper.css and is deliberately theme-independent:
+   it is a printed object and the same file renders the PDF the client receives.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ─── Toolbar: search, then filters, then a count ────────────────────────────
+   Ordered by how often it is used. On a list of two invoices none of this
+   matters; on a list of two hundred, finding one is the whole task, and the
+   page previously had a `searchQuery` ref wired to a filter with no input
+   anywhere on screen to set it. */
+.bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+.bar__grow {
+  flex: 1 1 14rem;
+  min-width: 0;
+}
+/* Prose that happens to contain a count — "Showing 4 of 12 invoices, most
+   overdue first." It had been added to the mono numeral group, which set the
+   whole sentence in the ledger face. The rule is numbers, not anything near a
+   number: the figures keep tabular alignment, the words stay in Jakarta.
+
+   `white-space: nowrap` came off with it. That is right for a bare count and
+   wrong for a sentence, which was being held on one line and pushing the
+   toolbar wider than its container on a narrow window. */
+.bar__count {
+  font-size: var(--text-xs);
+  color: var(--desk-text-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.search {
+  position: relative;
+  display: block;
+}
+/* Positions the wrapper, not the glyph: UiIcon renders its own flex <div>
+   around the icon, so a rule aimed at `svg` would be styling a grandchild that
+   the parent has already laid out. */
+.search__icon {
+  position: absolute;
+  left: var(--space-3);
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  color: var(--desk-text-3);
+  pointer-events: none;
+}
+.search__inp {
+  width: 100%;
+  min-height: 2.5rem;
+  padding: 0 var(--space-4) 0 2.25rem;
+  font: inherit;
+  font-size: var(--text-sm);
+  color: var(--desk-text);
+  background-color: var(--desk-field);
+  border: 1px solid var(--desk-control-line);
+  border-radius: var(--radius-full);
+}
+.search__inp::placeholder {
+  color: var(--desk-text-3);
+}
+/* Same control without the leading icon — the assistant's message box. */
+.search--plain .search__inp {
+  padding-left: var(--space-4);
+}
+.search__clear {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--desk-text-3);
+  cursor: pointer;
+}
+.search__clear:hover {
+  color: var(--desk-text);
+  background-color: var(--desk-sunken);
+}
+
+/* Segmented status filter. The count on each segment is the point: it answers
+   "is anything overdue" before you click anything. */
+.segs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--desk-line);
+  border-radius: var(--radius-full);
+  background-color: var(--desk-sunken);
+}
+.seg {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 2rem;
+  padding: 0 var(--space-4);
+  border: 0;
+  border-radius: var(--radius-full);
+  background: transparent;
+  font: inherit;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  color: var(--desk-text-2);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+.seg:hover {
+  color: var(--desk-text);
+}
+/* Tonal shift only. The shadow that used to be here was the third mechanism on
+   one element — fill, colour AND elevation to say "selected" — and a segment
+   in a segmented control is not raised above the track it sits in. The whole
+   desk separates by hairline and tone; the only surviving shadows are the two
+   things genuinely floating above the page (the popover, the toggle knob). */
+.seg--on {
+  background-color: var(--desk-card);
+  color: var(--desk-text);
+}
+.seg__n {
+  font-variant-numeric: tabular-nums;
+  color: var(--desk-text-3);
+}
+.seg--on .seg__n {
+  color: var(--desk-accent);
+}
+
+/* ─── Summary strip ─────────────────────────────────────────────────────────
+   Three figures, derived from the rows already loaded — no extra request. It is
+   flatter and quieter than the dashboard's money line on purpose: this page is
+   for acting on one invoice, and a second hero number would compete with the
+   thing you came here to find. */
+.strip {
+  display: grid;
+  gap: var(--space-5);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding: var(--space-4) var(--space-5);
+  border: 1px solid var(--desk-line);
+  border-radius: var(--desk-radius-shell);
+  background-color: var(--desk-sunken);
+}
+.strip__v {
+  margin-top: 2px;
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-tighter);
+  font-variant-numeric: tabular-nums;
+  color: var(--desk-text);
+  line-height: 1.15;
+}
+.strip__v--late {
+  color: var(--desk-late);
+}
+/* One figure slot in this strip holds a client's name rather than a number, and
+   the mono signature is for numerals — a name set in the ledger face is the
+   signature applied by position instead of by meaning. */
+.strip__v--name {
+  font-family: var(--font-sans);
+  font-size: var(--text-md);
+  letter-spacing: var(--tracking-tight);
+}
+.strip__n {
+  margin-top: 2px;
+  font-size: var(--text-xs);
+  color: var(--desk-text-3);
+}
+
+/* ─── Ledger table ──────────────────────────────────────────────────────────
+   Was ten columns, four of which nobody acts on: an "Email Sent" date, a
+   "WhatsApp Sent" date, an "Issued Date" and a "Late Risk" column with an AI
+   tooltip explaining its own thresholds. None of that is deleted — it is
+   re-homed under the column whose decision it informs, which is what a column
+   has to earn. What is left is seven columns that each answer a question you
+   act on: which invoice, whose, how much, what state, when it was due, whether
+   anyone is chasing it, and what you can do about it. */
+.ledger {
+  border: 1px solid var(--desk-line);
+  border-radius: var(--desk-radius-shell);
+  background-color: var(--desk-card);
+  overflow: hidden;
+}
+.ledger__scroll {
+  overflow-x: auto;
+}
+.ledger table {
+  width: 100%;
+  min-width: 62rem;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+.ledger thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  text-align: left;
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-widest);
+  text-transform: uppercase;
+  color: var(--desk-text-3);
+  background-color: var(--desk-sunken);
+  border-bottom: 1px solid var(--desk-line);
+  white-space: nowrap;
+}
+.ledger tbody tr {
+  border-bottom: 1px solid var(--desk-line-soft);
+}
+.ledger tbody tr:last-child {
+  border-bottom: 0;
+}
+.ledger tbody tr:hover {
+  background-color: var(--desk-sunken);
+}
+.ledger td {
+  padding: var(--space-3) var(--space-4);
+  vertical-align: middle;
+  color: var(--desk-text-2);
+}
+.ledger .num,
+.ledger th.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.ledger .acts {
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* Two-line cell: the fact, then the context that would otherwise be a column */
+.cel {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+/* Same cell, laid out across instead of down — for a cell that leads with an
+   avatar or ends with a pair of buttons. */
+.cel--row {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-3);
+}
+.cel__main {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--desk-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cel__sub {
+  font-size: var(--text-xs);
+  color: var(--desk-text-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.cel__sub--late {
+  color: var(--desk-late);
+  font-weight: var(--weight-medium);
+}
+.cel__sub--ok {
+  color: var(--desk-accent);
+  font-weight: var(--weight-medium);
+}
+.cel__link {
+  color: inherit;
+  text-decoration: none;
+}
+.cel__link:hover .cel__main {
+  color: var(--desk-accent);
+  text-decoration: underline;
+}
+/* A standalone link inside a cell or a strip is a target, not prose, so WCAG
+   2.5.8's "inline in a sentence" exception does not cover it — it needs a real
+   24px of height. The negative margin keeps the row's rhythm unchanged while the
+   padding does the work. */
+.cel__act,
+.card__link--target {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 4px 0;
+  margin: -4px 0;
+}
+
+/* Amount, plus how much of it has actually landed */
+.amt {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+}
+.amt__v {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  font-variant-numeric: tabular-nums;
+  color: var(--desk-text);
+  white-space: nowrap;
+}
+.amt__part {
+  font-size: var(--text-xs);
+  color: var(--desk-accent);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.amt__bar {
+  width: 100%;
+  min-width: 4rem;
+  height: 3px;
+  border-radius: var(--radius-full);
+  background-color: var(--desk-line);
+  overflow: hidden;
+}
+.amt__fill {
+  height: 100%;
+  background-color: var(--desk-accent);
+}
+
+/* Row action buttons: icon-only, so the border carries the affordance and has
+   to clear 3:1 — same reasoning as .desk-btn--icon, one size down. */
+.iact {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--desk-radius-control);
+  background: transparent;
+  color: var(--desk-text-2);
+  cursor: pointer;
+  transition:
+    color var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out);
+}
+.iact:hover:not(:disabled) {
+  color: var(--desk-accent);
+  background-color: var(--desk-accent-surface);
+  border-color: var(--desk-accent-line);
+}
+/* Destructive icon buttons stay neutral until hovered. The clients table used to
+   colour these on hover from two different ramps — blue-600 for edit, red-600
+   for delete — so the row had two accents neither of which was the brand's. Edit
+   takes the accent above; only this one goes clay, and only on hover, so a
+   delete button is not permanently shouting from every row. */
+.iact--danger:hover:not(:disabled) {
+  color: var(--desk-late);
+  background-color: var(--desk-late-surface);
+  border-color: var(--desk-late-line);
+}
+.iact:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.iacts {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  justify-content: flex-end;
+}
+
+/* Loading rows. A shimmer that looks like the table it is standing in beats a
+   centred spinner: the layout does not jump when the data lands. */
+.skel {
+  height: 0.75rem;
+  border-radius: var(--radius-full);
+  background-color: var(--desk-line);
+  animation: desk-pulse 1.4s var(--ease-in-out) infinite;
+}
+@keyframes desk-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skel { animation: none; }
+}
+
+/* Empty state that fills a table cell rather than sitting on its own hairline */
+.empty--pad {
+  align-items: center;
+  text-align: center;
+  padding: var(--space-8) var(--space-5);
+  border-top: 0;
+}
+.empty--pad .empty__body {
+  max-width: 44ch;
+}
+
+/* ─── Teleported menus ──────────────────────────────────────────────────────
+   UiPopover teleports its panel to <body>, so nothing scoped under `.desk`
+   reaches it. That is why the desk tokens now live on :root: these rules are
+   deliberately unscoped and still get the same palette as the row that opened
+   them. */
+/* ── Floating lists: the row-action menu and the select panel ───────────────
+   Reworked, and the two problems were separable.
+
+   SIZE. A floating list is not body copy and should not be set like it. It was
+   14px because that is the desk's body size, and at 14px eleven rows plus three
+   group labels is a 470px wall of text hanging off a table cell. --text-xs is
+   the scale's own step below body and is where menus normally sit. The trigger
+   that opens the select stays at 14px, because that one is a form field sitting
+   in a grid beside other form fields and has to match them.
+
+   LOOK. Four things were making it ugly:
+
+     Rows floated. 4px of panel padding plus a 12px row radius meant each hover
+     drew a rounded lozenge inside a rounded box — correct concentric geometry,
+     but on a 37px row a 12px radius is nearly a pill, and eleven of them
+     stacked read as bubbles rather than as a list. Rows are now full-bleed and
+     square, and the panel's own corner clips the first and last. No inner
+     radius to compute, which is the honest version of the concentric rule.
+
+     Two different leading columns. Nine rows had a 16px outline icon and two
+     had an 8px coloured dot, so the text did not start at the same place twice
+     in a row. The dot now sits in a 16px slot of its own and the label column
+     is straight.
+
+     One flat texture. Every row was semibold in secondary grey — no difference
+     between "Record a payment" and "Delete for good". Rows are medium in
+     primary ink, icons are tertiary, and destructive is the only coloured row.
+
+     Elevation. --shadow-lg is a 32px blur meant for a dialog. A menu is one
+     step off the page, so it takes --shadow-md.
+
+   Copy, order and which actions exist are untouched. */
+.mnu {
+  min-width: 14rem;
+  /* No padding: rows run to the edge, and `overflow: hidden` lets the shell's
+     own radius do the clipping. */
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--desk-line);
+  /* Control radius, not shell radius. A floating list is an extension of the
+     thing that opened it — a select panel hanging off a 6px field had 16px
+     corners, so the panel was rounder than its own trigger and read as a
+     separate object that had drifted over the page. 16px is also simply a lot
+     of curve on a four-row dropdown. Shell radius is for boxes that sit on the
+     page and hold other things; this hangs off a control. */
+  border-radius: var(--desk-radius-control);
+  background-color: var(--desk-card);
+  box-shadow: var(--shadow-md);
+  font-family: var(--font-sans);
+  /* The base size has to be declared, not inherited. Nothing else on the desk
+     sets one: the app's 14px comes from `text-sm` on the layout root, and a
+     teleported panel is not inside it — it is a child of <body>, so it inherited
+     the browser's 16px instead. Measured, this panel computed 16px teleported
+     against 14px in place, and stood 334px tall against 281px. Every rule below
+     names its own size in rem, which is why this went unnoticed; what grew was
+     everything that did not — line boxes, icon-relative gaps, and any text
+     added later without a class. Same class of bug as the colour tokens needing
+     to live on :root rather than on `.desk`. */
+  font-size: var(--text-xs);
+  line-height: var(--leading-normal);
+  color: var(--desk-text);
+}
+/* And the element reset, for the third time and the same reason. `.desk :where(p)
+   { margin: 0 }` never reached here, so every <p class="mnu__head"> kept the
+   browser's default `margin: 1em 0` — which is where the rest of the panel's
+   extra height came from: identical children, 53px taller, because three group
+   headings were carrying margins nothing had cleared. :where() so it stays a
+   floor that .mnu__head's own padding overrides. */
+.mnu :where(p, h1, h2, h3, ul, li),
+.dlg :where(p, h1, h2, h3, ul, li) {
+  margin: 0;
+  padding-left: 0;
+  list-style: none;
+}
+/* The group label is the group's boundary, so it carries the space above rather
+   than sitting in a padded row of its own. Three of these were costing 81px in a
+   menu of eleven items. */
+.mnu__head {
+  padding: var(--space-3) var(--space-4) var(--space-1);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-widest);
+  text-transform: uppercase;
+  color: var(--desk-text-3);
+}
+.mnu__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: 2rem;
+  padding: var(--space-2) var(--space-4);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  font: inherit;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  color: var(--desk-text);
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+/* Icons are tertiary so the label leads. They were inheriting the row's colour,
+   which made the glyph as loud as the words next to it. */
+.mnu__item svg {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  color: var(--desk-text-3);
+}
+.mnu__item:hover:not(:disabled),
+.mnu__item:focus-visible {
+  background-color: var(--desk-sunken);
+}
+.mnu__item:hover:not(:disabled) svg {
+  color: var(--desk-text-2);
+}
+/* Greyed, not faded. `opacity: 0.45` took the label to 2.4:1 and dimmed the
+   whole row including its icon; a tertiary colour is legible and still reads as
+   unavailable. */
+.mnu__item:disabled {
+  color: var(--desk-text-3);
+  cursor: not-allowed;
+}
+/* The one coloured row in the menu, so it is the one you cannot mistake. */
+.mnu__item--danger {
+  color: var(--desk-late);
+}
+.mnu__item--danger svg {
+  color: currentColor;
+}
+.mnu__item--danger:hover:not(:disabled) {
+  background-color: var(--desk-late-surface);
+}
+.mnu__item--danger:hover:not(:disabled) svg {
+  color: currentColor;
+}
+/* A badge pinned to the right edge, rather than a grey word trailing the label
+   with nothing holding it there. */
+.mnu__tail {
+  margin-left: auto;
+  flex: none;
+  padding: 1px var(--space-2);
+  border: 1px solid var(--desk-accent-line);
+  border-radius: var(--radius-full);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-wide);
+  color: var(--desk-accent);
+}
+/* Edge to edge, like the rows. A divider inset from both sides in a panel that
+   has no padding is a dash, not a division. */
+.mnu__sep {
+  height: 1px;
+  margin: var(--space-2) 0 0;
+  background-color: var(--desk-line);
+}
+/* The label already opens a group, so a rule immediately above one is a second
+   boundary for the same seam. */
+.mnu__sep + .mnu__head {
+  padding-top: var(--space-2);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   WHATSAPP PREVIEW
+   ═══════════════════════════════════════════════════════════════════════════
+
+   Theme-blind, on fixed values, for the same reason assets/css/invoice-paper.css
+   is: this depicts a surface that is not ours. The message is read inside
+   WhatsApp on somebody else's phone, so showing it in the user's dark theme
+   would be a picture of something that will never exist. A dark-mode preview of
+   a light-mode chat is the same mistake as a dark-mode invoice.
+
+   These are WhatsApp's own values — the light wallpaper base, the white incoming
+   bubble, their ink, their meta grey and their link blue. The link blue is the
+   one colour in this file from outside the palette, and it is here for the same
+   reason the whole block is: it is a quotation, not a decision. */
+.wa {
+  --wa-paper: #efeae2;
+  --wa-bubble: #ffffff;
+  --wa-ink: #111b21;
+  --wa-meta: #667781;
+  --wa-link: #027eb5;
+
+  border: 1px solid var(--desk-line);
+  border-radius: var(--desk-radius-inset);
+  background-color: var(--wa-paper);
+  overflow: hidden;
+}
+/* The conversation header, which is where WhatsApp actually shows who the
+   message is from. A 1:1 chat has no sender name inside the bubble — that only
+   appears in groups — so putting the business name in the bubble, as the first
+   version of this did, was showing something the client will never see. */
+.wa__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background-color: #f0f2f5;
+  border-bottom: 1px solid rgb(11 20 26 / 0.08);
+}
+.wa__av {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  flex: none;
+  border-radius: var(--radius-full);
+  background-color: #dfe5e7;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  color: #54656f;
+}
+.wa__from {
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--wa-ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.wa__body {
+  padding: var(--space-5) var(--space-4);
+}
+.wa__row {
+  display: flex;
+  justify-content: flex-start;
+}
+/* Incoming, because the person reading this is the client, not the user. An
+   outgoing green bubble would be showing them their own screen. */
+.wa__bubble {
+  position: relative;
+  max-width: 22rem;
+  padding: 6px 8px 8px 10px;
+  border-radius: 8px;
+  border-top-left-radius: 0;
+  background-color: var(--wa-bubble);
+  box-shadow: 0 1px 0.5px rgb(11 20 26 / 0.13);
+  font-size: 14.2px;
+  line-height: 19px;
+  color: var(--wa-ink);
+  word-break: break-word;
+}
+.wa__bubble::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -8px;
+  width: 8px;
+  height: 13px;
+  background-color: var(--wa-bubble);
+  clip-path: polygon(100% 0, 0 0, 100% 100%);
+}
+.wa__text {
+  white-space: pre-wrap;
+}
+.wa__text a {
+  color: var(--wa-link);
+  text-decoration: none;
+}
+.wa__text code {
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+}
+/* The timestamp rides the last line, dropping to its own line when the text
+   ends too close to the edge — which is what WhatsApp does. Floated AFTER the
+   text in source order, because a float declared before the content attaches to
+   the first line box instead and sits at the top right. */
+.wa__time {
+  float: right;
+  margin: 4px -2px 0 10px;
+  font-size: 11px;
+  line-height: 15px;
+  color: var(--wa-meta);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ADMIN — Support tickets
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* The thread reuses .msg / .chat from the invoice assistant — a support
+   conversation and an AI conversation are the same object, and the ticket page
+   had rebuilt it: `bg-slate-900 text-white rounded-tr-none` for one side,
+   `bg-white border border-[#e5e5e5] rounded-tl-none` for the other, with a
+   hard-coded hex repeated ten times across the file. Only what is genuinely
+   different about a support thread is declared here. */
+.msg--wide .msg__body {
+  max-width: 44rem;
+}
+/* Who said it and when, above the bubble. The assistant has no need for this —
+   there are only two participants and you are one of them — but a ticket thread
+   is read later by somebody who was not there. */
+.msg__meta {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  margin-bottom: var(--space-1);
+  padding: 0 var(--space-1);
+  font-size: var(--text-2xs);
+  color: var(--desk-text-3);
+}
+.msg__who {
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--desk-text-2);
+}
+.msg__when {
+  font-family: var(--font-mono);
+}
+.msg--me .msg__meta {
+  justify-content: flex-end;
+}
+
+/* The composer, docked to the bottom of the thread. */
+.reply {
+  position: sticky;
+  bottom: var(--space-4);
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--desk-line);
+  border-radius: var(--desk-radius-shell);
+  background-color: var(--desk-card);
+  box-shadow: var(--shadow-md);
+}
+.reply__acts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+/* A whole table row that navigates. It was a <tr> with a click handler and no
+   link in it, so the inbox could not be opened from the keyboard at all. The
+   link now fills the first cell and is stretched across the row, which keeps one
+   focusable element per row and one accessible name. */
+.ledger tr.row-link {
+  position: relative;
+}
+.ledger tr.row-link:hover {
+  background-color: var(--desk-sunken);
+}
+.row-link__hit::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+.row-link__hit:focus-visible {
+  outline: none;
+}
+.ledger tr.row-link:focus-within {
+  outline: 2.5px solid var(--focus-ring);
+  outline-offset: -2px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ADMIN — System management
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* A chip for a fact that is neither good nor bad — a role, a tier. The admin
+   page used indigo for ADMIN and purple, blue and amber for its metric tiles,
+   four hues from outside the palette doing decoration rather than meaning. */
+.chip--ink {
+  border-color: transparent;
+  background-color: var(--ink-950);
+  color: var(--paper-50);
+}
+:root[data-theme='dark'] .chip--ink,
+html.dark .chip--ink {
+  background-color: var(--app-4);
+  color: var(--app-text);
+}
+
+/* The metric row. Was five cards each with its own coloured icon tile and its
+   own coloured corner pill — emerald, blue, purple, amber, indigo — which made
+   five equal-weight boxes compete rather than rank. One surface, and the
+   numbers do the ranking. */
+.metrics {
+  display: grid;
+  gap: var(--desk-gap-tight);
+  grid-template-columns: 1fr;
+}
+.metric {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-4) var(--space-5);
+  border: 1px solid var(--desk-line);
+  border-radius: var(--desk-radius-inset);
+  background-color: var(--desk-item);
+  min-width: 0;
+}
+.metric__v {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-tighter);
+  line-height: 1.1;
+  color: var(--desk-text);
+}
+.metric__n {
+  font-size: var(--text-xs);
+  color: var(--desk-text-3);
+}
+.metric__delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-semibold);
+  color: var(--desk-text-3);
+}
+.metric__delta--up {
+  color: var(--desk-accent);
+}
+.metric__delta--down {
+  color: var(--desk-late);
+}
+.metric__delta svg {
+  width: 12px;
+  height: 12px;
+}
+
+/* Feature switches on the General tab, one per row in a single well. */
+.flags {
+  display: grid;
+  gap: var(--space-2);
+}
+.flag {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--desk-line);
+  border-radius: var(--desk-radius-inset);
+  background-color: var(--desk-item);
+}
+.flag__body {
+  flex: 1;
+  min-width: 0;
+}
+.flag__name {
+  display: block;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--desk-text);
+}
+.flag__note {
+  display: block;
+  margin-top: 1px;
+  font-size: var(--text-xs);
+  line-height: var(--leading-normal);
+  color: var(--desk-text-3);
+}
+.flag__state {
+  flex: none;
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-widest);
+  text-transform: uppercase;
+  color: var(--desk-text-3);
+}
+.flag__state--on {
+  color: var(--desk-accent);
+}
+
+@media (min-width: 720px) {
+  .metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (min-width: 1100px) {
+  .metrics {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SETTINGS
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Sidebar of tabs beside one panel. Structure is unchanged from the old page;
+   what changes is that the nav is a list of quiet rows with one marked, rather
+   than seven filled slate pills. */
+.set {
+  display: grid;
+  gap: var(--desk-gap);
+  grid-template-columns: 1fr;
+  align-items: start;
+}
+.set__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.set__tab {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: 2.25rem;
+  padding: 0 var(--space-3);
+  border: 0;
+  /* Square, and the marker is a rule down the leading edge. A filled rounded
+     pill per item is the default every admin sidebar reaches for; a single line
+     against the text column says "you are here" without drawing seven boxes. */
+  border-radius: 0;
+  border-left: 2px solid transparent;
+  background: transparent;
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--desk-text-2);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    color var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out);
+}
+.set__tab svg {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  color: var(--desk-text-3);
+}
+.set__tab:hover {
+  color: var(--desk-text);
+  background-color: var(--desk-sunken);
+}
+.set__tab--on {
+  border-left-color: var(--desk-accent);
+  background-color: var(--desk-sunken);
+  color: var(--desk-text);
+  font-weight: var(--weight-semibold);
+}
+.set__tab--on svg {
+  color: var(--desk-accent);
+}
+
+/* The panel, and the sections inside it. Sections are separated by a rule
+   rather than each being its own card — they are parts of one page of settings,
+   not seven unrelated objects. */
+.set__panel {
+  min-width: 0;
+  border: 1px solid var(--desk-line);
+  border-radius: var(--desk-radius-shell);
+  background-color: var(--desk-card);
+  overflow: hidden;
+}
+.set__body {
+  padding: var(--space-5);
+}
+/* A table that follows a section is still part of it — the toolbar above it
+   lives in the .sec, the rows do not. .set__body is a plain block with no gap,
+   so the two were rendering flush at 0px while every other pair of blocks on
+   the page sat 32px apart. */
+.sec + .ledger {
+  margin-top: var(--space-4);
+}
+.set__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  border-top: 1px solid var(--desk-line);
+  background-color: var(--desk-sunken);
+}
+.set__dirty {
+  font-size: var(--text-xs);
+  color: var(--desk-text-3);
+}
+
+/* A locked feature, stated once in words. Replaces the pattern this page used
+   six times: a 9px "PRO" chip in emerald beside a control at opacity 0.5, which
+   both failed contrast and left the reason to a title attribute. */
+.gate {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--desk-accent-line);
+  border-radius: var(--desk-radius-inset);
+  background-color: var(--desk-accent-surface);
+  font-size: var(--text-xs);
+  line-height: var(--leading-relaxed);
+  color: var(--desk-text-2);
+}
+.gate svg {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  color: var(--desk-accent);
+}
+.gate__grow {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ─── Choice cards: pick one of N, or toggle N of N ──────────────────────────
+   One component for the WhatsApp mode radios, the invoice display-field
+   checkboxes and anything else shaped like it. The page had three separate
+   hand-rolled versions — a radio with a hand-drawn dot, a checkbox with a
+   hand-drawn tick in an emerald circle, and a bare label — all doing the same
+   job at different sizes. */
+.pickcard {
+  display: grid;
+  gap: var(--space-2);
+  grid-template-columns: 1fr;
+}
+.pickcard__opt {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--desk-control-line);
+  border-radius: var(--desk-radius-control);
+  background-color: transparent;
+  cursor: pointer;
+  transition:
+    border-color var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out);
+}
+.pickcard__opt:hover {
+  border-color: var(--desk-text-3);
+}
+.pickcard__opt--on {
+  border-color: var(--desk-accent);
+  background-color: var(--desk-accent-surface);
+}
+.pickcard__opt--off {
+  cursor: not-allowed;
+  border-style: dashed;
+}
+.pickcard__inp {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+.pickcard__body {
+  flex: 1;
+  min-width: 0;
+}
+.pickcard__name {
+  display: block;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--desk-text);
+}
+.pickcard__opt--on .pickcard__name {
+  color: var(--desk-accent);
+}
+.pickcard__note {
+  display: block;
+  margin-top: 2px;
+  font-size: var(--text-xs);
+  line-height: var(--leading-normal);
+  color: var(--desk-text-3);
+}
+.pickcard__note--warn {
+  color: var(--desk-late);
+}
+/* The state marker. Round for a radio, square-ish for a checkbox, but drawn
+   once here rather than three times in the template. */
+.pickcard__mark {
+  display: grid;
+  place-items: center;
+  width: 1.125rem;
+  height: 1.125rem;
+  flex: none;
+  border: 1.5px solid var(--desk-control-line);
+  border-radius: var(--radius-full);
+  color: transparent;
+}
+.pickcard__mark svg {
+  width: 12px;
+  height: 12px;
+}
+.pickcard__opt--on .pickcard__mark {
+  border-color: var(--desk-accent);
+  background-color: var(--desk-accent);
+  color: #ffffff;
+}
+:root[data-theme='dark'] .pickcard__opt--on .pickcard__mark,
+html.dark .pickcard__opt--on .pickcard__mark {
+  color: var(--ink-950);
+}
+.pickcard__inp:focus-visible + .pickcard__mark,
+.pickcard__opt:focus-within {
+  outline: 2.5px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+/* ─── Gateway cards ─────────────────────────────────────────────────────────
+   Was the same 75-line block copied four times with a different provider key,
+   plus a fifth for bank transfer — about 300 lines saying one thing. One card,
+   driven by a config list.
+
+   The "preferred" marker was an absolutely-positioned circle in the corner with
+   a click handler and no accessible name — a radio built out of a div. It is a
+   real radio input now, in the card's footer where it can carry a label. */
+.gw {
+  display: grid;
+  gap: var(--desk-gap-tight);
+  grid-template-columns: 1fr;
+}
+.gw__card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  border: 1px solid var(--desk-line);
+  border-radius: var(--desk-radius-inset);
+  background-color: var(--desk-item);
+}
+.gw__card--on {
+  border-color: var(--desk-accent-line);
+}
+.gw__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+/* Fixed box so a 512px logo, a 256px one and a two-letter monogram all occupy
+   the same square and the names line up. */
+.gw__logo {
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex: none;
+  overflow: hidden;
+  border: 1px solid var(--desk-line);
+  border-radius: var(--desk-radius-control);
+  background-color: var(--desk-card);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-wide);
+  color: var(--desk-text-3);
+}
+.gw__logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+/* Both are <span> inside a <span>, so they need to be told to stack — inline by
+   default ran the name and the description together on one line. */
+.gw__name {
+  display: block;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--desk-text);
+}
+.gw__note {
+  display: block;
+  margin-top: 1px;
+  font-size: var(--text-xs);
+  line-height: var(--leading-normal);
+  color: var(--desk-text-3);
+}
+.gw__state {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  color: var(--desk-text-3);
+}
+.gw__state::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  flex: none;
+  border-radius: var(--radius-full);
+  background-color: currentColor;
+}
+.gw__state--on {
+  color: var(--desk-accent);
+}
+.gw__acts {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: auto;
+}
+.gw__acts .desk-btn {
+  flex: 1;
+}
+/* The preferred-provider radio, as a row rather than a corner dot. */
+.gw__prefer {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--desk-line);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  color: var(--desk-text-2);
+  cursor: pointer;
+}
+.gw__prefer--on {
+  color: var(--desk-accent);
+}
+/* The tick itself. .pickcard__mark is only filled by .pickcard__opt--on, and
+   this control's "on" class is .gw__prefer--on — so the gateway you had already
+   chosen showed an empty circle while the label beside it read "On your
+   invoices". The control disagreed with its own text.
+   Paired per theme: white on the accent is right on the light green and wrong
+   on the dark one. */
+.gw__prefer--on .pickcard__mark {
+  border-color: var(--desk-accent);
+  background-color: var(--desk-accent);
+  color: #ffffff;
+}
+:root[data-theme='dark'] .gw__prefer--on .pickcard__mark,
+html.dark .gw__prefer--on .pickcard__mark {
+  color: var(--ink-950);
+}
+
+/* ─── Plan cards ────────────────────────────────────────────────────────────
+   The old version coloured each tier by name: emerald for Starter, slate-900
+   for Pro, and an indigo gradient for Max, with matching coloured glow shadows
+   and a twenty-five-line nested ternary deciding one button's classes. Four
+   ramps for one job, two of them from outside the palette, and any new plan
+   coming back from /plans rendered unstyled because the styling was keyed to
+   four hard-coded strings.
+
+   Tiers are now told apart by weight and surface, which is what the brand has:
+   every card is paper with a hairline, and the one you are on — or the one being
+   recommended — steps up to the ink slab the marketing site already uses for
+   emphasis. That scales to a fifth plan without a new colour, and it reads as
+   the same product as the landing page. */
+.plans {
+  display: grid;
+  gap: var(--desk-gap-tight);
+  grid-template-columns: 1fr;
+}
+.plan {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  border: 1px solid var(--desk-line);
+  border-radius: var(--desk-radius-inset);
+  background-color: var(--desk-item);
+}
+/* The slab. One emphasis treatment, from the brand, used for the current plan. */
+.plan--now {
+  border-color: transparent;
+  background-color: var(--ink-950);
+}
+.plan--now .plan__name,
+.plan--now .plan__price,
+.plan--now .plan__feat {
+  color: var(--paper-50);
+}
+.plan--now .plan__desc,
+.plan--now .plan__per {
+  color: var(--gray-400);
+}
+.plan--now .plan__feat svg {
+  color: var(--green-400);
+}
+/* The card flips to the ink slab, so the button on it has to flip too. It was
+   inheriting the light-theme ghost — dark ink on near-black, 1.46:1 — because
+   the slab restyled the text around it and stopped at the control. These are the
+   on-slab tokens design-tokens.css already defines for exactly this case. */
+.plan--now .desk-btn--ghost {
+  border-color: var(--border-on-slab);
+  background-color: var(--chip-on-slab-bg);
+  color: var(--text-on-slab);
+}
+.plan--now .desk-btn--ghost:hover:not(:disabled) {
+  border-color: var(--a-paper-24);
+  background-color: var(--a-paper-12);
+  color: var(--text-on-slab);
+}
+.plan--now .desk-btn--ghost:disabled {
+  color: var(--text-on-slab-muted);
+}
+.plan__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.plan__name {
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-tight);
+  color: var(--desk-text);
+}
+.plan__desc {
+  margin-top: var(--space-1);
+  font-size: var(--text-xs);
+  line-height: var(--leading-normal);
+  color: var(--desk-text-3);
+}
+.plan__price {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-tighter);
+  line-height: 1;
+  color: var(--desk-text);
+}
+.plan__was {
+  font-size: var(--text-md);
+  font-weight: var(--weight-medium);
+  color: var(--desk-text-3);
+  text-decoration: line-through;
+}
+.plan__per {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-normal);
+  color: var(--desk-text-3);
+}
+.plan__feats {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  flex: 1;
+}
+.plan__feat {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  font-size: var(--text-xs);
+  line-height: var(--leading-normal);
+  color: var(--desk-text-2);
+}
+.plan__feat svg {
+  width: 14px;
+  height: 14px;
+  flex: none;
+  margin-top: 2px;
+  color: var(--desk-accent);
+}
+.plan__tag {
+  flex: none;
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-full);
+  background-color: var(--paper-50);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-widest);
+  text-transform: uppercase;
+  color: var(--ink-950);
+}
+
+/* ─── Placeholder tokens ────────────────────────────────────────────────────
+   The template placeholders in the WhatsApp message editors. Mono, because they
+   are literal strings the user copies — the same reason numerals are mono. */
+.tokens {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.token {
+  padding: 2px var(--space-2);
+  border: 1px solid var(--desk-line);
+  border-radius: var(--desk-radius-control);
+  background-color: var(--desk-card);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--desk-text-2);
+  cursor: copy;
+}
+.token:hover {
+  border-color: var(--desk-accent-line);
+  color: var(--desk-accent);
+}
+
+/* ─── Logo well ─────────────────────────────────────────────────────────── */
+.logo-well {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  flex-wrap: wrap;
+}
+.logo-well__box {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 5rem;
+  height: 5rem;
+  flex: none;
+  overflow: hidden;
+  border: 1px dashed var(--desk-control-line);
+  border-radius: var(--desk-radius-control);
+  background-color: var(--desk-sunken);
+  color: var(--desk-text-3);
+}
+.logo-well__box img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.logo-well__busy {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background-color: var(--desk-card);
+}
+
+@media (min-width: 720px) {
+  .pickcard--two {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .gw {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .plans {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (min-width: 1024px) {
+  .set {
+    grid-template-columns: minmax(0, 13rem) minmax(0, 1fr);
+  }
+  .gw {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (min-width: 1280px) {
+  .plans {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* ─── Pay habit ─────────────────────────────────────────────────────────────
+   "Usually pays 24d late" as plain coloured text with a dot, not as a pill.
+
+   Two reasons. A pill is uppercase and tracked, which is right for a one-word
+   status token — PAID, OVERDUE — and wrong for a four-word sentence; the same
+   distinction that keeps --text-2xs off sentences. And the invoice ledger
+   already states this exact fact, from the same function, as coloured text: the
+   same fact styled as a pill in one table and as text in the other is the drift
+   this whole pass has been removing. */
+.pay {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  color: var(--desk-text-2);
+}
+.pay::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  flex: none;
+  border-radius: var(--radius-full);
+  background-color: currentColor;
+}
+.pay--high {
+  color: var(--desk-late);
+}
+.pay--ok {
+  color: var(--desk-accent);
+}
+.pay--unknown {
+  color: var(--desk-text-3);
+}
+
+/* ─── Chasing switches ──────────────────────────────────────────────────────
+   Two channels, one state, so one colour. The clients table had the WhatsApp
+   chaser in emerald-600 and the email chaser in blue-500 — two accents saying
+   the identical thing ("this is on"), which leaves the reader working out
+   whether the difference means something. It does not. The channel is carried
+   by the icon, the state by the fill, and the fill is the brand's.
+
+   They are buttons rather than the checkbox-and-track pattern the old table
+   used, because in a table cell a switch has to be readable at a glance and
+   hittable without precision: this is 28px tall with the label in a tooltip and
+   an accessible name, where the old one was a 16px track with
+   `pointer-events: none` on it — a switch that looked interactive, reported its
+   state, and could not be operated. */
+.chase {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+.chase__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  min-width: 2.25rem;
+  min-height: 1.75rem;
+  padding: 0 var(--space-2);
+  border: 1px solid var(--desk-control-line);
+  border-radius: var(--radius-full);
+  background-color: transparent;
+  font: inherit;
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--desk-text-3);
+  cursor: pointer;
+  transition:
+    background-color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out);
+}
+.chase__btn svg {
+  width: 13px;
+  height: 13px;
+  flex: none;
+}
+.chase__btn:hover:not(:disabled) {
+  border-color: var(--desk-text-3);
+  color: var(--desk-text);
+}
+.chase__btn--on {
+  border-color: var(--desk-accent-line);
+  background-color: var(--desk-accent-surface);
+  color: var(--desk-accent);
+}
+.chase__btn--on:hover:not(:disabled) {
+  border-color: var(--desk-accent);
+  color: var(--desk-accent);
+}
+/* Locked, not faded. `opacity: 0.5` on the old switch took it to 1.6:1 against
+   the row and dimmed the lock icon beside it into near-invisibility. */
+.chase__btn:disabled {
+  cursor: not-allowed;
+  border-style: dashed;
+  color: var(--desk-text-3);
+}
+.chase__lock {
+  display: inline-flex;
+  color: var(--desk-text-3);
+}
+.chase__lock svg {
+  width: 12px;
+  height: 12px;
+}
+
+/* ─── Select ────────────────────────────────────────────────────────────────
+   UiSelect's own styling was the last un-migrated surface in either module, and
+   it was doing three jobs badly. Its trigger was `border-slate-200 bg-white
+   shadow-sm rounded-md sm:text-[12px]`: raw slate that the dark theme has to
+   !important its way out of, a shadow AND a border, a radius belonging to no
+   system, and 12px next to the 14px `.inp` sitting beside it in the same grid.
+   Its teleported panel was `text-base` — 16px — which is the popover text that
+   looked too big, and correctly so: it was two steps above the control that
+   opened it.
+
+   The panel is now literally `.mnu`. A dropdown list of choices and a row-action
+   menu are the same object, so they get the same definition rather than two that
+   drift; the size, radius, hairline and elevation all come from above. Only what
+   is genuinely different about a select is declared here: it is positioned from
+   script, it scrolls, and it tracks the trigger's width instead of setting its
+   own minimum. */
+.sel__trigger {
+  position: relative;
+  padding-right: 2.25rem;
+  text-align: left;
+  cursor: pointer;
+}
+.sel__trigger:disabled {
+  cursor: not-allowed;
+}
+.sel__value {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sel__chev {
+  position: absolute;
+  top: 50%;
+  right: var(--space-3);
+  transform: translateY(-50%);
+  display: flex;
+  color: var(--desk-text-3);
+  pointer-events: none;
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+.sel__chev--open {
+  transform: translateY(-50%) rotate(180deg);
+}
+.sel__panel {
+  position: fixed;
+  z-index: 9999;
+  /* The inline style from updatePosition() matches this to the trigger, so the
+     menu's 13rem floor would fight it. */
+  min-width: 0;
+  max-height: 15rem;
+  margin-top: 4px;
+  overflow-y: auto;
+  list-style: none;
+}
+.sel__opt--on {
+  background-color: var(--desk-accent-surface);
+  color: var(--desk-accent);
+}
+.sel__tick {
+  margin-left: auto;
+  display: flex;
+  flex: none;
+  color: var(--desk-accent);
+}
+.sel__empty {
+  padding: var(--space-3);
+  font-size: var(--text-xs);
+  line-height: var(--leading-relaxed);
+  color: var(--desk-text-3);
+}
+/* A 7px dot standing in the same column as a 16px icon started the label 9px
+   further left than the row above it, twice in a list of eleven. The dot keeps
+   its size and gains a 16px slot to sit in, so there is one label column. */
+.mnu__dot {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  display: grid;
+  place-items: center;
+}
+.mnu__dot::after {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: var(--radius-full);
+  background-color: currentColor;
+}
+.mnu__dot--paid { color: var(--desk-accent); }
+.mnu__dot--late { color: var(--desk-late); }
+.mnu__dot--idle { color: var(--desk-control-line); }
+.mnu :focus-visible {
+  outline: 2.5px solid var(--focus-ring);
+  outline-offset: 1px;
+}
+
+/* ─── The builder: editor left, the actual invoice right ─────────────────────
+   The old page hard-coded `xl:h-[calc(110vh-4rem)]` inside a layout that
+   already applies `zoom: 0.9` and `h-[111.11vh]`, so the pane was sized by
+   three compounding guesses about the viewport and overflowed on anything
+   shorter than a desktop monitor.
+
+   Replacing that with `calc(100vh - 8rem)` per column was the same mistake one
+   guess smaller. The panes do not sit in the viewport — they sit inside the
+   layout's scrolling panel, which is 111.11vh tall — so 100vh was never the
+   height available, and the number it produced was arbitrary in both
+   directions: it cut the invoice off mid-page on the right while giving the
+   form a scrollbar of its own on the left.
+
+   Both columns are now their natural height and the page scrolls, once, in the
+   container the layout already has. Nothing measures the viewport, so nothing
+   can be wrong about it. */
+.build {
+  display: grid;
+  gap: var(--desk-gap);
+  grid-template-columns: 1fr;
+  align-items: start;
+}
+.build__pane {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border: 1px solid var(--desk-line);
+  border-radius: var(--desk-radius-shell);
+  background-color: var(--desk-card);
+  overflow: hidden;
+}
+.build__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  border-bottom: 1px solid var(--desk-line);
+}
+/* No inner scroll. The form is as tall as the form is, and the page scrolls it
+   — the layout already provides exactly one scroll container, and this pane
+   used to add a second inside it. Two nested scrollbars a few pixels apart is
+   a guess about which one the wheel means, and the pane lost either way: the
+   fields got a scrollbar of their own to the right of the fields, and the
+   preview beside it was cut off mid-document by the same cap. */
+.build__body {
+  flex: 1;
+  padding: var(--space-5);
+}
+.build__body--flush {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.build__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  border-top: 1px solid var(--desk-line);
+  background-color: var(--desk-sunken);
+}
+/* The footer used to read "Last saved: Today at 4:30 PM" — a hard-coded string
+   with nothing behind it. The live total is the thing worth knowing next to a
+   save button, and it is true. */
+.build__total {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--desk-text-3);
+}
+.build__total b {
+  font-size: var(--text-md);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-tighter);
+  font-variant-numeric: tabular-nums;
+  color: var(--desk-text);
+}
+
+/* ─── Numerals ──────────────────────────────────────────────────────────────
+   THE SIGNATURE.
+
+   Every number in this product is set in mono; nothing else is. Amounts,
+   counts, day-deltas, percentages, invoice numbers, the figures in the ledger
+   and on the invoice itself — all of it in the same monospaced face, while the
+   prose stays in Plus Jakarta Sans.
+
+   The intent was already half-written and never followed through: sixteen
+   separate rules asked for `tabular-nums` so columns of money would line up,
+   then set those figures in a proportional face where the digits are the only
+   thing that lines up and the currency codes, minus signs, decimal points and
+   "d" suffixes are not. Committing to mono finishes the job — a column of
+   amounts becomes a genuine column, and a changing figure stops nudging its
+   neighbours as it re-renders.
+
+   It also gives the product a voice. This is a ledger; ledgers are set in
+   figures. One typeface doing every job, in an app whose entire subject is
+   money, was the flattest thing about it. The font stack is the system mono
+   already declared in design-tokens.css, so it costs nothing to load.
+
+   One rule, one selector list. Not a declaration copied into twenty component
+   rules — where it would drift the first time somebody edited one of them —
+   and not a utility class either, because that would mean adding class
+   attributes to twenty templates to express a decision that is purely visual.
+   Each rule below sets only its own size and weight; the face is decided here.
+
+   The list is figures ONLY. .chip, .cel__sub, .work__meta and .doc__kv b all
+   carry numbers mixed into prose — "Last nudge 3d ago · WhatsApp", a status
+   word, a subject line — and setting those in mono would put the sentence in
+   the ledger face along with the number. The rule is numbers, not anything
+   near a number; they keep tabular figures and stay in Jakarta. */
+.money__value,
+.money__cur,
+.stat__value,
+/* :not() rather than a later override — both are single-class selectors, so an
+   override placed next to .strip__v in the strip section loses to this list on
+   source order and silently does nothing. The exception belongs here anyway:
+   this block is where "what counts as a numeral" is decided. */
+.strip__v:not(.strip__v--name),
+.amt__v,
+.amt__part,
+.work__amount,
+.build__total b,
+.line__sum,
+.money-inp__inp,
+.money-inp__cur,
+.sums__row b,
+/* td, not .num — `class="num"` is on the <th> too, where it means "right-align
+   this column", and the headers are words: "Pays in", "Billed", "Amount". */
+.tbl td.num,
+.ledger td.num,
+.seg__n,
+.cat__price,
+.meter__val {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ─── Loading ───────────────────────────────────────────────────────────────
+   A skeleton exists to hold the space the answer will occupy, and it is only
+   worth having if it holds the RIGHT space. The edit page used to render a
+   single line — "Opening this invoice…" — in a pane that became about 1,600px
+   tall the instant the fetch resolved, so opening an invoice threw the whole
+   page down the screen and moved the preview beside it at the same time.
+
+   So none of this draws a mock-up of the form. `.sk` only ever replaces the
+   *contents* of the real elements: the real .f, .f__label, .inp, .line and
+   .sums render exactly as they always do, and the value inside each one is a
+   block until it arrives. Spacing therefore comes from the same rules in both
+   states and cannot drift out of step with them — the alternative, a separate
+   skeleton component guessing at 40px here and 6px there, is a second copy of
+   the form's measurements that nothing keeps honest.
+
+   Everything static — headings, field labels, hints, buttons — is drawn for
+   real from the first frame, because none of it is waiting on the network.
+   What you see is the page you are getting, with the values still filling in. */
+.sk {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--desk-skeleton);
+  /* Never let a block be mistaken for a value that happens to be empty. */
+  color: transparent;
+  user-select: none;
+}
+/* Inline, for a block standing in for a run of text: sized in em so it tracks
+   whatever type it sits in, and vertically centred on that line.
+
+   Deliberately `i.sk` and not `span.sk` as well. As an element selector this
+   scores (0,1,1) and outranks every single-class component rule, so writing
+   `span.sk` meant that any structural <span> given a skeleton fill had its
+   `display` and `height` replaced by these two lines. That is not theoretical:
+   .pick__thumb is a <span> whose height comes entirely from `aspect-ratio` on
+   a flex box, and it collapsed from 130px to 0.72em — the layout picker lost
+   161px, which was the entire remaining jump when the invoice loaded. <i> is
+   used for text runs and nothing else, so it cannot capture a component. */
+i.sk {
+  display: inline-block;
+  height: 0.72em;
+  vertical-align: middle;
+  border-radius: 3px;
+}
+/* Applied to a real .inp / .fact__av / .pick__thumb, which keeps that element's
+   own box — height, radius, aspect ratio — and only fills it. The border goes
+   transparent rather than away, so the box-sizing arithmetic is untouched. */
+.sk--fill {
+  border-color: transparent;
+}
+.sk::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--desk-skeleton-sheen),
+    transparent
+  );
+  animation: sk-sweep 1.5s var(--ease-out) infinite;
+}
+@keyframes sk-sweep {
+  to {
+    transform: translateX(100%);
+  }
+}
+/* The sweep is decoration on a state that already reads as pending from the
+   blocks themselves, so it is the first thing to go. */
+@media (prefers-reduced-motion: reduce) {
+  .sk::after {
+    animation: none;
+  }
+}
+/* Skeletons say "loading" by looking like it, which reaches nobody using a
+   screen reader — the blocks are empty elements and announce as nothing at all.
+   This carries the same message in text. Paired with aria-busy on the region,
+   so the form is not read out as a set of empty fields while it fills. */
+.sk-say {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ─── Tabs ──────────────────────────────────────────────────────────────── */
+.tabs {
+  display: flex;
+  gap: var(--space-5);
+  padding: 0 var(--space-5);
+  border-bottom: 1px solid var(--desk-line);
+  background-color: var(--desk-sunken);
+}
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) 0;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--desk-text-3);
+  cursor: pointer;
+  transition:
+    color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out);
+}
+.tab:hover {
+  color: var(--desk-text);
+}
+.tab--on {
+  color: var(--desk-text);
+  border-bottom-color: var(--desk-accent);
+}
+.tab svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* ─── Form ──────────────────────────────────────────────────────────────── */
+.sec + .sec {
+  margin-top: var(--space-6);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--desk-line-soft);
+}
+.sec__head {
+  margin-bottom: var(--space-4);
+}
+.sec__title {
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+  color: var(--desk-text);
+}
+.sec__note {
+  margin-top: var(--space-1);
+  font-size: var(--text-sm);
+  color: var(--desk-text-3);
+}
+
+.f {
+  display: block;
+}
+.f + .f,
+.f + .fgrid,
+.fgrid + .f {
+  margin-top: var(--space-4);
+}
+.fgrid {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.f__label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-widest);
+  text-transform: uppercase;
+  color: var(--desk-text-3);
+}
+.f__req {
+  color: var(--desk-late);
+}
+.f__hint {
+  margin-top: 6px;
+  font-size: var(--text-xs);
+  line-height: var(--leading-relaxed);
+  color: var(--desk-text-3);
+}
+.inp {
+  width: 100%;
+  min-height: 2.5rem;
+  padding: 0 var(--space-3);
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--desk-text);
+  background-color: var(--desk-field);
+  border: 1px solid var(--desk-control-line);
+  border-radius: var(--desk-radius-control);
+  transition: border-color var(--dur-fast) var(--ease-out);
+}
+.inp::placeholder {
+  font-weight: var(--weight-regular);
+  color: var(--desk-text-3);
+}
+.inp:hover:not(:disabled) {
+  border-color: var(--desk-text-3);
+}
+.inp:disabled {
+  background-color: var(--desk-card);
+  color: var(--desk-text-3);
+  cursor: not-allowed;
+}
+textarea.inp {
+  min-height: 4.5rem;
+  padding: var(--space-2) var(--space-3);
+  line-height: var(--leading-normal);
+  resize: vertical;
+}
+
+/* Read-only fact: something the invoice knows that you are not allowed to
+   change. Reads as a statement, not as a disabled input you are being denied. */
+.fact {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border-radius: var(--desk-radius-inset);
+  background-color: var(--desk-item);
+}
+.fact__av {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex: none;
+  border-radius: var(--radius-full);
+  background-color: var(--desk-accent-surface);
+  color: var(--desk-accent);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+}
+.fact__body {
+  min-width: 0;
+}
+
+/* Toggle. Both states get their own colour pair per theme: an unchecked track
+   that is merely "the checked colour at low opacity" is the bug that made half
+   this app's controls look identical in light and dark. */
+.tog {
+  /* Positioned so the visually-hidden input below anchors HERE. Without it the
+     input's `position: absolute` walks up to the nearest positioned ancestor,
+     which on the builder pages is .build__pane once it goes sticky — so the
+     real control was parked in the top-left corner of the panel, nowhere near
+     the switch it operates. Invisible either way, but focus and any click that
+     found it landed in the wrong place. */
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  cursor: pointer;
+}
+.tog__inp {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+.tog__track {
+  position: relative;
+  width: 2.25rem;
+  height: 1.25rem;
+  flex: none;
+  border-radius: var(--radius-full);
+  background-color: var(--desk-control-line);
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+.tog__track::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 1rem;
+  height: 1rem;
+  border-radius: var(--radius-full);
+  background-color: var(--desk-card);
+  box-shadow: var(--shadow-xs);
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+.tog__inp:checked + .tog__track {
+  background-color: var(--desk-accent);
+}
+.tog__inp:checked + .tog__track::after {
+  transform: translateX(1rem);
+}
+.tog__inp:focus-visible + .tog__track {
+  outline: 2.5px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+.tog__label {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--desk-text);
+}
+
+/* ─── Line items ────────────────────────────────────────────────────────────
+   One row per line, with the running amount for that line shown at the end.
+   The old version made you multiply price by quantity in your head to check a
+   line, and then again to check the total. */
+/* The row switches to one line on the width of THIS box, not the window's.
+   That distinction was the bug: the single-line grid used to come in at a
+   560px viewport, but the row does not live in the viewport — it lives in the
+   left column of a two-column builder, which at a 1280px window is 402px wide
+   and at 1440px is 482px. The fixed tracks add up to 384px, so `minmax(0, 1fr)`
+   got whatever was left: a 26px Item field at 1280 and 72px at 1440. Both are
+   past the point of being a text input, and both looked like something had
+   collapsed — which it had.
+
+   The threshold is measured rather than picked: 14rem of description plus the
+   four fixed tracks plus their gaps is 38rem, so 40rem is the width at which
+   one line is comfortable rather than merely possible. Set any lower and the
+   row flips to one line the moment it technically fits, and the description —
+   the only field holding a sentence — collapses to its minimum while the two
+   number fields keep their full width, which is backwards. Below the threshold
+   the description keeps a row of its own; that is the layout most windows get
+   and it is the better of the two. */
+.lines {
+  container-type: inline-size;
+  display: grid;
+  gap: var(--space-2);
+}
+.lines__head {
+  display: none;
+}
+.line {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 4.5rem minmax(5.5rem, auto) 2rem;
+  gap: var(--space-2) var(--space-3);
+  align-items: end;
+  padding: var(--space-3);
+  /* The hairline comes back here, unlike the other inset blocks. Sunken sits
+     only ΔL* 1.75 under the card in light — deliberately, because going lower
+     costs AA on the muted labels inside — so the fill alone does not draw the
+     row's edge. The fields inside are the near-white ones now, so this is a
+     well with an edge rather than a tinted block. */
+  border: 1px solid var(--desk-line);
+  border-radius: var(--desk-radius-inset);
+  background-color: var(--desk-sunken);
+}
+.line__desc {
+  grid-column: 1 / -1;
+}
+@container (min-width: 40rem) {
+  .line {
+    grid-template-columns: minmax(14rem, 1fr) 9rem 4.5rem minmax(5.5rem, auto) 2rem;
+  }
+  .line__desc {
+    grid-column: auto;
+  }
+}
+.line__sum {
+  align-self: end;
+  padding-bottom: 0.55rem;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  font-variant-numeric: tabular-nums;
+  color: var(--desk-text);
+  text-align: right;
+  white-space: nowrap;
+}
+.line__del {
+  align-self: end;
+  margin-bottom: 0.3rem;
+}
+.money-inp {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 2.5rem;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--desk-control-line);
+  border-radius: var(--desk-radius-control);
+  background-color: var(--desk-field);
+}
+/* One ring, on the wrapper.
+
+   The wrapper is what reads as the control, but the thing that takes focus is
+   the <input> inside it. `.desk :focus-visible` scores (0,2,0) and so beat the
+   `outline: none` on .money-inp__inp below, drawing a ring 2px outside the
+   input — which lands directly on top of the wrapper's own border. Together
+   with the accent border this rule used to add, that is two green rings around
+   one field.
+
+   So: the ring moves to the wrapper, the border stays the neutral control
+   colour, and the inner input's ring is suppressed at a specificity that
+   actually wins. A plain .inp behaves the same way — outline only, border
+   unchanged — so the two controls now focus identically. */
+.money-inp:focus-within {
+  outline: 2.5px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+.desk .money-inp__inp:focus-visible,
+.money-inp__inp:focus-visible {
+  outline: none;
+}
+
+/* Native spinners, gone inside a money field.
+   These sit hard against the suffix — the discount field rendered as
+   "0 [▲▼] %" with the arrows crowding the percent sign — and they are the wrong
+   affordance for an amount you type rather than nudge. Qty keeps its steppers,
+   because that one genuinely is nudged and carries no suffix. */
+.money-inp__inp[type='number']::-webkit-outer-spin-button,
+.money-inp__inp[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  appearance: none;
+  margin: 0;
+}
+.money-inp__inp[type='number'] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+.money-inp__cur {
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-wide);
+  color: var(--desk-text-3);
+  flex: none;
+  font-variant-numeric: tabular-nums;
+}
+.money-inp__inp {
+  width: 100%;
+  min-width: 0;
+  /* Stretches to the full height of its wrapper. The wrapper is what reads as
+     the control, so an 18px-tall input inside a 40px-tall box means the top and
+     bottom thirds of an apparent text field do not accept a click. */
+  align-self: stretch;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  font-variant-numeric: tabular-nums;
+  color: var(--desk-text);
+  outline: none;
+}
+
+/* The discount percentage, on its own row under the switch that reveals it.
+   It used to sit beside the switch inside a shared `.bar`, where appearing
+   meant taking 112px back off the switch's label and doubling the row's height
+   — a control whose arrival rearranged the row it arrived in. Below it instead,
+   nothing else moves, and the field can carry a visible label rather than an
+   aria-label only, so what the number means is on screen for everyone. */
+.disc {
+  margin-top: var(--space-3);
+  padding-left: calc(2.25rem + var(--space-3));
+}
+.disc__inp {
+  max-width: 8rem;
+}
+
+/* Totals block under the lines */
+.sums {
+  display: grid;
+  gap: var(--space-2);
+  margin-top: var(--space-5);
+  padding: var(--space-4);
+  border-radius: var(--desk-radius-inset);
+  background-color: var(--desk-item);
+}
+.sums__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-4);
+  font-size: var(--text-sm);
+  color: var(--desk-text-2);
+}
+.sums__row b {
+  font-weight: var(--weight-semibold);
+  font-variant-numeric: tabular-nums;
+  color: var(--desk-text);
+}
+.sums__row--off b {
+  color: var(--desk-late);
+}
+.sums__row--total {
+  margin-top: var(--space-1);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--desk-line);
+  font-weight: var(--weight-bold);
+  color: var(--desk-text);
+}
+.sums__row--total b {
+  font-size: var(--text-lg);
+  letter-spacing: var(--tracking-tighter);
+}
+
+/* ─── Layout picker ─────────────────────────────────────────────────────── */
+.pick {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.pick__opt {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--desk-control-line);
+  border-radius: var(--desk-radius-control);
+  background-color: var(--desk-card);
+  cursor: pointer;
+  text-align: left;
+  transition:
+    border-color var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out);
+}
+.pick__opt:hover {
+  border-color: var(--desk-accent-line);
+}
+.pick__opt--on {
+  border-color: var(--desk-accent);
+  background-color: var(--desk-accent-surface);
+}
+.pick__name {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--desk-text);
+}
+.pick__opt--on .pick__name {
+  color: var(--desk-accent);
+}
+.pick__note {
+  font-size: var(--text-xs);
+  line-height: var(--leading-normal);
+  color: var(--desk-text-3);
+}
+/* Thumbnails are drawn from ink alpha, not from a grey ramp, so they read as a
+   sketch of a document in both themes instead of vanishing into one of them. */
+.pick__thumb {
+  aspect-ratio: 4 / 3;
+  display: flex;
+  overflow: hidden;
+  border: 1px solid var(--desk-line);
+  border-radius: max(0px, calc(var(--desk-radius-control) - var(--space-3)));
+  background-color: var(--paper-50);
+}
+.pick__thumb i {
+  display: block;
+  border-radius: var(--radius-full);
+  background-color: var(--a-ink-16);
+}
+.pick__thumb--plain {
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+}
+.pick__thumb--band {
+  flex-direction: column;
+  gap: 4px;
+  padding: 0;
+}
+.pick__band {
+  height: 32%;
+  flex: none;
+  background-color: var(--ink-950);
+}
+.pick__thumb--band .pick__rows {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0 8px 8px;
+}
+
+/* ─── The assistant ─────────────────────────────────────────────────────── */
+.chat {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 22rem;
+  background-color: var(--desk-sunken);
+}
+.chat__log {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  overflow-y: auto;
+}
+.msg {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  max-width: 90%;
+}
+.msg--me {
+  flex-direction: row-reverse;
+  margin-left: auto;
+}
+.msg__av {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  flex: none;
+  border-radius: var(--radius-full);
+  background-color: var(--desk-accent-surface);
+  color: var(--desk-accent);
+}
+.msg__av svg {
+  width: 15px;
+  height: 15px;
+}
+.msg__body {
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--desk-line);
+  border-radius: var(--radius-bubble);
+  border-top-left-radius: var(--radius-bubble-tail);
+  background-color: var(--desk-card);
+  font-size: var(--text-sm);
+  line-height: var(--leading-relaxed);
+  color: var(--desk-text-2);
+}
+.msg__body b,
+.msg__body strong {
+  font-weight: var(--weight-semibold);
+  color: var(--desk-text);
+}
+.msg--me .msg__body {
+  border-radius: var(--radius-bubble);
+  border-top-right-radius: var(--radius-bubble-tail);
+  border-color: var(--desk-accent-line);
+  background-color: var(--desk-accent-surface);
+  color: var(--desk-accent);
+  font-weight: var(--weight-semibold);
+}
+.msg__eg {
+  display: block;
+  margin-top: var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  color: var(--desk-accent);
+}
+.chat__form {
+  display: flex;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-5);
+  border-top: 1px solid var(--desk-line);
+  background-color: var(--desk-card);
+}
+.chat__send {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex: none;
+  border: 1px solid transparent;
+  border-radius: var(--desk-radius-control);
+  /* Same darker-and-white / lighter-and-ink inversion as .desk-btn--primary.
+     It cannot inherit those values — --btn-bg is declared on the button rule
+     itself, not on an ancestor — so it states them again rather than pretending
+     to reuse them. */
+  background-color: var(--green-700);
+  color: #ffffff;
+  cursor: pointer;
+}
+:root[data-theme='dark'] .chat__send,
+html.dark .chat__send {
+  background-color: var(--green-500);
+  color: var(--ink-950);
+}
+.chat__send:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.chat__send svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* ─── Preview pane ──────────────────────────────────────────────────────── */
+.pv {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: var(--space-4);
+}
+.pv__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+/* The sheet sizes itself off this box: `container-type: inline-size` is what
+   makes 1cqw in .doc--preview mean "one per cent of the room the preview has",
+   measured on the content box, i.e. inside the padding below. Without it the
+   cqw units have no container to resolve against and fall back to the small
+   viewport — the sheet would size itself off the window instead of off the
+   column it sits in, which is the same bug in a different direction. */
+.pv__stage {
+  container-type: inline-size;
+  display: flex;
+  justify-content: center;
+  padding: var(--space-6);
+  border: 1px solid var(--desk-line);
+  border-radius: var(--desk-radius-shell);
+  background-color: var(--desk-sunken);
+  overflow-x: auto;
+}
+
+/* Delivery: what you can do with an invoice that now exists. Replaces four
+   seconds of simulated "Generating PDF…" that ran after the save had already
+   returned, and a success badge that covered the invoice it was congratulating
+   you about. */
+.deliver {
+  display: grid;
+  gap: var(--space-3);
+}
+.deliver__grid {
+  display: grid;
+  gap: var(--space-2);
+  grid-template-columns: 1fr;
+}
+.deliver__link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--desk-radius-inset);
+  background-color: var(--desk-item);
+}
+.deliver__url {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--desk-text-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* A message is prose, not a URL. .deliver__link above is a single-line mono chip
+   sized for a payment link — it truncates anything longer than the panel and
+   sets whole sentences in the numeral face. What goes in a client's inbox is
+   shown the way it will arrive: wrapped, in the reading face, at reading size. */
+.deliver__msg {
+  padding: var(--space-3);
+  border-radius: var(--desk-radius-inset);
+  background-color: var(--desk-item);
+  font-size: var(--text-sm);
+  line-height: var(--leading-relaxed);
+  color: var(--desk-text-2);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.deliver__msg-acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+.desk-btn--wa {
+  background-color: var(--green-800);
+  color: #ffffff;
+}
+.desk-btn--wa:hover:not(:disabled) {
+  background-color: var(--green-900);
+}
+:root[data-theme='dark'] .desk-btn--wa,
+html.dark .desk-btn--wa {
+  background-color: var(--tint-emerald);
+  color: var(--tint-emerald-text);
+  border-color: var(--tint-emerald-border);
+}
+.desk-btn--sm {
+  min-height: 2.125rem;
+  padding: 0 var(--space-4);
+  font-size: var(--text-xs);
+}
+.desk-btn--block {
+  width: 100%;
+}
+.desk-btn--danger {
+  background-color: var(--desk-late-surface);
+  border-color: var(--desk-late-line);
+  color: var(--desk-late);
+}
+.desk-btn--danger:hover:not(:disabled) {
+  background-color: var(--desk-late-line);
+}
+.desk-btn svg {
+  width: 16px;
+  height: 16px;
+  flex: none;
+}
+.spin {
+  animation: desk-spin 0.9s linear infinite;
+}
+@keyframes desk-spin {
+  to { transform: rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .spin { animation-duration: 2.4s; }
+}
+
+/* A modal body, in desk tokens, so the delete and payment dialogs stop being
+   the only surfaces on these pages still built from Tailwind slate. */
+.dlg {
+  padding: var(--space-5);
+  background-color: var(--desk-card);
+  font-family: var(--font-sans);
+  /* Teleported to <body> as well — same reason as .mnu above. */
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+}
+.dlg__title {
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+  color: var(--desk-text);
+}
+.dlg__body {
+  margin-top: var(--space-2);
+  font-size: var(--text-sm);
+  line-height: var(--leading-relaxed);
+  color: var(--desk-text-2);
+}
+.dlg__body b {
+  font-weight: var(--weight-semibold);
+  color: var(--desk-text);
+}
+.dlg__acts {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: var(--space-2);
+  margin-top: var(--space-5);
+}
+.dlg :focus-visible {
+  outline: 2.5px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+/* .money-inp draws the ring on the wrapper via :focus-within, and the rule that
+   silences the inner input sits 440 lines above the one directly above this at
+   equal specificity (0,2,0) — so inside a dialog the later rule won and the
+   field got two rings, one around the wrapper and one around the input. Restate
+   it here at (0,3,0), after, where it cannot be outrun. */
+.dlg .money-inp__inp:focus-visible {
+  outline: none;
+}
+
+/* Catalogue picker rows.
+   Its own namespace and not .pick__*, which already belongs to the template
+   chooser and its aspect-ratio thumbnails — two components sharing a prefix is
+   how the .sk selector cost 161px of layout shift.
+   The list scrolls inside the dialog rather than growing it: a catalogue of
+   sixty items must not produce a modal taller than the window with its Done
+   button somewhere past the bottom of the screen. */
+.cat {
+  display: grid;
+  gap: 2px;
+  max-height: min(22rem, 45vh);
+  overflow-y: auto;
+  padding-right: 2px;
+}
+.cat__row {
+  display: grid;
+  /* Fixed tracks, not auto. Every row is its own grid container, so `auto`
+     columns are sized per row and the prices come out on four different
+     x-positions — the one thing a column of money must not do. */
+  grid-template-columns: minmax(0, 1fr) 7rem 4.5rem 4.75rem;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-3);
+  border: 0;
+  border-radius: var(--desk-radius-inset);
+  background-color: transparent;
+  text-align: left;
+  cursor: pointer;
+  /* The row is a <button>, and a button does not inherit font-family from the
+     document — everything inside it falls back to Arial otherwise. Set it once
+     here; .cat__price overrides back to the numeral face via the mono group. */
+  font-family: var(--font-sans);
+}
+.cat__row:hover {
+  background-color: var(--desk-item);
+}
+.cat__main {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.cat__name {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--desk-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cat__note {
+  font-size: var(--text-xs);
+  color: var(--desk-text-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cat__price {
+  font-size: var(--text-sm);
+  color: var(--desk-text-2);
+  text-align: right;
+  white-space: nowrap;
+}
+/* The unit is prose attached to a figure, so it stays in the reading face while
+   the amount does not — see the mono group near the top. */
+.cat__unit {
+  font-size: var(--text-xs);
+  color: var(--desk-text-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cat__add {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  min-height: 1.5rem;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  color: var(--desk-text-3);
+  white-space: nowrap;
+}
+.cat__row:hover .cat__add {
+  color: var(--desk-accent);
+}
+
+/* --- Toast -------------------------------------------------------------------
+   Was three hardcoded Tailwind pastel gradients with `text-slate-900` on top:
+   from-emerald-50, from-rose-50, from-amber-50. None of them changed with the
+   theme, so in dark mode a toast was a pale mint slab with near-black text
+   sitting on a near-black page -- the single loudest light-mode leak left.
+
+   Each state is a token triplet with a real pair per theme, so dark is a state
+   rather than an override. Text colour comes from the same triplet as the
+   surface it sits on, which is how the tint tokens were measured (7.9-8.2:1). */
+.toast {
+  position: fixed;
+  right: var(--space-6);
+  bottom: var(--space-6);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  max-width: min(26rem, calc(100vw - 2rem));
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--desk-line);
+  border-radius: var(--desk-radius-control);
+  background-color: var(--desk-card);
+  box-shadow: var(--shadow-lg);
+  /* Teleported or not, this is fixed and may sit outside .desk -- state both. */
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  line-height: var(--leading-normal);
+  color: var(--desk-text);
+}
+.toast__icon {
+  display: grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  flex: none;
+  border-radius: var(--radius-full);
+}
+.toast__msg {
+  min-width: 0;
+  font-weight: var(--weight-medium);
+}
+.toast--success {
+  border-color: var(--desk-accent-line);
+}
+.toast--success .toast__icon {
+  background-color: var(--desk-accent-surface);
+  color: var(--desk-accent);
+}
+.toast--error {
+  border-color: var(--desk-late-line);
+}
+.toast--error .toast__icon {
+  background-color: var(--desk-late-surface);
+  color: var(--desk-late);
+}
+.toast--warning {
+  border-color: var(--desk-warn-line);
+}
+.toast--warning .toast__icon {
+  background-color: var(--desk-warn-surface);
+  color: var(--desk-warn);
+}
+
+/* --- Page progress ----------------------------------------------------------
+   A stroke that traces the content panel's own outline: it begins where the
+   top-left arc begins, sweeps through the corner, then straightens and runs to
+   the right edge of the window. Curve into line, following the border.
+
+   This is an <svg> path and not a div because a div cannot bend. The travel is
+   stroke-dashoffset against a declared pathLength of 100, so the offset is
+   literally "percent remaining" and the arc and the straight run are one
+   continuous length -- the head moves at a constant speed through the corner
+   instead of jumping when it reaches the straight part.
+
+   The path geometry is built in default.vue, where the panel width is measured;
+   see the comment there for why there is no viewBox. */
+.pbar {
+  position: absolute;
+  top: 20px; /* the panel sits below main's mobile pt-[20px] */
+  left: 0;
+  height: 20px;
+  z-index: 5;
+  pointer-events: none;
+  overflow: visible;
+}
+@media (min-width: 768px) {
+  .pbar {
+    top: 0; /* md:pt-0 -- the panel is flush with main */
+  }
+}
+/* The unfilled remainder, so the distance still to go is legible rather than
+   the head travelling through nothing. */
+.pbar__rail {
+  stroke: var(--desk-line-soft);
+  stroke-width: 3;
+  fill: none;
+}
+.pbar__fill {
+  stroke: var(--desk-accent);
+  stroke-width: 3;
+  fill: none;
+  /* Round, so the head reads as a moving tip and not a cut edge -- and so the
+     start of the stroke sits cleanly on the arc. */
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.22s ease-out;
+}
+/* The travel is the animation. With reduced motion the rail still appears and
+   still says "busy"; it just does not animate along. */
+@media (prefers-reduced-motion: reduce) {
+  .pbar__fill {
+    transition: none;
+  }
+}
+
+/* --- Top bar controls -------------------------------------------------------
+   The theme toggle, the bell and the profile chip. They were three separately
+   invented boxes: the two icon buttons computed to 40px tall (p-2.5 plus a 20px
+   icon) and the profile chip to 48px (py-2 plus a 32px avatar), so the row never
+   sat on one line -- which is what it looked like. One height token now, and one
+   set of surface, hover and open states between them.
+
+   Also tokenised. The originals hardcoded #fff / #e5e5e5 / slate-500, which in
+   dark mode survive only by the !important remaps in main.css. These read the
+   same variables as the rest of the app, so dark is a real state, not a patch. */
+.tb {
+  --tb-h: 2.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  height: var(--tb-h);
+  padding: 0 0.625rem;
+  /* --desk-control-line, not --desk-line. A hairline is right between two rows
+     of a table; this is the visible boundary of an interactive control sitting
+     on a surface almost its own colour (dL* 1.76 in light), and WCAG 1.4.11
+     wants 3:1 for exactly that. --desk-line at 8% ink does not get there. */
+  border: 1px solid var(--desk-control-line);
+  border-radius: var(--desk-radius-control);
+  /* --desk-item, not --desk-card. The header sits on the shell, and --desk-card
+     is within a rounding error of it — these controls have to read as raised
+     off that surface, which is what the old bg-white was doing. */
+  background-color: var(--desk-item);
+  color: var(--desk-text-2);
+  /* The header is not inside .desk, and a <button> inherits neither the page
+     font nor anything else useful. Both have to be stated. */
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition:
+    background-color 0.12s ease,
+    color 0.12s ease,
+    border-color 0.12s ease;
+}
+.tb:hover {
+  background-color: var(--desk-card);
+  color: var(--desk-text);
+}
+/* Square for the two icon-only controls, so the pair reads as a set. */
+.tb--icon {
+  position: relative;
+  width: var(--tb-h);
+  padding: 0;
+}
+/* Open is a state of the control, not a focus ring. The old version put a 2px
+   emerald ring on it -- the focus treatment -- so a mouse click looked like a
+   keyboard landing. */
+.tb--on,
+.tb--on:hover {
+  background-color: var(--desk-card);
+  border-color: var(--desk-control-line);
+  color: var(--desk-text);
+}
+.tb:focus-visible {
+  outline: 2.5px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+/* The unread dot, ringed in the control's own surface so it stays legible
+   wherever it lands on the icon underneath. */
+.tb__dot {
+  position: absolute;
+  top: 0.375rem;
+  right: 0.375rem;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: var(--radius-full);
+  background-color: var(--desk-late);
+  box-shadow: 0 0 0 2px var(--desk-item);
+}
+
+.tb--user {
+  padding: 0 0.5rem 0 0.375rem;
+}
+.tb__av {
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  flex: none;
+  border-radius: var(--desk-radius-control);
+  background-color: var(--desk-accent);
+  color: #ffffff;
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-bold);
+  text-transform: uppercase;
+}
+:root[data-theme='dark'] .tb__av,
+html.dark .tb__av {
+  color: var(--ink-950);
+}
+.tb__name {
+  max-width: 9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  color: var(--desk-text);
+}
+.tb__caret {
+  flex: none;
+  color: var(--desk-text-3);
+}
+.tb__rule {
+  width: 1px;
+  height: 1.25rem;
+  margin: 0 var(--space-2);
+  background-color: var(--desk-line);
+}
+
+/* --- Top bar popovers -------------------------------------------------------
+   Both panels are the same object: a titled band, a body, and a footer that goes
+   somewhere. They were two widths, two paddings and two header treatments. */
+/* A complete surface, because UiPopover is used with `bare` — that leaves the
+   wrapper doing only positioning, so everything a panel needs is stated here.
+   Without it the panel had no background at all and you could read the page
+   through it.
+
+   Every line below is the same lesson .mnu already wrote down, so it follows
+   .mnu exactly: control radius rather than shell radius, because this hangs off
+   a 40px control and 16px corners read as a separate object drifting over the
+   page; and an explicit font-size, because a teleported panel is a child of
+   <body> and inherits the browser's 16px instead of the app's 14px. */
+.pop {
+  display: flex;
+  flex-direction: column;
+  width: 20rem;
+  max-width: calc(100vw - 2rem);
+  overflow: hidden;
+  border: 1px solid var(--desk-line);
+  border-radius: var(--desk-radius-control);
+  background-color: var(--desk-card);
+  box-shadow: var(--shadow-md);
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  line-height: var(--leading-normal);
+  color: var(--desk-text);
+}
+/* The element reset, for the same reason .mnu and .dlg needed it: `.desk
+   :where(p) { margin: 0 }` does not reach a panel teleported to <body>, so the
+   <p> in the profile header keeps the browser's default `margin: 1em 0`. */
+.pop :where(p, h1, h2, h3, ul, li) {
+  margin: 0;
+  padding-left: 0;
+  list-style: none;
+}
+.pop--sm {
+  width: 15rem;
+}
+.pop__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border-bottom: 1px solid var(--desk-line-soft);
+}
+.pop__title {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  color: var(--desk-text);
+}
+.pop__act {
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: var(--font-sans);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-medium);
+  color: var(--desk-accent);
+  cursor: pointer;
+}
+.pop__act:hover {
+  text-decoration: underline;
+}
+.pop__body {
+  flex: 1;
+  min-height: 0;
+  max-height: 18rem;
+  overflow-y: auto;
+  padding: var(--space-2);
+}
+.pop__foot {
+  padding: var(--space-2);
+  border-top: 1px solid var(--desk-line-soft);
+}
+.pop__all {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  min-height: 2.125rem;
+  border-radius: var(--desk-radius-control);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  color: var(--desk-text-2);
+}
+.pop__all:hover {
+  background-color: var(--desk-item);
+  color: var(--desk-text);
+}
+.pop__who {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+.pop__mail {
+  overflow: hidden;
+  font-size: var(--text-2xs);
+  color: var(--desk-text-3);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* One notification. Unread is a dot in the gutter rather than a blue tint on the
+   whole row -- a tint that read as "selected", and on a list where most things
+   are unread became a wall of colour saying nothing. */
+.note {
+  display: grid;
+  grid-template-columns: 0.5rem minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-2);
+  width: 100%;
+  padding: var(--space-2) var(--space-2) var(--space-2) 6px;
+  border: 0;
+  border-radius: var(--desk-radius-control);
+  background: none;
+  font-family: var(--font-sans);
+  text-align: left;
+  cursor: pointer;
+}
+.note:hover {
+  background-color: var(--desk-item);
+}
+.note__pip {
+  width: 0.375rem;
+  height: 0.375rem;
+  margin-top: 0.4rem;
+  border-radius: var(--radius-full);
+  background-color: var(--desk-accent);
+}
+.note__pip--read {
+  background-color: transparent;
+}
+.note__top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+.note__title {
+  overflow: hidden;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  color: var(--desk-text);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.note__when {
+  flex: none;
+  font-size: var(--text-2xs);
+  color: var(--desk-text-3);
+  white-space: nowrap;
+}
+.note__body {
+  margin-top: 2px;
+  font-size: var(--text-2xs);
+  line-height: var(--leading-relaxed);
+  color: var(--desk-text-3);
+}
+.note--read .note__title {
+  font-weight: var(--weight-regular);
+  color: var(--desk-text-2);
+}
+.note__empty {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-2);
+  padding: var(--space-6) var(--space-3);
+  color: var(--desk-text-3);
+  font-size: var(--text-xs);
+  text-align: center;
+}
+
+/* The full notifications list. Same .note row as the popover, minus the button
+   affordance, plus a third column for the per-row actions. */
+.notes {
+  display: grid;
+  gap: 2px;
+}
+.note--flat {
+  grid-template-columns: 0.5rem minmax(0, 1fr) auto;
+  padding: var(--space-3) var(--space-2) var(--space-3) 6px;
+  cursor: default;
+}
+.note--flat:hover {
+  background-color: var(--desk-item);
+}
+.note--flat + .note--flat {
+  border-top: 1px solid var(--desk-line-soft);
+  border-radius: 0;
+}
+.note__acts {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  opacity: 0;
+}
+.note--flat:hover .note__acts,
+.note__acts:focus-within {
+  opacity: 1;
+}
+/* No hover on touch, so the actions must simply be there. */
+@media (hover: none) {
+  .note__acts {
+    opacity: 1;
+  }
+}
+
+/* Profile popover menu */
+.pmenu {
+  display: grid;
+  gap: 2px;
+  padding: var(--space-2);
+}
+.pmenu__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  min-height: 2.125rem;
+  padding: 0 var(--space-2);
+  border: 0;
+  border-radius: var(--desk-radius-control);
+  background: none;
+  color: var(--desk-text-2);
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  text-align: left;
+  cursor: pointer;
+}
+.pmenu__item:hover {
+  background-color: var(--desk-item);
+  color: var(--desk-text);
+}
+.pmenu__item--danger {
+  color: var(--desk-late);
+}
+.pmenu__item--danger:hover {
+  background-color: var(--desk-late-surface);
+  color: var(--desk-late);
+}
+.pmenu__rule {
+  height: 1px;
+  margin: var(--space-1) 0;
+  background-color: var(--desk-line-soft);
+}
+
+/* ─── Scrollbar, for panels that scroll inside themselves ───────────────────
+   The app keeps the platform scrollbar on the page itself. This is for boxes
+   that scroll within a panel — the module guide's steps, the catalogue picker —
+   where the native bar is a heavy grey slab against a small white card.
+
+   Same two-implementation split as the marketing scrollbar in landing.css, and
+   for the same reason: Chromium supports BOTH `scrollbar-color` and the
+   ::-webkit-scrollbar pseudo-elements, but silently drops the pseudo-elements
+   once scrollbar-color is set — which would throw away the hover state. So the
+   standard properties run only where the pseudo-elements do not exist.
+
+   Not hidden and not a hairline. Scroll position is information, and a 4px
+   thumb is not a drag target. The tokens are contrast-checked against their
+   track — see design-tokens.css. */
+@supports not selector(::-webkit-scrollbar) {
+  .deskbar {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) transparent;
+  }
+}
+@supports selector(::-webkit-scrollbar) {
+  .deskbar::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  .deskbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .deskbar::-webkit-scrollbar-thumb {
+    background-color: var(--scrollbar-thumb);
+    border-radius: var(--radius-full);
+    /* Inset via a transparent border so the thumb reads as a slim pill with
+       breathing room, without shrinking the pointer target below the track. */
+    border: 3px solid transparent;
+    background-clip: content-box;
+  }
+  .deskbar::-webkit-scrollbar-thumb:hover {
+    background-color: var(--scrollbar-thumb-hover);
+    background-clip: content-box;
+  }
+  .deskbar::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+}
+
+/* ─── Breakpoints ───────────────────────────────────────────────────────── */
+@media (min-width: 560px) {
+  .strip {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .deliver__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  /* A settled invoice has one action, and one action should not be stretched
+     across a third of the panel as if two siblings were missing. */
+  .deliver__grid--one {
+    grid-template-columns: minmax(0, 14rem);
+  }
+  .dlg__acts {
+    flex-direction: row;
+    justify-content: flex-end;
+  }
+}
+/* Side by side only once both halves fit — 1400px, not the 1180px it was.
+   Below that the window does not have two usable columns in it, and splitting
+   anyway starved both: the sidebar takes 270px and the page panel another 80px
+   of padding, so a 1280px window leaves 465px a side. The form's line-item row
+   needs 608px to hold its fields on one line, and the sheet is a fixed
+   proportion — at 465px it renders at a 6.4px type size, a thumbnail rather
+   than a preview of anything.
+
+   A full-width form above a full-width sheet is the better trade at those
+   widths: every field gets room, the preview is 830px and genuinely readable,
+   and the cost is a scroll to reach it rather than two columns of things too
+   small to use. From 1400px up, both columns clear their thresholds and the
+   split earns its place. */
+@media (min-width: 1400px) {
+  .build {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}

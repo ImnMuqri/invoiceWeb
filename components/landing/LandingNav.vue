@@ -98,7 +98,7 @@ function closeMenu() {
 
     <!-- Mobile menu -->
     <Transition name="sheet">
-      <div v-if="menuOpen" id="k-mobile-menu" class="sheet">
+      <div v-if="menuOpen" id="k-mobile-menu" class="sheet k-scroll">
         <nav class="sheet__nav" aria-label="Sections">
           <a
             v-for="l in copy.nav.links"
@@ -242,13 +242,12 @@ function closeMenu() {
   width: 14px;
   height: 14px;
 }
+/* The language toggle stays visible at every width. Hiding it below 480px was
+   a regression from making room for the CTA: on a 390px phone — the primary
+   device for this audience — the only way to reach the Malay page was the
+   footer. It is a 44px control; there is room. */
 .nav__lang--wide {
-  display: none;
-}
-@media (min-width: 480px) {
-  .nav__lang--wide {
-    display: inline-flex;
-  }
+  display: inline-flex;
 }
 .nav__icon-btn svg {
   width: 18px;

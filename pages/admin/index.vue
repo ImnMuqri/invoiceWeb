@@ -1,142 +1,159 @@
 <script setup>
-import { onMounted, ref, computed } from "vue";
+/**
+ * SYSTEM MANAGEMENT — the shell.
+ *
+ * Five tabs on the desk layer. The tab bodies live in components/admin/; this
+ * file owns the nav, the stores and the confirmations. It was 1,729 lines with
+ * every tab inline, roughly 280 raw Tailwind slate utilities, and four
+ * window.confirm() dialogs.
+ *
+ * THE CONFIRMS. Suspending an account, cancelling somebody's subscription,
+ * deleting a plan and deleting a user all went through `confirm()`. Three
+ * problems with that on this particular screen: the dialog is unstyled and
+ * unbranded while the rest of the app confirms in UiModal; it is suppressed
+ * outright in some embedded and automated contexts, where it returns false and
+ * the action silently does not happen; and it cannot show what is actually at
+ * stake. "All associated data will be lost forever" is a sentence about a
+ * stranger's account, and it deserves to name them and say what goes.
+ *
+ * Also fixed here rather than in a component, because it is store wiring:
+ * creating, updating and deleting a promo code never refetched, so the table
+ * only reflected the change if the store happened to mutate its own array.
+ */
+import { computed, onMounted, ref } from "vue";
 import { useAdminStore } from "~/stores/adminStore";
 import { usePromoStore } from "~/stores/promoStore";
 import { useSystemStore } from "~/stores/systemStore";
+import { toInputDate } from "~/utils/date";
 
-definePageMeta({
-  layout: "default",
-  middleware: "admin",
-});
+definePageMeta({ layout: "default", middleware: "admin" });
 
 const adminStore = useAdminStore();
 const promoStore = usePromoStore();
 const systemStore = useSystemStore();
 
-const activeTab = ref("general");
 const toast = ref({ message: "", type: "success" });
+const notify = (message, type = "success") => (toast.value = { message, type });
 
-// --- GENERAL SETTINGS LOGIC ---
+const TABS = [
+  { id: "general", label: "Switches", icon: "heroicons:bolt" },
+  { id: "users", label: "Users", icon: "heroicons:users" },
+  { id: "plans", label: "Plans", icon: "heroicons:sparkles" },
+  { id: "transactions", label: "Money", icon: "heroicons:banknotes" },
+  { id: "promo", label: "Promo", icon: "heroicons:ticket" },
+];
+const activeTab = ref("general");
+
+/* ─── General ───────────────────────────────────────────────────────────── */
 const localConfig = ref({ ...systemStore.config });
-const isSavingConfig = ref(false);
+const cleanConfig = ref({});
+const savingConfig = ref(false);
+
+const configDirty = computed(
+  () => JSON.stringify(localConfig.value) !== JSON.stringify(cleanConfig.value),
+);
 
 const saveConfig = async () => {
-  isSavingConfig.value = true;
-  const success = await systemStore.updateSystemConfig(localConfig.value);
-  if (success) {
-    toast.value = { message: "System configuration updated!", type: "success" };
+  savingConfig.value = true;
+  const ok = await systemStore.updateSystemConfig(localConfig.value);
+  if (ok) {
+    cleanConfig.value = JSON.parse(JSON.stringify(localConfig.value));
+    notify("Applied to every account.");
   } else {
-    toast.value = {
-      message: systemStore.error || "Failed to update config",
-      type: "error",
-    };
+    notify(systemStore.error || "Could not apply those changes.", "error");
   }
-  isSavingConfig.value = false;
+  savingConfig.value = false;
 };
 
-// --- USERS MANAGEMENT LOGIC ---
-const userSearchQuery = ref("");
+/* ─── Users ─────────────────────────────────────────────────────────────── */
+const userSearch = ref("");
 const filteredUsers = computed(() => {
-  if (!userSearchQuery.value) return adminStore.users;
-  const q = userSearchQuery.value.toLowerCase();
+  const q = userSearch.value.trim().toLowerCase();
+  if (!q) return adminStore.users;
   return adminStore.users.filter(
     (u) =>
       u.name?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q),
   );
 });
 
-const editBillingModal = ref({
-  isOpen: false,
-  user: null,
-  newDate: "",
-});
+const toggleUserStatus = async (user) => {
+  const wasActive = user.isActive;
+  const ok = await adminStore.updateUser(user.id, { isActive: !wasActive });
+  notify(
+    ok
+      ? `${user.email} ${wasActive ? "suspended" : "reactivated"}.`
+      : adminStore.error ||
+          `Could not ${wasActive ? "suspend" : "reactivate"} ${user.email}.`,
+    ok ? "success" : "error",
+  );
+};
+
+/* ── Billing date ── */
+const billingFor = ref(null);
+const billingDate = ref("");
 const savingBilling = ref(false);
 
 const openBillingEditor = (user) => {
-  editBillingModal.value.user = user;
-  const currentEnd = user.subscriptions?.[0]?.subscriptionEnds;
-  editBillingModal.value.newDate = currentEnd
-    ? new Date(
-        new Date(currentEnd).getTime() +
-          Math.abs(new Date(currentEnd).getTimezoneOffset() * 60000),
-      )
-        .toISOString()
-        .split("T")[0]
-    : "";
-  editBillingModal.value.isOpen = true;
+  billingFor.value = user;
+  /* Was `getTime() + Math.abs(getTimezoneOffset() * 60000)` then toISOString().
+     Math.abs drops the sign, so west of UTC the date came back a day out.
+     toInputDate formats from local parts with no UTC round trip. */
+  billingDate.value = toInputDate(user.subscriptions?.[0]?.subscriptionEnds);
 };
 
 const saveBillingDate = async () => {
   savingBilling.value = true;
-  const success = await adminStore.updateUser(editBillingModal.value.user.id, {
-    subscriptionEnds: editBillingModal.value.newDate || null,
+  const ok = await adminStore.updateUser(billingFor.value.id, {
+    subscriptionEnds: billingDate.value || null,
   });
-  if (success) {
-    toast.value = {
-      message: "Billing date successfully extended!",
-      type: "success",
-    };
-    editBillingModal.value.isOpen = false;
+  if (ok) {
+    const who = billingFor.value.email;
+    billingFor.value = null;
     await adminStore.fetchUsers();
+    notify(`Renewal date updated for ${who}.`);
   } else {
-    toast.value = { message: "Failed to update billing date", type: "error" };
+    notify(adminStore.error || "Could not update that date.", "error");
   }
   savingBilling.value = false;
 };
 
-const toggleUserStatus = async (user) => {
-  const success = await adminStore.updateUser(user.id, {
-    isActive: !user.isActive,
-  });
-  if (success) {
-    toast.value = {
-      message: `User ${user.isActive ? "deactivated" : "activated"} successfully`,
-      type: "success",
-    };
-  }
+/* ── Confirmations ── */
+const cancelSubFor = ref(null);
+const deleteUserFor = ref(null);
+const busy = ref(false);
+
+const doCancelSub = async () => {
+  busy.value = true;
+  const u = cancelSubFor.value;
+  const ok = await adminStore.cancelSubscription(u.id);
+  cancelSubFor.value = null;
+  busy.value = false;
+  notify(
+    ok
+      ? `${u.email} moved to FREE.`
+      : adminStore.error || `Could not cancel for ${u.email}.`,
+    ok ? "success" : "error",
+  );
 };
 
-const confirmCancelSubscription = async (user) => {
-  if (
-    confirm(
-      `Are you sure you want to cancel the subscription for ${user.email}? This will immediately downgrade them to the FREE plan.`,
-    )
-  ) {
-    const success = await adminStore.cancelSubscription(user.id);
-    if (success) {
-      toast.value = {
-        message: "Subscription successfully cancelled!",
-        type: "success",
-      };
-    } else {
-      toast.value = {
-        message: adminStore.error || "Failed to cancel subscription",
-        type: "error",
-      };
-    }
-  }
+const doDeleteUser = async () => {
+  busy.value = true;
+  const u = deleteUserFor.value;
+  const ok = await adminStore.deleteUser(u.id);
+  deleteUserFor.value = null;
+  busy.value = false;
+  notify(
+    ok ? `${u.email} deleted.` : adminStore.error || `Could not delete ${u.email}.`,
+    ok ? "success" : "error",
+  );
 };
 
-const confirmDeleteUser = async (user) => {
-  if (
-    confirm(
-      `Are you sure you want to delete ${user.email}? All associated data will be lost forever.`,
-    )
-  ) {
-    const success = await adminStore.deleteUser(user.id);
-    if (success) {
-      toast.value = { message: "User deleted successfully", type: "success" };
-    }
-  }
-};
+/* ─── Plans ─────────────────────────────────────────────────────────────── */
+const planModal = ref(false);
+const editingPlan = ref(null);
+const deletePlanFor = ref(null);
 
-const getInitials = (name) => (name ? name.charAt(0).toUpperCase() : "U");
-
-// --- PLAN MANAGEMENT LOGIC ---
-const isPlanModalOpen = ref(false);
-const selectedPlan = ref(null);
-const isPlanEdit = ref(false);
-const planForm = ref({
+const blankPlan = () => ({
   name: "",
   description: "",
   price: 0,
@@ -148,132 +165,105 @@ const planForm = ref({
   waReminders: 0,
   emailReminders: 0,
   invoices: 0,
+  quotes: 0,
   features: [],
   isActive: true,
 });
+const planForm = ref(blankPlan());
 
-const addFeatureRow = () => {
-  planForm.value.features.push("");
+const openCreatePlan = () => {
+  editingPlan.value = null;
+  planForm.value = blankPlan();
+  planModal.value = true;
 };
 
-const removeFeatureRow = (index) => {
-  planForm.value.features.splice(index, 1);
-};
-
-const openCreatePlanModal = () => {
-  selectedPlan.value = null;
-  isPlanEdit.value = false;
+const openEditPlan = (plan) => {
+  editingPlan.value = plan;
   planForm.value = {
-    name: "",
-    description: "",
-    price: 0,
-    currency: "MYR",
-    interval: "month",
-    waSends: 0,
-    emailSends: 0,
-    aiCredits: 0,
-    waReminders: 0,
-    emailReminders: 0,
-    invoices: 0,
-    features: [],
-    isActive: true,
-  };
-  isPlanModalOpen.value = true;
-};
-
-const openEditPlanModal = (plan) => {
-  selectedPlan.value = { ...plan };
-  isPlanEdit.value = true;
-  planForm.value = {
+    ...blankPlan(),
     ...plan,
     features: Array.isArray(plan.features) ? [...plan.features] : [],
   };
-  isPlanModalOpen.value = true;
+  planModal.value = true;
 };
 
-const handleSavePlan = async () => {
-  const payload = { ...planForm.value };
-  let success = false;
-  if (selectedPlan.value) {
-    success = await adminStore.updatePlan(selectedPlan.value.id, payload);
+const savePlan = async () => {
+  /* Only the fields the form owns — planForm is spread from the API record when
+     editing, so id/createdAt/relations were going back in the write body. */
+  const f = planForm.value;
+  const payload = {
+    name: f.name,
+    description: f.description,
+    price: f.price,
+    currency: f.currency,
+    interval: f.interval,
+    waSends: f.waSends,
+    emailSends: f.emailSends,
+    aiCredits: f.aiCredits,
+    waReminders: f.waReminders,
+    emailReminders: f.emailReminders,
+    invoices: f.invoices,
+    quotes: f.quotes,
+    features: (f.features || []).map((x) => String(x).trim()).filter(Boolean),
+    isActive: f.isActive,
+  };
+  busy.value = true;
+  const ok = editingPlan.value
+    ? await adminStore.updatePlan(editingPlan.value.id, payload)
+    : await adminStore.createPlan(payload);
+  busy.value = false;
+  if (ok) {
+    planModal.value = false;
+    await adminStore.fetchPlans();
+    notify(editingPlan.value ? `${payload.name} updated.` : `${payload.name} created.`);
   } else {
-    success = await adminStore.createPlan(payload);
-  }
-
-  if (success) {
-    isPlanModalOpen.value = false;
-    toast.value = {
-      message: "Plan details updated successfully!",
-      type: "success",
-    };
-    adminStore.fetchPlans();
+    notify(adminStore.error || `Could not save ${payload.name}.`, "error");
   }
 };
 
-const confirmDeletePlan = async (plan) => {
-  if (confirm(`Are you sure you want to delete the ${plan.name} plan?`)) {
-    const success = await adminStore.deletePlan(plan.id);
-    if (success) {
-      toast.value = {
-        message: "The plan has been removed successfully.",
-        type: "success",
-      };
-    }
-  }
+const doDeletePlan = async () => {
+  busy.value = true;
+  const p = deletePlanFor.value;
+  const ok = await adminStore.deletePlan(p.id);
+  deletePlanFor.value = null;
+  busy.value = false;
+  if (ok) await adminStore.fetchPlans();
+  notify(
+    ok ? `${p.name} removed.` : adminStore.error || `Could not remove ${p.name}.`,
+    ok ? "success" : "error",
+  );
 };
 
-const selectedMonth = ref(new Date().getMonth() + 1);
-const selectedYear = ref(new Date().getFullYear());
-const monthlyRevenueValue = ref(0);
+/* ─── Analytics ─────────────────────────────────────────────────────────── */
+const month = ref(new Date().getMonth() + 1);
+const year = ref(new Date().getFullYear());
+const monthlyRevenue = ref(0);
 const loadingMonthly = ref(false);
 
-const months = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-];
-const years = computed(() => {
-  const currentYear = new Date().getFullYear();
-  const result = [];
-  for (let y = currentYear; y >= 2024; y--) result.push(y);
-  return result;
-});
-
-const updateMonthlyRevenueData = async () => {
+const loadMonthly = async () => {
   loadingMonthly.value = true;
   try {
-    const data = await adminStore.fetchMonthlyRevenue(
-      selectedMonth.value,
-      selectedYear.value,
-    );
-    if (data) monthlyRevenueValue.value = data.revenue;
+    const data = await adminStore.fetchMonthlyRevenue(month.value, year.value);
+    if (data) monthlyRevenue.value = data.revenue;
   } finally {
     loadingMonthly.value = false;
   }
 };
 
-// --- TRANSACTIONS LOGIC ---
-const txSearchQuery = ref("");
-const statusColors = {
-  ACTIVE: "bg-emerald-50 text-emerald-700 border-emerald-100",
-  INACTIVE: "bg-slate-50 text-slate-600 border-slate-100",
-  PENDING: "bg-amber-50 text-amber-700 border-amber-100",
-  CANCELLED: "bg-red-50 text-red-700 border-red-100",
-  FAILED: "bg-red-50 text-red-700 border-red-100",
+const setMonth = (v) => {
+  month.value = v;
+  loadMonthly();
+};
+const setYear = (v) => {
+  year.value = v;
+  loadMonthly();
 };
 
-const filteredTransactions = computed(() => {
-  if (!txSearchQuery.value) return adminStore.transactions;
-  const q = txSearchQuery.value.toLowerCase();
+/* ─── Transactions ──────────────────────────────────────────────────────── */
+const txSearch = ref("");
+const filteredTx = computed(() => {
+  const q = txSearch.value.trim().toLowerCase();
+  if (!q) return adminStore.transactions;
   return adminStore.transactions.filter(
     (tx) =>
       tx.user?.name?.toLowerCase().includes(q) ||
@@ -283,94 +273,11 @@ const filteredTransactions = computed(() => {
   );
 });
 
-// --- PROMO CODES LOGIC ---
-const showCreatePromoModal = ref(false);
-const showEditPromoModal = ref(false);
-const newPromo = ref({
-  code: "",
-  discountType: "PERCENTAGE",
-  discountValue: 0,
-  maxUses: null,
-  expiresAt: null,
-});
-const editPromo = ref({
-  id: null,
-  code: "",
-  discountType: "PERCENTAGE",
-  discountValue: 0,
-  maxUses: null,
-  expiresAt: null,
-});
-const discountOptions = [
-  { value: "PERCENTAGE", label: "Percentage (%)" },
-  { value: "FIXED", label: "Fixed (MYR)" },
-];
-
-const handleCreatePromo = async () => {
-  try {
-    await promoStore.createPromoCode(newPromo.value);
-    toast.value = {
-      message: "Promo code created successfully!",
-      type: "success",
-    };
-    showCreatePromoModal.value = false;
-    newPromo.value = {
-      code: "",
-      discountType: "PERCENTAGE",
-      discountValue: 0,
-      maxUses: null,
-      expiresAt: null,
-    };
-  } catch (err) {
-    toast.value = {
-      message: err.message || "Failed to create promo code",
-      type: "error",
-    };
-  }
-};
-
-const openEditPromoModal = (promo) => {
-  editPromo.value = { ...promo };
-  showEditPromoModal.value = true;
-};
-
-const handleUpdatePromo = async () => {
-  try {
-    await promoStore.updatePromoCode(editPromo.value.id, editPromo.value);
-    toast.value = {
-      message: "Promo code updated successfully!",
-      type: "success",
-    };
-    showEditPromoModal.value = false;
-  } catch (err) {
-    toast.value = {
-      message: err.message || "Failed to update promo code",
-      type: "error",
-    };
-  }
-};
-
-const confirmDeletePromo = async (id) => {
-  if (confirm("Are you sure you want to delete this promo code?")) {
-    try {
-      await promoStore.deletePromoCode(id);
-      toast.value = {
-        message: "Promo code deleted successfully!",
-        type: "success",
-      };
-    } catch (err) {
-      toast.value = {
-        message: err.message || "Failed to delete promo code",
-        type: "error",
-      };
-    }
-  }
-};
-
-const promoSearchQuery = ref("");
-const filteredPromoCodes = computed(() => {
-  if (!promoSearchQuery.value) return promoStore.promoCodes;
-  const q = promoSearchQuery.value.toLowerCase();
+/* ─── Promo ─────────────────────────────────────────────────────────────── */
+const promoSearch = ref("");
+const filteredPromo = computed(() => {
+  const q = promoSearch.value.trim().toLowerCase();
+  if (!q) return promoStore.promoCodes;
   return promoStore.promoCodes.filter(
     (p) =>
       p.code?.toLowerCase().includes(q) ||
@@ -378,6 +285,93 @@ const filteredPromoCodes = computed(() => {
   );
 });
 
+const promoModal = ref(false);
+const editingPromo = ref(null);
+const deletePromoFor = ref(null);
+
+const blankPromo = () => ({
+  code: "",
+  discountType: "PERCENTAGE",
+  discountValue: 0,
+  maxUses: null,
+  expiresAt: null,
+});
+const promoForm = ref(blankPromo());
+
+const DISCOUNT_TYPES = [
+  { value: "PERCENTAGE", label: "Percentage off" },
+  { value: "FIXED", label: "Fixed amount off (MYR)" },
+];
+
+const openCreatePromo = () => {
+  editingPromo.value = null;
+  promoForm.value = blankPromo();
+  promoModal.value = true;
+};
+
+const openEditPromo = (promo) => {
+  editingPromo.value = promo;
+  promoForm.value = { ...blankPromo(), ...promo };
+  promoModal.value = true;
+};
+
+const savePromo = async () => {
+  const f = promoForm.value;
+  const payload = {
+    code: String(f.code || "").trim().toUpperCase(),
+    discountType: f.discountType,
+    discountValue: Number(f.discountValue) || 0,
+    maxUses: f.maxUses === "" || f.maxUses === null ? null : Number(f.maxUses),
+    expiresAt: f.expiresAt || null,
+  };
+  if (!payload.code) {
+    notify("Give the code something to be typed as.", "warning");
+    return;
+  }
+  busy.value = true;
+  try {
+    if (editingPromo.value) {
+      await promoStore.updatePromoCode(editingPromo.value.id, payload);
+    } else {
+      await promoStore.createPromoCode(payload);
+    }
+    /* None of the three promo writes refetched, so the table was only correct if
+       the store happened to mutate its own array. */
+    await promoStore.fetchAllPromoCodes();
+    promoModal.value = false;
+    notify(editingPromo.value ? `${payload.code} updated.` : `${payload.code} created.`);
+  } catch (err) {
+    notify(err.message || `Could not save ${payload.code}.`, "error");
+  } finally {
+    busy.value = false;
+  }
+};
+
+const doDeletePromo = async () => {
+  const p = deletePromoFor.value;
+  busy.value = true;
+  try {
+    await promoStore.deletePromoCode(p.id);
+    await promoStore.fetchAllPromoCodes();
+    deletePromoFor.value = null;
+    notify(`${p.code} deleted.`);
+  } catch (err) {
+    notify(err.message || `Could not delete ${p.code}.`, "error");
+  } finally {
+    busy.value = false;
+  }
+};
+
+const togglePromo = async (p) => {
+  try {
+    await promoStore.togglePromoStatus(p.id);
+    await promoStore.fetchAllPromoCodes();
+  } catch (err) {
+    notify(err.message || `Could not change ${p.code}.`, "error");
+  }
+};
+
+/* ─── Load ──────────────────────────────────────────────────────────────── */
 onMounted(async () => {
   await Promise.all([
     systemStore.fetchSystemConfig(),
@@ -388,1331 +382,460 @@ onMounted(async () => {
     promoStore.fetchAllPromoCodes(),
   ]);
   localConfig.value = { ...systemStore.config };
-  updateMonthlyRevenueData();
+  cleanConfig.value = JSON.parse(JSON.stringify(localConfig.value));
+  loadMonthly();
 });
 </script>
 
 <template>
-  <div class="system-management-page max-w-[1400px]">
-    <!-- Page Header -->
-    <div class="mb-8">
-      <h2 class="text-2xl font-bold text-slate-900 tracking-tight">
-        System Management
-      </h2>
-      <p class="text-xs font-medium text-slate-500 mt-1">
-        Configure global feature availability, broadcast messages, and manage
-        commercial operations.
-      </p>
-    </div>
-
-    <!-- Navigation Tabs -->
-    <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl w-fit mb-8">
-      <button
-        v-for="tab in [
-          { id: 'general', label: 'General', icon: 'heroicons:cog-6-tooth' },
-          { id: 'users', label: 'Users', icon: 'heroicons:users' },
-          {
-            id: 'plans',
-            label: 'Plans & Analytics',
-            icon: 'heroicons:sparkles',
-          },
-          {
-            id: 'transactions',
-            label: 'Transactions',
-            icon: 'heroicons:credit-card',
-          },
-          { id: 'promo', label: 'Promo Codes', icon: 'heroicons:ticket' },
-        ]"
-        :key="tab.id"
-        @click="activeTab = tab.id"
-        :class="[
-          'flex items-center gap-2 px-4 py-2 text-sm font-bold transition-all rounded-lg',
-          activeTab === tab.id
-            ? 'bg-white text-slate-900 shadow-sm'
-            : 'text-slate-500 hover:text-slate-700',
-        ]">
-        <UiIcon :icon="tab.icon" class="w-4 h-4" />
-        {{ tab.label }}
-      </button>
-    </div>
-
-    <!-- TAB CONTENT: GENERAL -->
-    <div
-      v-if="activeTab === 'general'"
-      class="space-y-8 animate-in fade-in duration-500">
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <!-- Feature Toggles -->
-        <div class="bg-white border border-slate-200 rounded-2xl p-8 shadow-sm">
-          <div class="flex items-center gap-3 mb-6">
-            <div
-              class="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center text-white">
-              <UiIcon icon="heroicons:bolt" class="w-5 h-5" />
-            </div>
-            <div>
-              <h3 class="text-lg font-bold text-slate-900">
-                Global Feature Availability
-              </h3>
-              <p class="text-xs font-medium text-slate-500">
-                Enable or disable core system modules instantly.
-              </p>
-            </div>
-          </div>
-
-          <div class="space-y-6">
-            <div
-              v-for="feature in [
-                {
-                  key: 'invoiceCreationEnabled',
-                  label: 'Invoice Creation',
-                  desc: 'Allow users to generate new invoices.',
-                },
-                {
-                  key: 'whatsappEnabled',
-                  label: 'WhatsApp Reminders',
-                  desc: 'Allow system or user WhatsApp delivery.',
-                },
-                {
-                  key: 'emailEnabled',
-                  label: 'Email Delivery',
-                  desc: 'Allow invoice and reminder emails.',
-                },
-                {
-                  key: 'paymentsEnabled',
-                  label: 'Online Payments',
-                  desc: 'Enable Xendit/ToyyibPay/Billplz gateways.',
-                },
-              ]"
-              :key="feature.key"
-              class="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
-              <div>
-                <p class="text-sm font-bold text-slate-900">
-                  {{ feature.label }}
-                </p>
-                <p class="text-xs font-medium text-slate-500">
-                  {{ feature.desc }}
-                </p>
-              </div>
-              <button
-                @click="localConfig[feature.key] = !localConfig[feature.key]"
-                :class="[
-                  'relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-slate-900 focus:ring-offset-2',
-                  localConfig[feature.key] ? 'bg-slate-900' : 'bg-slate-200',
-                ]">
-                <span
-                  :class="[
-                    'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-                    localConfig[feature.key]
-                      ? 'translate-x-5'
-                      : 'translate-x-0',
-                  ]" />
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Global Notice -->
-        <div
-          class="bg-white border border-slate-200 rounded-2xl p-8 shadow-sm flex flex-col">
-          <div class="flex items-center gap-3 mb-6">
-            <div
-              class="w-10 h-10 rounded-xl bg-amber-500 flex items-center justify-center text-white">
-              <UiIcon icon="heroicons:megaphone" class="w-5 h-5" />
-            </div>
-            <div>
-              <h3 class="text-lg font-bold text-slate-900">
-                System Broadcast Notice
-              </h3>
-              <p class="text-xs font-medium text-slate-500">
-                displayed prominently on every user's dashboard.
-              </p>
-            </div>
-          </div>
-
-          <div class="flex-1 space-y-4">
-            <textarea
-              v-model="localConfig.globalNotice"
-              placeholder="Enter a message to tell users what's happening (e.g. system maintenance details)..."
-              class="w-full h-40 p-4 text-sm font-medium border border-slate-200 rounded-xl focus:ring-1 focus:ring-slate-950 outline-none transition-all resize-none bg-slate-50"></textarea>
-
-            <div
-              class="p-4 rounded-xl border border-dashed border-slate-200 bg-slate-50/50">
-              <p
-                class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
-                Live Preview
-              </p>
-              <div
-                v-if="localConfig.globalNotice"
-                class="bg-amber-50 border border-amber-100 p-4 rounded-lg flex items-start gap-3">
-                <UiIcon
-                  icon="heroicons:information-circle"
-                  class="w-5 h-5 text-amber-600 shrink-0" />
-                <p class="text-xs font-bold text-amber-900 leading-relaxed">
-                  {{ localConfig.globalNotice }}
-                </p>
-              </div>
-              <p
-                v-else
-                class="text-xs font-medium text-slate-400 italic text-center py-4">
-                No message set. Banner will be hidden.
-              </p>
-            </div>
-          </div>
-        </div>
+  <div class="desk">
+    <header class="desk__head">
+      <div>
+        <h1 class="desk__title">System management</h1>
+        <p class="desk__sub">
+          Platform switches, accounts, plans and money. Everything here affects
+          other people.
+        </p>
       </div>
+    </header>
 
-      <!-- Action Button -->
-      <div
-        class="flex justify-end p-6 bg-slate-900 rounded-2xl shadow-xl shadow-slate-900/10">
+    <div class="bar">
+      <div class="segs" role="group" aria-label="Admin sections">
         <button
-          @click="saveConfig"
-          :disabled="isSavingConfig"
-          class="flex items-center gap-2 px-8 py-3 bg-white text-slate-900 rounded-xl font-bold hover:bg-slate-50 transition-all disabled:opacity-50">
-          <UiIcon
-            v-if="isSavingConfig"
-            icon="line-md:loading-twotone-loop"
-            class="w-4 h-4 animate-spin" />
-          {{ isSavingConfig ? "Saving..." : "Deploy System Changes" }}
+          v-for="t in TABS"
+          :key="t.id"
+          type="button"
+          class="seg"
+          :class="{ 'seg--on': activeTab === t.id }"
+          :aria-pressed="activeTab === t.id"
+          @click="activeTab = t.id">
+          {{ t.label }}
         </button>
       </div>
     </div>
 
-    <!-- TAB CONTENT: USERS -->
-    <div v-if="activeTab === 'users'" class="animate-in fade-in duration-500">
-      <div
-        class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
-        <div class="px-6 pt-6 flex items-center justify-between">
-          <div>
-            <p class="text-lg font-bold text-slate-900">User Accounts</p>
-            <p class="text-[12px] font-medium text-slate-500">
-              Manage system access, subscription tiers, and operational status.
-            </p>
-          </div>
-          <div class="flex items-center gap-3">
-            <div class="relative w-64">
-              <UiIcon
-                icon="heroicons:magnifying-glass"
-                class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
-                v-model="userSearchQuery"
-                type="text"
-                placeholder="Search users..."
-                class="w-full pl-9 pr-4 py-2 text-sm border border-slate-200 rounded-lg outline-none focus:ring-1 focus:ring-slate-950 px-3 font-medium text-slate-600" />
-            </div>
-          </div>
-        </div>
+    <div class="set__panel">
+      <div class="set__body">
+        <AdminGeneral v-if="activeTab === 'general'" :config="localConfig" />
 
-        <UiTable
+        <AdminUsers
+          v-else-if="activeTab === 'users'"
+          :users="filteredUsers"
           :loading="adminStore.loading"
-          :is-empty="filteredUsers.length === 0"
-          :column-count="7"
-          show-refresh
-          @refresh="adminStore.fetchUsers()">
-          <template #header>
-            <th
-              class="py-4 pl-6 pr-3 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-              User
-            </th>
-            <th
-              class="px-3 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-              Plan
-            </th>
-            <th
-              class="px-3 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-              Role
-            </th>
-            <th
-              class="px-3 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-              Stats
-            </th>
-            <th
-              class="px-3 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-              Status
-            </th>
-            <th
-              class="px-3 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-              Joined
-            </th>
-            <th
-              class="px-3 py-4 text-right text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-              Actions
-            </th>
-          </template>
+          :search="userSearch"
+          @update:search="userSearch = $event"
+          @refresh="adminStore.fetchUsers()"
+          @edit-billing="openBillingEditor"
+          @toggle-status="toggleUserStatus"
+          @cancel-sub="cancelSubFor = $event"
+          @delete="deleteUserFor = $event" />
 
-          <tr
-            v-for="user in filteredUsers"
-            :key="user.id"
-            class="hover:bg-slate-50 transition-colors group">
-            <td class="whitespace-nowrap py-4 pl-6 pr-3">
-              <div class="flex items-center gap-3">
-                <div
-                  class="w-9 h-9 rounded-full bg-slate-900 flex items-center justify-center text-white text-xs font-bold ring-2 ring-white shadow-sm shrink-0 uppercase">
-                  {{ getInitials(user.name) }}
-                </div>
-                <div class="min-w-0">
-                  <p class="text-sm font-bold text-slate-900 truncate">
-                    {{ user.name }}
-                  </p>
-                  <p class="text-xs font-medium text-slate-500 truncate">
-                    {{ user.email }}
-                  </p>
-                </div>
-              </div>
-            </td>
-            <td class="px-3 py-4 whitespace-nowrap">
-              <div class="flex flex-col">
-                <span
-                  :class="[
-                    'px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border w-fit',
-                    user.plan === 'FREE'
-                      ? 'bg-slate-50 text-slate-600 border-slate-100'
-                      : 'bg-emerald-50 text-emerald-700 border-emerald-100',
-                  ]">
-                  {{ user.plan }}
-                </span>
-                <p
-                  v-if="
-                    user.subscriptions?.[0]?.status === 'ACTIVE' &&
-                    user.subscriptions?.[0]?.subscriptionEnds
-                  "
-                  class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
-                  Renews:
-                  {{
-                    new Date(
-                      user.subscriptions[0].subscriptionEnds,
-                    ).toLocaleDateString()
-                  }}
-                </p>
-              </div>
-            </td>
-            <td class="px-3 py-4 whitespace-nowrap">
-              <span
-                :class="[
-                  'px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest border w-fit',
-                  user.role === 'ADMIN'
-                    ? 'bg-indigo-50 text-indigo-700 border-indigo-100'
-                    : 'bg-slate-50 text-slate-500 border-slate-100',
-                ]">
-                {{ user.role }}
-              </span>
-            </td>
-            <td class="px-3 py-4 whitespace-nowrap">
-              <div class="flex items-center gap-3">
-                <div class="flex flex-col">
-                  <span
-                    class="text-xs font-bold text-slate-900 leading-tight"
-                    >{{ user._count?.invoices || 0 }}</span
-                  >
-                  <span class="text-[9px] font-bold text-slate-400 uppercase"
-                    >Invoices</span
-                  >
-                </div>
-                <div class="flex flex-col">
-                  <span
-                    class="text-xs font-bold text-slate-900 leading-tight"
-                    >{{ user._count?.clients || 0 }}</span
-                  >
-                  <span class="text-[9px] font-bold text-slate-400 uppercase"
-                    >Clients</span
-                  >
-                </div>
-              </div>
-            </td>
-            <td class="px-3 py-4 whitespace-nowrap">
-              <span
-                :class="[
-                  'px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border',
-                  user.isActive
-                    ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
-                    : 'bg-rose-50 text-rose-700 border-rose-100',
-                ]">
-                {{ user.isActive ? "Active" : "Suspended" }}
-              </span>
-            </td>
-            <td
-              class="px-3 py-4 whitespace-nowrap text-xs font-bold text-slate-500">
-              {{ new Date(user.createdAt).toLocaleDateString() }}
-            </td>
-            <td class="px-3 py-4 whitespace-nowrap text-right">
-              <UiPopover placement="bottom-end">
-                <template #trigger>
-                  <button
-                    class="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-all">
-                    <UiIcon
-                      icon="heroicons:ellipsis-horizontal"
-                      custom-class="w-5 h-5" />
-                  </button>
-                </template>
-                <template #default="{ close }">
-                  <div class="p-1 min-w-[160px]">
-                    <button
-                      @click="
-                        close();
-                        openBillingEditor(user);
-                      "
-                      class="w-full flex items-center gap-2 px-3 py-2 text-xs font-bold text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-all text-left">
-                      <UiIcon
-                        icon="heroicons:calendar-days"
-                        custom-class="w-4 h-4" />
-                      Edit Subscription
-                    </button>
-                    <button
-                      @click="
-                        close();
-                        toggleUserStatus(user);
-                      "
-                      class="w-full flex items-center gap-2 px-3 py-2 text-xs font-bold text-slate-600 hover:text-amber-600 hover:bg-amber-50 rounded-md transition-all text-left mt-0.5">
-                      <UiIcon
-                        :icon="
-                          user.isActive
-                            ? 'heroicons:no-symbol'
-                            : 'heroicons:check-circle'
-                        "
-                        custom-class="w-4 h-4" />
-                      {{ user.isActive ? "Suspend User" : "Activate User" }}
-                    </button>
-                    <button
-                      v-if="user.plan !== 'FREE'"
-                      @click="
-                        close();
-                        confirmCancelSubscription(user);
-                      "
-                      class="w-full flex items-center gap-2 px-3 py-2 text-xs font-bold text-slate-600 hover:text-rose-600 hover:bg-rose-50 rounded-md transition-all text-left mt-0.5">
-                      <UiIcon
-                        icon="heroicons:x-circle"
-                        custom-class="w-4 h-4" />
-                      Cancel Subscription
-                    </button>
-                    <div class="h-px bg-slate-100 my-1 mx-2"></div>
-                    <button
-                      @click="
-                        close();
-                        confirmDeleteUser(user);
-                      "
-                      class="w-full flex items-center gap-2 px-3 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 rounded-md transition-all text-left">
-                      <UiIcon icon="heroicons:trash" custom-class="w-4 h-4" />
-                      Delete Account
-                    </button>
-                  </div>
-                </template>
-              </UiPopover>
-            </td>
-          </tr>
-        </UiTable>
-      </div>
-    </div>
+        <AdminPlans
+          v-else-if="activeTab === 'plans'"
+          :analytics="adminStore.analytics"
+          :plans="adminStore.plans"
+          :month="month"
+          :year="year"
+          :monthly-revenue="monthlyRevenue"
+          :loading-monthly="loadingMonthly"
+          @update:month="setMonth"
+          @update:year="setYear"
+          @create-plan="openCreatePlan"
+          @edit-plan="openEditPlan"
+          @delete-plan="deletePlanFor = $event" />
 
-    <!-- TAB CONTENT: PLANS & ANALYTICS -->
-    <div
-      v-if="activeTab === 'plans'"
-      class="animate-in fade-in duration-500 space-y-8">
-      <!-- Analytics Summary Cards -->
-      <div
-        v-if="adminStore.analytics?.summary"
-        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
-        <div
-          class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all group">
-          <div class="flex items-center justify-between mb-4">
-            <div class="p-2 bg-emerald-50 rounded-lg text-emerald-600">
-              <UiIcon icon="heroicons:banknotes" class="w-5 h-5" />
-            </div>
-            <div
-              class="text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md text-[10px] font-bold tracking-widest uppercase">
-              Lifetime
-            </div>
-          </div>
-          <dt
-            class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">
-            Total Revenue
-          </dt>
-          <dd class="text-2xl font-bold text-slate-900 tracking-tight">
-            MYR
-            {{ adminStore.analytics.summary.revenue.lifetime.toLocaleString() }}
-          </dd>
-        </div>
-
-        <div
-          class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all group">
-          <div class="flex items-center justify-between mb-4">
-            <div class="p-2 bg-blue-50 rounded-lg text-blue-600">
-              <UiIcon icon="heroicons:users" class="w-5 h-5" />
-            </div>
-            <div
-              :class="[
-                'px-2 py-1 rounded-md text-[10px] font-bold flex items-center gap-1',
-                adminStore.analytics.summary.users.growth >= 0
-                  ? 'text-blue-600 bg-blue-50'
-                  : 'text-rose-600 bg-rose-50',
-              ]">
-              <UiIcon
-                :icon="
-                  adminStore.analytics.summary.users.growth >= 0
-                    ? 'heroicons:arrow-trending-up'
-                    : 'heroicons:arrow-trending-down'
-                "
-                class="w-3 h-3" />
-              {{ Math.abs(adminStore.analytics.summary.users.growth) }}%
-            </div>
-          </div>
-          <dt
-            class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">
-            Total Users
-          </dt>
-          <dd class="text-2xl font-bold text-slate-900 tracking-tight">
-            {{ adminStore.analytics.summary.users.total.toLocaleString() }}
-          </dd>
-        </div>
-
-        <div
-          class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all group">
-          <div class="flex items-center justify-between mb-4">
-            <div class="p-2 bg-purple-50 rounded-lg text-purple-600">
-              <UiIcon icon="heroicons:calendar-days" class="w-5 h-5" />
-            </div>
-            <div class="flex items-center gap-1">
-              <select
-                v-model="selectedMonth"
-                @change="updateMonthlyRevenueData"
-                class="bg-slate-50 border-none text-[9px] font-bold text-slate-600 rounded p-1 focus:ring-0 cursor-pointer">
-                <option v-for="(m, i) in months" :key="i" :value="i + 1">
-                  {{ m }}
-                </option>
-              </select>
-              <select
-                v-model="selectedYear"
-                @change="updateMonthlyRevenueData"
-                class="bg-slate-50 border-none text-[9px] font-bold text-slate-600 rounded p-1 focus:ring-0 cursor-pointer">
-                <option v-for="y in years" :key="y" :value="y">{{ y }}</option>
-              </select>
-            </div>
-          </div>
-          <dt
-            class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">
-            Monthly Revenue
-          </dt>
-          <dd
-            class="text-2xl font-bold text-slate-900 tracking-tight"
-            :class="{ 'opacity-40 animate-pulse': loadingMonthly }">
-            MYR {{ monthlyRevenueValue.toLocaleString() }}
-          </dd>
-        </div>
-
-        <div
-          class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all group">
-          <div class="flex items-center justify-between mb-4">
-            <div class="p-2 bg-amber-50 rounded-lg text-amber-600">
-              <UiIcon icon="heroicons:credit-card" class="w-5 h-5" />
-            </div>
-            <div
-              class="text-amber-600 bg-amber-50 px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-widest">
-              Activity
-            </div>
-          </div>
-          <dt
-            class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">
-            Total Transactions
-          </dt>
-          <dd class="text-2xl font-bold text-slate-900 tracking-tight">
-            {{
-              adminStore.analytics.summary.totalTransactions.toLocaleString()
-            }}
-          </dd>
-        </div>
-
-        <div
-          class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all group">
-          <div class="flex items-center justify-between mb-2">
-            <div class="p-2 bg-indigo-50 rounded-lg text-indigo-600">
-              <UiIcon icon="heroicons:chart-pie" class="w-5 h-5" />
-            </div>
-            <div
-              class="text-indigo-600 px-2 py-1 rounded text-[9px] font-semibold uppercase tracking-widest">
-              Mix
-            </div>
-          </div>
-          <dt
-            class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-2">
-            Plan distribution
-          </dt>
-          <dd class="flex flex-wrap gap-1">
-            <div
-              v-for="d in adminStore.analytics?.web?.planDistribution"
-              :key="d.plan"
-              class="flex items-center gap-1.5 bg-slate-50 border border-slate-100 px-2 py-0.5 rounded text-[10px] font-bold uppercase">
-              <span class="text-slate-400">{{ d.plan }}:</span>
-              <span class="text-slate-900 font-semibold">{{ d.count }}</span>
-            </div>
-          </dd>
-        </div>
-      </div>
-
-      <!-- Plan Management Table -->
-      <div
-        class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
-        <div
-          class="p-6 border-b border-slate-100 flex items-center justify-between">
-          <div>
-            <p class="text-lg font-bold text-slate-900">
-              Subscription Plans Control
-            </p>
-            <p class="text-[12px] font-medium text-slate-500">
-              Manage platform-wide subscription tiers. Define technical
-              throughput limits, AI processing credits, and market visibility
-              for each tier.
-            </p>
-          </div>
-          <button
-            @click="openCreatePlanModal"
-            class="flex items-center gap-2 px-5 py-2.5 bg-slate-900 text-white rounded-md text-[12px] font-bold hover:bg-slate-800 transition-all active:scale-95">
-            Create New Plan
-          </button>
-        </div>
-
-        <table class="w-full text-left border-collapse">
-          <thead>
-            <tr class="bg-slate-50/50 border-b border-slate-50">
-              <th
-                class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                Plan Name
-              </th>
-              <th
-                class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                Price
-              </th>
-              <th
-                class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                Limits (Inv/AI)
-              </th>
-              <th
-                class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                Status
-              </th>
-              <th
-                class="px-6 py-4 text-right text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-50">
-            <tr
-              v-for="plan in adminStore.plans"
-              :key="plan.id"
-              class="hover:bg-slate-50/50 transition-colors">
-              <td class="px-6 py-4">
-                <div class="flex flex-col">
-                  <span
-                    class="text-sm font-semibold text-slate-900 uppercase tracking-tight"
-                    >{{ plan.name }}</span
-                  >
-                  <span
-                    class="text-[10px] text-slate-500 font-medium truncate max-w-[200px]"
-                    >{{ plan.description }}</span
-                  >
-                </div>
-              </td>
-              <td class="px-6 py-4">
-                <div class="flex items-baseline gap-1">
-                  <span class="text-sm font-bold text-slate-900">{{
-                    plan.price
-                  }}</span>
-                  <span class="text-[9px] font-bold text-slate-400 uppercase"
-                    >{{ plan.currency }}/{{ plan.interval }}</span
-                  >
-                </div>
-              </td>
-              <td class="px-6 py-4">
-                <div class="flex items-center gap-2">
-                  <span
-                    class="text-[10px] font-bold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded"
-                    >{{
-                      plan.invoices >= 999999 ? "∞" : plan.invoices
-                    }}
-                    Inv</span
-                  >
-                  <span
-                    class="text-[10px] font-bold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded"
-                    >{{
-                      plan.aiCredits >= 999999 ? "∞" : plan.aiCredits
-                    }}
-                    AI</span
-                  >
-                </div>
-              </td>
-              <td class="px-6 py-4">
-                <span
-                  :class="[
-                    'px-2 py-1 rounded-md text-[9px] font-bold uppercase tracking-widest w-fit border',
-                    plan.isActive
-                      ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
-                      : 'bg-slate-100 text-slate-500 border-slate-200',
-                  ]">
-                  {{ plan.isActive ? "Active" : "Paused" }}
-                </span>
-              </td>
-              <td class="px-6 py-4 text-right">
-                <div class="flex items-center justify-end gap-2">
-                  <button
-                    @click="openEditPlanModal(plan)"
-                    class="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all">
-                    <UiIcon icon="heroicons:pencil-square" class="w-4 h-4" />
-                  </button>
-                  <button
-                    @click="confirmDeletePlan(plan)"
-                    :disabled="
-                      ['FREE', 'PRO', 'MAX', 'STARTER PACK'].includes(
-                        plan.name.toUpperCase(),
-                      )
-                    "
-                    class="p-2 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all disabled:opacity-0 underline-none border-none bg-transparent cursor-pointer">
-                    <UiIcon icon="heroicons:trash" class="w-4 h-4" />
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- TAB CONTENT: TRANSACTIONS -->
-    <div
-      v-if="activeTab === 'transactions'"
-      class="animate-in fade-in duration-500">
-      <div
-        class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
-        <div class="px-6 pt-6 flex items-center justify-between">
-          <div>
-            <p class="text-lg font-bold text-slate-900">Transaction History</p>
-            <p class="text-[12px] font-medium text-slate-500">
-              Complete record of financial activity and payments.
-            </p>
-          </div>
-          <div class="flex items-center gap-3">
-            <div class="relative w-64">
-              <UiIcon
-                icon="heroicons:magnifying-glass"
-                class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
-                v-model="txSearchQuery"
-                type="text"
-                placeholder="Search transactions..."
-                class="w-full pl-9 pr-4 py-2 text-sm border border-slate-200 rounded-lg outline-none focus:ring-1 focus:ring-slate-950 font-medium text-slate-600" />
-            </div>
-          </div>
-        </div>
-
-        <UiTable
+        <AdminTransactions
+          v-else-if="activeTab === 'transactions'"
+          :transactions="filteredTx"
           :loading="adminStore.loading"
-          :is-empty="filteredTransactions.length === 0"
-          :column-count="5"
-          show-refresh
-          @refresh="adminStore.fetchTransactions()">
-          <template #header>
-            <th
-              class="py-4 pl-6 pr-3 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-              User Details
-            </th>
-            <th
-              class="px-3 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-              Plan Details
-            </th>
-            <th
-              class="px-3 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-              Amount
-            </th>
-            <th
-              class="px-3 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-              Status
-            </th>
-            <th
-              class="px-3 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-              Date
-            </th>
-          </template>
+          :search="txSearch"
+          @update:search="txSearch = $event"
+          @refresh="adminStore.fetchTransactions()" />
 
-          <tr
-            v-for="tx in filteredTransactions"
-            :key="tx.id"
-            class="hover:bg-slate-50 transition-colors group border-b border-slate-50 last:border-0">
-            <td class="whitespace-nowrap py-4 pl-6 pr-3">
-              <div class="flex flex-col">
-                <p class="text-sm font-bold text-slate-900 truncate">
-                  {{ tx.user?.name || "Unnamed" }}
-                </p>
-                <p class="text-[11px] font-medium text-slate-500 truncate">
-                  {{ tx.user?.email }}
-                </p>
-              </div>
-            </td>
-            <td class="px-3 py-4 whitespace-nowrap">
-              <div class="flex flex-col">
-                <span class="text-sm font-bold text-slate-900">{{
-                  tx.plan
-                }}</span>
-                <span
-                  v-if="tx.xenditSubscriptionId"
-                  class="text-[9px] font-bold text-slate-400 tracking-widest"
-                  >ID: {{ tx.xenditSubscriptionId.split("_").pop() }}</span
-                >
-              </div>
-            </td>
-            <td class="px-3 py-4 whitespace-nowrap">
-              <span class="text-sm font-semibold text-slate-900"
-                >{{ tx.currency }} {{ tx.amount.toLocaleString() }}</span
-              >
-            </td>
-            <td class="px-3 py-4 whitespace-nowrap">
-              <span
-                :class="[
-                  'px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border',
-                  tx.status === 'ACTIVE'
-                    ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
-                    : 'bg-slate-50 text-slate-600 border-slate-100',
-                ]">
-                {{ tx.status }}
-              </span>
-            </td>
-            <td
-              class="px-3 py-4 whitespace-nowrap text-xs font-bold text-slate-500">
-              {{ new Date(tx.createdAt).toLocaleDateString() }}
-            </td>
-          </tr>
-        </UiTable>
+        <AdminPromo
+          v-else-if="activeTab === 'promo'"
+          :codes="filteredPromo"
+          :search="promoSearch"
+          @update:search="promoSearch = $event"
+          @refresh="promoStore.fetchAllPromoCodes()"
+          @create="openCreatePromo"
+          @edit="openEditPromo"
+          @toggle="togglePromo"
+          @delete="deletePromoFor = $event" />
+      </div>
+
+      <!-- Only the switches tab has anything to save. Sibling of .set__body so
+           it bleeds to the panel edges by structure rather than by negative
+           margins guessing at the body's padding. -->
+      <div v-if="activeTab === 'general'" class="set__foot">
+        <p class="set__dirty">
+          {{ configDirty ? "You have unsaved changes." : "Everything here is saved." }}
+        </p>
+        <button
+          type="button"
+          class="desk-btn desk-btn--primary"
+          :disabled="savingConfig || !configDirty"
+          @click="saveConfig">
+          <UiIcon
+            v-if="savingConfig"
+            icon="heroicons:arrow-path"
+            custom-class="w-4 h-4 spin" />
+          {{ savingConfig ? "Applying…" : "Apply to all accounts" }}
+        </button>
       </div>
     </div>
 
-    <!-- TAB CONTENT: PROMO CODES -->
-    <div v-if="activeTab === 'promo'" class="animate-in fade-in duration-500">
-      <div
-        class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
-        <div class="px-6 pt-6 flex items-center justify-between">
-          <div>
-            <p class="text-lg font-bold text-slate-900">Promotion Campaigns</p>
-            <p class="text-[12px] font-medium text-slate-500">
-              Create and manage discount codes for special offers.
-            </p>
-          </div>
-          <div class="flex items-center gap-3">
-            <div class="relative w-64">
-              <UiIcon
-                icon="heroicons:magnifying-glass"
-                class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
-                v-model="promoSearchQuery"
-                type="text"
-                placeholder="Search codes..."
-                class="w-full pl-9 pr-4 py-2 text-sm border border-slate-200 rounded-lg outline-none focus:ring-1 focus:ring-slate-950 font-medium text-slate-600" />
-            </div>
-            <button
-              @click="showCreatePromoModal = true"
-              class="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-md text-[12px] font-bold hover:bg-slate-800 transition-all shrink-0">
-              New Code
-            </button>
-          </div>
-        </div>
-
-        <UiTable
-          :loading="false"
-          :is-empty="filteredPromoCodes.length === 0"
-          :column-count="6"
-          show-refresh
-          @refresh="promoStore.fetchAllPromoCodes()">
-          <template #header>
-            <th
-              class="py-4 pl-6 pr-3 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-              Badge & Code
-            </th>
-            <th
-              class="px-3 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-              Marketing Benefit
-            </th>
-            <th
-              class="px-3 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-              Active Status
-            </th>
-            <th
-              class="px-3 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-              Usage Quota
-            </th>
-            <th
-              class="px-3 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-              Expiry
-            </th>
-            <th
-              class="px-3 py-4 text-right text-[10px] font-bold text-slate-400 uppercase tracking-widest px-6">
-              Actions
-            </th>
-          </template>
-
-          <tr
-            v-for="promo in filteredPromoCodes"
-            :key="promo.id"
-            class="hover:bg-slate-50 transition-colors group border-b border-slate-50 last:border-0">
-            <td class="whitespace-nowrap py-4 pl-6 pr-3">
-              <span
-                class="px-2 py-1 bg-slate-100 rounded font-mono text-[11px] font-bold text-slate-900 tracking-tight uppercase border border-slate-200 shadow-sm"
-                >{{ promo.code }}</span
-              >
-            </td>
-            <td class="px-3 py-4 whitespace-nowrap">
-              <div class="flex items-center gap-1.5">
-                <UiIcon
-                  icon="heroicons:gift"
-                  class="w-3.5 h-3.5 text-indigo-500" />
-                <span class="text-sm font-bold text-slate-700">
-                  {{
-                    promo.discountType === "PERCENTAGE"
-                      ? promo.discountValue + "%"
-                      : promo.discountValue + " MYR"
-                  }}
-                  Off
-                </span>
-              </div>
-            </td>
-            <td class="px-3 py-4 whitespace-nowrap">
-              <button
-                @click="promoStore.togglePromoStatus(promo.id)"
-                :class="[
-                  'px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border transition-all active:scale-95',
-                  promo.isActive
-                    ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
-                    : 'bg-rose-50 text-rose-700 border-rose-100',
-                ]">
-                {{ promo.isActive ? "Active" : "Inactive" }}
-              </button>
-            </td>
-            <td class="px-3 py-4 whitespace-nowrap">
-              <div class="flex flex-col">
-                <span class="text-xs font-bold text-slate-900 leading-none">{{
-                  promo.uses
-                }}</span>
-                <span class="text-[9px] font-bold text-slate-400 uppercase">{{
-                  promo.maxUses ? "limit: " + promo.maxUses : "Unlimited"
-                }}</span>
-              </div>
-            </td>
-            <td class="px-3 py-4 whitespace-nowrap">
-              <span class="text-xs font-bold text-slate-500">
-                {{
-                  promo.expiresAt
-                    ? new Date(promo.expiresAt).toLocaleDateString()
-                    : "Lifetime"
-                }}
-              </span>
-            </td>
-            <td class="px-3 py-4 whitespace-nowrap text-right px-6 space-x-1">
-              <button
-                @click="openEditPromoModal(promo)"
-                class="p-2 text-slate-400 hover:text-slate-900 transition-colors rounded-lg hover:bg-slate-100 group-hover:bg-slate-100">
-                <UiIcon icon="heroicons:pencil-square" class="w-4 h-4" />
-              </button>
-              <button
-                @click="confirmDeletePromo(promo.id)"
-                class="p-2 text-rose-400 hover:text-rose-600 transition-colors rounded-lg hover:bg-rose-50 group-hover:bg-rose-50">
-                <UiIcon icon="heroicons:trash" class="w-4 h-4" />
-              </button>
-            </td>
-          </tr>
-        </UiTable>
-      </div>
-    </div>
-
-    <!-- Modals -->
+    <!-- ── Renewal date ─────────────────────────────────────────────────── -->
     <UiModal
-      v-model="showCreatePromoModal"
-      title="Issue New Promo Code"
-      description="Launch a new discount campaign by configuring the parameters below."
-      max-width="lg">
-      <form @submit.prevent="handleCreatePromo" class="p-8 space-y-6">
-        <div>
-          <label
-            class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5"
-            >Redemption Code</label
-          >
-          <input
-            v-model="newPromo.code"
-            type="text"
-            required
-            placeholder="e.g. SPECIAL50"
-            class="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-1 focus:ring-slate-900 outline-none uppercase font-bold" />
+      :model-value="!!billingFor"
+      max-width="sm"
+      @update:model-value="billingFor = null">
+      <div class="dlg">
+        <h3 class="dlg__title">Renewal date</h3>
+        <p class="dlg__body">
+          Sets when <b>{{ billingFor?.email }}</b> next renews. Moving it forward
+          gives them the plan for longer without charging them.
+        </p>
+        <div class="f" style="margin-top: var(--space-5)">
+          <UiDatePicker v-model="billingDate" label="Renews on" />
+          <p class="f__hint">Clear it to remove the end date entirely.</p>
         </div>
-        <div class="grid grid-cols-2 gap-4">
-          <UiSelect
-            v-model="newPromo.discountType"
-            label="Discount Type"
-            :options="discountOptions" />
-          <div>
-            <label
-              class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5"
-              >Value</label
-            >
-            <input
-              v-model="newPromo.discountValue"
-              type="number"
-              required
-              class="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-1 focus:ring-slate-900 outline-none" />
-          </div>
-        </div>
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label
-              class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5"
-              >Max Redemptions</label
-            >
-            <input
-              v-model="newPromo.maxUses"
-              type="number"
-              placeholder="Unlimited"
-              class="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-1 focus:ring-slate-900 outline-none" />
-          </div>
-          <UiDatePicker v-model="newPromo.expiresAt" label="Expiration Date" />
-        </div>
-        <div class="flex justify-end gap-3 pt-4">
+        <div class="dlg__acts">
           <button
             type="button"
-            @click="showCreatePromoModal = false"
-            class="px-6 py-2.5 text-sm font-bold text-slate-600">
+            class="desk-btn desk-btn--ghost"
+            @click="billingFor = null">
             Cancel
           </button>
-          <button
-            type="submit"
-            class="px-6 py-2.5 bg-slate-900 text-white rounded-xl font-bold shadow-lg shadow-slate-900/20 active:scale-95 transition-all">
-            Create Promotion
-          </button>
-        </div>
-      </form>
-    </UiModal>
-
-    <UiModal
-      v-model="showEditPromoModal"
-      title="Modify Promo Campaign"
-      description="Adjust the configuration for this promotional code."
-      max-width="lg">
-      <form @submit.prevent="handleUpdatePromo" class="p-8 space-y-6">
-        <div>
-          <label
-            class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5"
-            >Redemption Code</label
-          >
-          <input
-            v-model="editPromo.code"
-            type="text"
-            required
-            class="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-1 focus:ring-slate-900 outline-none uppercase font-bold bg-slate-50" />
-        </div>
-        <div class="grid grid-cols-2 gap-4">
-          <UiSelect
-            v-model="editPromo.discountType"
-            label="Discount Type"
-            :options="discountOptions" />
-          <div>
-            <label
-              class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5"
-              >Value</label
-            >
-            <input
-              v-model="editPromo.discountValue"
-              type="number"
-              required
-              class="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-1 focus:ring-slate-900 outline-none" />
-          </div>
-        </div>
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label
-              class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5"
-              >Max Redemptions</label
-            >
-            <input
-              v-model="editPromo.maxUses"
-              type="number"
-              class="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-1 focus:ring-slate-900 outline-none" />
-          </div>
-          <UiDatePicker v-model="editPromo.expiresAt" label="Expiration Date" />
-        </div>
-        <div class="flex justify-end gap-3 pt-4">
           <button
             type="button"
-            @click="showEditPromoModal = false"
-            class="px-6 py-2.5 text-sm font-bold text-slate-600">
-            Cancel
-          </button>
-          <button
-            type="submit"
-            class="px-6 py-2.5 bg-slate-900 text-white rounded-xl font-bold active:scale-95 transition-all">
-            Update Promotion
-          </button>
-        </div>
-      </form>
-    </UiModal>
-
-    <!-- MODALS: USERS -->
-    <UiModal
-      v-model="editBillingModal.isOpen"
-      title="Extend/Modify User Subscription"
-      description="Update the subscription manually for this user by extending their expiration date."
-      maxWidth="md">
-      <div class="p-6 space-y-6">
-        <div>
-          <label
-            class="block text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] mb-2"
-            >Target User</label
-          >
-          <div
-            class="p-3 bg-slate-50 rounded-xl border border-slate-100 flex items-center gap-3">
-            <div
-              class="w-8 h-8 rounded-full bg-slate-900 flex items-center justify-center text-white text-[10px] font-bold uppercase">
-              {{ getInitials(editBillingModal.user?.name) }}
-            </div>
-            <div class="min-w-0">
-              <p class="text-sm font-bold text-slate-900 truncate">
-                {{ editBillingModal.user?.name }}
-              </p>
-              <p class="text-xs font-medium text-slate-500 truncate">
-                {{ editBillingModal.user?.email }}
-              </p>
-            </div>
-          </div>
-        </div>
-        <div>
-          <label
-            class="block text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] mb-2"
-            >New Expiration Date</label
-          >
-          <input
-            type="date"
-            v-model="editBillingModal.newDate"
-            class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold focus:ring-1 focus:ring-slate-900 outline-none" />
-          <p
-            class="text-[10px] text-slate-400 font-medium mt-2 leading-relaxed italic">
-            The user will retain their current plan until this date. Set to
-            empty for lifetime or until manual intervention.
-          </p>
-        </div>
-        <div class="flex justify-end gap-3 pt-4">
-          <button
-            @click="editBillingModal.isOpen = false"
-            class="px-6 py-2.5 text-sm font-bold text-slate-600 cursor-pointer hover:bg-slate-50 rounded-xl transition-all">
-            Cancel
-          </button>
-          <button
-            @click="saveBillingDate"
+            class="desk-btn desk-btn--primary"
             :disabled="savingBilling"
-            class="px-6 py-2.5 bg-slate-900 text-white rounded-xl font-bold flex items-center gap-2 disabled:opacity-50 cursor-pointer hover:bg-slate-800 transition-all">
+            @click="saveBillingDate">
             <UiIcon
               v-if="savingBilling"
-              icon="line-md:loading-twotone-loop"
-              class="w-4 h-4 animate-spin" />
-            Apply Subscription Change
+              icon="heroicons:arrow-path"
+              custom-class="w-4 h-4 spin" />
+            Save date
           </button>
         </div>
       </div>
     </UiModal>
 
-    <!-- MODALS: PLANS -->
+    <!-- ── Cancel subscription ──────────────────────────────────────────── -->
     <UiModal
-      v-model="isPlanModalOpen"
-      title="Manage Subscription Tier"
-      description="Define the technical limits and marketing details for this subscription plan."
-      max-width="2xl">
-      <form
-        @submit.prevent="handleSavePlan"
-        class="p-8 space-y-6 max-h-[80vh] overflow-y-auto">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div class="space-y-6">
-            <div class="space-y-4">
-              <h4
-                class="text-[10px] font-semibold text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-2">
-                Technical Limits
-              </h4>
-              <div class="grid grid-cols-2 gap-4">
-                <div>
-                  <label
-                    class="block text-[10px] font-bold text-slate-700 uppercase mb-1"
-                    >Total Invoices</label
-                  >
-                  <input
-                    v-model.number="planForm.invoices"
-                    type="number"
-                    class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold" />
-                </div>
-                <div>
-                  <label
-                    class="block text-[10px] font-bold text-slate-700 uppercase mb-1"
-                    >AI Credits</label
-                  >
-                  <input
-                    v-model.number="planForm.aiCredits"
-                    type="number"
-                    class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold" />
-                </div>
-              </div>
-              <div class="grid grid-cols-2 gap-4">
-                <div>
-                  <label
-                    class="block text-[10px] font-bold text-slate-700 uppercase mb-1"
-                    >WA Sends</label
-                  >
-                  <input
-                    v-model.number="planForm.waSends"
-                    type="number"
-                    class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold" />
-                </div>
-                <div>
-                  <label
-                    class="block text-[10px] font-bold text-slate-700 uppercase mb-1"
-                    >Email Sends</label
-                  >
-                  <input
-                    v-model.number="planForm.emailSends"
-                    type="number"
-                    class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold" />
-                </div>
-              </div>
-              <div class="grid grid-cols-2 gap-4">
-                <div>
-                  <label
-                    class="block text-[10px] font-bold text-slate-700 uppercase mb-1"
-                    >WA Reminders</label
-                  >
-                  <input
-                    v-model.number="planForm.waReminders"
-                    type="number"
-                    class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold" />
-                </div>
-                <div>
-                  <label
-                    class="block text-[10px] font-bold text-slate-700 uppercase mb-1"
-                    >Email Reminders</label
-                  >
-                  <input
-                    v-model.number="planForm.emailReminders"
-                    type="number"
-                    class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold" />
-                </div>
-              </div>
-            </div>
+      :model-value="!!cancelSubFor"
+      max-width="sm"
+      @update:model-value="cancelSubFor = null">
+      <div class="dlg">
+        <h3 class="dlg__title">Cancel this subscription?</h3>
+        <p class="dlg__body">
+          <b>{{ cancelSubFor?.email }}</b> drops to FREE immediately — not at the
+          end of the period they have paid for. Automatic chasing stops for them
+          and their invoices stay put.
+        </p>
+        <div class="dlg__acts">
+          <button
+            type="button"
+            class="desk-btn desk-btn--ghost"
+            @click="cancelSubFor = null">
+            Leave it
+          </button>
+          <button
+            type="button"
+            class="desk-btn desk-btn--danger"
+            :disabled="busy"
+            @click="doCancelSub">
+            Cancel their plan
+          </button>
+        </div>
+      </div>
+    </UiModal>
 
-              <div class="flex items-center justify-between border-b border-slate-100 pb-2">
-                <h4 class="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">
-                  Marketing Highlights
-                </h4>
-                <button
-                  type="button"
-                  @click="addFeatureRow"
-                  class="text-[10px] font-bold text-emerald-600 hover:text-emerald-700 uppercase tracking-wider flex items-center gap-1">
-                  <UiIcon icon="heroicons:plus-circle" class="w-3 h-3" />
-                  Add Highlight
-                </button>
-              </div>
-              <div class="space-y-2">
-                <div v-for="(feature, index) in planForm.features" :key="index" class="flex items-center gap-2">
-                  <div class="flex-1 relative">
-                    <input
-                      v-model="planForm.features[index]"
-                      type="text"
-                      placeholder="e.g. 5 AI Drafts/mo"
-                      class="w-full pl-4 pr-10 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold focus:ring-1 focus:ring-slate-900 outline-none" />
-                  </div>
-                  <button
-                    type="button"
-                    @click="removeFeatureRow(index)"
-                    class="p-2 text-slate-400 hover:text-rose-600 transition-colors">
-                    <UiIcon icon="heroicons:trash" class="w-4 h-4" />
-                  </button>
-                </div>
-                <div v-if="planForm.features.length === 0" class="py-4 text-center border border-dashed border-slate-200 rounded-xl bg-slate-50/30">
-                  <p class="text-[10px] font-medium text-slate-400 italic">No marketing highlights added yet.</p>
-                </div>
-              </div>
+    <!-- ── Delete user ──────────────────────────────────────────────────── -->
+    <UiModal
+      :model-value="!!deleteUserFor"
+      max-width="sm"
+      @update:model-value="deleteUserFor = null">
+      <div class="dlg">
+        <h3 class="dlg__title">Delete {{ deleteUserFor?.email }}?</h3>
+        <p class="dlg__body">
+          This removes the account and everything in it —
+          <b>{{ deleteUserFor?._count?.invoices || 0 }} invoices</b> and
+          <b>{{ deleteUserFor?._count?.clients || 0 }} clients</b> — permanently.
+          If you only want to lock them out, suspend the account instead.
+        </p>
+        <div class="dlg__acts">
+          <button
+            type="button"
+            class="desk-btn desk-btn--ghost"
+            @click="deleteUserFor = null">
+            Keep the account
+          </button>
+          <button
+            type="button"
+            class="desk-btn desk-btn--danger"
+            :disabled="busy"
+            @click="doDeleteUser">
+            Delete permanently
+          </button>
+        </div>
+      </div>
+    </UiModal>
+
+    <!-- ── Delete plan ──────────────────────────────────────────────────── -->
+    <UiModal
+      :model-value="!!deletePlanFor"
+      max-width="sm"
+      @update:model-value="deletePlanFor = null">
+      <div class="dlg">
+        <h3 class="dlg__title">Delete the {{ deletePlanFor?.name }} plan?</h3>
+        <p class="dlg__body">
+          It disappears from the billing page. Anyone already subscribed to it
+          keeps their subscription — this does not move them off.
+        </p>
+        <div class="dlg__acts">
+          <button
+            type="button"
+            class="desk-btn desk-btn--ghost"
+            @click="deletePlanFor = null">
+            Keep it
+          </button>
+          <button
+            type="button"
+            class="desk-btn desk-btn--danger"
+            :disabled="busy"
+            @click="doDeletePlan">
+            Delete plan
+          </button>
+        </div>
+      </div>
+    </UiModal>
+
+    <!-- ── Delete promo ─────────────────────────────────────────────────── -->
+    <UiModal
+      :model-value="!!deletePromoFor"
+      max-width="sm"
+      @update:model-value="deletePromoFor = null">
+      <div class="dlg">
+        <h3 class="dlg__title">Delete {{ deletePromoFor?.code }}?</h3>
+        <p class="dlg__body">
+          Anyone who tries the code from now on is told it is invalid. Discounts
+          already applied are not clawed back. To stop it without deleting the
+          record, switch it off instead.
+        </p>
+        <div class="dlg__acts">
+          <button
+            type="button"
+            class="desk-btn desk-btn--ghost"
+            @click="deletePromoFor = null">
+            Keep it
+          </button>
+          <button
+            type="button"
+            class="desk-btn desk-btn--danger"
+            :disabled="busy"
+            @click="doDeletePromo">
+            Delete code
+          </button>
+        </div>
+      </div>
+    </UiModal>
+
+    <!-- ── Plan editor ──────────────────────────────────────────────────── -->
+    <UiModal v-model="planModal" max-width="lg">
+      <form class="dlg" @submit.prevent="savePlan">
+        <h3 class="dlg__title">
+          {{ editingPlan ? `Edit ${editingPlan.name}` : "New plan" }}
+        </h3>
+        <p class="dlg__body" style="margin-bottom: var(--space-5)">
+          Limits are per month. Anything at 999999 or above shows as unlimited.
+        </p>
+
+        <div class="fgrid">
+          <div class="f" style="margin: 0">
+            <label class="f__label" for="pl-name">Name</label>
+            <input id="pl-name" v-model="planForm.name" type="text" class="inp no-ik" />
           </div>
-
-          <div class="space-y-6">
-            <div class="space-y-4">
-              <h4
-                class="text-[10px] font-semibold text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-2">
-                Core Identity
-              </h4>
-              <div>
-                <label
-                  class="block text-[10px] font-bold text-slate-700 uppercase mb-1"
-                  >Plan Name</label
-                >
-                <input
-                  v-model="planForm.name"
-                  type="text"
-                  class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold uppercase"
-                  required />
-              </div>
-              <div class="grid grid-cols-2 gap-4">
-                <div>
-                  <label
-                    class="block text-[10px] font-bold text-slate-700 uppercase mb-1"
-                    >Price</label
-                  >
-                  <input
-                    v-model.number="planForm.price"
-                    type="number"
-                    step="0.01"
-                    class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold text-emerald-600"
-                    required />
-                </div>
-                <div>
-                  <label
-                    class="block text-[10px] font-bold text-slate-700 uppercase mb-1"
-                    >Interval</label
-                  >
-                  <select
-                    v-model="planForm.interval"
-                    class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold outline-none">
-                    <option value="month">Monthly</option>
-                    <option value="year">Yearly</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            <div class="space-y-4">
-              <h4
-                class="text-[10px] font-semibold text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-2">
-                Marketing & Narrative
-              </h4>
-              <div>
-                <label
-                  class="block text-[10px] font-bold text-slate-700 uppercase mb-1"
-                  >Marketing Description</label
-                >
-                <textarea
-                  v-model="planForm.description"
-                  rows="4"
-                  class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium focus:ring-1 focus:ring-slate-900 outline-none resize-none"
-                  placeholder="Enter plan details for public display..."></textarea>
-              </div>
-              <div class="flex items-center gap-2 pt-2">
-                <input
-                  type="checkbox"
-                  v-model="planForm.isActive"
-                  id="isActive"
-                  class="w-4 h-4 rounded text-slate-900 border-slate-300" />
-                <label
-                  for="isActive"
-                  class="text-xs font-bold text-slate-700 uppercase tracking-wide"
-                  >Plan is Active</label
-                >
-              </div>
+          <div class="f" style="margin: 0">
+            <label class="f__label" for="pl-price">Price</label>
+            <div class="money-inp">
+              <span class="money-inp__cur">{{ planForm.currency }}</span>
+              <input
+                id="pl-price"
+                v-model.number="planForm.price"
+                type="number"
+                step="0.01"
+                min="0"
+                class="money-inp__inp no-ik" />
             </div>
           </div>
         </div>
-        <div class="flex justify-end gap-3 pt-6 border-t border-slate-100">
+
+        <div class="f">
+          <label class="f__label" for="pl-desc">One line about it</label>
+          <input
+            id="pl-desc"
+            v-model="planForm.description"
+            type="text"
+            class="inp no-ik"
+            placeholder="Shown under the name on the billing page" />
+        </div>
+
+        <div class="f">
+          <span class="f__label">Monthly limits</span>
+          <div class="fgrid">
+            <div class="f" style="margin: 0">
+              <label class="f__label" for="pl-inv">Invoices</label>
+              <input id="pl-inv" v-model.number="planForm.invoices" type="number" min="0" class="inp no-ik" />
+            </div>
+            <div class="f" style="margin: 0">
+              <label class="f__label" for="pl-quotes">Quotations</label>
+              <input id="pl-quotes" v-model.number="planForm.quotes" type="number" min="0" class="inp no-ik" />
+            </div>
+            <div class="f" style="margin: 0">
+              <label class="f__label" for="pl-ai">AI credits</label>
+              <input id="pl-ai" v-model.number="planForm.aiCredits" type="number" min="0" class="inp no-ik" />
+            </div>
+            <div class="f" style="margin: 0">
+              <label class="f__label" for="pl-was">WhatsApp sends</label>
+              <input id="pl-was" v-model.number="planForm.waSends" type="number" min="0" class="inp no-ik" />
+            </div>
+            <div class="f" style="margin: 0">
+              <label class="f__label" for="pl-es">Email sends</label>
+              <input id="pl-es" v-model.number="planForm.emailSends" type="number" min="0" class="inp no-ik" />
+            </div>
+            <div class="f" style="margin: 0">
+              <label class="f__label" for="pl-war">WhatsApp reminders</label>
+              <input id="pl-war" v-model.number="planForm.waReminders" type="number" min="0" class="inp no-ik" />
+            </div>
+            <div class="f" style="margin: 0">
+              <label class="f__label" for="pl-er">Email reminders</label>
+              <input id="pl-er" v-model.number="planForm.emailReminders" type="number" min="0" class="inp no-ik" />
+            </div>
+          </div>
+        </div>
+
+        <div class="f">
+          <span class="f__label">What it says on the card</span>
+          <div class="lines">
+            <div
+              v-for="(feat, i) in planForm.features"
+              :key="i"
+              class="bar"
+              style="margin-bottom: var(--space-2)">
+              <input
+                v-model="planForm.features[i]"
+                type="text"
+                class="inp no-ik bar__grow"
+                placeholder="e.g. Unlimited invoices" />
+              <button
+                type="button"
+                class="iact iact--danger"
+                :aria-label="`Remove feature ${i + 1}`"
+                @click="planForm.features.splice(i, 1)">
+                <UiIcon icon="heroicons:trash" custom-class="w-4 h-4" />
+              </button>
+            </div>
+          </div>
           <button
             type="button"
-            @click="isPlanModalOpen = false"
-            class="px-6 py-2.5 text-sm font-bold text-slate-600 cursor-pointer">
+            class="desk-btn desk-btn--ghost desk-btn--sm"
+            @click="planForm.features.push('')">
+            <UiIcon icon="heroicons:plus" custom-class="w-4 h-4" />
+            Add a line
+          </button>
+        </div>
+
+        <div class="f">
+          <label class="tog" for="pl-active">
+            <input id="pl-active" v-model="planForm.isActive" type="checkbox" class="tog__inp" />
+            <span class="tog__track" aria-hidden="true"></span>
+            <span class="tog__label">Show this plan on the billing page</span>
+          </label>
+        </div>
+
+        <div class="dlg__acts">
+          <button type="button" class="desk-btn desk-btn--ghost" @click="planModal = false">
             Cancel
           </button>
-          <button
-            type="submit"
-            class="px-8 py-2.5 bg-slate-900 text-white rounded-xl font-bold shadow-lg shadow-slate-900/20 active:scale-95 transition-all cursor-pointer hover:bg-slate-800">
-            Save Changes
+          <button type="submit" class="desk-btn desk-btn--primary" :disabled="busy">
+            <UiIcon v-if="busy" icon="heroicons:arrow-path" custom-class="w-4 h-4 spin" />
+            {{ editingPlan ? "Save plan" : "Create plan" }}
+          </button>
+        </div>
+      </form>
+    </UiModal>
+
+    <!-- ── Promo editor ─────────────────────────────────────────────────── -->
+    <UiModal v-model="promoModal" max-width="md">
+      <form class="dlg" @submit.prevent="savePromo">
+        <h3 class="dlg__title">
+          {{ editingPromo ? `Edit ${editingPromo.code}` : "New promo code" }}
+        </h3>
+        <p class="dlg__body" style="margin-bottom: var(--space-5)">
+          Applied on the billing page before checkout, so people see the
+          discounted price before they commit.
+        </p>
+
+        <div class="f">
+          <label class="f__label" for="pr-code">Code</label>
+          <input
+            id="pr-code"
+            v-model="promoForm.code"
+            type="text"
+            class="inp no-ik"
+            style="text-transform: uppercase; font-family: var(--font-mono)"
+            placeholder="LAUNCH20" />
+          <p class="f__hint">Case does not matter — it is stored uppercase.</p>
+        </div>
+
+        <div class="fgrid">
+          <UiSelect
+            v-model="promoForm.discountType"
+            label="Type"
+            :options="DISCOUNT_TYPES" />
+          <div class="f" style="margin: 0">
+            <label class="f__label" for="pr-val">Amount</label>
+            <div class="money-inp">
+              <input
+                id="pr-val"
+                v-model.number="promoForm.discountValue"
+                type="number"
+                min="0"
+                step="0.01"
+                class="money-inp__inp no-ik" />
+              <span class="money-inp__cur">
+                {{ promoForm.discountType === "PERCENTAGE" ? "%" : "MYR" }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="fgrid">
+          <div class="f" style="margin: 0">
+            <label class="f__label" for="pr-max">Redemption limit</label>
+            <input
+              id="pr-max"
+              v-model="promoForm.maxUses"
+              type="number"
+              min="1"
+              class="inp no-ik"
+              placeholder="Leave empty for unlimited" />
+          </div>
+          <div class="f" style="margin: 0">
+            <UiDatePicker v-model="promoForm.expiresAt" label="Expires" />
+            <p class="f__hint">Leave empty and it never expires.</p>
+          </div>
+        </div>
+
+        <div class="dlg__acts">
+          <button type="button" class="desk-btn desk-btn--ghost" @click="promoModal = false">
+            Cancel
+          </button>
+          <button type="submit" class="desk-btn desk-btn--primary" :disabled="busy">
+            <UiIcon v-if="busy" icon="heroicons:arrow-path" custom-class="w-4 h-4 spin" />
+            {{ editingPromo ? "Save code" : "Create code" }}
           </button>
         </div>
       </form>
@@ -1721,9 +844,3 @@ onMounted(async () => {
     <UiToast v-model="toast" />
   </div>
 </template>
-
-<style scoped>
-.animate-in {
-  animation-duration: 400ms;
-}
-</style>

@@ -1,189 +1,320 @@
+<script setup>
+/**
+ * SUPPORT INBOX.
+ *
+ * On the desk layer, same as the rest of admin. Four things were wrong beyond
+ * the styling:
+ *
+ *  1. A failed request looked like an empty inbox. `fetchTickets` caught its
+ *     error, logged it to the console and left `tickets` as [] — so the page
+ *     rendered "No tickets found. We couldn't find any tickets matching your
+ *     search criteria", blaming a search the user had not typed for a request
+ *     that had failed. Support staff would reasonably conclude nobody had
+ *     written in. Failure is now its own state, with a retry.
+ *
+ *  2. The rows could not be opened from a keyboard. Each was a <tr> with a click
+ *     handler and no link inside it, so tabbing through the inbox skipped every
+ *     ticket. There is a real link per row now, stretched across it.
+ *
+ *  3. `t.subject.toLowerCase()` and `t.fromEmail.toLowerCase()` in the filter,
+ *     with no optional chaining — while `t.fromName?.` two lines down has it.
+ *     One ticket with a null subject and searching threw.
+ *
+ *  4. `authStore` was imported and never used.
+ */
+import { computed, onMounted, ref } from "vue";
+import { formatDate, formatRelativeDate } from "~/utils/date";
+
+definePageMeta({ title: "Support inbox", middleware: "admin" });
+
+const { $api } = useNuxtApp();
+
+const tickets = ref([]);
+const loading = ref(true);
+const loadError = ref("");
+const search = ref("");
+const view = ref("open");
+
+const VIEWS = [
+  { key: "open", label: "Open" },
+  { key: "pending", label: "Waiting" },
+  { key: "closed", label: "Closed" },
+  { key: "all", label: "All" },
+];
+
+const fetchTickets = async () => {
+  loading.value = true;
+  loadError.value = "";
+  try {
+    const { data } = await $api.get("/support");
+    tickets.value = Array.isArray(data) ? data : [];
+  } catch (err) {
+    loadError.value =
+      err.response?.data?.message ||
+      "Could not reach the support inbox. Nothing has been lost — try again.";
+    tickets.value = [];
+  } finally {
+    loading.value = false;
+  }
+};
+
+onMounted(fetchTickets);
+
+const matches = (t) => {
+  const q = search.value.trim().toLowerCase();
+  if (!q) return true;
+  return [t.subject, t.fromEmail, t.fromName]
+    .filter(Boolean)
+    .some((f) => String(f).toLowerCase().includes(q));
+};
+
+const found = computed(() => tickets.value.filter(matches));
+
+const viewCounts = computed(() => ({
+  open: found.value.filter((t) => t.status === "OPEN").length,
+  pending: found.value.filter((t) => t.status === "PENDING").length,
+  closed: found.value.filter((t) => t.status === "CLOSED").length,
+  all: found.value.length,
+}));
+
+const rows = computed(() => {
+  const want = { open: "OPEN", pending: "PENDING", closed: "CLOSED" }[view.value];
+  const list = want ? found.value.filter((t) => t.status === want) : found.value;
+  /* Oldest untouched first. An inbox sorted newest-first buries the person who
+     has been waiting longest, which is the one the queue exists to surface. */
+  return [...list].sort((a, b) => {
+    const rank = { OPEN: 0, PENDING: 1, CLOSED: 2 };
+    const ra = rank[a.status] ?? 3;
+    const rb = rank[b.status] ?? 3;
+    if (ra !== rb) return ra - rb;
+    return new Date(a.updatedAt) - new Date(b.updatedAt);
+  });
+});
+
+const waiting = computed(
+  () => tickets.value.filter((t) => t.status === "OPEN").length,
+);
+
+/** Hours since the oldest open ticket was last touched. */
+const oldestWait = computed(() => {
+  const open = tickets.value.filter((t) => t.status === "OPEN");
+  if (!open.length) return null;
+  const oldest = open.reduce((a, b) =>
+    new Date(a.updatedAt) < new Date(b.updatedAt) ? a : b,
+  );
+  const hours = Math.floor((Date.now() - new Date(oldest.updatedAt)) / 3600000);
+  if (hours < 1) return "under an hour";
+  if (hours < 48) return `${hours}h`;
+  return `${Math.floor(hours / 24)}d`;
+});
+
+const CHIP = { OPEN: "chip--late", PENDING: "chip--idle", CLOSED: "chip--paid" };
+const chipFor = (s) => CHIP[s] || "chip--idle";
+
+/* MEDIUM is deliberately the empty string: base .pay is already the neutral
+   secondary colour, and inventing a fourth tone for "normal" would mean three
+   of the four priorities are coloured, which is the same as none of them being. */
+const PRIORITY = { HIGH: "pay--high", MEDIUM: "", LOW: "pay--ok" };
+const priorityFor = (p) =>
+  p in PRIORITY ? PRIORITY[p] : "pay--unknown";
+
+const ref_ = (t) => `#${String(t.id).padStart(4, "0")}`;
+</script>
+
 <template>
-  <div class="space-y-8">
-    <!-- Header Area -->
-    <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
-      <div class="space-y-1">
-        <div class="flex items-center gap-2 mb-1">
-          <h1 class="text-2xl font-bold text-slate-900 tracking-tight">
-            Support Tickets
-          </h1>
-        </div>
-        <p class="text-[12px] text-slate-500 font-medium">
-          Manage and respond to user inquiries from Resend.
+  <div class="desk">
+    <header class="desk__head">
+      <div>
+        <h1 class="desk__title">Support</h1>
+        <p class="desk__sub">
+          <template v-if="waiting">
+            {{ waiting }} {{ waiting === 1 ? "person is" : "people are" }} waiting
+            <template v-if="oldestWait">
+              — the longest for {{ oldestWait }}
+            </template>.
+          </template>
+          <template v-else>Nobody is waiting on a reply.</template>
         </p>
       </div>
+    </header>
 
-      <!-- Quick Actions / Filters -->
-      <div class="flex items-center gap-3">
-        <div class="relative group">
-          <UiIcon
-            icon="heroicons:magnifying-glass"
-            class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-emerald-500 transition-colors" />
-          <input
-            v-model="searchQuery"
-            type="text"
-            placeholder="Search tickets..."
-            class="pl-10 pr-4 py-2.5 bg-white border border-[#e5e5e5] rounded-xl text-sm focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none transition-all w-full md:w-[240px]" />
-        </div>
+    <!-- ── Find it ──────────────────────────────────────────────────────── -->
+    <div class="bar">
+      <div class="search bar__grow">
+        <label class="sr-only" for="ticket-search">Search tickets</label>
+        <span class="search__icon" aria-hidden="true">
+          <UiIcon icon="heroicons:magnifying-glass" custom-class="w-4 h-4" />
+        </span>
+        <input
+          id="ticket-search"
+          v-model="search"
+          type="search"
+          class="search__inp no-ik"
+          placeholder="Subject, name or email" />
         <button
-          @click="fetchTickets"
-          class="p-2.5 bg-white border border-[#e5e5e5] text-slate-600 hover:text-slate-900 rounded-xl transition-all hover:bg-slate-50 shadow-sm"
-          :class="{ 'animate-spin': loading }">
-          <UiIcon icon="heroicons:arrow-path" class="w-5 h-5" />
+          v-if="search"
+          type="button"
+          class="search__clear"
+          aria-label="Clear search"
+          @click="search = ''">
+          <UiIcon icon="heroicons:x-mark" custom-class="w-4 h-4" />
         </button>
       </div>
+
+      <div class="segs" role="group" aria-label="Filter by status">
+        <button
+          v-for="v in VIEWS"
+          :key="v.key"
+          type="button"
+          class="seg"
+          :class="{ 'seg--on': view === v.key }"
+          :aria-pressed="view === v.key"
+          @click="view = v.key">
+          {{ v.label }}
+          <span class="seg__n">{{ viewCounts[v.key] }}</span>
+        </button>
+      </div>
+
+      <button
+        type="button"
+        class="desk-btn desk-btn--ghost desk-btn--sm"
+        @click="fetchTickets">
+        <UiIcon
+          icon="heroicons:arrow-path"
+          :custom-class="loading ? 'w-4 h-4 spin' : 'w-4 h-4'" />
+        Refresh
+      </button>
     </div>
 
-    <!-- Stats Row -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      <div
-        v-for="stat in stats"
-        :key="stat.label"
-        class="bg-white p-5 rounded-2xl border border-[#e5e5e5] shadow-sm">
-        <div class="flex items-center justify-between mb-3">
-          <div :class="['p-2 rounded-xl', stat.bgClass]">
-            <UiIcon :icon="stat.icon" :class="['w-5 h-5', stat.iconClass]" />
-          </div>
-          <span
-            class="text-[10px] font-bold text-slate-400 uppercase tracking-widest"
-            >{{ stat.label }}</span
-          >
-        </div>
-        <div class="flex items-baseline gap-2">
-          <span class="text-2xl font-bold text-slate-900">{{
-            stat.value
-          }}</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Ticket List Table -->
-    <div
-      class="bg-white rounded-3xl border border-[#e5e5e5] shadow-sm overflow-hidden min-h-[400px]">
-      <div
-        v-if="loading"
-        class="flex flex-col items-center justify-center p-20 space-y-4">
-        <div class="relative flex items-center justify-center">
-          <div
-            class="w-12 h-12 border-4 border-emerald-500/20 rounded-full"></div>
-          <div
-            class="w-12 h-12 border-4 border-transparent border-t-emerald-500 rounded-full animate-spin absolute top-0 left-0"></div>
-        </div>
-        <p class="text-sm font-medium text-slate-400">Loading tickets...</p>
-      </div>
-
-      <div
-        v-else-if="filteredTickets.length === 0"
-        class="flex flex-col items-center justify-center p-20 text-center">
-        <div
-          class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-6">
-          <UiIcon
-            icon="carbon:no-ticket"
-            custom-class="w-10 h-10 text-slate-200" />
-        </div>
-        <h3 class="text-lg font-bold text-slate-900 mb-1">No tickets found</h3>
-        <p class="text-sm text-slate-400 max-w-[240px]">
-          We couldn't find any tickets matching your search criteria.
-        </p>
-      </div>
-
-      <div v-else class="overflow-x-auto">
-        <table class="w-full text-left border-collapse">
+    <!-- ── The inbox ────────────────────────────────────────────────────── -->
+    <div class="ledger">
+      <div class="ledger__scroll">
+        <table>
           <thead>
-            <tr class="bg-slate-50/50 border-b border-[#e5e5e5]">
-              <th
-                class="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest">
-                ID
-              </th>
-              <th
-                class="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest">
-                User / Status
-              </th>
-              <th
-                class="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest">
-                Subject
-              </th>
-              <th
-                class="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest">
-                Priority
-              </th>
-              <th
-                class="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest text-right">
-                Last Update
-              </th>
+            <tr>
+              <th scope="col">Ticket</th>
+              <th scope="col">From</th>
+              <th scope="col">Priority</th>
+              <th scope="col">Status</th>
+              <th scope="col">Last reply</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-[#e5e5e5]">
-            <tr
-              v-for="ticket in filteredTickets"
-              :key="ticket.id"
-              class="group hover:bg-slate-50/50 transition-colors cursor-pointer"
-              @click="$router.push(`/admin/tickets/${ticket.id}`)">
-              <td class="px-6 py-5">
-                <span
-                  class="text-xs font-mono font-bold text-slate-400 text-slate-400 group-hover:text-emerald-600 transition-colors"
-                  >#{{ String(ticket.id).padStart(4, "0") }}</span
-                >
+
+          <tbody v-if="loading && !tickets.length">
+            <tr v-for="i in 5" :key="i">
+              <td v-for="j in 5" :key="j">
+                <span class="skel" style="display: block"></span>
               </td>
-              <td class="px-6 py-5">
-                <div class="space-y-1.5">
-                  <div class="flex items-center gap-2">
-                    <p class="text-sm font-bold text-slate-900">
-                      {{ ticket.fromName || "Guest" }}
+            </tr>
+          </tbody>
+
+          <!-- A failed request is not an empty inbox. -->
+          <tbody v-else-if="loadError">
+            <tr>
+              <td colspan="5">
+                <div class="empty empty--pad">
+                  <p class="empty__title">The inbox did not load.</p>
+                  <p class="empty__body">{{ loadError }}</p>
+                  <button
+                    type="button"
+                    class="desk-btn desk-btn--primary"
+                    @click="fetchTickets">
+                    Try again
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+
+          <tbody v-else-if="!rows.length">
+            <tr>
+              <td colspan="5">
+                <div class="empty empty--pad">
+                  <template v-if="search">
+                    <p class="empty__title">Nothing matches “{{ search }}”.</p>
+                    <p class="empty__body">
+                      Search covers the subject, the name and the email address.
                     </p>
-                    <div
-                      v-if="ticket.user"
-                      class="px-1.5 py-0.5 rounded bg-emerald-50 border border-emerald-100 flex items-center gap-1">
-                      <UiIcon
-                        icon="heroicons:check-badge"
-                        class="w-3 h-3 text-emerald-500" />
-                      <span
-                        class="text-[10px] font-bold text-emerald-600 uppercase"
-                        >{{ ticket.user.plan }}</span
-                      >
-                    </div>
-                  </div>
-                  <div class="flex items-center gap-2">
-                    <p class="text-xs text-slate-500">{{ ticket.fromEmail }}</p>
-                    <span
-                      :class="[
-                        'w-1.5 h-1.5 rounded-full',
-                        getStatusColor(ticket.status),
-                      ]"></span>
-                    <span
-                      class="text-[10px] font-bold text-slate-400 uppercase tracking-widest"
-                      >{{ ticket.status }}</span
-                    >
-                  </div>
+                    <button
+                      type="button"
+                      class="desk-btn desk-btn--ghost"
+                      @click="search = ''">
+                      Clear the search
+                    </button>
+                  </template>
+                  <template v-else-if="view === 'open'">
+                    <p class="empty__title">Nothing open.</p>
+                    <p class="empty__body">
+                      Everyone who has written in has had a reply. This is the
+                      view worth being empty.
+                    </p>
+                  </template>
+                  <template v-else-if="view === 'pending'">
+                    <p class="empty__title">Nothing waiting on them.</p>
+                    <p class="empty__body">
+                      No tickets are sitting with a reply sent and no answer back
+                      yet.
+                    </p>
+                  </template>
+                  <template v-else>
+                    <p class="empty__title">No tickets here.</p>
+                    <p class="empty__body">
+                      Messages sent to support arrive in this list.
+                    </p>
+                  </template>
                 </div>
               </td>
-              <td class="px-6 py-5">
-                <div class="max-w-[300px]">
-                  <p
-                    class="text-sm font-semibold text-slate-700 leading-tight truncate group-hover:text-emerald-600 transition-colors">
-                    {{ ticket.subject }}
-                  </p>
-                  <p class="text-[11px] text-slate-400 mt-1">
-                    {{ ticket._count?.messages || 0 }} messages in thread
-                  </p>
+            </tr>
+          </tbody>
+
+          <tbody v-else>
+            <tr v-for="t in rows" :key="t.id" class="row-link">
+              <td>
+                <div class="cel">
+                  <!-- The row's one link. Stretched over the whole <tr> by
+                       .row-link__hit::after, so the row stays clickable while
+                       there is exactly one thing to tab to and one accessible
+                       name for it. -->
+                  <NuxtLink
+                    :to="`/admin/tickets/${t.id}`"
+                    class="cel__main cel__link row-link__hit">
+                    {{ t.subject || "No subject" }}
+                  </NuxtLink>
+                  <span class="cel__sub">
+                    {{ ref_(t) }} · {{ t._count?.messages || 0 }}
+                    {{ (t._count?.messages || 0) === 1 ? "message" : "messages" }}
+                  </span>
                 </div>
               </td>
-              <td class="px-6 py-5">
-                <div
-                  :class="[
-                    'inline-flex items-center px-2 py-1 rounded-lg border text-[10px] font-bold uppercase tracking-wider',
-                    getPriorityClass(ticket.priority),
-                  ]">
-                  {{ ticket.priority }}
+
+              <td>
+                <div class="cel">
+                  <span class="cel__main">{{ t.fromName || "Guest" }}</span>
+                  <span class="cel__sub">
+                    {{ t.fromEmail }}
+                    <template v-if="t.user"> · {{ t.user.plan }} customer</template>
+                  </span>
                 </div>
               </td>
-              <td class="px-6 py-5 text-right">
-                <p class="text-sm font-semibold text-slate-900">
-                  {{ formatRelativeDate(ticket.updatedAt) }}
-                </p>
-                <p class="text-[11px] text-slate-400 mt-0.5">
-                  {{ formatDate(ticket.updatedAt) }}
-                </p>
+
+              <td>
+                <span class="pay" :class="priorityFor(t.priority)">
+                  {{ (t.priority || "None").toLowerCase() }}
+                </span>
+              </td>
+
+              <td>
+                <span class="chip" :class="chipFor(t.status)">
+                  <i class="chip__dot" aria-hidden="true"></i>
+                  {{ t.status === "PENDING" ? "Waiting" : t.status }}
+                </span>
+              </td>
+
+              <td>
+                <div class="cel">
+                  <span class="cel__main">{{ formatRelativeDate(t.updatedAt) }}</span>
+                  <span class="cel__sub">{{ formatDate(t.updatedAt) }}</span>
+                </div>
               </td>
             </tr>
           </tbody>
@@ -192,110 +323,3 @@
     </div>
   </div>
 </template>
-
-<script setup>
-import { ref, computed, onMounted } from "vue";
-import { useAuthStore } from "~/stores/authStore";
-import { formatDate, formatRelativeDate } from "~/utils/date";
-
-definePageMeta({
-  title: "Support Inbox",
-  middleware: "admin",
-});
-
-const authStore = useAuthStore();
-const loading = ref(true);
-const tickets = ref([]);
-const searchQuery = ref("");
-
-const stats = computed(() => {
-  const open = tickets.value.filter((t) => t.status === "OPEN").length;
-  const pending = tickets.value.filter((t) => t.status === "PENDING").length;
-  const closed = tickets.value.filter((t) => t.status === "CLOSED").length;
-
-  return [
-    {
-      label: "Open",
-      value: open,
-      icon: "heroicons:envelope-open",
-      bgClass: "bg-red-50",
-      iconClass: "text-red-500",
-    },
-    {
-      label: "Pending",
-      value: pending,
-      icon: "heroicons:clock",
-      bgClass: "bg-amber-50",
-      iconClass: "text-amber-500",
-    },
-    {
-      label: "Closed",
-      value: closed,
-      icon: "heroicons:check-circle",
-      bgClass: "bg-emerald-50",
-      iconClass: "text-emerald-500",
-    },
-    {
-      label: "Total",
-      value: tickets.value.length,
-      icon: "heroicons:chat-bubble-left-right",
-      bgClass: "bg-slate-50",
-      iconClass: "text-slate-500",
-    },
-  ];
-});
-
-const filteredTickets = computed(() => {
-  if (!searchQuery.value) return tickets.value;
-  const q = searchQuery.value.toLowerCase();
-  return tickets.value.filter(
-    (t) =>
-      t.subject.toLowerCase().includes(q) ||
-      t.fromEmail.toLowerCase().includes(q) ||
-      t.fromName?.toLowerCase().includes(q),
-  );
-});
-
-async function fetchTickets() {
-  const { $api } = useNuxtApp();
-  loading.value = true;
-  try {
-    const response = await $api.get("/support");
-    tickets.value = response.data;
-  } catch (err) {
-    console.error("Failed to fetch tickets:", err);
-  } finally {
-    loading.value = false;
-  }
-}
-
-function getStatusColor(status) {
-  switch (status) {
-    case "OPEN":
-      return "bg-red-500 animate-pulse";
-    case "PENDING":
-      return "bg-amber-500";
-    case "CLOSED":
-      return "bg-emerald-500";
-    default:
-      return "bg-slate-300";
-  }
-}
-
-function getPriorityClass(priority) {
-  switch (priority) {
-    case "HIGH":
-      return "bg-red-50 border-red-100 text-red-600";
-    case "MEDIUM":
-      return "bg-amber-50 border-amber-100 text-amber-600";
-    case "LOW":
-      return "bg-emerald-50 border-emerald-100 text-emerald-600";
-    default:
-      return "bg-slate-50 border-slate-100 text-slate-500";
-  }
-}
-
-onMounted(() => {
-  fetchTickets();
-});
-</script>

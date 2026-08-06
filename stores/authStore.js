@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 import { ref, computed, watch } from "vue";
+import { shouldRedirectToLogin } from "~/utils/routeAccess";
 
 export const useAuthStore = defineStore("auth", () => {
   const user = useState("auth_user", () => null);
@@ -155,7 +156,14 @@ export const useAuthStore = defineStore("auth", () => {
 
       if (process.client) {
         localStorage.clear();
-        window.location.href = "/login";
+        // Same guard as the axios interceptor: logging out while the visitor is
+        // reading a public page should clear the session, not relocate them.
+        // Previously this had no path check at all.
+        if (shouldRedirectToLogin(window.location.pathname)) {
+          window.location.href = "/login";
+        } else {
+          window.location.reload();
+        }
       }
     }
   }

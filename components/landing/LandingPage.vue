@@ -105,7 +105,9 @@ const jsonLd = computed(() => {
 })
 
 useHead({
-  htmlAttrs: { lang: copy.htmlLang },
+  /* kirim-scroll scopes the custom scrollbar to the marketing surface; the
+     authenticated app keeps the platform scrollbar. See landing.css. */
+  htmlAttrs: { lang: copy.htmlLang, class: 'kirim-scroll' },
   title: copy.meta.title,
   link: [
     { rel: 'canonical', href: canonical },

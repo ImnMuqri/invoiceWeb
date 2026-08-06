@@ -293,13 +293,33 @@ these are resolved.
    | PRO RM49 | 100 invoices, 50 WA, 100 email | 30 invoices, 30 WA, 50 email |
    | MAX RM99 | Unlimited invoices, unlimited email | 100 invoices, 100 email |
 
-3. **`/ms` was unreachable.** `middleware/auth.global.js` has a hardcoded
-   public-route allowlist that didn't include it, so the Bahasa Malaysia page
-   redirected every logged-out visitor and every crawler to `/login`. Added,
-   with a `startsWith("/ms/")` so future BM pages are covered too.
+3. **`/ms` was login-walled, and the cause was structural.** Three separate
+   places decided whether a logged-out visitor was allowed on a page, and they
+   disagreed:
 
-   > That file is a **global** middleware and Nuxt does not reliably hot-reload
-   > it. If `/ms` still redirects in dev, restart the dev server.
+   | Where | Exempted | Effect |
+   |---|---|---|
+   | `middleware/auth.global.js` | an allowlist of public paths | new marketing pages were login-walled by default |
+   | `plugins/axios.js:104` | only `/login`, `/register` | a failed token refresh hard-redirected readers off any public page |
+   | `stores/authStore.js:158` | **nothing** | `logout()` always did `window.location.href = "/login"` |
+
+   The last two are the dangerous ones: they are `window.location` assignments
+   that fire on the client after a background refresh fails, so to a visitor
+   with an expired session the landing page simply *becomes* the login page.
+
+   All three now share one answer — `utils/routeAccess.ts` — and the logic is
+   **inverted**: a route is public unless it matches a protected prefix. Adding
+   a marketing page can never login-wall it again. `logout()` on a public page
+   now clears the session and reloads in place instead of relocating.
+
+   > `auth.global.js` is a **global** middleware and Nuxt does not reliably
+   > hot-reload it. Restart the dev server after touching it.
+
+4. **Trailing-slash / canonical mismatch.** The production host 308-redirects
+   `/ms` to `/ms/`. The page was emitting the unslashed form in its canonical,
+   hreflang and sitemap — so every internal link took a redirect hop and the
+   canonical pointed at a URL that redirects. `localePath()` now emits `/ms/`,
+   the URL actually served.
 
 **Auto-chasing is gated in the page, not just flagged.** `LandingPricing.vue`
 now carries `CHASER_PLANS = new Set(['PRO','MAX'])`, mirroring the plan list in
@@ -349,3 +369,319 @@ pages/
 ```
 
 Run the audits: `node scratchpad/audit.js`, `node scratchpad/ramp.js`.
+
+---
+
+## 9. Legal pages
+
+`/legal/terms`, `/legal/privacy`, `/legal/refund` — rebuilt in the same design
+system, content in `composables/useLegalContent.ts`, shell in
+`components/legal/LegalDoc.vue`. Structured content rather than hand-marked-up
+HTML, so the numbered table of contents, the anchors and the schema markup are
+all generated from one source and cannot drift.
+
+**These have not been reviewed by a lawyer, and I am not one.** What I did was
+make them *accurate*: every factual claim is traceable to the codebase, and the
+previous versions contained several that were not.
+
+### Factual corrections (the important part)
+
+| Was | Reality | Now |
+|---|---|---|
+| "We implement bank-level encryption (AES-256) … to protect your data" | `Backend/src/utils/encryption.js` applies AES-256-GCM to **payment-gateway credentials only**. Invoice and client records are ordinary DB columns. | Security section states precisely what is encrypted, what is hashed, and what is protected by access control alone. |
+| Groq not mentioned anywhere | `Backend/src/utils/aiService.js` sends revenue totals, overdue-invoice details and **top-client names** to a US LLM provider. | Named, with a section listing exactly what is sent and the fact that it leaves Malaysia. |
+| Subprocessors: Billplz, ToyyibPay | Code also uses Twilio, Resend, HitPay, senangPay, Xendit. | Full table of provider / function / what it receives, plus the cross-border point PDPA s.129 turns on. |
+| No acceptable-use clause | The product's core function is messaging third parties. | Added — anti-spam, anti-harassment, and the user's warranty that they may hold their clients' data. |
+| No liability, warranty, indemnity, availability or change-of-terms clauses | — | Added, drafted conservatively. |
+| Refund policy silent on gateway fees | Fees are charged by the user's own gateway; not ours to return. | Stated. |
+| "BSYX LABS" | Registered as BSYX LABS SDN BHD (202603086039). | Full name and number, matching the footer. |
+
+### Needs a lawyer's eyes
+
+Sections carrying `review: true` in `useLegalContent.ts` — Disclaimers,
+Limitation of liability, Indemnity. The liability cap is drafted as *greater of
+12 months' fees or RM 100*; whether that survives the Consumer Protection Act
+1999 for your customer mix is a judgement I am not qualified to make. The flag
+is developer-facing and never rendered: a "pending legal review" badge on a live
+policy page would be worse than none.
+
+### Four things I could not verify — search `[CONFIRM]`
+
+Deliberately hedged or omitted rather than invented:
+
+1. **Hosting provider and the country your database sits in.** Needed to
+   complete the cross-border disclosure. Currently described generically.
+2. **Backups.** The old landing page claimed "daily automated backups". Nothing
+   in the repo evidences it, so the privacy policy makes **no backup promise at
+   all**. Document the real arrangement, then state it.
+3. **A concrete retention period** after account deletion. Currently "within a
+   reasonable period".
+4. **Whether you are a registered data user** under the PDPA.
+
+### Verified
+
+One `h1` per page, clean h1→h2 order, AA contrast on all three in light *and*
+dark, zero console errors, focus ring on every tab stop, skip link first, and
+`scroll-margin-top` so `#anchor` deep links clear the sticky nav (measured: 96px
+against a 68px nav). Each page emits its own canonical, OG tags and a `WebPage`
++ `BreadcrumbList` JSON-LD graph with `dateModified`.
+
+English only, and the pages say so — "English (governing version)" in the
+masthead. A machine-translated policy that disagrees with the English one is a
+liability, not a feature.
+
+---
+
+## 10. Scrollbar
+
+Scoped to `html.kirim-scroll`, a class the marketing pages add via `useHead`, so
+the authenticated app keeps the platform scrollbar it was built around.
+
+Two implementations that must not both apply: Chromium supports *both*
+`scrollbar-color` and `::-webkit-scrollbar`, but silently ignores the
+pseudo-elements once `scrollbar-color` is set — which would throw away the hover
+state. So the standard properties are gated behind
+`@supports not selector(::-webkit-scrollbar)` (Firefox) and the WebKit rules
+behind the positive form.
+
+Thumb colours are measured, not picked. WCAG 1.4.11 treats a scrollbar as a UI
+component needing **3:1** against its track. The conventional pale grey
+(`ink-300`) measures **1.42:1** on our track — visible only if you already know
+it's there. Shipped: `gray-600` (**3.35:1**) light, `ink-700` (**3.45:1**) dark,
+both going to brand green on hover. Deliberately *not* hidden or hairline-thin —
+scroll position is information, and this audience is largely on mid-range Android
+where a 4px thumb isn't a real drag target.
+
+`.k-scroll` styles the inner scrollers: the legal contents rail, wide tables, the
+mobile nav sheet.
+
+**The bug this surfaced.** `scrollbar-gutter: stable` reserves a gutter — and
+`.kirim` paints the page on a *div*, so that gutter (and any overscroll
+rubber-band area) painted whatever was behind it: Tailwind's cool `slate-50` from
+`main.css`. Against warm paper that's a visible stripe, and **in dark mode it was
+a light stripe down the right edge of a dark page**, because the app's
+`html.dark body` override keys off a class this theme system doesn't use.
+`html.kirim-scroll, html.kirim-scroll body { background-color: var(--surface-page) }`
+fixes it. Verified matching in both themes on all three marketing routes.
+
+---
+
+## 11. The mark
+
+`public/favicon.svg` — the "K", ink on brand green. Two locked colours, three
+stroked paths, no gradients.
+
+**Why a letter and not a symbol.** A favicon's actual job is being findable in a
+tab strip, so the tile colour matters more than the cleverness of the glyph.
+Measured against browser chrome:
+
+| Tile | vs light chrome | vs dark chrome |
+|---|---|---|
+| Green `#059669` | 3.77:1 | **4.27:1** |
+| Ink `#0D1B17` (previous) | 15.6:1 | **1.10:1 — invisible** |
+
+The old ink tile disappeared into dark browser chrome. Green pops in both. And
+ink-on-green measures **4.70:1** for the glyph versus 3.50:1 for paper-on-green,
+while being the same pairing as the primary CTA button — so the system stays
+coherent.
+
+**What was tested and rejected**, at 16/20/32/64/180px on light *and* dark
+chrome:
+
+- *A "K" built out of a checkmark* — the clever option. The detached tick read
+  as "IV" at every size. Discarded.
+- *"K" with a tick tail spliced onto the lower arm* — the tail collided with the
+  upper arm and read as a smudge.
+- *Bare checkmark* — flawlessly legible and the single most generic app icon in
+  existence.
+- *The previous bubble-and-tick* — loses its bubble tail entirely at 16px, so the
+  metaphor evaporates and it reads as a plain checkbox.
+- *Green K on ink* — dim and muddy at 16px.
+
+### Three treatments, because the platforms want different things
+
+| File | Treatment | Why |
+|---|---|---|
+| `favicon.svg`, `favicon-16/32.png` | rounded tile, alpha outside | browsers draw it as-is, so it supplies its own corners |
+| `apple-touch-icon.png` (180) | **full bleed, square, no alpha** | iOS applies its own rounded mask. The previous file was a rounded tile with transparent corners — iOS double-rounds that and fills the corners black. Fixed. |
+| `icon-192/512.png` | full bleed, `purpose: "any maskable"` | Android may crop to a circle; the glyph sits well inside the 80% safe zone. Verified under a circle crop. |
+
+`site.webmanifest` `theme_color` is now the tile green so the PWA splash matches
+the icon. Regenerate everything with `node scratchpad/gen-icons.js`.
+
+---
+
+## 12. Sign in / sign up
+
+`pages/login.vue`, `pages/register.vue`, shell in `components/auth/AuthShell.vue`,
+input in `components/auth/AuthField.vue`. Previous versions kept at
+`.archive/login.legacy.vue` and `.archive/register.legacy.vue`.
+
+### Google OAuth does not exist
+
+`Backend/src/routes/auth/index.js` exposes exactly four routes — `register`,
+`login`, `refresh`, `logout` — all email + password. There is no OAuth provider,
+no `googleId`/`provider` column on `User`, and no callback handler. Every
+"auth"-looking match in the backend is a **Twilio** auth token.
+
+So the button is built and styled but switched **off** behind
+`SOCIAL_AUTH_ENABLED` in `composables/useSocialAuth.ts`. Shipping a "Continue
+with Google" button that 404s is worse than not offering one — it is the first
+thing clicked and the last thing trusted. That file documents the full six-step
+path to enabling it (Google Cloud client, env vars, schema change making
+`password` nullable, two routes, the account-linking decision, then the flag).
+The account-linking step is the one with a security edge: linking a Google email
+to an existing password account is only safe if you check `email_verified` on
+the ID token first, or you have an account-takeover vector.
+
+### What was fixed beyond the visual rework
+
+| Problem | Impact |
+|---|---|
+| **No `autocomplete` attributes at all** | Password managers could not fill or save. Now `username` / `current-password` / `new-password` / `email` / `name`. |
+| **`<a href="#">Forgot?</a>`** | A dead link, and there is no password reset flow anywhere in the backend — users who forget were simply stuck. Now points at `mailto:support@invokita.my` so it reaches a human. **A real reset flow is still missing** — see below. |
+| No password reveal | Typing a long password blind on a 390px screen is where sign-ups get abandoned. |
+| No inline validation | Errors only appeared in a toast. Now per-field, `aria-invalid` + `aria-describedby`, error replaces the hint so the form does not grow as you fix it. |
+| Referral code shown to everyone | It was a fourth field for the majority with no code. Now confirmed as a chip when `?ref=` is present, otherwise behind a "Have a referral code?" toggle. |
+| Auth pages indexable | Now `noindex, follow` — thin, duplicated across every SaaS, and they dilute the pages that should rank. |
+| `ring: none` in `main.css` | Not a real CSS property. Removed. |
+
+### Still missing in the backend — not fixable from the frontend
+
+1. **No password reset flow.** No token, no route, no email. The "Forgot?" link
+   is a mailto stopgap.
+2. **No password validation.** `POST /auth/register` runs
+   `bcrypt.hash(password, 10)` on whatever arrives — a one-character password is
+   accepted. The 8-character rule on the form is a UX guardrail only, enforced
+   client-side, so it is trivially bypassable. This needs a server-side check.
+3. **No email verification.** Accounts are created and issued tokens
+   immediately.
+
+### A correction worth recording
+
+While testing focus rings I flagged `main.css`'s input block as removing the
+keyboard focus ring app-wide. That was **wrong**, and the audit script caused it:
+it only tested the `outline` property. The app pairs `outline: none` with an
+accent border plus a halo, and the green border measures 3.50:1 against the page
+— a legitimate focus indicator under WCAG 2.4.11. Worth knowing: text inputs
+match `:focus-visible` on *pointer* focus too, because they accept keyboard
+input, so there is no modality distinction to draw for them.
+
+The app-wide change was reverted. `AuthField` instead opts out with `.no-ik` and
+uses the design-token ring, so the change stays inside these pages. What did
+survive from that detour: never write a local `outline: none` on `:focus` and
+re-add it on `:focus-visible` — equal specificity, and the removal wins.
+
+### Verified
+
+AA contrast on both pages in light and dark; zero interactive tab stops without
+a visible focus ring; empty submit blocks navigation and marks three fields with
+`aria-invalid`; the reveal toggle flips `type` and reports `aria-pressed`;
+`?ref=CODE` prefills and confirms; zero console errors.
+
+### Auth layout and the ambient panel
+
+Panel left, form right, and the form column is centred within its half
+(measured: equal 117px gutters at 1280px). The form stays **first in the DOM**
+and is only moved visually with `order` — it is the reason the page exists, so
+the tab key and a screen reader should reach it first. Normally that visual/DOM
+split risks WCAG 2.4.3, but the panel contains zero interactive elements, so
+there is no focus order to contradict. The divider is `border-right` on the
+panel, and it is load-bearing in dark mode where the slab (`ink-975`) and the
+form side (`ink-950`) are one ramp step apart.
+
+`components/auth/AuthLedger.vue` — **"the ledger settles"**, the panel's ambient
+background. One row at a time, a green bar draws across a ruled line and a tick
+lands at the end: the product's promise (invoices getting paid without you)
+running as background motion. Not a floating blob or a gradient mesh.
+
+- **motion.dev drives it** — `animate` from `motion/mini`, the Web Animations
+  driver already in the bundle. The loop is sequenced in JS rather than CSS
+  keyframes because each beat has to target a *different* row and wait for the
+  previous one to clear, which keyframes cannot express. Beats step by 3 rows so
+  consecutive settles are never adjacent.
+- The slow drifting green wash *is* CSS keyframes — one looping transform is
+  exactly what keyframes are for and it costs no JS.
+- Timing is deliberately far slower than the scroll-reveal budget. That budget
+  exists so reveals never outpace a chat message; this sits behind text and must
+  never pull the eye off the form.
+- Colour is alpha of the locked green only.
+- `prefers-reduced-motion`: the loop **never starts** and the wash animation is
+  removed; two rows are left in their settled state so the panel still reads.
+  Verified — row count unchanged 2.5s later.
+
+Verified after adding it: AA contrast still passes on both pages in both themes
+(the motion layer sits behind text and does not degrade it), and the animation
+runs — sampled over 4.9s it produced 4 distinct states, cycling row 1 → clear →
+row 4.
+
+---
+
+## 13. The app: dark mode + dashboard
+
+### Dark mode
+
+Ran on Tailwind `slate` — blue-biased greys beside an emerald accent, which reads
+as two unrelated colour families. Now on a ramp at the brand ink hue (174°) at
+chroma 0.009: neutral to the eye, but related to the green. Five surfaces, each
+measured ≥1.15:1 apart so elevation does real work.
+
+`--app-0` sidebar `#0e1312` · `--app-1` page `#1c2120` · `--app-2` card `#262c2a`
+· `--app-3` input/hover `#303634` · `--app-4` active `#3b413f`
+
+Three separate causes were making it feel wrong:
+
+1. **Hue conflict** — slate vs emerald, above.
+2. **The layout was being erased.** The sidebar mapped to `slate-950`, *the same
+   value as the page background*, so sidebar and content collapsed into one flat
+   plane. The structure that works in light mode was the first casualty.
+3. **Near-black + near-white.** `slate-950` with `slate-50` = 19.28:1, which
+   causes halation on a data-dense screen. Body text now lands at 13.08:1.
+
+Also: ~200 light pastel utilities (`bg-emerald-50`, `bg-amber-50`, …) stayed
+*light* in dark mode — the dashboard carried lavender, yellow, mint and pink
+slabs. Five semantic families now have dark tints with AA-verified text
+(7.9–8.2:1). Black shadows were replaced with a lit top edge; a 0.8-alpha black
+shadow on a near-black page is invisible.
+
+### Contrast: dashboard went dark 8 → 0, light 17 → 0
+
+Light was the worse of the two. Four systemic causes:
+
+| Cause | Was | Now |
+|---|---|---|
+| `text-slate-400` as the muted colour (279 uses) | 2.56:1 on white | remapped to `#656c6a`, 5.38:1 |
+| `.bg-slate-900` meant *both* primary button and dark tooltip | flipping it to emerald turned tooltips green under light text — 1.96:1 | flip scoped to `a`/`button`; `div`/`span` stay dark |
+| `text-emerald-600` on white | 3.77:1 | `emerald-700`, 5.02:1 |
+| white on an emerald chip | 3.77:1 | ink, 4.70:1 |
+
+Opacity-modified utilities (`text-emerald-700/80`) are a *separate* Tailwind
+class, so mapping the base class never touched them.
+
+> **Tooling correction.** An earlier dashboard "PASS" was meaningless: the audit
+> patch silently failed (targeted `pg.` where the script uses `page.`), so it was
+> auditing `/login`. `scratchpad/audit-app.js` now aborts if it is redirected.
+
+### Dashboard rework
+
+**Section order** now follows the job: money → work → context → account admin.
+`Monthly Usage Highlights` was sitting directly under the money summary; it is
+account administration and now sits last.
+
+**The four pastel KPI tiles are gone.** Lavender for revenue, yellow for
+outstanding, mint for clients, pink for overdue — decorative, not semantic.
+Nothing about revenue is "indigo", and four equal quarters of a rainbow means
+nothing leads. Outstanding is now the lead figure; Collected and Active clients
+are neutral supporting cards; colour appears only where it carries meaning.
+
+**Overdue became an action, not a count.** It links to the filtered invoice list,
+and when nothing is overdue it says so in green rather than showing a `0` that
+reads like missing data.
+
+Copy: "Deep insights into platform growth and system performance" → "What you are
+owed, and what is chasing itself." Empty states name a next step. The forecast
+card's 350px chart box collapses to 160px when there is nothing to plot — it was
+the largest thing on the page for a new account.
+
+**Not done:** the forecast, profitability and referral panels are restyled but
+not restructured, and the multi-currency note was demoted rather than rewritten.

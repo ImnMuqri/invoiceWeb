@@ -1,20 +1,18 @@
-<template>
-  <Transition name="toast">
-    <div v-if="modelValue?.message" class="fixed bottom-8 right-8 z-[100]">
-      <div
-        class="bg-gradient-to-r px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3 border-2"
-        :class="containerClass">
-        <UiIcon :icon="iconName" :custom-class="iconClass" />
-        <span class="text-sm font-semibold text-slate-900">{{
-          modelValue.message
-        }}</span>
-      </div>
-    </div>
-  </Transition>
-</template>
-
 <script setup>
-import { watch, computed } from "vue";
+/**
+ * Toast.
+ *
+ * The markup was three hardcoded Tailwind pastel gradients — from-emerald-50,
+ * from-rose-50, from-amber-50 — with `text-slate-900` on top of them. None of it
+ * responded to the theme, so in dark mode a toast was a pale mint slab carrying
+ * near-black text on a near-black page. Styling now lives in .toast, on token
+ * triplets with a real pair per theme.
+ *
+ * Teleported to <body>. A toast is fixed-position and every page renders its own
+ * inside .desk, so two pages transitioning could otherwise stack them inside
+ * different stacking contexts; from <body> there is one place it can land.
+ */
+import { watch, computed, ref, onUnmounted } from "vue";
 
 const props = defineProps({
   modelValue: {
@@ -29,62 +27,81 @@ const props = defineProps({
 
 const emit = defineEmits(["update:modelValue"]);
 
-const type = computed(() => props.modelValue?.type || "success");
-
-const containerClass = computed(() => {
-  switch (type.value) {
-    case "error":
-      return "from-rose-50 to-rose-100 border-rose-100 shadow-rose-100/50";
-    case "warning":
-      return "from-amber-50 to-amber-100 border-amber-100 shadow-amber-100/50";
-    default:
-      return "from-emerald-50 to-emerald-100 border-emerald-100 shadow-emerald-100/50";
-  }
+const type = computed(() => {
+  const t = props.modelValue?.type;
+  return ["success", "error", "warning"].includes(t) ? t : "success";
 });
 
-const iconName = computed(() => {
-  switch (type.value) {
-    case "error":
-      return "heroicons:x-circle";
-    case "warning":
-      return "heroicons:exclamation-triangle";
-    default:
-      return "heroicons:check-circle";
-  }
-});
+const icon = computed(
+  () =>
+    ({
+      error: "heroicons:x-circle",
+      warning: "heroicons:exclamation-triangle",
+      success: "heroicons:check-circle",
+    })[type.value],
+);
 
-const iconClass = computed(() => {
-  switch (type.value) {
-    case "error":
-      return "w-6 h-6 text-red-500";
-    case "warning":
-      return "w-6 h-6 text-amber-500";
-    default:
-      return "w-6 h-6 text-emerald-400";
-  }
-});
+/* A screen reader should be interrupted by a failure and not by a confirmation
+   it can pick up in passing. */
+const live = computed(() => (type.value === "error" ? "assertive" : "polite"));
+
+/* The old version set a fresh timeout on every message without clearing the
+   last, so two toasts in quick succession left the first timer running — and it
+   fired against the second message, cutting it short. */
+let timer = null;
 
 watch(
   () => props.modelValue?.message,
-  (newVal) => {
-    if (newVal) {
-      setTimeout(() => {
-        emit("update:modelValue", { message: "", type: type.value });
-      }, props.duration);
-    }
+  (message) => {
+    if (timer) clearTimeout(timer);
+    if (!message) return;
+    timer = setTimeout(() => {
+      emit("update:modelValue", { message: "", type: type.value });
+    }, props.duration);
   },
 );
+
+onUnmounted(() => timer && clearTimeout(timer));
 </script>
+
+<template>
+  <Teleport to="body">
+    <Transition name="toast">
+      <div
+        v-if="modelValue?.message"
+        class="toast"
+        :class="`toast--${type}`"
+        role="status"
+        :aria-live="live">
+        <span class="toast__icon" aria-hidden="true">
+          <UiIcon :icon="icon" custom-class="w-4 h-4" />
+        </span>
+        <span class="toast__msg">{{ modelValue.message }}</span>
+      </div>
+    </Transition>
+  </Teleport>
+</template>
 
 <style scoped>
 .toast-enter-active,
 .toast-leave-active {
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .toast-enter-from,
 .toast-leave-to {
   opacity: 0;
-  transform: translateY(20px) scale(0.95);
+  transform: translateY(12px) scale(0.98);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast-enter-active,
+  .toast-leave-active {
+    transition: opacity 0.2s ease;
+  }
+  .toast-enter-from,
+  .toast-leave-to {
+    transform: none;
+  }
 }
 </style>

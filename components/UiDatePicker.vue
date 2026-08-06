@@ -1,8 +1,8 @@
 <template>
   <div class="relative w-full" ref="container">
-    <label
-      v-if="label"
-      class="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1">
+    <!-- See UiSelect: the old 11px slate-500 label measured 4.25:1 on the light
+         card. `.f__label` is the tokenised, theme-tracking equivalent. -->
+    <label v-if="label" class="f__label">
       {{ label }}
     </label>
 

@@ -1,200 +1,297 @@
-<template>
-  <div class="max-w-5xl mx-auto space-y-6 pb-20">
-    <!-- Back & Actions Header -->
-    <div class="flex items-center justify-between">
-      <NuxtLink to="/admin/tickets" class="group flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-colors">
-        <div class="w-8 h-8 rounded-lg bg-white border border-[#e5e5e5] flex items-center justify-center group-hover:border-slate-300 transition-all">
-          <UiIcon icon="heroicons:arrow-left" class="w-4 h-4" />
-        </div>
-        <span class="text-sm font-bold">Back to Inbox</span>
-      </NuxtLink>
+<script setup>
+/**
+ * A SUPPORT CONVERSATION.
+ *
+ * The thread reuses .msg / .chat from the invoice assistant rather than
+ * rebuilding chat bubbles — see the Support tickets block in app-desk.css.
+ *
+ * Four things beyond the styling:
+ *
+ *  1. Two native alert() calls — "Failed to send reply. Please check logs." and
+ *     "Failed to update status." The first tells a support agent to read server
+ *     logs, which is not something they can do, and neither says whether the
+ *     message was sent. Both are toasts now, and the reply survives a failure so
+ *     it can be sent again rather than being lost with the dialog.
+ *
+ *  2. A failed load rendered as nothing at all: `ticket` stayed null, the
+ *     `v-else-if="ticket"` never matched, and the page showed an empty div under
+ *     the back link. Failure is its own state with a retry.
+ *
+ *  3. `getStatusClass` ended `'... text-slate-500 text-emerald-600'` — two text
+ *     colours on one branch, last one winning, so an unrecognised status came
+ *     out green. Statuses map to chip modifiers now.
+ *
+ *  4. `authStore` was imported and never used.
+ */
+import { computed, nextTick, onMounted, ref, watch } from "vue";
+import { useRoute } from "vue-router";
+import { formatDate, formatTime } from "~/utils/date";
 
-      <div class="flex items-center gap-2">
-        <div :class="['px-3 py-1.5 rounded-xl border text-[11px] font-bold uppercase tracking-widest', getStatusClass(ticket?.status)]">
-          {{ ticket?.status }}
-        </div>
-        <UiPopover placement="bottom-end">
-          <template #trigger="{ isOpen }">
-            <button class="p-2.5 bg-white border border-[#e5e5e5] rounded-xl hover:bg-slate-50 transition-all">
-              <UiIcon icon="heroicons:ellipsis-horizontal" class="w-5 h-5 text-slate-600" />
+definePageMeta({ title: "Ticket", middleware: "admin" });
+
+const route = useRoute();
+const { $api } = useNuxtApp();
+
+const ticket = ref(null);
+const loading = ref(true);
+const loadError = ref("");
+const sending = ref(false);
+const reply = ref("");
+const closeAfter = ref(false);
+const toast = ref({ message: "", type: "success" });
+const notify = (message, type = "success") => (toast.value = { message, type });
+
+const threadEnd = ref(null);
+
+const scrollToEnd = async () => {
+  await nextTick();
+  threadEnd.value?.scrollIntoView({ block: "end", behavior: "smooth" });
+};
+
+const fetchTicket = async () => {
+  loading.value = true;
+  loadError.value = "";
+  try {
+    const { data } = await $api.get(`/support/${route.params.id}`);
+    ticket.value = data;
+  } catch (err) {
+    loadError.value =
+      err.response?.status === 404
+        ? "That ticket does not exist, or it has been deleted."
+        : err.response?.data?.message ||
+          "Could not load this conversation. Try again in a moment.";
+    ticket.value = null;
+  } finally {
+    loading.value = false;
+  }
+};
+
+onMounted(async () => {
+  await fetchTicket();
+  scrollToEnd();
+});
+
+const sendReply = async () => {
+  const body = reply.value.trim();
+  if (!body || sending.value) return;
+  /* Captured before the reset below, or the message reports the flag we have
+     just cleared rather than the one we sent with. */
+  const alsoClosed = closeAfter.value;
+  sending.value = true;
+  try {
+    await $api.post(`/support/${route.params.id}/reply`, {
+      content: body,
+      closeTicket: alsoClosed,
+    });
+    /* Only cleared once the server has it. The old version cleared the box
+       first, so a failed send lost what had been written. */
+    reply.value = "";
+    closeAfter.value = false;
+    await fetchTicket();
+    scrollToEnd();
+    notify(alsoClosed ? "Replied, and the ticket is closed." : "Reply sent.");
+  } catch (err) {
+    notify(
+      err.response?.data?.message ||
+        "That did not send. Your reply is still in the box — try again.",
+      "error",
+    );
+  } finally {
+    sending.value = false;
+  }
+};
+
+const updateStatus = async (status) => {
+  const previous = ticket.value?.status;
+  try {
+    await $api.patch(`/support/${route.params.id}/status`, { status });
+    await fetchTicket();
+    notify(`Marked ${label(status).toLowerCase()}.`);
+  } catch (err) {
+    notify(
+      err.response?.data?.message ||
+        `Could not change this from ${label(previous).toLowerCase()}.`,
+      "error",
+    );
+  }
+};
+
+const CHIP = { OPEN: "chip--late", PENDING: "chip--idle", CLOSED: "chip--paid" };
+const chipFor = (s) => CHIP[s] || "chip--idle";
+
+const label = (s) =>
+  ({ OPEN: "Open", PENDING: "Waiting on them", CLOSED: "Closed" })[s] || s || "Unknown";
+
+const STATUSES = ["OPEN", "PENDING", "CLOSED"];
+
+const who = computed(() => ticket.value?.fromName || "Guest");
+
+const messages = computed(() => ticket.value?.messages || []);
+
+/* Ctrl/Cmd+Enter sends, which is what anyone who answers tickets all day will
+   try first. */
+const onKeydown = (e) => {
+  if ((e.metaKey || e.ctrlKey) && e.key === "Enter") sendReply();
+};
+</script>
+
+<template>
+  <div class="desk">
+    <header class="desk__head">
+      <div>
+        <NuxtLink to="/admin/tickets" class="card__link card__link--target">
+          &larr; Back to support
+        </NuxtLink>
+        <h1 class="desk__title" style="margin-top: var(--space-2)">
+          {{ loading ? "Loading…" : ticket?.subject || "Ticket" }}
+        </h1>
+        <!-- Each fact is kept whole. Without the nowrap the line broke inside
+             the date — "opened 2 / Aug 2026" — which reads as two facts. -->
+        <p v-if="ticket" class="desk__sub">
+          <span style="white-space: nowrap">{{ who }}</span> ·
+          <span style="white-space: nowrap">{{ ticket.fromEmail }}</span>
+          <template v-if="ticket.user">
+            · <span style="white-space: nowrap">{{ ticket.user.plan }} customer</span>
+          </template>
+          · <span style="white-space: nowrap">
+            opened {{ formatDate(ticket.createdAt) }}
+          </span>
+        </p>
+      </div>
+
+      <div v-if="ticket" class="desk__actions">
+        <span class="chip" :class="chipFor(ticket.status)">
+          <i class="chip__dot" aria-hidden="true"></i>
+          {{ label(ticket.status) }}
+        </span>
+        <UiPopover placement="bottom-end" bare>
+          <template #trigger>
+            <button
+              type="button"
+              class="desk-btn desk-btn--icon"
+              aria-label="Change ticket status">
+              <UiIcon icon="heroicons:ellipsis-horizontal" custom-class="w-5 h-5" />
             </button>
           </template>
           <template #default="{ close }">
-            <div class="w-[180px] p-2 bg-white rounded-2xl shadow-xl border border-slate-100">
-               <button 
-                 v-for="status in ['OPEN', 'PENDING', 'CLOSED']" 
-                 :key="status"
-                 @click="updateStatus(status); close()"
-                 class="w-full text-left px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 rounded-lg transition-colors uppercase tracking-wider"
-               >
-                 Mark as {{ status }}
-               </button>
+            <div class="mnu">
+              <p class="mnu__head">Status</p>
+              <button
+                v-for="s in STATUSES"
+                :key="s"
+                type="button"
+                class="mnu__item"
+                :disabled="ticket.status === s"
+                @click="close(); updateStatus(s)">
+                <i class="mnu__dot" :class="`mnu__dot--${s === 'CLOSED' ? 'paid' : s === 'OPEN' ? 'late' : 'idle'}`" aria-hidden="true"></i>
+                {{ label(s) }}
+              </button>
             </div>
           </template>
         </UiPopover>
       </div>
-    </div>
+    </header>
 
-    <div v-if="loading" class="flex flex-col items-center justify-center p-20 space-y-4">
-      <div class="relative flex items-center justify-center">
-          <div class="w-12 h-12 border-4 border-emerald-500/20 rounded-full"></div>
-          <div class="w-12 h-12 border-4 border-transparent border-t-emerald-500 rounded-full animate-spin absolute top-0 left-0"></div>
+    <!-- ── Loading ──────────────────────────────────────────────────────── -->
+    <div v-if="loading" class="chat">
+      <div class="chat__log">
+        <div v-for="i in 3" :key="i" class="msg" :class="{ 'msg--me': i === 2 }">
+          <div class="msg__body" style="min-width: 16rem">
+            <i class="sk" style="width: 90%"></i><br />
+            <i class="sk" style="width: 60%"></i>
+          </div>
+        </div>
       </div>
     </div>
 
-    <div v-else-if="ticket" class="space-y-6">
-      <!-- Ticket Info Header -->
-      <div class="bg-white rounded-3xl border border-[#e5e5e5] p-6 shadow-sm">
-        <div class="flex flex-col md:flex-row md:items-start justify-between gap-6">
-          <div class="space-y-1">
-            <h2 class="text-xl font-bold text-slate-900 tracking-tight">{{ ticket.subject }}</h2>
-            <div class="flex items-center gap-3">
-               <p class="text-sm font-medium text-slate-500">
-                 From: <span class="text-slate-900 font-bold">{{ ticket.fromName || 'Guest' }}</span> 
-                 <span class="mx-1 text-slate-300">•</span> 
-                 {{ ticket.fromEmail }}
-               </p>
-               <div v-if="ticket.user" class="px-2 py-0.5 rounded bg-emerald-50 border border-emerald-100 flex items-center gap-1.5">
-                  <span class="w-1 h-1 bg-emerald-500 rounded-full"></span>
-                  <span class="text-[10px] font-bold text-emerald-600 uppercase">Registered User</span>
-               </div>
+    <!-- ── Failed ───────────────────────────────────────────────────────── -->
+    <div v-else-if="loadError" class="card">
+      <div class="empty empty--pad">
+        <p class="empty__title">This conversation did not load.</p>
+        <p class="empty__body">{{ loadError }}</p>
+        <div class="bar" style="justify-content: center">
+          <NuxtLink to="/admin/tickets" class="desk-btn desk-btn--ghost">
+            Back to support
+          </NuxtLink>
+          <button type="button" class="desk-btn desk-btn--primary" @click="fetchTicket">
+            Try again
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── The thread ───────────────────────────────────────────────────── -->
+    <template v-else-if="ticket">
+      <div class="chat">
+        <div class="chat__log">
+          <div v-if="!messages.length" class="empty">
+            <p class="empty__title">Nothing in this thread yet.</p>
+            <p class="empty__body">
+              The ticket exists but carries no messages. Replying below starts it.
+            </p>
+          </div>
+
+          <div
+            v-for="m in messages"
+            :key="m.id"
+            class="msg msg--wide"
+            :class="{ 'msg--me': m.sender === 'ADMIN' }">
+            <div class="msg__body">
+              <span class="msg__meta">
+                <span class="msg__who">
+                  {{ m.sender === "ADMIN" ? "You" : who }}
+                </span>
+                <span class="msg__when">{{ formatTime(m.createdAt) }}</span>
+              </span>
+              <span style="display: block; white-space: pre-wrap">{{ m.content }}</span>
             </div>
           </div>
-          <div class="text-right">
-             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Ticket Created</p>
-             <p class="text-sm font-bold text-slate-900">{{ formatDate(ticket.createdAt) }}</p>
+          <div ref="threadEnd"></div>
+        </div>
+      </div>
+
+      <!-- ── Reply ──────────────────────────────────────────────────────── -->
+      <form class="reply" @submit.prevent="sendReply">
+        <div class="f" style="margin: 0">
+          <label class="sr-only" for="reply">Your reply</label>
+          <textarea
+            id="reply"
+            v-model="reply"
+            rows="4"
+            class="inp no-ik"
+            :disabled="sending"
+            placeholder="Write back to them. This goes to their email."
+            @keydown="onKeydown"></textarea>
+        </div>
+
+        <div class="reply__acts">
+          <label class="tog" for="close-after">
+            <input
+              id="close-after"
+              v-model="closeAfter"
+              type="checkbox"
+              class="tog__inp" />
+            <span class="tog__track" aria-hidden="true"></span>
+            <span class="tog__label">Close the ticket once this sends</span>
+          </label>
+
+          <div class="bar">
+            <span class="set__dirty">⌘↵ to send</span>
+            <button
+              type="submit"
+              class="desk-btn desk-btn--primary"
+              :disabled="!reply.trim() || sending">
+              <UiIcon
+                v-if="sending"
+                icon="heroicons:arrow-path"
+                custom-class="w-4 h-4 spin" />
+              {{ sending ? "Sending…" : "Send reply" }}
+            </button>
           </div>
         </div>
-      </div>
+      </form>
+    </template>
 
-      <!-- Message History -->
-      <div class="space-y-6">
-        <div 
-          v-for="message in ticket.messages" 
-          :key="message.id"
-          :class="['flex', message.sender === 'ADMIN' ? 'justify-end' : 'justify-start']"
-        >
-          <div :class="['max-w-[85%] md:max-w-[70%] space-y-2', message.sender === 'ADMIN' ? 'items-end' : 'items-start']">
-             <div class="flex items-center gap-2 px-2">
-                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                  {{ message.sender === 'ADMIN' ? 'InvoKita Support' : (ticket.fromName || 'User') }}
-                </span>
-                <span class="text-[10px] font-medium text-slate-300 font-mono">{{ formatTime(message.createdAt) }}</span>
-             </div>
-             <div :class="['p-5 rounded-3xl shadow-sm text-[15px] leading-relaxed', 
-               message.sender === 'ADMIN' 
-                ? 'bg-slate-900 text-white rounded-tr-none' 
-                : 'bg-white border border-[#e5e5e5] text-slate-700 rounded-tl-none'
-             ]">
-                <p class="whitespace-pre-wrap">{{ message.content }}</p>
-             </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Reply Section -->
-      <div class="sticky bottom-6 bg-white rounded-3xl border border-[#e5e5e5] p-4 shadow-[0_8px_30px_rgb(0,0,0,0.08)]">
-        <div class="space-y-4">
-           <textarea 
-            v-model="replyContent"
-            placeholder="Type your reply here..."
-            class="w-full min-h-[120px] p-4 bg-slate-50 border-none rounded-2xl resize-none text-[15px] outline-none focus:ring-2 focus:ring-emerald-500/10 transition-all"
-           ></textarea>
-           
-           <div class="flex items-center justify-between gap-4">
-              <div class="flex items-center gap-3">
-                 <label class="flex items-center gap-2 cursor-pointer group">
-                    <input type="checkbox" v-model="closeOnReply" class="w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
-                    <span class="text-xs font-bold text-slate-500 group-hover:text-slate-900 transition-colors">Close ticket after reply</span>
-                 </label>
-              </div>
-
-              <button 
-                @click="sendReply"
-                :disabled="!replyContent || sending"
-                class="px-6 py-2.5 bg-emerald-600 text-white text-sm font-bold rounded-xl hover:bg-emerald-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg shadow-emerald-500/20"
-              >
-                <div v-if="sending" class="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
-                <UiIcon v-else icon="heroicons:paper-airplane" class="w-4 h-4" />
-                {{ sending ? 'Sending...' : 'Send Reply' }}
-              </button>
-           </div>
-        </div>
-      </div>
-    </div>
+    <UiToast v-model="toast" />
   </div>
 </template>
-
-<script setup>
-import { ref, onMounted } from 'vue';
-import { useRoute } from 'vue-router';
-import { useAuthStore } from '~/stores/authStore';
-import { formatDate, formatTime } from '~/utils/date';
-
-definePageMeta({
-  title: 'Ticket Conversation',
-  middleware: 'admin'
-});
-
-const route = useRoute();
-const authStore = useAuthStore();
-const loading = ref(true);
-const sending = ref(false);
-const ticket = ref(null);
-const replyContent = ref('');
-const closeOnReply = ref(false);
-
-async function fetchTicket() {
-  const { $api } = useNuxtApp();
-  loading.value = true;
-  try {
-    const response = await $api.get(`/support/${route.params.id}`);
-    ticket.value = response.data;
-  } catch (err) {
-    console.error('Failed to fetch ticket:', err);
-  } finally {
-    loading.value = false;
-  }
-}
-
-async function sendReply() {
-  const { $api } = useNuxtApp();
-  if (!replyContent.value || sending.value) return;
-  sending.value = true;
-  try {
-    await $api.post(`/support/${route.params.id}/reply`, {
-      content: replyContent.value,
-      closeTicket: closeOnReply.value
-    });
-    replyContent.value = '';
-    await fetchTicket(); // Refresh thread
-  } catch (err) {
-    alert('Failed to send reply. Please check logs.');
-  } finally {
-    sending.value = false;
-  }
-}
-
-async function updateStatus(status) {
-  const { $api } = useNuxtApp();
-  try {
-    await $api.patch(`/support/${route.params.id}/status`, { status });
-    await fetchTicket();
-  } catch (err) {
-    alert('Failed to update status.');
-  }
-}
-
-function getStatusClass(status) {
-  switch (status) {
-    case 'OPEN': return 'bg-red-50 border-red-100 text-red-600';
-    case 'PENDING': return 'bg-amber-50 border-amber-100 text-amber-600';
-    case 'CLOSED': return 'bg-emerald-50 border-emerald-100 text-emerald-600';
-    default: return 'bg-slate-50 border-slate-100 text-slate-500 text-emerald-600';
-  }
-}
-
-onMounted(() => {
-  fetchTicket();
-});
-</script>

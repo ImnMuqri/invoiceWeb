@@ -1,332 +1,228 @@
+<script setup lang="ts">
+/**
+ * Sign in.
+ *
+ * The previous version (.archive/login.legacy.vue) had no `autocomplete`
+ * attributes — which quietly breaks every password manager — no password
+ * reveal, no inline validation, and a "Forgot?" link pointing at href="#": a
+ * dead end with no recovery path at all. See the note on that link below.
+ */
+import { useAuthStore } from '~/stores/authStore'
+import { useSocialAuth } from '~/composables/useSocialAuth'
+
+definePageMeta({ layout: false })
+
+const router = useRouter()
+const authStore = useAuthStore()
+const social = useSocialAuth()
+
+const email = ref('')
+const password = ref('')
+const errors = ref<{ email?: string; password?: string }>({})
+const formError = ref('')
+const submitting = ref(false)
+
+function validate() {
+  const next: { email?: string; password?: string } = {}
+  if (!email.value.trim()) next.email = 'Enter the email address on your account.'
+  else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim()))
+    next.email = 'That does not look like an email address.'
+  if (!password.value) next.password = 'Enter your password.'
+  errors.value = next
+  return Object.keys(next).length === 0
+}
+
+async function handleLogin() {
+  formError.value = ''
+  if (!validate()) return
+  submitting.value = true
+  try {
+    await authStore.login(email.value.trim(), password.value)
+    await router.push('/dashboard')
+  } catch (err: any) {
+    /* The API returns one message for both "no such email" and "wrong
+       password", which is correct — telling an attacker which half matched is
+       an account-enumeration hole. Surfaced as-is. */
+    formError.value =
+      err?.response?.data?.message ||
+      authStore.error ||
+      'Could not sign you in. Check your details and try again.'
+  } finally {
+    submitting.value = false
+  }
+}
+
+watch(email, () => {
+  if (errors.value.email) errors.value = { ...errors.value, email: undefined }
+})
+watch(password, () => {
+  if (errors.value.password) errors.value = { ...errors.value, password: undefined }
+})
+</script>
+
 <template>
-  <div class="lf">
-    <div class="lf__head">
-      <span class="lf__eyebrow">Sign in</span>
-      <h1 class="lf__title">Welcome back.</h1>
-      <p class="lf__sub">Enter your credentials to continue.</p>
-    </div>
+  <AuthShell
+    eyebrow="Welcome back"
+    title="Sign in to"
+    title-accent="InvoKita."
+    lead="Pick up where you left off. Anything that came due while you were away has already been chased."
+    meta-title="Sign in — InvoKita"
+    panel-title="It kept working while you were gone."
+    :panel-points="[
+      'Reminders went out on the schedule you set, in your words.',
+      'Anything your gateway confirmed is already marked paid.',
+      'Invoices that got paid stopped being chased automatically.',
+    ]">
+    <form class="form" novalidate @submit.prevent="handleLogin">
+      <!-- Google slot. Off until the backend route exists — see
+           composables/useSocialAuth.ts for exactly what that takes. -->
+      <template v-if="social.enabled">
+        <a :href="social.googleUrl" class="social">
+          <svg viewBox="0 0 18 18" aria-hidden="true">
+            <path d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.92a8.78 8.78 0 0 0 2.68-6.62Z" fill="#4285F4" />
+            <path d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.26A5.4 5.4 0 0 1 9 14.42a5.42 5.42 0 0 1-5.09-3.75H.96v2.33A9 9 0 0 0 9 18Z" fill="#34A853" />
+            <path d="M3.91 10.67a5.41 5.41 0 0 1 0-3.34V5H.96a9 9 0 0 0 0 8l2.95-2.33Z" fill="#FBBC05" />
+            <path d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.59A9 9 0 0 0 .96 5l2.95 2.33A5.42 5.42 0 0 1 9 3.58Z" fill="#EA4335" />
+          </svg>
+          Continue with Google
+        </a>
+        <p class="divider"><span>or</span></p>
+      </template>
 
-    <form class="lf__form" @submit.prevent="handleLogin" novalidate>
-      <div class="lf__field">
-        <label for="email" class="lf__label">Email</label>
-        <input
-          id="email"
-          v-model="email"
-          type="email"
-          name="email"
-          autocomplete="email"
-          placeholder="you@example.com"
-          required
-          class="lf__input" />
-      </div>
-
-      <div class="lf__field">
-        <div class="lf__label-row">
-          <label for="password" class="lf__label">Password</label>
-          <a href="#" class="lf__link">Forgot?</a>
-        </div>
-        <input
-          id="password"
-          v-model="password"
-          type="password"
-          name="password"
-          autocomplete="current-password"
-          placeholder="••••••••"
-          required
-          class="lf__input" />
-      </div>
-
-      <button type="submit" :disabled="authStore.loading" class="lf__btn">
-        <UiIcon
-          v-if="authStore.loading"
-          icon="heroicons:arrow-path"
-          custom-class="w-4 h-4 animate-spin" />
-        <span>{{ authStore.loading ? "Signing in…" : "Sign in" }}</span>
-        <svg
-          v-if="!authStore.loading"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          class="lf__btn-arrow">
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            d="M14 5l7 7m0 0l-7 7m7-7H3" />
+      <p v-if="formError" class="alert" role="alert">
+        <svg viewBox="0 0 16 16" aria-hidden="true">
+          <circle cx="8" cy="8" r="6.6" fill="none" stroke="currentColor" stroke-width="1.5" />
+          <path d="M8 4.6v4.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+          <circle cx="8" cy="11.4" r="0.9" fill="currentColor" />
         </svg>
+        {{ formError }}
+      </p>
+
+      <AuthField
+        id="email"
+        v-model="email"
+        label="Email"
+        type="email"
+        autocomplete="username"
+        inputmode="email"
+        placeholder="you@yourbusiness.com"
+        :error="errors.email"
+        required />
+
+      <AuthField
+        id="password"
+        v-model="password"
+        label="Password"
+        type="password"
+        autocomplete="current-password"
+        placeholder="Your password"
+        :error="errors.password"
+        required>
+        <template #action>
+          <!-- No password reset flow exists in the backend yet, so this reaches
+               a human rather than the dead href="#" it pointed at before. -->
+          <a
+            href="mailto:support@invokita.my?subject=Password%20reset%20request"
+            class="forgot">Forgot?</a>
+        </template>
+      </AuthField>
+
+      <button type="submit" class="k-btn k-btn--primary submit" :disabled="submitting">
+        {{ submitting ? 'Signing you in…' : 'Sign in' }}
       </button>
     </form>
 
-    <div class="lf__sep">
-      <span>or</span>
-    </div>
-
-    <button class="lf__google">
-      <svg class="lf__g-icon" viewBox="0 0 48 48">
-        <path
-          fill="#FFC107"
-          d="M43.6 20H24v8h11.3C33.6 33.1 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c2.9 0 5.5 1 7.5 2.7l5.7-5.7C33.7 6.6 29.1 5 24 5 12.4 5 3 14.4 3 26s9.4 21 21 21c11 0 20.3-8 20.3-21 0-1.4-.1-2.7-.3-4H43.6z" />
-        <path
-          fill="#FF3D00"
-          d="M6.3 14.7l6.6 4.8C14.6 15.7 19 13 24 13c2.9 0 5.5 1 7.5 2.7l5.7-5.7C33.7 6.6 29.1 5 24 5c-7.6 0-14.2 4.1-17.7 9.7z" />
-        <path
-          fill="#4CAF50"
-          d="M24 47c5 0 9.6-1.7 13.1-4.5l-6.1-5.2C29.2 38.7 26.7 39.5 24 39.5c-5.3 0-9.8-3.6-11.3-8.5l-6.6 5.1C9.7 42.8 16.4 47 24 47z" />
-        <path
-          fill="#1976D2"
-          d="M43.6 20H24v8h11.3c-.8 2.3-2.3 4.3-4.2 5.8l6.1 5.2c3.6-3.3 5.8-8.2 5.8-14 0-1.4-.1-2.7-.3-4H43.6z" />
-      </svg>
-      Continue with Google
-    </button>
-
-    <p class="lf__switch">
-      Don't have an account?
-      <NuxtLink to="/register" class="lf__switch-link">Create one →</NuxtLink>
-    </p>
-
-    <UiToast v-model="toast" />
-  </div>
+    <template #alt>
+      New here?
+      <a href="/register" class="k-link">Create a free account</a>
+    </template>
+  </AuthShell>
 </template>
 
-<script setup>
-definePageMeta({ layout: "auth" });
-import { useRouter } from "vue-router";
-import { ref } from "vue";
-import { useAuthStore } from "~/stores/authStore";
-
-const router = useRouter();
-const authStore = useAuthStore();
-const toast = ref({ message: "", type: "success" });
-const email = ref("");
-const password = ref("");
-
-const handleLogin = async () => {
-  try {
-    await authStore.login(email.value, password.value);
-    router.push("/dashboard/");
-  } catch (err) {
-    toast.value = {
-      message: err.response?.data?.message || authStore.error || "Login failed",
-      type: "error",
-    };
-  }
-};
-</script>
-
 <style scoped>
-.lf {
+.form {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.submit {
   width: 100%;
-  max-width: 400px;
-  display: flex;
-  flex-direction: column;
-  gap: 0;
+  margin-top: var(--space-2);
+}
+.submit:disabled {
+  opacity: 0.7;
+  cursor: progress;
 }
 
-/* Head */
-.lf__head {
-  margin-bottom: 2.25rem;
-}
-
-.lf__eyebrow {
-  display: inline-block;
-  font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: #059669;
-  margin-bottom: 0.875rem;
-}
-
-.lf__title {
-  font-size: 2rem;
-  font-weight: 600;
-  letter-spacing: -0.035em;
-  color: #1a1d23;
-  line-height: 1.15;
-  margin-bottom: 0.5rem;
-}
-
-.lf__sub {
-  font-size: 0.875rem;
-  color: #6b7280;
-}
-
-/* Form */
-.lf__form {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-  margin-bottom: 1.75rem;
-}
-
-.lf__field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.375rem;
-}
-
-.lf__label {
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: #374151;
-}
-
-.lf__label-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.lf__link {
-  font-size: 0.8rem;
-  color: #059669;
+.forgot {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  color: var(--text-accent);
   text-decoration: none;
-  font-weight: 500;
-  transition: color 0.15s ease;
 }
-.lf__link:hover {
-  color: #047857;
+.forgot:hover {
+  text-decoration: underline;
 }
 
-.lf__input {
-  width: 100%;
-  padding: 0.6875rem 0.875rem;
-  font-size: 0.875rem;
-  font-family:
-    "Inter",
-    -apple-system,
-    sans-serif;
-  color: #1a1d23;
-  background: #fff;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  border-radius: 10px;
-  outline: none;
-  transition:
-    border-color 0.15s ease,
-    box-shadow 0.15s ease;
-  -webkit-appearance: none;
-}
-.lf__input::placeholder {
-  color: #9ca3af;
-}
-.lf__input:focus {
-  border-color: #059669;
-  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
-}
-
-/* Primary button */
-.lf__btn {
-  width: 100%;
+.social {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  padding: 0.8125rem 1.5rem;
-  background: #1a1d23;
-  color: #fff;
-  font-size: 0.875rem;
-  font-weight: 500;
-  font-family:
-    "Inter",
-    -apple-system,
-    sans-serif;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
+  gap: var(--space-3);
+  min-height: 3rem;
+  padding: var(--space-3) var(--space-5);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-full);
+  background-color: var(--surface-raised);
+  color: var(--text-primary);
+  font-size: var(--text-base);
+  font-weight: var(--weight-bold);
+  text-decoration: none;
   transition:
-    background 0.15s ease,
-    transform 0.15s ease,
-    box-shadow 0.15s ease;
+    border-color var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out);
 }
-.lf__btn:hover:not(:disabled) {
-  background: #2d3748;
-  transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.14);
+.social:hover {
+  border-color: var(--text-primary);
+  background-color: var(--chip-hover-bg);
 }
-.lf__btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-.lf__btn-arrow {
-  width: 13px;
-  height: 13px;
-  transition: transform 0.15s ease;
-}
-.lf__btn:hover .lf__btn-arrow {
-  transform: translateX(2px);
-}
-
-/* Separator */
-.lf__sep {
-  position: relative;
-  text-align: center;
-  margin-bottom: 1.25rem;
-}
-.lf__sep::before {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: rgba(0, 0, 0, 0.08);
-}
-.lf__sep span {
-  position: relative;
-  background: #f8f9fa;
-  padding: 0 0.75rem;
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: #9ca3af;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-
-/* Google */
-.lf__google {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.625rem;
-  padding: 0.6875rem 1.5rem;
-  background: #fff;
-  color: #374151;
-  font-size: 0.875rem;
-  font-weight: 500;
-  font-family:
-    "Inter",
-    -apple-system,
-    sans-serif;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  border-radius: 10px;
-  cursor: pointer;
-  margin-bottom: 2rem;
-  transition:
-    background 0.15s ease,
-    border-color 0.15s ease;
-}
-.lf__google:hover {
-  background: #f9fafb;
-  border-color: rgba(0, 0, 0, 0.18);
-}
-.lf__g-icon {
+.social svg {
   width: 18px;
   height: 18px;
 }
 
-/* Switch */
-.lf__switch {
-  font-size: 0.8125rem;
-  color: #6b7280;
+.divider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
 }
-.lf__switch-link {
-  color: #059669;
-  font-weight: 500;
-  text-decoration: none;
-  transition: color 0.15s ease;
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background-color: var(--border-default);
 }
-.lf__switch-link:hover {
-  color: #047857;
+
+.alert {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--state-error);
+  border-radius: var(--radius-md);
+  background-color: var(--state-error-surface);
+  color: var(--state-error);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-normal);
+}
+.alert svg {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  margin-top: 2px;
 }
 </style>

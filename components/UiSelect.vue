@@ -1,32 +1,33 @@
 <template>
   <div class="relative" ref="selectRef">
-    <label
-      v-if="label"
-      class="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1">
+    <!-- `text-slate-500` at 11px measured 4.25:1 on the app's light card and
+         failed AA. `.f__label` is the tokenised equivalent (gray-660, 4.99:1
+         page / 4.59:1 sunken) and tracks the theme, so the same label works
+         everywhere this control is used. -->
+    <label v-if="label" class="f__label">
       {{ label }}
     </label>
+    <!-- `.inp` so this control is the same object as every other field it sits
+         beside: same 40px box, same 6px radius, same hairline, same 14px. It was
+         `border-slate-200 bg-white shadow-sm rounded-md sm:text-[12px]` — raw
+         slate the dark theme had to override, a border and a shadow doing one
+         job, and two pixels smaller than the input next to it in the grid. -->
     <button
       type="button"
       @click="!disabled && toggle()"
       ref="buttonRef"
       :disabled="disabled"
-      :class="[
-        customClass,
-        disabled
-          ? 'opacity-50 cursor-not-allowed bg-slate-50'
-          : 'cursor-default bg-white hover:border-slate-300',
-      ]"
-      class="relative w-full rounded-md py-2 pl-3 pr-10 text-left border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-950 sm:text-[12px] shadow-sm transition-colors"
+      :class="customClass"
+      class="inp no-ik sel__trigger"
       :aria-haspopup="true"
       :aria-expanded="isOpen">
-      <span class="block truncate font-medium text-slate-900">
+      <span class="sel__value">
         {{ selectedOption ? selectedOption.label : placeholder }}
       </span>
-      <span
-        class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+      <span class="sel__chev" :class="{ 'sel__chev--open': isOpen }">
         <svg
-          class="h-5 w-5 text-slate-400 transition-transform duration-200"
-          :class="{ 'rotate-180': isOpen }"
+          width="16"
+          height="16"
           viewBox="0 0 20 20"
           fill="currentColor"
           aria-hidden="true">
@@ -43,27 +44,26 @@
         leave-active-class="transition ease-in duration-100"
         leave-from-class="opacity-100"
         leave-to-class="opacity-0">
+        <!-- `.mnu` — the same definition the row-action popover uses. A list of
+             choices floating over the page is one object, so it has one
+             description: size, radius, hairline and elevation all come from
+             there. This panel was `text-base`, i.e. 16px, two steps above the
+             control that opened it and the reason the popover read as oversized. -->
         <ul
           v-if="isOpen"
           ref="menuRef"
           :style="menuStyle"
-          class="fixed z-[9999] mt-1 max-h-60 overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-[11px]">
+          class="mnu sel__panel">
           <template v-if="options.length > 0">
             <li
               v-for="option in options"
               :key="option.value"
               @click="select(option)"
-              class="relative cursor-default select-none py-1 pl-3 pr-9 text-slate-900 hover:bg-slate-50 transition-colors"
-              :class="{ 'bg-slate-50': modelValue === option.value }">
-              <span
-                class="block truncate"
-                :class="{ 'font-semibold': modelValue === option.value }">
-                {{ option.label }}
-              </span>
-              <span
-                v-if="modelValue === option.value"
-                class="absolute inset-y-0 right-0 flex items-center pr-4 text-emerald-600">
-                <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+              class="mnu__item"
+              :class="{ 'sel__opt--on': modelValue === option.value }">
+              <span class="sel__value">{{ option.label }}</span>
+              <span v-if="modelValue === option.value" class="sel__tick">
+                <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor">
                   <path
                     fill-rule="evenodd"
                     d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z"
@@ -72,9 +72,7 @@
               </span>
             </li>
           </template>
-          <li
-            v-else
-            class="py-3 px-4 text-slate-500 italic text-center text-xs">
+          <li v-else class="sel__empty">
             {{ emptyMessage || "No options available" }}
           </li>
         </ul>

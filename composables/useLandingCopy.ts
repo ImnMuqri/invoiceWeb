@@ -564,10 +564,19 @@ export function useLandingCopy(locale: Locale = 'en') {
   return copy[locale] as unknown as LandingCopy
 }
 
-/** Canonical + hreflang helpers. BM lives at /ms, English at the root. */
+/**
+ * Canonical + hreflang helpers. BM lives at /ms/, English at the root.
+ *
+ * The TRAILING SLASH is deliberate: the production host issues a 308 from /ms
+ * to /ms/. Emitting the unslashed form meant every internal link took a
+ * redirect hop and — worse — the canonical URL pointed at a URL that redirects,
+ * which is a canonical/redirect mismatch that search engines treat as a soft
+ * error. Emit the URL that is actually served.
+ */
 export const SITE_URL = 'https://invokita.my'
 
 export function localePath(locale: Locale, path = '/') {
   const clean = path === '/' ? '' : path.replace(/\/$/, '')
-  return locale === 'ms' ? `/ms${clean}` : clean || '/'
+  if (locale !== 'ms') return clean || '/'
+  return clean ? `/ms${clean}/` : '/ms/'
 }

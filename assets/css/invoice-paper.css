@@ -1,0 +1,536 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   THE INVOICE DOCUMENT
+   ═══════════════════════════════════════════════════════════════════════════
+
+   The one surface in this app that is NOT part of the app. It is a printed
+   object: the same markup renders the live preview in the builder and the PDF
+   the client receives, because Puppeteer generates that PDF by loading
+   /invoices/:id/export and printing it.
+
+   WHY IT IS THEME-INDEPENDENT
+   Every colour below is a fixed step of a brand ramp (--ink-*, --paper-*,
+   --green-*, --clay-*), never a semantic alias. The aliases flip in dark mode;
+   the ramps do not. That matters twice:
+
+     1. Correctness in the app. The old preview was built from `bg-white` and
+        `text-slate-900`, both of which the dark-mode layer remaps with
+        !important — so a user in dark mode was shown a dark grey invoice with
+        pale text and had no way to know their client would receive a white one.
+     2. Correctness in the PDF. Puppeteer runs headless with no stored theme
+        preference. Anything that resolved differently per theme was a coin
+        flip on the client's copy.
+
+   As design-tokens.css puts it: a dark mode receipt is not a thing that exists
+   in the world.
+
+   WHY ONE FILE FOR PREVIEW AND PRINT
+   There used to be two implementations — the preview inside create.vue and
+   edit/[id].vue, and the real thing in [id]/export.vue — and they had already
+   drifted: the export laid the party details out in three columns, the preview
+   in two; the export carried a PAID stamp, the preview did not. A preview that
+   does not match the artefact is worse than no preview, because it is trusted.
+   One definition, one scale token, and "what you see is what your client gets"
+   becomes true by construction rather than by discipline.
+
+   SCALE
+   --doc-fs is the only thing that differs between the two contexts. All
+   internal spacing and type is in em, so setting one value re-scales the whole
+   document without touching a single layout rule.
+
+   The preview's --doc-fs is measured off its container rather than fixed,
+   which is what stops it being squashed. A page proportion is not negotiable:
+   at a fixed 10.5px the sheet wanted a flat 567px, and inside the builder's
+   right-hand column — 482px at a 1440px window, 402px at 1280px — it simply
+   got less. Being a block child of a flex container, it took the shortfall as
+   flex shrink: the sheet narrowed while its type stayed 10.5px, so the margins
+   closed up, the four-column table crushed, and the preview stopped being a
+   picture of the page. Tying the type size to the container instead makes
+   width ÷ font-size a constant 54, so the whole thing scales as one object at
+   any width and the proportion the client will receive always holds.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.doc {
+  --doc-fs: 13.5px;          /* print: A4 minus Puppeteer's 5mm margins */
+  --doc-ink: var(--ink-950);
+  --doc-ink-2: var(--ink-800);
+  --doc-ink-3: var(--ink-700);
+  --doc-sheet: var(--paper-25);
+  --doc-rule: var(--a-ink-12);
+  --doc-rule-soft: var(--a-ink-08);
+  --doc-accent: var(--green-700);
+  --doc-off: var(--clay-700);
+
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-sans);
+  font-size: var(--doc-fs);
+  line-height: 1.45;
+  color: var(--doc-ink);
+  background-color: var(--doc-sheet);
+  overflow: hidden;
+}
+
+/* The builder preview. Smaller type, a sheet edge and a shadow so it reads as
+   a piece of paper lying on the desk rather than as another panel.
+
+   1cqw is one per cent of .pv__stage's content box (see `container-type` on it
+   in app-desk.css). At 1.85cqw the sheet's own `width: 54em` resolves to 99.9%
+   of whatever room it has, so it fills the column exactly and never has to
+   shrink — `flex: none` makes that refusal explicit rather than relying on the
+   arithmetic landing under 100%.
+
+   The clamp bounds the fluid range at both ends. Above a 703px column the type
+   stops growing at 13px, which is both a comfortable reading size and larger
+   than the 10.5px this used to be pinned at, so wide screens gained legibility
+   rather than losing it. Below a 351px column it stops shrinking at 6.5px and
+   the sheet overflows into .pv__stage's horizontal scroll — on a phone a
+   scrollable page at true proportions beats an unreadable one that fits.
+
+   The floor is 6.5px rather than a rounder 7.5 because of where it lands: at
+   7.5 the sheet's pinned 405px was a few pixels WIDER than the column at a
+   1180–1280px window, so the narrowest two-column layouts scrolled sideways by
+   single digits — which reads as a bug, not as a deliberate overflow. Putting
+   the floor below every desktop column keeps the fluid range covering all of
+   them, and leaves the pin for phones, where scrolling is expected. */
+/* Square, like paper. It carried a 10px radius because every other box on the
+   page did, which meant the one object here that is literally a sheet of A4
+   was the one drawn with rounded corners — and the PDF it previews has hard
+   corners regardless, so the preview was wrong about its own subject. */
+.doc--preview {
+  --doc-fs: clamp(6.5px, 1.85cqw, 13px);
+  width: 54em;
+  flex: none;
+  border: 1px solid var(--a-ink-12);
+  border-radius: 0;
+  box-shadow: var(--shadow-md);
+}
+
+.doc :where(h1, h2, h3, p, table, td, th) {
+  margin: 0;
+}
+
+/* The signature reaches the printed page too — see the Numerals block in
+   app-desk.css. Every figure the client reads is in the ledger face: the
+   amount due, the line amounts and quantities, the totals, the invoice number.
+   The date and detail rows are deliberately NOT here; they hold a subject line
+   and a status word alongside the dates, and those are prose.
+
+   This is the one part of the pass that ships to someone other than the user,
+   so it is worth saying plainly: --font-mono is a system stack ending in the
+   `monospace` generic, which resolves on any machine Puppeteer runs on, but
+   which face it lands on depends on that machine. The invoice will be
+   monospaced everywhere; it will not be the identical monospace everywhere. */
+.doc__no strong,
+.doc__hero,
+.doc__ref,
+.doc__lines td.n,
+.doc__lines td.c,
+.doc__trow b {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ─── Shared atoms ──────────────────────────────────────────────────────── */
+.doc__eyebrow {
+  display: block;
+  font-size: 0.7em;
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--doc-ink-3);
+}
+/* The plain skin's single child holds the whole document, so it has to be the
+   flex column — otherwise `margin-top: auto` on the footer has no free space to
+   claim and the branding floats up under the totals. */
+.doc__pad {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 3.4em;
+}
+
+/* Print fills roughly one A4 page so the footer sits at the bottom of the sheet
+   rather than under the totals. Deliberately short of the true page height
+   (about 80em at this scale): overshooting by a few pixels costs a second, blank
+   page in every PDF. */
+.doc--print {
+  min-height: 62em;
+}
+
+/* ─── Masthead ──────────────────────────────────────────────────────────────
+   Two skins of one structure. "Professional" keeps the masthead on the sheet;
+   "Modern" sets it in the ink slab that the brand already uses on the marketing
+   site, and puts the amount due in it — because for the person receiving this,
+   the amount and the deadline are the whole message. */
+.doc__mast {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 2em;
+}
+.doc__kind {
+  font-size: 2.1em;
+  font-weight: var(--weight-extrabold);
+  letter-spacing: var(--tracking-tighter);
+  line-height: 1.05;
+}
+.doc__name {
+  margin-top: 0.35em;
+  font-size: 1.15em;
+  color: var(--doc-ink-3);
+}
+.doc__logo {
+  height: 3em;
+  width: auto;
+  margin-bottom: 1em;
+}
+.doc__no {
+  text-align: right;
+  flex: none;
+}
+.doc__no strong {
+  display: block;
+  margin-top: 0.3em;
+  font-size: 1.5em;
+  font-weight: var(--weight-extrabold);
+  letter-spacing: var(--tracking-tight);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Ink slab masthead */
+.doc--band .doc__mast {
+  padding: 3em 3.4em;
+  background-color: var(--ink-950);
+  color: var(--paper-50);
+}
+.doc--band .doc__kind {
+  font-size: 1.85em;
+  color: var(--paper-50);
+}
+.doc--band .doc__name,
+.doc--band .doc__eyebrow {
+  color: var(--gray-400);      /* 8.22:1 on the slab */
+}
+.doc__hero {
+  display: block;
+  margin-top: 0.3em;
+  font-size: 2.1em;
+  font-weight: var(--weight-extrabold);
+  letter-spacing: var(--tracking-tighter);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  color: var(--green-400);     /* 8.52:1 on the slab */
+  font-variant-numeric: tabular-nums;
+}
+.doc__tags {
+  display: flex;
+  align-items: center;
+  gap: 0.7em;
+  margin-top: 0.9em;
+  font-size: 0.78em;
+}
+.doc__tag {
+  padding: 0.25em 0.7em;
+  border: 1px solid var(--a-green-32);
+  border-radius: var(--radius-full);
+  background-color: rgb(5 150 105 / 0.16);
+  color: var(--green-400);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+/* Clay on the ink slab measures 7.85:1 — the same pairing the token file uses
+   for warm text on a dark surface. */
+.doc__tag--late {
+  border-color: var(--a-clay-32);
+  background-color: rgb(192 86 33 / 0.18);
+  color: var(--clay-400);
+}
+.doc__ref {
+  color: var(--gray-400);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ─── Parties ───────────────────────────────────────────────────────────── */
+.doc__parties {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2.4em 3em;
+  margin-top: 3em;
+}
+.doc__party > .doc__eyebrow {
+  padding-bottom: 0.5em;
+  margin-bottom: 0.7em;
+  border-bottom: 1px solid var(--doc-rule);
+}
+.doc__who {
+  font-size: 1.05em;
+  font-weight: var(--weight-bold);
+}
+.doc__lines-of-text {
+  margin-top: 0.35em;
+  font-size: 0.92em;
+  line-height: 1.6;
+  color: var(--doc-ink-3);
+  white-space: pre-line;
+}
+.doc__lines-of-text b {
+  font-weight: var(--weight-semibold);
+  color: var(--doc-ink-2);
+}
+.doc__kv {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1em;
+  font-size: 0.92em;
+}
+.doc__kv + .doc__kv {
+  margin-top: 0.3em;
+}
+.doc__kv span {
+  color: var(--doc-ink-3);
+}
+.doc__kv b {
+  font-weight: var(--weight-bold);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.doc__kv--late b {
+  color: var(--doc-off);
+}
+
+/* ─── Lines ─────────────────────────────────────────────────────────────── */
+.doc__lines {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 3em;
+}
+.doc__lines th {
+  padding-bottom: 0.7em;
+  border-bottom: 1.5px solid var(--doc-ink);
+  font-size: 0.7em;
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--doc-ink-3);
+  text-align: left;
+}
+.doc__lines th.n,
+.doc__lines td.n {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.doc__lines th.c,
+.doc__lines td.c {
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.doc__lines td {
+  padding: 0.95em 0;
+  border-bottom: 1px solid var(--doc-rule-soft);
+  font-size: 0.95em;
+  color: var(--doc-ink-3);
+  vertical-align: top;
+}
+.doc__lines tr:last-child td {
+  border-bottom: 0;
+}
+.doc__lines td:first-child {
+  font-weight: var(--weight-bold);
+  color: var(--doc-ink);
+  padding-right: 1.5em;
+}
+.doc__lines td:last-child {
+  font-weight: var(--weight-bold);
+  color: var(--doc-ink);
+}
+.doc__lines th:not(:first-child),
+.doc__lines td:not(:first-child) {
+  padding-left: 1.2em;
+}
+.doc__none {
+  padding: 2em 0;
+  font-size: 0.95em;
+  font-style: italic;
+  color: var(--doc-ink-3);
+}
+
+/* ─── Totals ────────────────────────────────────────────────────────────── */
+.doc__totals {
+  margin-top: 2.5em;
+  padding-top: 1.5em;
+  border-top: 1px solid var(--doc-rule);
+  display: flex;
+  justify-content: flex-end;
+}
+.doc__tbox {
+  width: 22em;
+  max-width: 100%;
+}
+.doc__trow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1.5em;
+  font-size: 0.95em;
+  color: var(--doc-ink-3);
+}
+.doc__trow + .doc__trow {
+  margin-top: 0.6em;
+}
+.doc__trow b {
+  font-weight: var(--weight-bold);
+  font-variant-numeric: tabular-nums;
+  color: var(--doc-ink);
+  font-variant-numeric: tabular-nums;
+}
+.doc__trow--off,
+.doc__trow--off b {
+  color: var(--doc-off);
+}
+.doc__trow--paid,
+.doc__trow--paid b {
+  color: var(--doc-accent);
+}
+.doc__trow--total {
+  margin-top: 1.1em;
+  padding-top: 1.1em;
+  border-top: 1.5px solid var(--doc-ink);
+  color: var(--doc-ink);
+  font-weight: var(--weight-bold);
+}
+.doc__trow--total b {
+  font-size: 1.45em;
+  letter-spacing: var(--tracking-tighter);
+}
+
+/* Terms line: the sentence that gets an invoice paid. */
+.doc__terms {
+  margin-top: 2.5em;
+  padding-top: 1.2em;
+  border-top: 1px solid var(--doc-rule-soft);
+  font-size: 0.88em;
+  line-height: 1.6;
+  color: var(--doc-ink-3);
+  max-width: 42em;
+}
+.doc__terms b {
+  font-weight: var(--weight-bold);
+  color: var(--doc-ink);
+}
+
+/* ─── PAID stamp ────────────────────────────────────────────────────────────
+   Was pure red (#ef4444) — a hue the palette does not contain, on the one
+   artefact a client keeps. Clay is the brand's warm counterweight and is what
+   a real rubber stamp looks like anyway.
+
+   A contrast audit flags this at ~1.2:1 and it is meant to be: at 0.16 opacity
+   behind live text it is pure decoration, which WCAG 1.4.3 exempts, and it is
+   `aria-hidden` so it is not announced. The information it suggests is stated
+   twice in real, passing text — the Status row and the "Paid in full" total —
+   so nothing depends on reading the watermark. Raising its opacity to clear 3:1
+   would make it compete with the numbers underneath it. */
+.doc__stamp {
+  position: absolute;
+  top: 46%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-11deg);
+  padding: 0.25em 1em;
+  border: 0.14em solid var(--clay-600);
+  border-radius: 0.3em;
+  font-size: 5.5em;
+  font-weight: var(--weight-extrabold);
+  letter-spacing: var(--tracking-tighter);
+  text-transform: uppercase;
+  color: var(--clay-600);
+  opacity: 0.16;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* ─── Footer ────────────────────────────────────────────────────────────── */
+.doc__foot {
+  margin-top: auto;
+  padding-top: 2em;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.6em;
+  border-top: 1px solid var(--doc-rule-soft);
+  font-size: 0.68em;
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--doc-ink-3);
+  opacity: 0.65;
+}
+.doc__foot img,
+.doc__foot svg {
+  height: 1.6em;
+  width: auto;
+}
+
+/* Band skin: the sheet body sits below the slab and owns the page padding. */
+.doc__body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 3em 3.4em 2.4em;
+}
+.doc--band .doc__parties {
+  margin-top: 0;
+}
+.doc--band .doc__meta {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.5em;
+  margin-top: 2.4em;
+  padding: 1.2em 1.5em;
+  border: 1px solid var(--doc-rule-soft);
+  /* Square, by the same concentric rule the app follows: this block sits
+     inside the sheet's own padding, so its corners cannot be softer. */
+  border-radius: 0;
+  background-color: var(--paper-50);
+}
+.doc--band .doc__meta b {
+  display: block;
+  margin-top: 0.25em;
+  font-size: 0.95em;
+  font-weight: var(--weight-bold);
+}
+
+/* Print: no page furniture. The sheet IS the page. */
+@media print {
+  .doc {
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .doc__stamp {
+    /* Chrome drops opacity on some print paths; a lighter clay keeps the stamp
+       readable-but-behind either way. */
+    opacity: 0.18;
+  }
+}
+
+/* Narrow screens: the preview is a document, not a responsive layout — it
+   collapses to one column rather than reflowing into something the PDF will
+   never look like. */
+@media (max-width: 520px) {
+  .doc__parties,
+  .doc--band .doc__meta {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .doc__pad,
+  .doc__body {
+    padding: 2.2em;
+  }
+  .doc--band .doc__mast {
+    padding: 2.2em;
+  }
+}

@@ -1,4 +1,5 @@
 import axios from "axios";
+import { shouldRedirectToLogin } from "~/utils/routeAccess";
 
 export default defineNuxtPlugin((nuxtApp) => {
   const config = useRuntimeConfig();
@@ -6,14 +7,45 @@ export default defineNuxtPlugin((nuxtApp) => {
     baseURL: `${config.public.apiBase}/api`,
   });
 
+  /* Progress. Every call through $api counts, which is what makes the bar mean
+     "something on this page is loading" rather than "the route is changing".
+     A request can opt out with `{ quiet: true }` — the notification poll runs
+     every 30 seconds and would otherwise flash the bar forever. */
+  const progress = useProgress();
+
   // Request interceptor to add the token
   api.interceptors.request.use((config) => {
     const authStore = useAuthStore();
     if (authStore.token) {
       config.headers.Authorization = `Bearer ${authStore.token}`;
     }
+    if (!config.quiet) {
+      config._progress = true;
+      progress.start();
+    }
     return config;
   });
+
+  /* Paired with the request interceptor above, and deliberately its own pair:
+     the response interceptor further down retries 401s through api(), so a
+     single request can pass through here more than once. Keying off the flag we
+     set on the config keeps start and done balanced. */
+  api.interceptors.response.use(
+    (response) => {
+      if (response.config?._progress) {
+        response.config._progress = false;
+        progress.done();
+      }
+      return response;
+    },
+    (error) => {
+      if (error.config?._progress) {
+        error.config._progress = false;
+        progress.done();
+      }
+      return Promise.reject(error);
+    },
+  );
 
   let isRefreshing = false;
   let failedQueue = [];
@@ -96,10 +128,13 @@ export default defineNuxtPlugin((nuxtApp) => {
             authStore.logout();
           }
 
+          // Only eject the visitor if they are actually inside the app. A
+          // background token refresh failing on a public marketing page must
+          // not throw the reader onto the login screen — that is what made the
+          // /ms landing page look like it "routes to login".
           if (
             process.client &&
-            window.location.pathname !== "/login" &&
-            window.location.pathname !== "/register"
+            shouldRedirectToLogin(window.location.pathname)
           ) {
             window.location.href = "/login";
           }
@@ -108,6 +143,19 @@ export default defineNuxtPlugin((nuxtApp) => {
       return Promise.reject(error);
     },
   );
+
+  /* Route changes count too. A page that is code-split or guarded can spend
+     real time resolving before any request goes out, and the bar should already
+     be moving by then. page:finish only ends the navigation's own turn — the
+     data fetches the new page kicks off keep the counter above zero on their
+     own, so the bar runs continuously from click to rendered. */
+  if (import.meta.client) {
+    nuxtApp.hook("page:start", () => progress.start());
+    nuxtApp.hook("page:finish", () => progress.done());
+    /* A failed navigation never fires page:finish, which would strand the
+       counter and leave the bar up until the next full reload. */
+    nuxtApp.hook("vue:error", () => progress.reset());
+  }
 
   return {
     provide: {

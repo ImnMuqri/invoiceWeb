@@ -1,16 +1,22 @@
 <template>
   <UiModal v-model="uiStore.isModuleHelpOpen" maxWidth="md" :showClose="true">
-    <div class="relative overflow-hidden">
+    <!-- Capped and split into three bands: the heading and the button stay put
+         and only the tips scroll. Before this the panel simply grew with the
+         number of tips — the Invoices guide came out 749px tall, which spills
+         off a 768px laptop and pushes "Got it" behind the fold on anything
+         shorter. A guide you have to scroll the page to dismiss is worse than
+         one that is a little dense. -->
+    <div class="relative overflow-hidden flex flex-col max-h-[85vh]">
       <!-- Background Accents -->
       <div
         class="absolute -top-12 -right-12 w-32 h-32 rounded-full blur-3xl opacity-20"
         :class="moduleConfig.accentBase"></div>
 
-      <div class="p-8 relative">
+      <div class="relative flex flex-col min-h-0">
         <!-- Header -->
-        <div class="flex items-center gap-4 mb-8">
+        <div class="flex items-center gap-4 px-6 pt-6 pb-5 shrink-0">
           <div
-            class="w-12 h-12 rounded-xl flex items-center justify-center shadow-sm border"
+            class="w-11 h-11 rounded-xl flex items-center justify-center shadow-sm border"
             :class="moduleConfig.iconBg">
             <UiIcon
               :icon="moduleConfig.icon"
@@ -25,13 +31,13 @@
         </div>
 
         <!-- Content Steps -->
-        <div class="space-y-6">
+        <div class="deskbar space-y-4 px-6 overflow-y-auto min-h-0">
           <div
             v-for="(tip, index) in moduleConfig.tips"
             :key="index"
-            class="flex gap-4 group">
+            class="flex gap-3 group">
             <div
-              class="shrink-0 w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors border border-slate-100">
+              class="shrink-0 w-7 h-7 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors border border-slate-100">
               <span class="text-xs font-bold">{{ index + 1 }}</span>
             </div>
             <div>
@@ -44,7 +50,7 @@
         </div>
 
         <!-- Action -->
-        <div class="mt-10">
+        <div class="px-6 pt-5 pb-6 shrink-0">
           <button
             @click="uiStore.closeModuleHelp"
             class="w-full py-3.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg font-bold text-xs transition-all shadow-lg shadow-slate-900/10">
@@ -92,71 +98,163 @@ const configs = {
       },
     ],
   },
+  /* Rewritten alongside the invoice module rework. The old tips described a
+     screen that no longer exists ("Click the 'Check' icon in the table action
+     menu") and were written about the software rather than about the job. */
   invoices: {
-    title: "Invoice Management",
+    title: "Your invoices",
     icon: "heroicons:document-duplicate",
-    iconBg: "bg-blue-50 border-blue-100",
-    iconColor: "text-blue-600",
-    accentBase: "bg-blue-500",
+    iconBg: "bg-emerald-50 border-emerald-100",
+    iconColor: "text-emerald-600",
+    accentBase: "bg-emerald-500",
     tips: [
       {
-        label: "Invoice Table",
+        label: "Open is the default view",
         description:
-          "Manage all invoices here. Track status (Sent, Viewed, Paid), due dates, and amount total.",
+          "The list starts on what has not been paid, most overdue first, so the invoice you need is at the top. The counts on Open, Late and Paid tell you where things stand before you click anything.",
       },
       {
-        label: "Share Public Link",
+        label: "Search finds anything",
         description:
-          "Every invoice has a public link. Share it with clients so they can view and pay immediately.",
+          "One box covers the client, the invoice number and what the work was for. Faster than scrolling once you have more than a page of them.",
       },
       {
-        label: "Payment Gateway",
+        label: "The Chasing column is the point",
         description:
-          "To accept online payments via public links, ensure you setup ToyyibPay or Billplz in Settings first.",
+          "It says whether anyone is following up. 'On, automatic' means we handle the reminders; 'Off' means it is on you. You can switch chasing on per client from the Clients page.",
       },
       {
-        label: "Manual Marking",
+        label: "The payment link needs no account",
         description:
-          "Click the 'Check' icon in the table action menu to manually mark an invoice as paid once received.",
+          "Every invoice has one. Copy it from the row and paste it into a chat — your client can view and pay without signing up for anything. Set up ToyyibPay or Billplz in Settings to take card and FPX payments through it.",
       },
       {
-        label: "Actions Menu",
+        label: "Record part payments as they land",
         description:
-          "Use the actions column to Send (Email/WhatsApp), Edit, or Delete your invoices easily.",
+          "Use 'Record a payment' in the row menu. Put in what actually arrived; we settle the invoice automatically once the balance reaches zero and stop chasing.",
+      },
+      {
+        label: "Cancel rather than delete",
+        description:
+          "Deleting removes an invoice you may have already sent. Cancelling keeps your records and your client's copy intact and switches the payment link off.",
+      },
+    ],
+  },
+  /* Rewritten with the page. The old tips described a screen that no longer
+     exists — an "Avg Delay" column and a "Chaser switch" that was read-only —
+     and they were written about the software rather than about the job. */
+  quotes: {
+    title: "Quotations",
+    icon: "heroicons:document-duplicate",
+    iconBg: "bg-emerald-50 border-emerald-100",
+    iconColor: "text-emerald-600",
+    accentBase: "bg-emerald-500",
+    tips: [
+      {
+        label: "A quotation is not a bill",
+        description:
+          "It carries no payment link, nothing chases it, and it never appears in what you are owed. Until somebody accepts it, it is an offer.",
+      },
+      {
+        label: "Accepting it writes the invoice",
+        description:
+          "One click copies the client, the lines and the total into a new invoice with a fresh number and a due date. You never retype it.",
+      },
+      {
+        label: "The quotation survives",
+        description:
+          "It stays exactly as it was, marked accepted, with the invoice attached — so you can show a client what they agreed to and what you billed for it.",
+      },
+      {
+        label: "Valid until, not due",
+        description:
+          "Thirty days by default. After that it reads as expired, because a price you offered months ago is not a price you still mean.",
+      },
+      {
+        label: "Their own numbering",
+        description:
+          "Quotes run QUO-0001 upward on a sequence of their own, so issuing one never leaves a gap in your invoice numbers.",
       },
     ],
   },
   clients: {
-    title: "Client Relationships",
+    title: "Your clients",
     icon: "heroicons:user-group",
     iconBg: "bg-amber-50 border-amber-100",
     iconColor: "text-amber-600",
     accentBase: "bg-amber-500",
     tips: [
       {
-        label: "Client Management",
+        label: "Add them once",
         description:
-          "Add and organize your client database for faster invoice creation and tracking.",
+          "Name and email are all that is required. Everything you fill in here prints on their invoices, so you only ever type it the one time.",
       },
       {
-        label: "Auto-Chaser Switch",
+        label: "Let us do the chasing",
         description:
-          "Toggle the Chaser switch per client to enable automated reminders for overdue invoices.",
+          "Turn on WhatsApp or email reminders per client and we nudge them the day an invoice goes past its due date, and keep going until it is paid.",
       },
       {
-        label: "Average Delay",
+        label: "The list is sorted by who keeps you waiting",
         description:
-          "Monitor the 'Avg Delay' to see the average number of days a client takes to pay after due date.",
+          "Slowest payers sit at the top. “Usually pays 14d late” is worth knowing before you agree to the next job for them.",
+      },
+      {
+        label: "Nobody chasing",
+        description:
+          "The figure at the top counts clients you would have to chase yourself. Switch reminders on for them and it goes to zero.",
+      },
+      {
+        label: "Deleting is not the same as hiding",
+        description:
+          "Invoices you have already sent stay in your records, but they lose the client details attached to them, and any reminders queued for that client stop.",
       },
     ],
   },
   settings: {
-    title: "Platform Settings",
+    title: "Settings",
     icon: "heroicons:cog-6-tooth",
     iconBg: "bg-slate-50 border-slate-200",
     iconColor: "text-slate-600",
     accentBase: "bg-slate-400",
     tips: [], // Dynamic below
+  },
+  business: {
+    title: "Business",
+    icon: "heroicons:building-office-2",
+    iconBg: "bg-slate-50 border-slate-200",
+    iconColor: "text-slate-600",
+    accentBase: "bg-slate-400",
+    tips: [], // Dynamic below, same table as Settings
+  },
+  catalogue: {
+    title: "Catalogue",
+    icon: "heroicons:squares-2x2",
+    iconBg: "bg-amber-50 border-amber-100",
+    iconColor: "text-amber-600",
+    accentBase: "bg-amber-500",
+    tips: [
+      {
+        label: "A price list, not a stock room",
+        description:
+          "Nothing here counts units or warns you when you run low — saving something does not mean you have one. It is here so you stop retyping the same line on every invoice.",
+      },
+      {
+        label: "Prices are copied, not linked",
+        description:
+          "Adding an item to an invoice takes a copy of the price. Raise your day rate later and old invoices keep saying what they said when you sent them.",
+      },
+      {
+        label: "Sorted by what you actually use",
+        description:
+          "The picker puts your most-used items first rather than A to Z, because most people sell four things constantly and forty things occasionally.",
+      },
+      {
+        label: "Archive keeps your history honest",
+        description:
+          "Something you have billed for gets archived rather than deleted — it leaves the picker, and every document that used it is untouched.",
+      },
+    ],
   },
   referrals: {
     title: "Rewards Program",
@@ -187,99 +285,127 @@ const configs = {
 const settingsSubTips = {
   general: [
     {
-      label: "User Details",
+      label: "This is your letterhead",
       description:
-        "Update your personal profile, email, and password settings.",
+        "Everything under “What clients see” prints at the top of every invoice. Fill it in once here rather than typing it per invoice.",
     },
     {
-      label: "Company Details",
+      label: "Login email and name are fixed",
       description:
-        "Manage your business name, phone, and official address for invoices.",
+        "They identify the account, so we change them by hand — email support@invokita.my and we will sort it.",
     },
     {
-      label: "Preferences",
-      description: "Set your default currency and platform language options.",
+      label: "“Same as” actually stays the same",
+      description:
+        "Tick it and the two fields track each other from then on. Untick it to set a different one.",
     },
   ],
   invoice_config: [
     {
-      label: "Display Fields",
+      label: "Anything greyed out is missing a value",
       description:
-        "Choose which fields to show or hide on your generated PDF invoices.",
+        "You cannot print a business address you have not given us. Add it under General and the switch turns on.",
     },
     {
-      label: "Global Automation",
+      label: "The chasing switch is the master one",
       description:
-        "Toggle the global switch for automated payment reminders and chasers.",
+        "Off means nobody gets chased, even clients you switched on individually. To stop chasing one client, do it in Clients instead.",
     },
     {
-      label: "Invoice Prefix",
-      description: "Set your custom invoice numbering prefix (e.g., INV-001).",
-    },
-    {
-      label: "Default Tax Rate",
+      label: "Prefix and tax are only defaults",
       description:
-        "Set a standard tax percentage to apply automatically to new invoices.",
+        "They set what a new invoice opens as. You can change either on the invoice itself.",
     },
   ],
   whatsapp: [
     {
-      label: "WhatsApp Mode",
+      label: "Our number or yours",
       description:
-        "Choose between using our System number or your own Twilio configuration.",
+        "Ours works immediately. Your own Twilio sends from your business number, and needs all three credentials before anything will go out.",
     },
     {
-      label: "Reminder Interval",
+      label: "Templates are optional",
       description:
-        "Set how many days between automated WhatsApp payment reminders.",
+        "Leave them blank and we use ours. Anything in braces gets filled in per invoice — click a token to copy it.",
     },
     {
-      label: "Message Template",
+      label: "Reminders spend quota",
       description:
-        "Customize the message content sent to your clients via WhatsApp.",
+        "Every automatic message counts against your monthly limit. A 3-day interval across a lot of late invoices spends it fast.",
     },
   ],
   email: [
     {
-      label: "Client Side Preview",
+      label: "The first email is not a reminder",
       description:
-        "View exactly how your invoice emails appear to your customers.",
+        "That one goes out when you send the invoice. This tab is only about what happens after it falls due.",
     },
     {
-      label: "Reminder Interval",
+      label: "The preview is what they get",
       description:
-        "Set the frequency of automated email reminders for overdue payments.",
+        "Your business name and currency in it are real. The amount and dates are a sample.",
     },
   ],
   payments: [
     {
-      label: "Payment Gateways",
+      label: "One method goes on the invoice",
       description:
-        "Connect to ToyyibPay or Billplz to accept online payments instantly.",
+        "Connect as many as you like, but the one marked “On your invoices” is what your client is offered.",
     },
     {
-      label: "Manual Bank Transfer",
+      label: "Bank transfer is the fallback",
       description:
-        "Setup your bank details or QR code for direct manual payments.",
+        "It is what clients get when no gateway is preferred. We cannot detect those payments, so you mark them paid yourself.",
+    },
+    {
+      label: "Your keys stay encrypted",
+      description:
+        "We use them to raise a payment for your own invoices and nothing else. We never see your bank login.",
     },
   ],
   billing: [
     {
-      label: "Plan Overview",
+      label: "Cancelling is not immediate",
       description:
-        "View your current subscription plan, usage limits, and billing history.",
+        "You keep everything you are paying for until the period ends, then move to Free.",
+    },
+    {
+      label: "Free means you do the chasing",
+      description:
+        "Automatic reminders stop on Free. You can still send them by hand from any invoice.",
+    },
+    {
+      label: "Promo codes apply before you commit",
+      description:
+        "Apply one and the prices on the cards update, so you see what you will actually be charged.",
+    },
+  ],
+  security: [
+    {
+      label: "Long beats complicated",
+      description:
+        "Three or four unrelated words is harder to crack than one word with symbols in it, and easier to remember.",
+    },
+    {
+      label: "Changing it does not sign you out",
+      description:
+        "Other devices stay signed in. If you think someone else has access, change the password and email us.",
     },
   ],
 };
 
+/* Details and Documents were General and Invoices before the Business module
+   split off. The tip copy did not change with the tab name, so both ids resolve
+   to the same entry rather than the table being duplicated. */
+const SUB_ALIASES = { details: "general", documents: "invoice_config" };
+
 const moduleConfig = computed(() => {
   const baseConfig = configs[uiStore.activeModuleHelp] || configs.dashboard;
+  const tabbed = ["settings", "business"].includes(uiStore.activeModuleHelp);
 
-  if (uiStore.activeModuleHelp === "settings" && uiStore.activeSubContext) {
-    return {
-      ...baseConfig,
-      tips: settingsSubTips[uiStore.activeSubContext] || baseConfig.tips,
-    };
+  if (tabbed && uiStore.activeSubContext) {
+    const key = SUB_ALIASES[uiStore.activeSubContext] || uiStore.activeSubContext;
+    return { ...baseConfig, tips: settingsSubTips[key] || baseConfig.tips };
   }
 
   return baseConfig;

@@ -1,1966 +1,26 @@
-<template>
-  <div class="w-full max-w-[1500px]">
-    <div class="flex items-center justify-between mb-8">
-      <div>
-        <h2 class="text-2xl font-bold text-slate-900 tracking-tight">
-          Settings
-        </h2>
-        <p class="text-xs font-medium text-slate-500 mt-1">
-          Manage your profile and platform preferences.
-        </p>
-      </div>
-      <button
-        @click="uiStore.openModuleHelp('settings', activeTab)"
-        class="text-slate-400 hover:text-slate-900 transition-colors p-1"
-        title="Settings Help">
-        <UiIcon icon="formkit:help" custom-class="w-5 h-5" />
-      </button>
-    </div>
-
-    <div class="flex flex-col md:flex-row gap-8">
-      <!-- Sidebar Navigation -->
-      <aside class="w-full md:w-64 flex-shrink-0">
-        <nav class="space-y-1">
-          <button
-            v-for="tab in tabs"
-            :key="tab.id"
-            @click="switchTab(tab.id)"
-            :class="[
-              activeTab === tab.id
-                ? 'bg-slate-100 text-slate-900'
-                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900',
-              'group flex items-center px-4 py-2.5 text-sm font-semibold rounded-md transition-all w-full text-left',
-            ]">
-            <UiIcon
-              :name="tab.icon"
-              :class="[
-                activeTab === tab.id
-                  ? 'text-slate-900'
-                  : 'text-slate-400 group-hover:text-slate-500',
-                'mr-3 h-5 w-5 flex-shrink-0 transition-colors',
-              ]" />
-            {{ tab.name }}
-          </button>
-        </nav>
-      </aside>
-
-      <!-- Main Content Area -->
-      <div class="flex-1 mb-12">
-        <div
-          class="bg-white shadow-sm rounded-xl border border-slate-200 overflow-hidden">
-          <!-- General Tab -->
-          <div v-if="activeTab === 'general'" class="divide-y divide-slate-100">
-            <div class="p-6 border-b border-slate-100">
-              <h3
-                class="text-base font-semibold text-slate-900 tracking-tight mb-1">
-                User Profile
-              </h3>
-              <p class="text-sm text-slate-500 mb-6">
-                Update your personal details and contact information.
-              </p>
-              <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
-                <div class="sm:col-span-3">
-                  <label
-                    class="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2"
-                    >Login Email</label
-                  >
-                  <input
-                    type="email"
-                    disabled
-                    :value="authStore.user?.email"
-                    class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm bg-slate-50 text-slate-500 cursor-not-allowed outline-none transition-all" />
-                </div>
-                <div class="sm:col-span-3">
-                  <label
-                    class="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2"
-                    >Full Name</label
-                  >
-                  <input
-                    type="text"
-                    disabled
-                    :value="authStore.user?.name"
-                    class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm bg-slate-50 text-slate-500 cursor-not-allowed outline-none transition-all" />
-                </div>
-                <div class="sm:col-span-3">
-                  <label
-                    class="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2"
-                    >Personal Phone</label
-                  >
-                  <input
-                    type="tel"
-                    v-model="profileForm.phoneNumber"
-                    class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-slate-950 outline-none transition-all" />
-                </div>
-              </div>
-              <div
-                class="mt-5 p-4 bg-blue-50 border border-blue-100 rounded-xl flex gap-3">
-                <UiIcon
-                  icon="heroicons:information-circle"
-                  custom-class="w-5 h-5 text-blue-600 shrink-0" />
-                <p class="text-[11px] text-blue-800 leading-relaxed">
-                  <strong>Credentials change:</strong> Please contact us at
-                  support@invokita.my to change your name
-                </p>
-              </div>
-            </div>
-
-            <div class="p-6 border-b border-slate-100">
-              <div class="flex items-center justify-between mb-6">
-                <h3
-                  class="text-base font-semibold text-slate-900 tracking-tight">
-                  Company Profile
-                </h3>
-              </div>
-              <p class="text-sm text-slate-500 mb-6">
-                Set your business details and address for invoice headers.
-              </p>
-              <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
-                <!-- Logo Upload -->
-                <div class="sm:col-span-6 mb-2">
-                  <label
-                    class="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-4"
-                    >Company Logo</label
-                  >
-                  <div class="flex items-center gap-6">
-                    <div
-                      class="relative w-24 h-24 rounded-2xl bg-slate-50 border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden group transition-all hover:border-slate-300">
-                      <img
-                        v-if="authStore.user?.profile?.logoUrl"
-                        :src="authStore.user.profile.logoUrl"
-                        class="w-full h-full object-contain" />
-                      <div v-else class="text-slate-300">
-                        <UiIcon icon="heroicons:photo" class="w-8 h-8" />
-                      </div>
-
-                      <!-- Loading Overlay -->
-                      <div
-                        v-if="uploadingLogo"
-                        class="absolute inset-0 bg-white/80 flex items-center justify-center">
-                        <div
-                          class="w-5 h-5 border-2 border-slate-900 border-t-transparent rounded-full animate-spin"></div>
-                      </div>
-                    </div>
-
-                    <div class="flex flex-col gap-2">
-                      <div class="flex items-center gap-2">
-                        <button
-                          type="button"
-                          @click="$refs.logoInput.click()"
-                          :disabled="uploadingLogo"
-                          class="px-4 py-2 bg-slate-900 text-white text-[11px] font-bold rounded-lg hover:bg-slate-800 transition-all shadow-sm active:scale-95 disabled:opacity-50">
-                          {{
-                            authStore.user?.profile?.logoUrl
-                              ? "Change Logo"
-                              : "Upload Logo"
-                          }}
-                        </button>
-                        <button
-                          v-if="authStore.user?.profile?.logoUrl"
-                          type="button"
-                          @click="removeLogo"
-                          :disabled="uploadingLogo"
-                          class="px-4 py-2 bg-white text-red-600 border border-red-100 text-[11px] font-bold rounded-lg hover:bg-red-50 transition-all active:scale-95 disabled:opacity-50">
-                          Remove
-                        </button>
-                      </div>
-                      <p class="text-[10px] text-slate-400 font-medium">
-                        JPG, PNG or SVG. Max 5MB.
-                      </p>
-                    </div>
-                    <input
-                      ref="logoInput"
-                      type="file"
-                      class="hidden"
-                      accept="image/*"
-                      @change="handleLogoUpload" />
-                  </div>
-                </div>
-                <div class="sm:col-span-6">
-                  <label
-                    class="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2"
-                    >Company Name</label
-                  >
-                  <input
-                    type="text"
-                    v-model="profileForm.companyName"
-                    class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-slate-950 outline-none transition-all" />
-                </div>
-                <div class="sm:col-span-3">
-                  <label
-                    class="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2"
-                    >Company Email</label
-                  >
-                  <input
-                    type="email"
-                    v-model="profileForm.companyEmail"
-                    class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-slate-950 outline-none transition-all" />
-                  <div class="mt-2 flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      id="sameEmail"
-                      v-model="useSameEmail"
-                      @change="syncEmail"
-                      class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500" />
-                    <label
-                      for="sameEmail"
-                      class="text-[11px] font-medium text-slate-500"
-                      >Use same as login email</label
-                    >
-                  </div>
-                </div>
-                <div class="sm:col-span-3">
-                  <label
-                    class="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2"
-                    >Company Phone</label
-                  >
-                  <input
-                    type="tel"
-                    v-model="profileForm.companyPhone"
-                    class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-slate-950 outline-none transition-all" />
-                  <div class="mt-2 flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      id="samePhone"
-                      v-model="useSamePhone"
-                      @change="syncPhone"
-                      class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500" />
-                    <label
-                      for="samePhone"
-                      class="text-[11px] font-medium text-slate-500"
-                      >Use same as personal phone</label
-                    >
-                  </div>
-                </div>
-                <div class="sm:col-span-6">
-                  <label
-                    class="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2"
-                    >Address</label
-                  >
-                  <textarea
-                    v-model="profileForm.address"
-                    rows="3"
-                    class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-slate-950 outline-none transition-all"></textarea>
-                </div>
-              </div>
-            </div>
-
-            <div class="p-6">
-              <h3
-                class="text-base font-semibold text-slate-900 tracking-tight mb-6">
-                Preferences
-              </h3>
-              <p class="text-sm text-slate-500 mb-6">
-                Configure global settings like your default billing currency.
-              </p>
-              <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
-                <div class="sm:col-span-3">
-                  <label
-                    class="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2"
-                    >Default Currency</label
-                  >
-                  <UiSelect
-                    v-model="profileForm.defaultCurrency"
-                    :options="currencyOptions"
-                    placeholder="Select currency" />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- WhatsApp Tab -->
-          <div
-            v-if="activeTab === 'whatsapp'"
-            class="divide-y divide-slate-100 relative overflow-hidden min-h-[400px]">
-            <!-- Pro Overlay -->
-            <div
-              v-if="!authStore.isPro"
-              class="absolute inset-0 bg-white/60 backdrop-blur-[2px] z-10 flex flex-col items-center justify-center p-6 text-center">
-              <div
-                class="w-12 h-12 bg-emerald-100 rounded-2xl flex items-center justify-center mb-4 shadow-sm border border-emerald-200">
-                <UiIcon
-                  icon="heroicons:lock-closed"
-                  class="w-6 h-6 text-emerald-600" />
-              </div>
-              <h4 class="text-base font-bold text-slate-900 mb-1">
-                WhatsApp Integration
-              </h4>
-              <p
-                class="text-xs text-slate-500 max-w-[240px] mb-4 leading-relaxed">
-                Connect your own Twilio or use our system to send invoices and
-                reminders directly to WhatsApp.
-              </p>
-              <button
-                @click="switchTab('billing')"
-                class="px-5 py-2.5 bg-slate-900 text-white text-xs font-bold rounded-md hover:bg-slate-800 transition-all shadow-md active:scale-95">
-                Upgrade to Pro
-              </button>
-            </div>
-
-            <div class="p-6">
-              <h3 class="text-base font-semibold text-slate-900 tracking-tight">
-                WhatsApp Connection
-              </h3>
-              <p class="text-sm text-slate-500 mb-6">
-                Choose between our shared business number or your own Twilio
-                account.
-              </p>
-
-              <div class="space-y-3 mb-8">
-                <label
-                  class="flex items-center p-4 border rounded-md cursor-pointer transition-all border-slate-200 hover:border-slate-300"
-                  :class="{
-                    'border-slate-900 bg-slate-50':
-                      settingsForm.whatsappMode === 'SYSTEM',
-                  }">
-                  <input
-                    type="radio"
-                    value="SYSTEM"
-                    v-model="settingsForm.whatsappMode"
-                    class="sr-only" />
-                  <div class="flex-1">
-                    <p class="text-sm font-semibold text-slate-900">
-                      Managed (InvoKita Shared Number)
-                    </p>
-                    <p class="text-xs text-slate-500 mt-1">
-                      Plug & Play. Use our shared business number to send
-                      messages instantly.
-                    </p>
-                  </div>
-                  <div
-                    class="h-4 w-4 rounded-full border flex items-center justify-center"
-                    :class="
-                      settingsForm.whatsappMode === 'SYSTEM'
-                        ? 'border-slate-900'
-                        : 'border-slate-300'
-                    ">
-                    <div
-                      v-if="settingsForm.whatsappMode === 'SYSTEM'"
-                      class="h-2 w-2 rounded-full bg-slate-900"></div>
-                  </div>
-                </label>
-
-                <label
-                  class="flex items-center p-4 border rounded-md cursor-pointer transition-all border-slate-200 hover:border-slate-300"
-                  :class="{
-                    'border-slate-900 bg-slate-50':
-                      settingsForm.whatsappMode === 'CUSTOM',
-                  }">
-                  <input
-                    type="radio"
-                    value="CUSTOM"
-                    v-model="settingsForm.whatsappMode"
-                    class="sr-only" />
-                  <div class="flex-1">
-                    <p class="text-sm font-semibold text-slate-900">
-                      Custom (Bring Your Own Twilio)
-                    </p>
-                    <p class="text-xs text-slate-500 mt-1">
-                      Connect your own Twilio account to send from your own
-                      business number.
-                    </p>
-                  </div>
-                  <div
-                    class="h-4 w-4 rounded-full border flex items-center justify-center"
-                    :class="
-                      settingsForm.whatsappMode === 'CUSTOM'
-                        ? 'border-slate-900'
-                        : 'border-slate-300'
-                    ">
-                    <div
-                      v-if="settingsForm.whatsappMode === 'CUSTOM'"
-                      class="h-2 w-2 rounded-full bg-slate-900"></div>
-                  </div>
-                </label>
-              </div>
-
-              <div
-                v-if="settingsForm.whatsappMode === 'CUSTOM'"
-                class="grid grid-cols-1 gap-6 sm:grid-cols-2 bg-slate-50 p-6 rounded-md border border-slate-200">
-                <div class="sm:col-span-2">
-                  <label
-                    class="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2"
-                    >Twilio Account SID</label
-                  >
-                  <input
-                    type="text"
-                    v-model="settingsForm.twilioSid"
-                    placeholder="AC..."
-                    class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-slate-950 outline-none bg-white transition-all" />
-                </div>
-                <div>
-                  <label
-                    class="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2"
-                    >Twilio Auth Token</label
-                  >
-                  <input
-                    type="password"
-                    v-model="settingsForm.twilioAuthToken"
-                    placeholder="••••••••"
-                    autocomplete="off"
-                    class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-slate-950 outline-none bg-white transition-all" />
-                </div>
-                <div>
-                  <label
-                    class="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2"
-                    >Twilio WhatsApp Number</label
-                  >
-                  <input
-                    type="text"
-                    v-model="settingsForm.twilioPhoneNumber"
-                    placeholder="whatsapp:+123..."
-                    class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-slate-950 outline-none bg-white transition-all" />
-                </div>
-              </div>
-            </div>
-
-            <div class="p-6 border-t border-slate-100">
-              <h3 class="text-base font-semibold text-slate-900 tracking-tight">
-                Automated WhatsApp Reminders
-              </h3>
-              <p class="text-sm text-slate-500 mb-6">
-                Set up automatic WhatsApp notifications for upcoming and overdue
-                invoices.
-              </p>
-
-              <div class="max-w-full">
-                <div class="flex items-center justify-between mb-2">
-                  <label
-                    class="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest"
-                    >WhatsApp Reminder Interval</label
-                  >
-                  <div
-                    v-if="!authStore.isPro"
-                    class="flex items-center gap-1.5 px-2 py-0.5 bg-emerald-50 rounded border border-emerald-100">
-                    <UiIcon
-                      icon="heroicons:lock-closed"
-                      custom-class="w-3 h-3 text-emerald-600" />
-                    <span
-                      class="text-[9px] font-bold text-emerald-700 uppercase tracking-wider"
-                      >Pro</span
-                    >
-                  </div>
-                </div>
-                <UiSelect
-                  v-model="settingsForm.whatsappReminderInterval"
-                  :options="reminderIntervalOptions"
-                  :disabled="!authStore.isPro"
-                  placeholder="Select interval"
-                  class="max-w-[250px]" />
-                <p class="text-[12px] text-slate-500 mt-4 leading-relaxed">
-                  <span v-if="settingsForm.whatsappReminderInterval === 0">
-                    WhatsApp reminders are currently disabled.
-                  </span>
-                  <span v-else-if="settingsForm.whatsappReminderInterval < 0">
-                    A WhatsApp reminder will be sent
-                    {{ Math.abs(settingsForm.whatsappReminderInterval) }} days
-                    before the due date.
-                  </span>
-                  <span v-else>
-                    After the due date, a WhatsApp reminder will be sent every
-                    {{ settingsForm.whatsappReminderInterval }} days.
-                  </span>
-                </p>
-                <div
-                  v-if="settingsForm.whatsappReminderInterval !== 0"
-                  class="mt-4 p-3 bg-amber-50 rounded-lg border border-amber-100 flex gap-3 text-left">
-                  <UiIcon
-                    icon="heroicons:exclamation-triangle"
-                    custom-class="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                  <p class="text-[11px] text-amber-800 leading-relaxed">
-                    <strong>Quota Notice:</strong> Automated reminders consume
-                    your monthly plan quota. Frequent intervals for multiple
-                    clients will quickly deplete your limit.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div class="p-6">
-              <h3 class="text-base font-semibold text-slate-900 tracking-tight">
-                Message Templates
-              </h3>
-              <p class="text-sm text-slate-500 mb-6">
-                Customize the content of your automated and manual WhatsApp
-                messages.
-              </p>
-
-              <div class="space-y-6">
-                <div>
-                  <label
-                    class="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2"
-                    >Invoice Send Template</label
-                  >
-                  <textarea
-                    v-model="settingsForm.whatsappSendTemplate"
-                    rows="4"
-                    class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-slate-950 outline-none transition-all"
-                    placeholder="Enter template for manual sending"></textarea>
-                </div>
-                <div>
-                  <label
-                    class="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2"
-                    >Automatic Reminder Template</label
-                  >
-                  <textarea
-                    v-model="settingsForm.whatsappReminderTemplate"
-                    rows="4"
-                    class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-slate-950 outline-none transition-all"
-                    placeholder="Enter template for auto reminders"></textarea>
-                </div>
-
-                <div class="bg-slate-50 rounded-md p-6 border border-slate-200">
-                  <h4
-                    class="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-3">
-                    Available Placeholders
-                  </h4>
-                  <div class="flex flex-wrap gap-2">
-                    <span
-                      v-for="tag in [
-                        '{{userName}}',
-                        '{{companyName}}',
-                        '{{clientName}}',
-                        '{{invoiceNumber}}',
-                        '{{totalAmount}}',
-                        '{{currency}}',
-                        '{{dueDate}}',
-                        '{{invoiceUrl}}',
-                      ]"
-                      :key="tag"
-                      class="px-2 py-1 bg-white border border-slate-200 rounded-md text-[10px] font-mono font-semibold text-slate-600 shadow-sm">
-                      {{ tag }}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Email Configuration Tab -->
-          <div
-            v-if="activeTab === 'email'"
-            class="divide-y divide-slate-100 relative overflow-hidden min-h-[400px]">
-            <div class="p-6">
-              <h3
-                class="text-base font-semibold text-slate-900 tracking-tight mb-1">
-                Automated Email Reminders
-              </h3>
-              <p class="text-sm text-slate-500 mb-6">
-                Configure automated email sequences to ensure your clients pay
-                on time.
-              </p>
-
-              <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <!-- Controls -->
-                <div>
-                  <div class="flex items-center justify-between mb-2">
-                    <label
-                      class="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest"
-                      >Reminder Interval</label
-                    >
-                    <div
-                      v-if="!authStore.isPro"
-                      class="flex items-center gap-1.5 px-2 py-0.5 bg-emerald-50 rounded border border-emerald-100">
-                      <UiIcon
-                        icon="heroicons:lock-closed"
-                        custom-class="w-3 h-3 text-emerald-600" />
-                      <span
-                        class="text-[9px] font-bold text-emerald-700 uppercase tracking-wider"
-                        >Pro</span
-                      >
-                    </div>
-                  </div>
-                  <UiSelect
-                    v-model="profileForm.reminderInterval"
-                    :options="reminderIntervalOptions"
-                    :disabled="!authStore.isPro"
-                    placeholder="Select interval" />
-                  <p class="text-[12px] text-slate-500 mt-4 leading-relaxed">
-                    <span v-if="profileForm.reminderInterval === 0">
-                      Automated email reminders are currently disabled. Your
-                      clients will only receive the initial invoice email.
-                    </span>
-                    <span v-else-if="profileForm.reminderInterval < 0">
-                      The platform will automatically email your client a polite
-                      reminder exactly
-                      {{ Math.abs(profileForm.reminderInterval) }} days before
-                      the invoice's strict due date to ensure timely payment.
-                    </span>
-                    <span v-else>
-                      Once an invoice passes its due date without being fully
-                      paid, the platform will automatically email your client a
-                      polite reminder precisely following this spacing interval
-                      until it is marked as Paid.
-                    </span>
-                  </p>
-                  <div
-                    v-if="profileForm.reminderInterval !== 0"
-                    class="mt-4 p-3 bg-amber-50 rounded-lg border border-amber-100 flex gap-3 text-left">
-                    <UiIcon
-                      icon="heroicons:exclamation-triangle"
-                      custom-class="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                    <p class="text-[11px] text-amber-800 leading-relaxed">
-                      <strong>Quota Notice:</strong> Automated reminders consume
-                      your monthly plan quota. Frequent intervals for multiple
-                      clients will quickly deplete your limit.
-                    </p>
-                  </div>
-                </div>
-                <!-- Preview Canvas -->
-                <div
-                  class="bg-slate-50 rounded-xl border border-slate-200 p-5 col-span-2">
-                  <div
-                    class="mb-4 flex flex-col sm:flex-row justify-between sm:items-center gap-2">
-                    <div class="flex flex-col">
-                      <span
-                        class="text-[12px] font-bold text-slate-400 uppercase tracking-widest"
-                        >Client View Simulator</span
-                      >
-                      <span class="text-[11px] font-noprmal text-slate-400"
-                        >This is an example of what your client will see</span
-                      >
-                    </div>
-                    <span
-                      class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded-md text-[9px] font-bold tracking-widest uppercase border border-blue-200 w-fit"
-                      >Email Layout</span
-                    >
-                  </div>
-                  <!-- Mini stylized email container -->
-                  <div
-                    class="bg-white rounded-xl border border-slate-200 shadow-sm p-8 w-full mx-auto font-sans"
-                    style="max-width: 480px">
-                    <!-- Header Logo -->
-                    <div class="flex items-center justify-center gap-1.5 mb-4">
-                      <UiLogo class="text-slate-900 relative" />
-                    </div>
-
-                    <!-- Intro Text -->
-                    <div
-                      class="text-[13px] text-slate-600 space-y-2 mb-4 leading-relaxed">
-                      <p>Hi <strong>Iman Muqri</strong>,</p>
-                      <p>
-                        You have received an invoice from
-                        <strong>{{
-                          profileForm.companyName ||
-                          profileForm.name ||
-                          "Client Name"
-                        }}</strong>
-                        via
-                        <span class="py-0.5 rounded font-medium text-slate-900"
-                          >InvoKita</span
-                        >.
-                      </p>
-                    </div>
-
-                    <!-- Invoice Card -->
-                    <div
-                      class="bg-[#f8fafc] rounded-xl p-8 text-center mb-8 border border-slate-100">
-                      <span
-                        class="inline-flex items-center justify-center px-3 py-1 bg-[#eff6ff] text-blue-600 text-[10px] font-bold uppercase tracking-widest rounded-full mb-5">
-                        PENDING
-                      </span>
-                      <p class="text-xs text-slate-500 font-medium mb-1">
-                        INVK-0005
-                      </p>
-                      <p
-                        class="text-[11px] text-slate-400 font-medium tracking-wide mb-3">
-                        Amount Due
-                      </p>
-                      <h2
-                        class="text-3xl font-black text-slate-900 mb-8 tracking-tight">
-                        {{ profileForm.defaultCurrency }} 20.99
-                      </h2>
-
-                      <div class="h-px bg-slate-200 w-full mb-5"></div>
-
-                      <p class="text-[11px] text-slate-500 font-medium">
-                        Due April 11, 2026
-                      </p>
-                    </div>
-
-                    <!-- CTA Button -->
-                    <div class="w-full flex justify-center mb-8">
-                      <div
-                        class="bg-[#0f172a] text-white rounded-lg px-8 py-3 text-xs font-bold shadow-sm cursor-not-allowed">
-                        View Invoice
-                      </div>
-                    </div>
-
-                    <!-- Footer -->
-                    <p class="text-[11px] text-slate-500 text-center mb-4">
-                      A PDF copy of your invoice is also attached to this email.
-                    </p>
-
-                    <div
-                      class="text-center text-[10px] font-medium text-slate-400 space-y-1">
-                      <p>This email was sent via InvoKita.</p>
-                      <p>Accurate & Professional Invoicing.</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Payments Tab -->
-          <div
-            v-if="activeTab === 'payments'"
-            class="divide-y divide-slate-100 p-6">
-            <div class="mb-8 text-left">
-              <h3
-                class="text-base font-semibold text-slate-900 tracking-tight text-left">
-                Accept payments from your invoices
-              </h3>
-              <p class="text-sm text-slate-500 mb-6">
-                Connect payment gateways to allow clients to pay you directly
-                from their invoices.
-              </p>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8 pt-8">
-              <!-- Direct Bank Transfer -->
-              <div
-                class="relative border rounded-2xl p-6 shadow-sm flex flex-col transition-all"
-                :class="
-                  isManualPreferred
-                    ? 'border-emerald-300 bg-emerald-50/20 hover:border-emerald-400'
-                    : 'border-slate-200 bg-white hover:border-slate-300'
-                ">
-                <!-- Radio Checker -->
-                <div
-                  v-if="
-                    settingsForm.manualBankName &&
-                    settingsForm.manualAccountNumber &&
-                    paymentProviders.length > 0
-                  "
-                  @click="setManualPreferred"
-                  class="absolute top-5 right-5 w-5 h-5 rounded-full border-2 flex items-center justify-center cursor-pointer transition-all shadow-sm hover:shadow"
-                  :class="
-                    isManualPreferred
-                      ? 'border-emerald-600 bg-emerald-600'
-                      : 'border-slate-300 hover:border-slate-400 bg-white'
-                  ">
-                  <UiIcon
-                    v-if="isManualPreferred"
-                    icon="material-symbols:check-rounded"
-                    custom-class="w-4 h-4 text-white stroke-[3px]" />
-                </div>
-
-                <div class="flex items-center gap-4 mb-6">
-                  <div
-                    class="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100 overflow-hidden text-slate-400">
-                    <UiIcon icon="heroicons:banknotes" custom-class="w-5 h-5" />
-                  </div>
-                  <div class="text-left">
-                    <h4 class="text-sm font-bold text-slate-900 text-left">
-                      Bank Transfer
-                    </h4>
-                    <p class="text-[10px] text-slate-500 font-medium text-left">
-                      Manual fallback for direct payments
-                    </p>
-                  </div>
-                </div>
-
-                <div
-                  v-if="
-                    settingsForm.manualBankName &&
-                    settingsForm.manualAccountNumber
-                  "
-                  class="mt-auto">
-                  <div class="flex items-center justify-between mb-4">
-                    <div class="flex items-center gap-2">
-                      <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
-                      <span class="text-[12px] font-bold text-emerald-600"
-                        >Configured</span
-                      >
-                    </div>
-                  </div>
-                  <button
-                    @click="isManualModalOpen = true"
-                    class="w-full py-2 text-xs font-bold text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 transition-all">
-                    Edit Details
-                  </button>
-                </div>
-                <button
-                  v-else
-                  @click="isManualModalOpen = true"
-                  class="mt-auto w-full py-2.5 bg-slate-900 text-white text-xs font-bold rounded-md hover:bg-slate-800 transition-all">
-                  Setup Manual
-                </button>
-              </div>
-
-              <!-- ToyyibPay -->
-              <div
-                class="relative border rounded-2xl p-6 shadow-sm flex flex-col transition-all"
-                :class="
-                  isProviderPreferred('TOYYIBPAY')
-                    ? 'border-emerald-300 bg-emerald-50/20 hover:border-emerald-400'
-                    : 'border-slate-200 bg-white hover:border-slate-300'
-                ">
-                <!-- Radio Checker -->
-                <div
-                  v-if="
-                    isProviderConnected('TOYYIBPAY') &&
-                    paymentProviders.length > 1
-                  "
-                  @click="setPreferred('TOYYIBPAY')"
-                  class="absolute top-5 right-5 w-5 h-5 rounded-full border-2 flex items-center justify-center cursor-pointer transition-all shadow-sm hover:shadow"
-                  :class="
-                    isProviderPreferred('TOYYIBPAY')
-                      ? 'border-emerald-600 bg-emerald-600'
-                      : 'border-slate-300 hover:border-slate-400 bg-white'
-                  ">
-                  <UiIcon
-                    v-if="isProviderPreferred('TOYYIBPAY')"
-                    icon="material-symbols:check-rounded"
-                    custom-class="w-4 h-4 text-white" />
-                </div>
-
-                <div class="flex items-center gap-4 mb-6">
-                  <div
-                    class="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100 overflow-hidden">
-                    <img
-                      src="https://images.crunchbase.com/image/upload/c_pad,h_256,w_256,f_auto,q_auto:eco,dpr_1/e2hhr8kgl2hq5bkkqueq?ik-sanitizeSvg=true"
-                      class="w-10 h-10 object-contain"
-                      alt="ToyyibPay" />
-                  </div>
-                  <div class="text-left">
-                    <h4 class="text-sm font-bold text-slate-900 text-left">
-                      ToyyibPay
-                    </h4>
-                    <p class="text-[10px] text-slate-500 font-medium text-left">
-                      Accepts FPX, DuitNow, and Card payments
-                    </p>
-                  </div>
-                </div>
-
-                <div v-if="isProviderConnected('TOYYIBPAY')" class="mt-auto">
-                  <div class="flex items-center justify-between mb-4">
-                    <div class="flex items-center gap-2">
-                      <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
-                      <span class="text-[12px] font-bold text-emerald-600"
-                        >Connected</span
-                      >
-                    </div>
-                  </div>
-                  <div class="flex gap-2">
-                    <button
-                      @click="openConnectModal('TOYYIBPAY')"
-                      class="flex-1 py-2 text-xs font-bold text-slate-600 border border-slate-200 rounded-md hover:bg-slate-50 transition-all">
-                      Edit
-                    </button>
-                    <button
-                      @click="disconnectProvider('TOYYIBPAY')"
-                      class="px-3 py-2 text-xs font-bold text-red-600 border border-red-100 rounded-md hover:bg-red-50 transition-all">
-                      Disconnect
-                    </button>
-                  </div>
-                </div>
-                <button
-                  v-else
-                  @click="openConnectModal('TOYYIBPAY')"
-                  class="mt-auto w-full py-2.5 bg-slate-900 text-white text-xs font-bold rounded-md hover:bg-slate-800 transition-all">
-                  Connect
-                </button>
-              </div>
-
-              <!-- Billplz -->
-              <div
-                class="relative border rounded-2xl p-6 shadow-sm flex flex-col transition-all"
-                :class="
-                  isProviderPreferred('BILLPLZ')
-                    ? 'border-emerald-300 bg-emerald-50/20 hover:border-emerald-400'
-                    : 'border-slate-200 bg-white hover:border-slate-300'
-                ">
-                <!-- Radio Checker -->
-                <div
-                  v-if="
-                    isProviderConnected('BILLPLZ') &&
-                    paymentProviders.length > 1
-                  "
-                  @click="setPreferred('BILLPLZ')"
-                  class="absolute top-5 right-5 w-5 h-5 rounded-full border-2 flex items-center justify-center cursor-pointer transition-all shadow-sm hover:shadow"
-                  :class="
-                    isProviderPreferred('BILLPLZ')
-                      ? 'border-emerald-600 bg-emerald-600'
-                      : 'border-slate-300 hover:border-slate-400 bg-white'
-                  ">
-                  <UiIcon
-                    v-if="isProviderPreferred('BILLPLZ')"
-                    icon="material-symbols:check-rounded"
-                    custom-class="w-4 h-4 text-white stroke-[4px]" />
-                </div>
-
-                <div class="flex items-center gap-4 mb-6">
-                  <div
-                    class="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100 overflow-hidden">
-                    <img
-                      src="https://make-cxp-documentation.ams3.digitaloceanspaces.com/apps-center-icons/billplz.png"
-                      class="w-10 h-10 object-contain"
-                      alt="Billplz" />
-                  </div>
-                  <div class="text-left">
-                    <h4 class="text-sm font-bold text-slate-900 text-left">
-                      Billplz
-                    </h4>
-                    <p class="text-[10px] text-slate-500 font-medium text-left">
-                      Accepts FPX and Card payments
-                    </p>
-                  </div>
-                </div>
-
-                <div v-if="isProviderConnected('BILLPLZ')" class="mt-auto">
-                  <div class="flex items-center justify-between mb-4">
-                    <div class="flex items-center gap-2">
-                      <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
-                      <span class="text-[12px] font-bold text-emerald-600"
-                        >Connected</span
-                      >
-                    </div>
-                  </div>
-                  <div class="flex gap-2">
-                    <button
-                      @click="openConnectModal('BILLPLZ')"
-                      class="flex-1 py-2 text-xs font-bold text-slate-600 border border-slate-200 rounded-md hover:bg-slate-50 transition-all">
-                      Edit
-                    </button>
-                    <button
-                      @click="disconnectProvider('BILLPLZ')"
-                      class="px-3 py-2 text-xs font-bold text-red-600 border border-red-100 rounded-md hover:bg-red-50 transition-all">
-                      Disconnect
-                    </button>
-                  </div>
-                </div>
-                <button
-                  v-else
-                  @click="openConnectModal('BILLPLZ')"
-                  class="mt-auto w-full py-2.5 bg-slate-900 text-white text-xs font-bold rounded-md hover:bg-slate-800 transition-all">
-                  Connect
-                </button>
-              </div>
-
-              <!-- HitPay -->
-              <div
-                class="relative border rounded-2xl p-6 shadow-sm flex flex-col transition-all"
-                :class="
-                  isProviderPreferred('HITPAY')
-                    ? 'border-emerald-300 bg-emerald-50/20 hover:border-emerald-400'
-                    : 'border-slate-200 bg-white hover:border-slate-300'
-                ">
-                <div
-                  v-if="
-                    isProviderConnected('HITPAY') && paymentProviders.length > 1
-                  "
-                  @click="setPreferred('HITPAY')"
-                  class="absolute top-5 right-5 w-5 h-5 rounded-full border-2 flex items-center justify-center cursor-pointer transition-all shadow-sm hover:shadow"
-                  :class="
-                    isProviderPreferred('HITPAY')
-                      ? 'border-emerald-600 bg-emerald-600'
-                      : 'border-slate-300 hover:border-slate-400 bg-white'
-                  ">
-                  <UiIcon
-                    v-if="isProviderPreferred('HITPAY')"
-                    icon="material-symbols:check-rounded"
-                    custom-class="w-4 h-4 text-white stroke-[4px]" />
-                </div>
-
-                <div class="flex items-center gap-4 mb-6">
-                  <div
-                    class="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100 overflow-hidden">
-                    <img
-                      src="https://avatars.githubusercontent.com/u/67738149?s=280&v=4"
-                      class="w-8 h-8 object-contain"
-                      alt="HitPay" />
-                  </div>
-                  <div class="text-left">
-                    <h4 class="text-sm font-bold text-slate-900 text-left">
-                      HitPay
-                    </h4>
-                    <p class="text-[10px] text-slate-500 font-medium text-left">
-                      Card, FPX, and E-Wallets
-                    </p>
-                  </div>
-                </div>
-
-                <div v-if="isProviderConnected('HITPAY')" class="mt-auto">
-                  <div class="flex items-center justify-between mb-4">
-                    <div class="flex items-center gap-2">
-                      <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
-                      <span class="text-[12px] font-bold text-emerald-600"
-                        >Connected</span
-                      >
-                    </div>
-                  </div>
-                  <div class="flex gap-2">
-                    <button
-                      @click="openConnectModal('HITPAY')"
-                      class="flex-1 py-2 text-xs font-bold text-slate-600 border border-slate-200 rounded-md hover:bg-slate-50 transition-all">
-                      Edit
-                    </button>
-                    <button
-                      @click="disconnectProvider('HITPAY')"
-                      class="px-3 py-2 text-xs font-bold text-red-600 border border-red-100 rounded-md hover:bg-red-50 transition-all">
-                      Disconnect
-                    </button>
-                  </div>
-                </div>
-                <button
-                  v-else
-                  @click="openConnectModal('HITPAY')"
-                  class="mt-auto w-full py-2.5 bg-slate-900 text-white text-xs font-bold rounded-md hover:bg-slate-800 transition-all">
-                  Connect
-                </button>
-              </div>
-
-              <!-- SenangPay -->
-              <div
-                class="relative border rounded-2xl p-6 shadow-sm flex flex-col transition-all"
-                :class="
-                  isProviderPreferred('SENANGPAY')
-                    ? 'border-emerald-300 bg-emerald-50/20 hover:border-emerald-400'
-                    : 'border-slate-200 bg-white hover:border-slate-300'
-                ">
-                <div
-                  v-if="
-                    isProviderConnected('SENANGPAY') &&
-                    paymentProviders.length > 1
-                  "
-                  @click="setPreferred('SENANGPAY')"
-                  class="absolute top-5 right-5 w-5 h-5 rounded-full border-2 flex items-center justify-center cursor-pointer transition-all shadow-sm hover:shadow"
-                  :class="
-                    isProviderPreferred('SENANGPAY')
-                      ? 'border-emerald-600 bg-emerald-600'
-                      : 'border-slate-300 hover:border-slate-400 bg-white'
-                  ">
-                  <UiIcon
-                    v-if="isProviderPreferred('SENANGPAY')"
-                    icon="material-symbols:check-rounded"
-                    custom-class="w-4 h-4 text-white stroke-[4px]" />
-                </div>
-
-                <div class="flex items-center gap-4 mb-6">
-                  <div
-                    class="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100 overflow-hidden">
-                    <img
-                      src="https://media.glassdoor.com/sqll/5772920/senangpay-squareLogo-1701835868144.png"
-                      class="w-8 h-8 object-contain rounded-lg"
-                      alt="SenangPay" />
-                  </div>
-                  <div class="text-left">
-                    <h4 class="text-sm font-bold text-slate-900 text-left">
-                      SenangPay
-                    </h4>
-                    <p class="text-[10px] text-slate-500 font-medium text-left">
-                      Card and FPX payments
-                    </p>
-                  </div>
-                </div>
-
-                <div v-if="isProviderConnected('SENANGPAY')" class="mt-auto">
-                  <div class="flex items-center justify-between mb-4">
-                    <div class="flex items-center gap-2">
-                      <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
-                      <span class="text-[12px] font-bold text-emerald-600"
-                        >Connected</span
-                      >
-                    </div>
-                  </div>
-                  <div class="flex gap-2">
-                    <button
-                      @click="openConnectModal('SENANGPAY')"
-                      class="flex-1 py-2 text-xs font-bold text-slate-600 border border-slate-200 rounded-md hover:bg-slate-50 transition-all">
-                      Edit
-                    </button>
-                    <button
-                      @click="disconnectProvider('SENANGPAY')"
-                      class="px-3 py-2 text-xs font-bold text-red-600 border border-red-100 rounded-md hover:bg-red-50 transition-all">
-                      Disconnect
-                    </button>
-                  </div>
-                </div>
-                <button
-                  v-else
-                  @click="openConnectModal('SENANGPAY')"
-                  class="mt-auto w-full py-2.5 bg-slate-900 text-white text-xs font-bold rounded-md hover:bg-slate-800 transition-all">
-                  Connect
-                </button>
-              </div>
-            </div>
-
-            <!-- Security Notice -->
-            <div
-              class="mt-12 p-6 bg-slate-50 rounded-xl border border-slate-200">
-              <div class="flex gap-4">
-                <div
-                  class="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm border border-slate-100 text-slate-600">
-                  <UiIcon
-                    name="heroicons:shield-check"
-                    custom-class="w-4 h-4" />
-                </div>
-                <div class="flex-1 text-left">
-                  <h4 class="text-sm font-bold text-slate-900 mb-1 text-left">
-                    Your Security is Our Priority
-                  </h4>
-                  <p class="text-xs text-slate-500 leading-relaxed text-left">
-                    We use military-grade encryption to store your payment
-                    credentials. InvoKita only uses them to generate payment
-                    bills for your invoices. We never store or have access to
-                    your bank account's login information.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Invoice Configuration Tab -->
-          <div v-if="activeTab === 'invoice_config'" class="p-6 space-y-8">
-            <!-- Display Fields Section -->
-            <section>
-              <h3 class="text-base font-semibold text-slate-900 tracking-tight">
-                Invoice Display Fields
-              </h3>
-              <p class="text-sm text-slate-500 mb-6">
-                Select which business and personal details appear on your
-                generated invoices.
-              </p>
-
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <label
-                  v-for="field in [
-                    {
-                      key: 'invoiceIncludeName',
-                      label: 'Full Name',
-                      icon: 'solar:user-bold',
-                      disabled: true,
-                    },
-                    {
-                      key: 'invoiceIncludeEmail',
-                      label: 'Company Email',
-                      icon: 'solar:letter-bold',
-                      disabled: !profileForm.companyEmail,
-                      warning:
-                        'Please fill your company email in General settings to enable.',
-                    },
-                    {
-                      key: 'invoiceIncludePersonalPhone',
-                      label: 'Personal Phone',
-                      icon: 'solar:phone-bold',
-                    },
-                    {
-                      key: 'invoiceIncludeCompanyName',
-                      label: 'Company Name',
-                      icon: 'solar:buildings-bold',
-                      disabled: !profileForm.companyName,
-                      warning:
-                        'Please fill your company name in General settings to enable.',
-                    },
-                    {
-                      key: 'invoiceIncludeCompanyPhone',
-                      label: 'Company Phone',
-                      icon: 'solar:phone-calling-bold',
-                      disabled: !profileForm.companyPhone,
-                      warning:
-                        'Please fill your company phone in General settings to enable.',
-                    },
-                    {
-                      key: 'invoiceIncludeAddress',
-                      label: 'Business Address',
-                      icon: 'solar:map-point-bold',
-                      disabled: !profileForm.address,
-                      warning:
-                        'Please fill your business address in General settings to enable.',
-                    },
-                  ]"
-                  :key="field.key"
-                  class="relative flex items-center p-4 border rounded-xl transition-all cursor-pointer group select-none"
-                  :class="
-                    profileForm[field.key]
-                      ? 'border-emerald-600 bg-slate-50'
-                      : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/50'
-                  "
-                  :style="{
-                    cursor: field.disabled ? 'not-allowed' : 'pointer',
-                    opacity: field.disabled ? '0.7' : '1',
-                  }">
-                  <div class="flex items-center gap-3 flex-1">
-                    <div
-                      class="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
-                      :class="
-                        profileForm[field.key]
-                          ? 'bg-emerald-600 text-white'
-                          : 'bg-slate-100 text-slate-400 group-hover:text-slate-500'
-                      ">
-                      <UiIcon :icon="field.icon" class="w-4 h-4" />
-                    </div>
-                    <div
-                      class="text-xs font-semibold transition-colors"
-                      :class="
-                        profileForm[field.key]
-                          ? 'text-slate-900'
-                          : 'text-slate-500'
-                      ">
-                      {{ field.label }}
-                      <p
-                        v-if="field.disabled && field.warning"
-                        class="text-[10px] font-normal text-amber-600 mt-0.5">
-                        {{ field.warning }}
-                      </p>
-                    </div>
-                  </div>
-                  <div class="flex items-center">
-                    <div
-                      class="w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all"
-                      :class="
-                        profileForm[field.key]
-                          ? 'bg-emerald-600 border-emerald-600'
-                          : 'bg-white border-slate-200'
-                      ">
-                      <UiIcon
-                        v-if="profileForm[field.key]"
-                        icon="heroicons:check-16-solid"
-                        class="w-3 h-3 text-white" />
-                    </div>
-                  </div>
-                  <input
-                    type="checkbox"
-                    v-model="profileForm[field.key]"
-                    :disabled="field.disabled"
-                    class="sr-only" />
-                </label>
-              </div>
-            </section>
-
-            <div class="h-px bg-slate-100"></div>
-
-            <!-- Automation Section -->
-            <section>
-              <div class="flex items-center justify-between">
-                <h3
-                  class="text-base font-semibold text-slate-900 tracking-tight">
-                  Global Automation
-                </h3>
-                <div class="flex items-center gap-3">
-                  <div
-                    v-if="!authStore.isPro"
-                    class="flex items-center gap-1.5 px-2 py-1 bg-emerald-50 rounded-lg border border-emerald-100 shadow-sm">
-                    <UiIcon
-                      icon="heroicons:lock-closed"
-                      custom-class="w-3 h-3 text-emerald-600" />
-                    <span
-                      class="text-[9px] font-bold text-emerald-700 uppercase tracking-wider"
-                      >Pro</span
-                    >
-                  </div>
-                  <button
-                    @click="
-                      authStore.isPro
-                        ? (profileForm.globalAutoChaser =
-                            !profileForm.globalAutoChaser)
-                        : null
-                    "
-                    type="button"
-                    class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ring-offset-2"
-                    :class="[
-                      profileForm.globalAutoChaser
-                        ? 'bg-slate-900'
-                        : 'bg-slate-200',
-                      !authStore.isPro ? 'opacity-50 cursor-not-allowed' : '',
-                    ]">
-                    <span
-                      class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
-                      :class="
-                        profileForm.globalAutoChaser
-                          ? 'translate-x-5'
-                          : 'translate-x-0'
-                      "></span>
-                  </button>
-                </div>
-              </div>
-              <p class="text-sm text-slate-500 mb-6">
-                Enable or disable all automated reminders across your entire
-                account.
-              </p>
-
-              <div
-                class="p-4 bg-amber-50 border border-amber-100 rounded-xl flex gap-3">
-                <UiIcon
-                  icon="heroicons:exclamation-triangle"
-                  custom-class="w-5 h-5 text-amber-600 shrink-0" />
-                <p class="text-[11px] text-amber-800 leading-relaxed">
-                  <strong>Important Notice:</strong> If you switch this OFF,
-                  <strong>all auto-chaser reminders</strong> for all clients
-                  will be disabled immediately. To disable reminders for a
-                  single specific client while keeping others active, please use
-                  the toggle in the <strong>Client Table</strong> instead.
-                </p>
-              </div>
-
-              <!-- Reminder Info Note -->
-              <div
-                class="mt-4 p-4 bg-blue-50 border border-blue-100 rounded-xl flex gap-3">
-                <UiIcon
-                  icon="heroicons:information-circle"
-                  custom-class="w-5 h-5 text-blue-600 shrink-0" />
-                <p class="text-[11px] text-blue-800 leading-relaxed">
-                  <strong>Reminder Intervals:</strong> Note that specific timing
-                  intervals for automated messages must be configured in the
-                  <button
-                    @click="switchTab('email')"
-                    class="font-bold underline hover:text-blue-900">
-                    Email Configuration
-                  </button>
-                  or
-                  <button
-                    @click="switchTab('whatsapp')"
-                    class="font-bold underline hover:text-blue-900">
-                    WhatsApp Configuration
-                  </button>
-                  tabs.
-                </p>
-              </div>
-            </section>
-
-            <div class="h-px bg-slate-100"></div>
-
-            <!-- Invoice Defaults Section -->
-            <section>
-              <h3 class="text-base font-semibold text-slate-900 tracking-tight">
-                Invoice Defaults
-              </h3>
-              <p class="text-sm text-slate-500 mb-6">
-                Set default values for new invoices, including prefixes and tax
-                rates.
-              </p>
-
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div>
-                  <label
-                    class="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2"
-                    >Invoice Number Prefix</label
-                  >
-                  <input
-                    type="text"
-                    v-model="profileForm.invoicePrefix"
-                    placeholder="e.g. INV"
-                    class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-slate-950 outline-none transition-all uppercase" />
-                  <p class="text-[10px] text-slate-500 mt-2">
-                    Default prefix for your invoice numbers.
-                  </p>
-                </div>
-
-                <div class="space-y-2">
-                  <div class="flex items-center justify-between">
-                    <label
-                      class="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest"
-                      >Default Tax Rate (%)</label
-                    >
-                  </div>
-
-                  <div>
-                    <div class="relative">
-                      <input
-                        type="number"
-                        step="0.01"
-                        v-model="profileForm.defaultTaxRate"
-                        class="block w-full rounded-md border border-slate-200 pl-3 pr-8 py-2 text-sm font-bold text-slate-900 focus:ring-1 focus:ring-slate-950 outline-none transition-all" />
-                      <div
-                        class="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
-                        %
-                      </div>
-                    </div>
-                    <p class="text-[10px] text-slate-500 mt-2">
-                      Automatically apply this percentage to all new invoices.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </section>
-          </div>
-
-          <!-- Billing Tab -->
-          <div v-if="activeTab === 'billing'" class="p-6">
-            <!-- Current Plan Banner -->
-            <div
-              class="mb-6 p-4 bg-slate-50 border border-slate-200 rounded-md flex items-center justify-between transition-all hover:bg-slate-100/50">
-              <div class="flex items-center gap-3">
-                <div
-                  class="w-10 h-10 bg-white border border-slate-200 rounded-md flex items-center justify-center text-lg shadow-sm">
-                  <UiIcon
-                    icon="solar:bill-check-bold"
-                    class="text-emerald-600"></UiIcon>
-                </div>
-                <div>
-                  <p
-                    class="text-[10px] font-semibold text-slate-500 uppercase tracking-widest leading-none mb-1">
-                    Your Current Plan
-                  </p>
-                  <h4
-                    class="text-sm font-semibold text-slate-900 leading-none capitalize pt-1">
-                    {{ authStore.user?.plan || "Free" }}
-                  </h4>
-                  <p
-                    v-if="
-                      activeSubscription &&
-                      activeSubscription.status === 'ACTIVE'
-                    "
-                    class="text-[10px] text-slate-500 mt-1 font-medium flex items-center gap-1">
-                    <UiIcon
-                      icon="solar:calendar-date-bold"
-                      class="w-3 h-3 text-slate-400" />
-                    Renews
-                    {{
-                      new Date(
-                        activeSubscription.subscriptionEnds,
-                      ).toLocaleDateString("en-GB", {
-                        day: "numeric",
-                        month: "short",
-                        year: "numeric",
-                      })
-                    }}
-                  </p>
-                </div>
-              </div>
-              <div class="flex items-center gap-3">
-                <div
-                  v-if="
-                    authStore.user?.plan &&
-                    authStore.user?.plan !== 'FREE' &&
-                    !isCancelling
-                  "
-                  class="mr-2">
-                  <button
-                    @click="updatePlan('FREE')"
-                    class="text-[10px] font-bold text-rose-600 hover:text-rose-700 uppercase tracking-wider px-3 py-1.5 rounded-lg border border-rose-100 bg-rose-50/50 hover:bg-rose-50 transition-all">
-                    Cancel Plan
-                  </button>
-                </div>
-                <div
-                  class="text-[10px] text-emerald-600 font-semibold uppercase tracking-wider bg-emerald-50 px-2 py-1 rounded border border-emerald-100 shadow-sm">
-                  Active
-                </div>
-              </div>
-            </div>
-
-            <!-- Promo Code Section -->
-            <div
-              class="mb-6 p-4 bg-white border border-slate-200 rounded-xl shadow-sm">
-              <h5 class="text-sm font-bold text-slate-900 mb-3 text-left">
-                Have a promo code?
-              </h5>
-              <div class="flex gap-2">
-                <div class="relative flex-1">
-                  <input
-                    v-model="promoCodeInput"
-                    type="text"
-                    placeholder="Enter code"
-                    class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm focus:ring-slate-900 focus:border-slate-900 uppercase shadow-none outline-none"
-                    :disabled="isPromoValid" />
-                  <div
-                    v-if="promoLoading"
-                    class="absolute right-3 top-1/2 -translate-y-1/2">
-                    <UiIcon
-                      icon="heroicons:arrow-path"
-                      class="w-4 h-4 animate-spin text-slate-400" />
-                  </div>
-                </div>
-                <button
-                  v-if="!isPromoValid"
-                  type="button"
-                  @click="validatePromo"
-                  :disabled="!promoCodeInput || promoLoading"
-                  class="px-4 py-2 bg-slate-900 text-white text-xs font-bold rounded-md hover:bg-slate-800 transition-all disabled:opacity-50">
-                  Apply
-                </button>
-                <button
-                  v-else
-                  type="button"
-                  @click="clearPromo"
-                  class="px-4 py-2 bg-rose-50 text-rose-600 text-xs font-bold rounded-lg hover:bg-rose-100 transition-all">
-                  Clear
-                </button>
-              </div>
-              <p
-                v-if="promoError"
-                class="text-[10px] font-bold text-rose-500 mt-2 ml-1 text-left">
-                {{ promoError }}
-              </p>
-              <p
-                v-if="isPromoValid"
-                class="text-[10px] font-bold text-emerald-600 mt-2 ml-1 text-left">
-                Applied: {{ appliedDiscountText }} discount!
-              </p>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 pb-12">
-              <div
-                v-for="plan in dynamicPlans"
-                :key="plan.id"
-                :class="[
-                  'border rounded-2xl p-8 transition-all duration-500 shadow-sm flex flex-col relative',
-                  plan.name.toUpperCase() === 'FREE'
-                    ? 'border-slate-100 bg-white hover:border-slate-200'
-                    : '',
-                  plan.name.toUpperCase() === 'STARTER'
-                    ? 'border-emerald-100 bg-emerald-50 hover:border-emerald-200'
-                    : '',
-                  plan.name.toUpperCase() === 'PRO'
-                    ? 'border-slate-800 bg-slate-900 shadow-xl'
-                    : '',
-                  plan.name.toUpperCase() === 'MAX'
-                    ? 'border-indigo-500/30 bg-gradient-to-br from-indigo-900 to-slate-900 shadow-lg'
-                    : '',
-                ]">
-                <div class="mb-8">
-                  <div class="flex items-center justify-between mb-2 text-left">
-                    <h5
-                      :class="[
-                        'text-lg font-bold uppercase tracking-tight',
-                        ['PRO', 'MAX'].includes(plan.name.toUpperCase())
-                          ? 'text-white'
-                          : 'text-slate-900',
-                      ]">
-                      {{ plan.name }}
-                    </h5>
-                    <span
-                      v-if="
-                        authStore.user?.plan.toUpperCase() ===
-                        plan.name.toUpperCase()
-                      "
-                      :class="[
-                        'px-2 py-0.5 text-[10px] font-bold rounded uppercase tracking-widest',
-                        ['PRO', 'MAX'].includes(plan.name.toUpperCase())
-                          ? 'bg-white text-slate-900'
-                          : 'bg-slate-900 text-white',
-                      ]">
-                      Active
-                    </span>
-                  </div>
-                  <p
-                    :class="[
-                      'text-[13px] font-medium leading-relaxed text-left',
-                      plan.name.toUpperCase() === 'PRO'
-                        ? 'text-slate-400'
-                        : plan.name.toUpperCase() === 'MAX'
-                          ? 'text-indigo-200/70'
-                          : 'text-slate-500',
-                    ]">
-                    {{ plan.description }}
-                  </p>
-                </div>
-                <div class="mb-8 flex flex-col items-start min-h-[50px]">
-                  <div class="flex items-baseline flex-wrap gap-2 text-left">
-                    <span
-                      v-if="
-                        isPromoValid &&
-                        appliedDiscount &&
-                        getDiscountedPrice(plan.price) < plan.price
-                      "
-                      class="text-xl font-semibold text-slate-400 line-through tracking-tight">
-                      {{ plan.currency }} {{ plan.price }}
-                    </span>
-                    <span
-                      :class="[
-                        'text-3xl font-semibold tracking-tight',
-                        ['PRO', 'MAX'].includes(plan.name.toUpperCase())
-                          ? 'text-white'
-                          : 'text-slate-900',
-                      ]">
-                      {{ plan.currency }}
-                      {{
-                        isPromoValid
-                          ? getDiscountedPrice(plan.price)
-                          : plan.price
-                      }}
-                    </span>
-                    <span
-                      :class="[
-                        'text-sm font-bold',
-                        plan.name.toUpperCase() === 'PRO'
-                          ? 'text-slate-500'
-                          : plan.name.toUpperCase() === 'MAX'
-                            ? 'text-indigo-400'
-                            : 'text-slate-400',
-                      ]"
-                      >/{{ plan.interval }}</span
-                    >
-                  </div>
-                  <p
-                    v-if="
-                      isPromoValid &&
-                      appliedDiscount &&
-                      getDiscountedPrice(plan.price) < plan.price
-                    "
-                    class="text-[9px] text-emerald-600 font-bold mt-2 tracking-wide text-left uppercase">
-                    Discount Applied
-                  </p>
-                </div>
-                <ul class="space-y-4 mb-8 flex-1 text-left">
-                  <li
-                    v-for="feature in plan.features"
-                    :key="feature"
-                    class="flex items-center text-xs font-semibold"
-                    :class="
-                      plan.name.toUpperCase() === 'PRO'
-                        ? 'text-slate-300'
-                        : plan.name.toUpperCase() === 'MAX'
-                          ? 'text-indigo-100/90'
-                          : 'text-slate-600'
-                    ">
-                    <div
-                      class="w-4 h-4 rounded-full flex items-center justify-center shrink-0 mr-3"
-                      :class="
-                        plan.name.toUpperCase() === 'PRO'
-                          ? 'bg-emerald-500/10'
-                          : plan.name.toUpperCase() === 'MAX'
-                            ? 'bg-indigo-500/20'
-                            : 'bg-emerald-50'
-                      ">
-                      <UiIcon
-                        icon="heroicons:check"
-                        :class="[
-                          'w-2.5 h-2.5',
-                          plan.name.toUpperCase() === 'PRO'
-                            ? 'text-emerald-400'
-                            : plan.name.toUpperCase() === 'MAX'
-                              ? 'text-indigo-400'
-                              : 'text-emerald-600',
-                        ]" />
-                    </div>
-                    {{ feature }}
-                  </li>
-                </ul>
-                <button
-                  @click="
-                    updatePlan(
-                      authStore.user?.plan === plan.name && plan.name !== 'FREE'
-                        ? 'FREE'
-                        : plan.name,
-                    )
-                  "
-                  :disabled="
-                    (authStore.user?.plan === plan.name &&
-                      plan.name === 'FREE') ||
-                    (authStore.user?.plan === plan.name && isCancelling) ||
-                    (authStore.user?.plan !== 'FREE' &&
-                      authStore.user?.plan !== plan.name &&
-                      !isCancelling)
-                  "
-                  class="w-full py-2.5 rounded-xl text-sm font-semibold transition-all border outline-none cursor-pointer"
-                  :class="[
-                    authStore.user?.plan.toUpperCase() ===
-                    plan.name.toUpperCase()
-                      ? plan.name.toUpperCase() === 'FREE'
-                        ? 'bg-slate-50 text-slate-400 border-slate-100 cursor-not-allowed'
-                        : isCancelling
-                          ? 'border-slate-100 bg-slate-50 text-slate-400 cursor-not-allowed'
-                          : 'bg-white text-rose-600 border-rose-100 hover:bg-rose-50 hover:border-rose-200 shadow-md'
-                      : authStore.user?.plan.toUpperCase() !== 'FREE' &&
-                          !isCancelling
-                        ? plan.name.toUpperCase() === 'PRO' ||
-                          plan.name.toUpperCase() === 'MAX'
-                          ? 'bg-slate-800 text-slate-500 border-slate-700 cursor-not-allowed'
-                          : 'border-slate-100 bg-slate-50 text-slate-400 cursor-not-allowed'
-                        : plan.name.toUpperCase() === 'STARTER'
-                          ? 'bg-emerald-600 border-emerald-600 text-white hover:bg-emerald-700 shadow-lg shadow-emerald-600/20'
-                          : plan.name.toUpperCase() === 'PRO'
-                            ? 'bg-white text-slate-900 border-white hover:bg-slate-100 shadow-lg'
-                            : plan.name.toUpperCase() === 'MAX'
-                              ? 'bg-indigo-600 border-indigo-600 text-white hover:bg-indigo-500 shadow-lg shadow-indigo-600/30'
-                              : 'bg-slate-900 text-white border-slate-900 hover:bg-slate-800',
-                  ]">
-                  <template v-if="authStore.user?.plan === plan.name">
-                    <template v-if="plan.name === 'FREE'"
-                      >Current Plan</template
-                    >
-                    <template v-else>
-                      {{ isCancelling ? "Downgrade Pending" : "Cancel Plan" }}
-                    </template>
-                  </template>
-                  <template
-                    v-else-if="
-                      authStore.user?.plan !== 'FREE' && !isCancelling
-                    ">
-                    Switch Plan
-                  </template>
-                  <template v-else>
-                    {{
-                      plan.name === "FREE"
-                        ? "Select Free"
-                        : `Select ${plan.name}`
-                    }}
-                  </template>
-                </button>
-              </div>
-            </div>
-
-            <div class="text-center border-t border-slate-100 pt-8">
-              <p class="text-sm font-medium text-slate-500">
-                Want more power?
-                <a
-                  href="mailto:contact@invokita.com"
-                  class="text-emerald-600 hover:text-emerald-700 underline underline-offset-2"
-                  >Contact us for enquiry</a
-                >
-              </p>
-            </div>
-          </div>
-
-          <!-- Security Tab -->
-          <div v-if="activeTab === 'security'" class="p-6">
-            <h3 class="text-base font-semibold text-slate-900 tracking-tight">
-              Security Settings
-            </h3>
-            <p class="text-sm text-slate-500 mb-6">
-              Update your account password to keep your account secure.
-            </p>
-
-            <form @submit.prevent="handlePasswordChange" class="max-w-md space-y-6">
-              <div>
-                <label
-                  class="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2"
-                  >Current Password</label
-                >
-                <input
-                  type="password"
-                  v-model="passwordForm.oldPassword"
-                  required
-                  class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-slate-950 outline-none transition-all" />
-              </div>
-
-              <div>
-                <label
-                  class="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2"
-                  >New Password</label
-                >
-                <input
-                  type="password"
-                  v-model="passwordForm.newPassword"
-                  required
-                  class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-slate-950 outline-none transition-all" />
-              </div>
-
-              <div>
-                <label
-                  class="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2"
-                  >Confirm New Password</label
-                >
-                <input
-                  type="password"
-                  v-model="passwordForm.confirmPassword"
-                  required
-                  class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-slate-950 outline-none transition-all" />
-              </div>
-
-              <div class="pt-4">
-                <button
-                  type="submit"
-                  :disabled="changingPassword"
-                  class="inline-flex justify-center items-center rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 transition-all disabled:opacity-50">
-                  <UiIcon
-                    v-if="changingPassword"
-                    icon="heroicons:arrow-path"
-                    custom-class="w-4 h-4 mr-2 animate-spin text-white" />
-                  {{ changingPassword ? "Updating..." : "Change Password" }}
-                </button>
-              </div>
-            </form>
-          </div>
-
-          <!-- Footer Actions -->
-          <div
-            v-if="activeTab !== 'billing'"
-            class="bg-slate-50 px-6 py-4 border-t border-slate-100 flex justify-end">
-            <button
-              type="button"
-              @click="saveSettings"
-              :disabled="authStore.loading || !isDirty"
-              class="inline-flex justify-center items-center rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 transition-all disabled:opacity-50">
-              <UiIcon
-                v-if="authStore.loading"
-                icon="heroicons:arrow-path"
-                custom-class="w-4 h-4 mr-2 animate-spin text-white" />
-              {{ authStore.loading ? "Saving..." : "Save Settings" }}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <UiToast v-model="toast" />
-  <PaymentConnectModal
-    v-model="connectModal"
-    :provider="selectedProvider"
-    :existing-data="
-      paymentProviders.find((p) => p.provider === selectedProvider) || {}
-    "
-    @save="saveConnection" />
-
-  <!-- Downgrade Confirmation Modal -->
-  <UiModal v-model="isDowngradeModalOpen" maxWidth="md">
-    <div class="p-6">
-      <div
-        class="flex items-center justify-center w-12 h-12 mx-auto bg-rose-50 rounded-full mb-4">
-        <UiIcon
-          icon="heroicons:exclamation-triangle"
-          custom-class="w-6 h-6 text-rose-600" />
-      </div>
-      <div class="text-center">
-        <h3 class="text-lg font-bold text-slate-900">Cancel Plan?</h3>
-        <div class="mt-2 text-sm text-slate-500 font-medium leading-relaxed">
-          Are you sure you want to cancel your
-          <span class="text-slate-900 font-bold uppercase">{{
-            authStore.user?.plan
-          }}</span>
-          subscription?
-          <p class="pt-2">
-            You will keep
-            <span class="text-slate-900 font-bold uppercase">{{
-              authStore.user?.plan || "your"
-            }}</span>
-            benefits until
-            <span class="text-slate-900 font-bold">{{
-              authStore.user?.subscriptions?.[0]?.subscriptionEnds
-                ? new Date(
-                    authStore.user.subscriptions[0].subscriptionEnds,
-                  ).toLocaleDateString("en-GB", {
-                    day: "numeric",
-                    month: "short",
-                    year: "numeric",
-                  })
-                : "the end of your billing cycle"
-            }}</span
-            >, after which you will move to the FREE plan.
-          </p>
-        </div>
-      </div>
-      <div class="mt-6 flex flex-col gap-3">
-        <button
-          @click="confirmDowngrade"
-          :disabled="downgradingPlan"
-          class="w-full inline-flex justify-center items-center rounded-xl bg-rose-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-rose-700 transition-colors disabled:opacity-50">
-          <UiIcon
-            v-if="downgradingPlan"
-            icon="line-md:loading-twotone-loop"
-            class="w-4 h-4 mr-2 animate-spin" />
-          Yes, Confirm Cancellation
-        </button>
-        <button
-          @click="isDowngradeModalOpen = false"
-          class="w-full inline-flex justify-center rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-slate-900 shadow-sm ring-1 ring-inset ring-slate-200 hover:bg-slate-50 transition-colors">
-          Keep My Current Plan
-        </button>
-      </div>
-    </div>
-  </UiModal>
-
-  <!-- Direct Bank Transfer Modal -->
-  <UiModal
-    v-model="isManualModalOpen"
-    maxWidth="lg"
-    title="Direct Bank Transfer"
-    description="Clients can pay you directly to your bank account. These details will be shown on the invoice if no automated gateway is connected.">
-    <div class="p-6">
-      <div
-        class="mb-6 p-4 bg-amber-50 rounded-xl border border-amber-100 flex gap-3 text-left">
-        <UiIcon
-          icon="heroicons:information-circle"
-          custom-class="w-5 h-5 text-amber-600 shrink-0" />
-        <p class="text-[12px] text-amber-700 leading-normal font-medium">
-          <strong>Manual Detection:</strong> We cannot automatically detect
-          these payments. You must manually mark invoices as paid once received.
-        </p>
-      </div>
-
-      <div class="space-y-4">
-        <div>
-          <label
-            class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2"
-            >Bank Name</label
-          >
-          <UiSelect
-            v-model="settingsForm.manualBankName"
-            :options="malaysiaBanks"
-            placeholder="Select a bank"
-            custom-class="!py-3 !rounded-xl" />
-        </div>
-        <div>
-          <label
-            class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2"
-            >Account Number</label
-          >
-          <input
-            v-model="settingsForm.manualAccountNumber"
-            type="text"
-            placeholder="e.g. 1234 5678 90"
-            class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:ring-1 focus:ring-slate-900 outline-none transition-all" />
-        </div>
-        <div>
-          <label
-            class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2"
-            >Account Holder Name</label
-          >
-          <input
-            v-model="settingsForm.manualAccountName"
-            type="text"
-            placeholder="e.g. John Doe Enterprise"
-            class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:ring-1 focus:ring-slate-900 outline-none transition-all" />
-        </div>
-        <div>
-          <label
-            class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2"
-            >Payment QR Code</label
-          >
-          <div
-            class="relative border-2 border-dashed border-slate-200 rounded-2xl p-6 min-h-[140px] flex flex-col items-center justify-center bg-slate-50/50 hover:bg-slate-50 transition-all group cursor-pointer overflow-hidden">
-            <template v-if="settingsForm.manualQrCode">
-              <div class="flex flex-col items-center text-center">
-                <div
-                  class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mb-2">
-                  <UiIcon icon="heroicons:qr-code" custom-class="w-5 h-5" />
-                </div>
-                <p
-                  class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mb-1">
-                  QR Detected
-                </p>
-                <button
-                  @click.stop="settingsForm.manualQrCode = ''"
-                  class="text-[10px] font-bold text-red-500 hover:text-red-600 uppercase tracking-widest underline">
-                  Remove
-                </button>
-              </div>
-            </template>
-            <template v-else>
-              <UiIcon
-                icon="heroicons:cloud-arrow-up"
-                custom-class="w-8 h-8 text-slate-300 mb-2 group-hover:text-slate-400 transition-colors" />
-              <p class="text-[11px] font-bold text-slate-600 mb-1">
-                Upload QR Image
-              </p>
-              <input
-                type="file"
-                accept="image/*"
-                @change="handleQrUpload"
-                class="absolute inset-0 opacity-0 cursor-pointer" />
-            </template>
-          </div>
-        </div>
-      </div>
-
-      <div class="mt-8">
-        <button
-          @click="
-            saveSettings();
-            isManualModalOpen = false;
-          "
-          class="w-full py-3 bg-slate-900 text-white text-sm font-bold rounded-xl hover:bg-slate-800 transition-all shadow-lg uppercase tracking-widest">
-          Save details
-        </button>
-      </div>
-    </div>
-  </UiModal>
-</template>
-
 <script setup>
-import { ref, onMounted, watch } from "vue";
+/**
+ * SETTINGS — your account with us.
+ *
+ * Three tabs now. Details, Documents, Email and WhatsApp moved to /business,
+ * where they belong: those describe your business as clients experience it, and
+ * these describe your relationship with this software. What is left is money in
+ * (Payments), money out (Plan) and the key to the door (Security).
+ *
+ * Bugs fixed when this page was seven tabs, still standing:
+ *
+ *  1. Whether a tab has a save footer is a property of the tab. It used to
+ *     render for every tab except Billing, which put a permanently disabled
+ *     primary button on Security.
+ *  2. Two native `confirm()` dialogs — disconnecting a gateway, removing a logo
+ *     — in an app with UiModal on every other destructive action.
+ *  3. The QR upload accepted any file of any size and fed it straight to an
+ *     Image, while the logo upload two functions away checked both.
+ *  4. `authStore.user?.plan.toUpperCase()` guarded `user` and not `plan`.
+ *
+ * Data contracts unchanged: same stores, same payloads, same endpoints.
+ */
+import { computed, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useAuthStore } from "~/stores/authStore";
 import { useUiStore } from "~/stores/uiStore";
@@ -1974,684 +34,645 @@ const route = useRoute();
 const router = useRouter();
 const { $api } = useNuxtApp();
 
-const useSameEmail = ref(false);
-const useSamePhone = ref(false);
+const toast = ref({ message: "", type: "success" });
+const notify = (message, type = "success") => (toast.value = { message, type });
 
-const syncEmail = () => {
-  if (useSameEmail.value && authStore.user?.email) {
-    profileForm.value.companyEmail = authStore.user.email;
-  }
-};
-
-const syncPhone = () => {
-  if (useSamePhone.value && profileForm.value.phoneNumber) {
-    profileForm.value.companyPhone = profileForm.value.phoneNumber;
-  }
-};
-
-const activeSubscription = computed(() => {
-  if (!authStore.user?.subscriptions?.length) return null;
-  // Since we only take 1 from backend, it's either this one or nothing
-  const sub = authStore.user.subscriptions[0];
-  if (sub && sub.status === "ACTIVE") return sub;
-  return null;
-});
-
-const tabs = [
-  {
-    id: "general",
-    name: "General & Profile",
-    icon: "heroicons:building-office",
-  },
-  {
-    id: "invoice_config",
-    name: "Invoice Configuration",
-    icon: "heroicons:document-text",
-  },
-  {
-    id: "whatsapp",
-    name: "WhatsApp Configuration",
-    icon: "heroicons:chat-bubble-left-right",
-  },
-  {
-    id: "email",
-    name: "Email Configuration",
-    icon: "heroicons:envelope",
-  },
-  {
-    id: "payments",
-    name: "Payments",
-    icon: "heroicons:credit-card",
-  },
-
-  { id: "billing", name: "Billing", icon: "heroicons:receipt-percent" },
-  { id: "security", name: "Security", icon: "heroicons:shield-check" },
+const TABS = [
+  { id: "payments", name: "Payments", icon: "heroicons:banknotes", form: "settings", saves: false },
+  { id: "billing", name: "Plan", icon: "heroicons:sparkles", form: null, saves: false },
+  { id: "security", name: "Security", icon: "heroicons:lock-closed", form: null, saves: false },
 ];
 
-const isDowngradeModalOpen = ref(false);
-const isManualModalOpen = ref(false);
-const downgradingPlan = ref(false);
-const pendingPlanUpdate = ref(null);
+/* The four tabs that left. A bookmark, a help-modal link or a habit still
+   arrives here asking for them, and a silent fallback to Payments would look
+   like the setting had been deleted. Send them where it went. */
+const MOVED = {
+  general: "details",
+  invoice_config: "documents",
+  details: "details",
+  documents: "documents",
+  email: "email",
+  whatsapp: "whatsapp",
+};
 
-const currentSub = computed(() => authStore.user?.subscriptions?.[0]);
-const isCancelling = computed(() => {
-  const sub = currentSub.value;
-  if (!sub) return false;
-  return (
-    sub.cancelAtPeriodEnd ||
-    sub.status === "CANCELED" ||
-    sub.status === "CANCELLED"
-  );
-});
-const activeTab = ref(route.query.tab || "general");
-const toast = ref({ message: "", type: "success" });
-const currencyOptions = ref([]);
-const dynamicPlans = ref([]);
-const uploadingLogo = ref(false);
+const activeTab = ref(TABS.some((t) => t.id === route.query.tab) ? route.query.tab : "payments");
+const tab = computed(() => TABS.find((t) => t.id === activeTab.value) || TABS[0]);
 
-const handleLogoUpload = async (event) => {
-  const file = event.target.files[0];
-  if (!file) return;
-
-  // Basic validation
-  if (file.size > 5 * 1024 * 1024) {
-    toast.value = {
-      message: "File is too large. Max 5MB allowed.",
-      type: "error",
-    };
+const route_ = (next) => {
+  if (MOVED[next]) {
+    router.replace({ path: "/business", query: { tab: MOVED[next] } });
     return;
   }
-
-  uploadingLogo.value = true;
-  try {
-    await authStore.uploadLogo(file);
-    toast.value = { message: "Logo updated successfully!", type: "success" };
-  } catch (err) {
-    toast.value = {
-      message: err.response?.data?.message || "Failed to upload logo",
-      type: "error",
-    };
-  } finally {
-    uploadingLogo.value = false;
-    // Reset input
-    event.target.value = "";
-  }
+  activeTab.value = TABS.some((t) => t.id === next) ? next : "payments";
 };
 
-const removeLogo = async () => {
-  if (!confirm("Are you sure you want to remove your company logo?")) return;
+onMounted(() => route_(route.query.tab));
+watch(() => route.query.tab, route_);
 
-  uploadingLogo.value = true;
-  try {
-    await authStore.deleteLogo();
-    toast.value = { message: "Logo removed successfully", type: "success" };
-  } catch (err) {
-    toast.value = { message: "Failed to remove logo", type: "error" };
-  } finally {
-    uploadingLogo.value = false;
-  }
+const go = (id) => {
+  if (!id) return router.push("/clients");
+  if (MOVED[id]) return router.push({ path: "/business", query: { tab: MOVED[id] } });
+  router.push({ query: { ...route.query, tab: id } });
 };
 
-const malaysiaBanks = [
-  { value: "Maybank", label: "Maybank" },
-  { value: "CIMB Bank", label: "CIMB Bank" },
-  { value: "Public Bank", label: "Public Bank" },
-  { value: "RHB Bank", label: "RHB Bank" },
-  { value: "Hong Leong Bank", label: "Hong Leong Bank" },
-  { value: "AmBank", label: "AmBank" },
-  { value: "UOB Bank", label: "UOB Bank" },
-  { value: "Bank Rakyat", label: "Bank Rakyat" },
-  { value: "Bank Islam", label: "Bank Islam" },
-  { value: "Affin Bank", label: "Affin Bank" },
-  { value: "Alliance Bank", label: "Alliance Bank" },
-  { value: "Standard Chartered Bank", label: "Standard Chartered Bank" },
-  { value: "OCBC Bank", label: "OCBC Bank" },
-  { value: "HSBC Bank", label: "HSBC Bank" },
-  { value: "MBSB Bank", label: "MBSB Bank" },
-  { value: "Bank Muamalat", label: "Bank Muamalat" },
-  { value: "Agrobank", label: "Agrobank" },
-  { value: "Al Rajhi Bank", label: "Al Rajhi Bank" },
-  { value: "Citibank", label: "Citibank" },
-];
-
-const fetchPlans = async () => {
-  try {
-    const { data } = await $api.get("/plans");
-    dynamicPlans.value = data;
-  } catch (err) {
-    console.error("Failed to fetch plans", err);
-  }
-};
-
-const reminderIntervalOptions = [
-  { value: 0, label: "None" },
-  { value: -3, label: "3 Days Before Due" },
-  { value: 3, label: "Every 3 Days (Aggressive)" },
-  { value: 7, label: "Every 7 Days (Standard)" },
-  { value: 14, label: "Every 14 Days (Relaxed)" },
-];
-
-const fetchCurrencies = async () => {
-  try {
-    const response = await $api.get("/currencies");
-    currencyOptions.value = response.data;
-  } catch (err) {
-    // Fallback if API fails
-    currencyOptions.value = [
-      { value: "MYR", label: "MYR (RM)" },
-      { value: "USD", label: "USD ($)" },
-    ];
-  }
-};
-
-// Sync with route changes
-watch(
-  () => route.query.tab,
-  (newTab) => {
-    if (newTab && tabs.some((t) => t.id === newTab)) {
-      activeTab.value = newTab;
-    } else if (!newTab) {
-      activeTab.value = "general";
-    }
-  },
-);
-
-const switchTab = (tabId) => {
-  router.push({ query: { ...route.query, tab: tabId } });
-};
-
-const profileForm = ref({
-  defaultCurrency: "MYR",
-  defaultTaxRate: 0,
-  reminderInterval: 0,
-  invoiceIncludeName: true,
-  invoiceIncludeEmail: false,
-  invoiceIncludePersonalPhone: false,
-  invoiceIncludeCompanyPhone: true,
-  invoiceIncludeCompanyName: true,
-  invoiceIncludeAddress: true,
-  globalAutoChaser: true,
-  invoicePrefix: "INV",
-});
+/* ─── Forms ─────────────────────────────────────────────────────────────── */
 const settingsForm = ref({
-  whatsappSendTemplate: "",
-  whatsappReminderTemplate: "",
-  whatsappMode: "SYSTEM",
-  twilioSid: "",
-  twilioAuthToken: "",
-  twilioPhoneNumber: "",
   manualBankName: "",
   manualAccountNumber: "",
   manualAccountName: "",
   manualQrCode: "",
-  whatsappReminderInterval: 0,
 });
 
-const passwordForm = ref({
-  oldPassword: "",
-  newPassword: "",
-  confirmPassword: "",
-});
+const cleanSettings = ref({});
 
-const changingPassword = ref(false);
+const isDirty = computed(() =>
+  tab.value.form === "settings"
+    ? JSON.stringify(settingsForm.value) !== JSON.stringify(cleanSettings.value)
+    : false,
+);
 
-const handlePasswordChange = async () => {
-  if (passwordForm.value.newPassword !== passwordForm.value.confirmPassword) {
-    toast.value = { message: "Passwords do not match", type: "error" };
-    return;
-  }
+const plans = ref([]);
+const saving = ref(false);
 
-  if (passwordForm.value.newPassword.length < 6) {
-    toast.value = {
-      message: "Password must be at least 6 characters",
-      type: "error",
-    };
-    return;
-  }
-
-  changingPassword.value = true;
+/* ─── Load ──────────────────────────────────────────────────────────────── */
+const fetchPlans = async () => {
   try {
-    await authStore.changePassword({
-      oldPassword: passwordForm.value.oldPassword,
-      newPassword: passwordForm.value.newPassword,
-    });
-    toast.value = { message: "Password updated successfully!", type: "success" };
-    passwordForm.value = {
-      oldPassword: "",
-      newPassword: "",
-      confirmPassword: "",
-    };
-  } catch (err) {
-    toast.value = {
-      message: err.response?.data?.message || "Failed to update password",
-      type: "error",
-    };
-  } finally {
-    changingPassword.value = false;
+    const { data } = await $api.get("/plans");
+    plans.value = data;
+  } catch {
+    plans.value = [];
   }
 };
 
-const promoCodeInput = ref("");
-const isPromoValid = ref(false);
-const promoLoading = ref(false);
-const promoError = ref("");
-const appliedDiscount = ref(null);
-
-const originalProfileForm = ref({});
-const originalSettingsForm = ref({});
-
-const isDirty = computed(() => {
-  if (
-    activeTab.value === "general" ||
-    activeTab.value === "email" ||
-    activeTab.value === "invoice_config"
-  ) {
-    return (
-      JSON.stringify(profileForm.value) !==
-      JSON.stringify(originalProfileForm.value)
-    );
-  }
-  if (activeTab.value === "whatsapp" || activeTab.value === "payments") {
-    return (
-      JSON.stringify(settingsForm.value) !==
-      JSON.stringify(originalSettingsForm.value)
-    );
-  }
-  return false;
-});
+const providers = ref([]);
+const fetchProviders = async () => {
+  providers.value = (await authStore.fetchPaymentProviders()) || [];
+};
 
 onMounted(async () => {
-  // Handle Xendit payment redirects
-  if (route.query.success === "true") {
-    toast.value = {
-      message: "Payment setup successful! Your plan is active.",
-      type: "success",
-    };
-    const newQuery = { ...route.query };
-    delete newQuery.success;
-    router.replace({ query: newQuery });
-  } else if (route.query.failed === "true") {
-    toast.value = {
-      message: "Payment setup failed or was cancelled.",
-      type: "error",
-    };
-    const newQuery = { ...route.query };
-    delete newQuery.failed;
-    router.replace({ query: newQuery });
+  /* Gateway return trip. Clearing the flag out of the URL keeps a refresh from
+     re-announcing a payment that happened minutes ago. */
+  if (route.query.success === "true" || route.query.failed === "true") {
+    notify(
+      route.query.success === "true"
+        ? "You are set up. Your plan is active."
+        : "That did not go through, and you have not been charged.",
+      route.query.success === "true" ? "success" : "error",
+    );
+    const q = { ...route.query };
+    delete q.success;
+    delete q.failed;
+    router.replace({ query: q });
   }
 
-  fetchCurrencies();
   fetchPlans();
   await authStore.fetchProfile();
-  const settings = await authStore.fetchSettings();
 
-  if (authStore.user) {
-    profileForm.value = {
-      name: authStore.user.name || "",
-      phoneNumber: authStore.user.phoneNumber || "",
-      defaultCurrency: authStore.user.defaultCurrency || "MYR",
-      companyName: settings?.companyName || "",
-      companyEmail: settings?.companyEmail || "",
-      companyPhone: settings?.companyPhone || "",
-      address: settings?.address || "",
-      defaultTaxRate: settings?.defaultTaxRate || 0,
-      reminderInterval: settings?.reminderInterval || 0,
-      invoiceIncludeName: settings?.invoiceIncludeName || false,
-      invoiceIncludeEmail: settings?.invoiceIncludeEmail || false,
-      invoiceIncludePersonalPhone:
-        settings?.invoiceIncludePersonalPhone || false,
-      invoiceIncludeCompanyPhone: settings?.invoiceIncludeCompanyPhone || false,
-      invoiceIncludeCompanyName: settings?.invoiceIncludeCompanyName || false,
-      invoiceIncludeAddress: settings?.invoiceIncludeAddress || false,
-      globalAutoChaser: authStore.isPro
-        ? settings?.globalAutoChaser || false
-        : false,
-      invoicePrefix: settings?.invoicePrefix || "INV",
-    };
-
-    if (!authStore.isPro) {
-      profileForm.value.reminderInterval = 0;
-      profileForm.value.globalAutoChaser = false;
-    }
-
-    // Force disable toggles if data is missing
-    if (!profileForm.value.address) {
-      profileForm.value.invoiceIncludeAddress = false;
-    }
-    if (!profileForm.value.companyEmail) {
-      profileForm.value.invoiceIncludeEmail = false;
-    }
-    if (!profileForm.value.companyName) {
-      profileForm.value.invoiceIncludeCompanyName = false;
-    }
-    if (!profileForm.value.companyPhone) {
-      profileForm.value.invoiceIncludeCompanyPhone = false;
-    }
-
-    originalProfileForm.value = JSON.parse(JSON.stringify(profileForm.value));
-  }
-
-  if (settings) {
-    settingsForm.value.whatsappSendTemplate =
-      settings.whatsappSendTemplate || "";
-    settingsForm.value.whatsappReminderTemplate =
-      settings.whatsappReminderTemplate || "";
-    settingsForm.value.whatsappMode = settings.whatsappMode || "SYSTEM";
-    settingsForm.value.twilioSid = settings.twilioSid || "";
-    settingsForm.value.twilioAuthToken = settings.twilioAuthToken || "";
-    settingsForm.value.twilioPhoneNumber = settings.twilioPhoneNumber || "";
-    settingsForm.value.whatsappReminderInterval = authStore.isPro
-      ? settings.whatsappReminderInterval || 0
-      : 0;
-  }
-
-  const paymentSettings = await authStore.fetchPaymentSettings();
-  if (paymentSettings) {
-    settingsForm.value.manualBankName = paymentSettings.manualBankName || "";
-    settingsForm.value.manualAccountNumber =
-      paymentSettings.manualAccountNumber || "";
-    settingsForm.value.manualAccountName =
-      paymentSettings.manualAccountName || "";
-    settingsForm.value.manualQrCode = paymentSettings.manualQrCode || "";
-  }
-
-  originalSettingsForm.value = JSON.parse(JSON.stringify(settingsForm.value));
+  const pay = (await authStore.fetchPaymentSettings()) || {};
+  settingsForm.value = {
+    manualBankName: pay.manualBankName || "",
+    manualAccountNumber: pay.manualAccountNumber || "",
+    manualAccountName: pay.manualAccountName || "",
+    manualQrCode: pay.manualQrCode || "",
+  };
+  cleanSettings.value = JSON.parse(JSON.stringify(settingsForm.value));
 
   fetchProviders();
 });
 
-const paymentProviders = ref([]);
+/* ─── Save ──────────────────────────────────────────────────────────────── */
+const save = async () => {
+  saving.value = true;
+  try {
+    await authStore.updatePaymentSettings(settingsForm.value);
+    cleanSettings.value = JSON.parse(JSON.stringify(settingsForm.value));
+    notify("Saved.");
+  } catch (err) {
+    notify(
+      err.response?.data?.message ||
+        authStore.error ||
+        "Could not save that. Your changes are still on screen.",
+      "error",
+    );
+  } finally {
+    saving.value = false;
+  }
+};
+
+/* ─── Payment providers ─────────────────────────────────────────────────── */
 const connectModal = ref(false);
 const selectedProvider = ref(null);
+const disconnectFor = ref(null);
+const manualModal = ref(false);
 
-const fetchProviders = async () => {
-  paymentProviders.value = await authStore.fetchPaymentProviders();
-};
-
-const isProviderConnected = (p) => {
-  return paymentProviders.value.some((pr) => pr.provider === p);
-};
-
-const openConnectModal = (p) => {
-  selectedProvider.value = p;
+const openConnect = (key) => {
+  selectedProvider.value = key;
   connectModal.value = true;
-};
-
-const handleQrUpload = (event) => {
-  const file = event.target.files[0];
-  if (!file) return;
-
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    const img = new Image();
-    img.onload = () => {
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d");
-      canvas.width = img.width;
-      canvas.height = img.height;
-      ctx.drawImage(img, 0, 0);
-
-      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const code = jsQR(imageData.data, imageData.width, imageData.height);
-
-      if (code) {
-        settingsForm.value.manualQrCode = code.data;
-        toast.value = {
-          message: "QR Code decoded successfully!",
-          type: "success",
-        };
-      } else {
-        toast.value = {
-          message: "Could not find a valid QR code in the image.",
-          type: "error",
-        };
-      }
-    };
-    img.src = e.target.result;
-  };
-  reader.readAsDataURL(file);
-};
-
-const isProviderPreferred = (p) => {
-  return paymentProviders.value.some(
-    (pr) => pr.provider === p && pr.isPreferred,
-  );
-};
-
-const isManualPreferred = computed(() => {
-  if (!paymentProviders.value || paymentProviders.value.length === 0)
-    return true;
-  return paymentProviders.value.every((p) => !p.isPreferred);
-});
-
-const setManualPreferred = async () => {
-  if (isManualPreferred.value) return;
-  try {
-    const { $api } = useNuxtApp();
-    await $api.patch("/users/payments/manual/prefer");
-    await fetchProviders();
-    toast.value = {
-      message: "Bank Transfer set as preferred",
-      type: "success",
-    };
-  } catch (err) {
-    toast.value = {
-      message: "Failed to prefer manual bank transfer",
-      type: "error",
-    };
-  }
-};
-
-const setPreferred = async (p) => {
-  try {
-    const provider = paymentProviders.value.find((pr) => pr.provider === p);
-    if (provider) {
-      await authStore.setPreferredPaymentProvider(provider.id);
-      await fetchProviders();
-      const providerNameDisplay = {
-        TOYYIBPAY: "ToyyibPay",
-        BILLPLZ: "Billplz",
-        HITPAY: "HitPay",
-        SENANGPAY: "SenangPay",
-      }[p];
-
-      toast.value = {
-        message: `${providerNameDisplay} set as preferred`,
-        type: "success",
-      };
-    }
-  } catch (err) {
-    toast.value = {
-      message: "Failed to set preferred provider",
-      type: "error",
-    };
-  }
 };
 
 const saveConnection = async (data) => {
   try {
     await authStore.updatePaymentProvider(data);
     await fetchProviders();
-    toast.value = {
-      message: "Payment provider connected successfully!",
-      type: "success",
-    };
-  } catch (err) {
-    toast.value = { message: "Failed to connect provider", type: "error" };
+    notify("Connected. Invoices can take payment through it now.");
+  } catch {
+    notify("Could not connect that provider.", "error");
   }
 };
 
-const disconnectProvider = async (p) => {
-  if (!confirm("Are you sure you want to disconnect this provider?")) return;
+const confirmDisconnect = async () => {
+  const g = disconnectFor.value;
+  if (!g) return;
   try {
-    const provider = paymentProviders.value.find((pr) => pr.provider === p);
-    if (provider) {
-      await authStore.deletePaymentProvider(provider.id);
-      await fetchProviders();
-      toast.value = { message: "Provider disconnected", type: "success" };
-    }
-  } catch (err) {
-    toast.value = { message: "Failed to disconnect", type: "error" };
+    const p = providers.value.find((pr) => pr.provider === g.key);
+    if (p) await authStore.deletePaymentProvider(p.id);
+    await fetchProviders();
+    disconnectFor.value = null;
+    notify(`${g.name} disconnected.`);
+  } catch {
+    notify(`Could not disconnect ${g.name}.`, "error");
   }
 };
 
-const saveSettings = async () => {
+const preferGateway = async (key) => {
   try {
-    let res;
-    if (
-      activeTab.value === "general" ||
-      activeTab.value === "email" ||
-      activeTab.value === "invoice_config"
-    ) {
-      res = await authStore.updateProfile(profileForm.value);
-      await authStore.updateSettings(profileForm.value);
-    } else if (activeTab.value === "whatsapp") {
-      res = await authStore.updateSettings(settingsForm.value);
-    } else if (activeTab.value === "payments") {
-      res = await authStore.updatePaymentSettings(settingsForm.value);
-    } else {
-      return;
-    }
-    toast.value = {
-      message: res?.message || "Settings saved successfully!",
-      type: "success",
-    };
-
-    // Update original state to current to reset isDirty
-    if (activeTab.value === "general" || activeTab.value === "email") {
-      originalProfileForm.value = JSON.parse(JSON.stringify(profileForm.value));
-    } else {
-      originalSettingsForm.value = JSON.parse(
-        JSON.stringify(settingsForm.value),
-      );
-    }
-  } catch (err) {
-    toast.value = {
-      message:
-        err.response?.data?.message ||
-        authStore.error ||
-        "Failed to save settings",
-      type: "error",
-    };
+    const p = providers.value.find((pr) => pr.provider === key);
+    if (!p) return;
+    await authStore.setPreferredPaymentProvider(p.id);
+    await fetchProviders();
+    notify("Your invoices will use it from now on.");
+  } catch {
+    notify("Could not change that.", "error");
   }
 };
 
-const validatePromo = async () => {
-  if (!promoCodeInput.value) return;
-  promoLoading.value = true;
-  promoError.value = "";
+const preferManual = async () => {
   try {
-    const { data } = await $api.post("/promo/validate", {
-      code: promoCodeInput.value,
+    await $api.patch("/users/payments/manual/prefer");
+    await fetchProviders();
+    notify("Your invoices will show your bank details.");
+  } catch {
+    notify("Could not change that.", "error");
+  }
+};
+
+const MALAYSIA_BANKS = [
+  "Maybank", "CIMB Bank", "Public Bank", "RHB Bank", "Hong Leong Bank",
+  "AmBank", "UOB Bank", "Bank Rakyat", "Bank Islam", "Affin Bank",
+  "Alliance Bank", "Standard Chartered Bank", "OCBC Bank", "HSBC Bank",
+  "MBSB Bank", "Bank Muamalat", "Agrobank", "Al Rajhi Bank", "Citibank",
+].map((b) => ({ value: b, label: b }));
+
+const readingQr = ref(false);
+
+const handleQrUpload = (event) => {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  /* The logo upload checked type and size; this one checked neither and handed
+     whatever it got to an Image. */
+  if (!file.type.startsWith("image/")) {
+    notify("That is not an image file.", "error");
+    event.target.value = "";
+    return;
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    notify("That image is over 5MB. Try a smaller one.", "error");
+    event.target.value = "";
+    return;
+  }
+  readingQr.value = true;
+  const reader = new FileReader();
+  reader.onerror = () => {
+    readingQr.value = false;
+    notify("Could not read that file.", "error");
+  };
+  reader.onload = (e) => {
+    const img = new Image();
+    img.onerror = () => {
+      readingQr.value = false;
+      notify("Could not open that image.", "error");
+    };
+    img.onload = () => {
+      try {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0);
+        const px = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const code = jsQR(px.data, px.width, px.height);
+        if (code?.data) {
+          settingsForm.value.manualQrCode = code.data;
+          notify("QR read. Save to keep it.");
+        } else {
+          notify("No QR code found in that image.", "error");
+        }
+      } catch {
+        notify("Could not read a QR code from that image.", "error");
+      } finally {
+        readingQr.value = false;
+      }
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+  event.target.value = "";
+};
+
+/* ─── Password ──────────────────────────────────────────────────────────── */
+const changingPassword = ref(false);
+
+const changePassword = async (payload, reset) => {
+  changingPassword.value = true;
+  try {
+    await authStore.changePassword({
+      oldPassword: payload.oldPassword,
+      newPassword: payload.newPassword,
     });
-    appliedDiscount.value = data;
-    isPromoValid.value = true;
+    reset?.();
+    notify("Password changed.");
   } catch (err) {
-    promoError.value = err.response?.data?.message || "Invalid promo code";
-    isPromoValid.value = false;
+    notify(
+      err.response?.data?.message || "Could not change your password.",
+      "error",
+    );
   } finally {
-    promoLoading.value = false;
+    changingPassword.value = false;
+  }
+};
+
+/* ─── Plan ──────────────────────────────────────────────────────────────── */
+const promoCode = ref("");
+const promo = ref({ code: "", valid: false, loading: false, error: "", applied: null, text: "" });
+
+watch(promoCode, (v) => (promo.value.code = v));
+
+const applyPromo = async () => {
+  if (!promo.value.code) return;
+  promo.value.loading = true;
+  promo.value.error = "";
+  try {
+    const { data } = await $api.post("/promo/validate", { code: promo.value.code });
+    promo.value.applied = data;
+    promo.value.valid = true;
+    promo.value.text =
+      data.discountType === "PERCENTAGE"
+        ? `${data.discountValue}%`
+        : `${data.discountValue} MYR`;
+  } catch (err) {
+    promo.value.error = err.response?.data?.message || "That code is not valid.";
+    promo.value.valid = false;
+    promo.value.applied = null;
+  } finally {
+    promo.value.loading = false;
   }
 };
 
 const clearPromo = () => {
-  promoCodeInput.value = "";
-  isPromoValid.value = false;
-  appliedDiscount.value = null;
-  promoError.value = "";
+  promo.value = { code: "", valid: false, loading: false, error: "", applied: null, text: "" };
+  promoCode.value = "";
 };
 
-const appliedDiscountText = computed(() => {
-  if (!appliedDiscount.value) return "";
-  const d = appliedDiscount.value;
-  return d.discountType === "PERCENTAGE"
-    ? `${d.discountValue}%`
-    : `${d.discountValue} MYR`;
+const cancelModal = ref(false);
+const cancelling = ref(false);
+
+const currentSub = computed(() => authStore.user?.subscriptions?.[0] || null);
+const activeSub = computed(() =>
+  currentSub.value?.status === "ACTIVE" ? currentSub.value : null,
+);
+const isCancelling = computed(() => {
+  const s = currentSub.value;
+  if (!s) return false;
+  return !!s.cancelAtPeriodEnd || s.status === "CANCELED" || s.status === "CANCELLED";
 });
 
-const getDiscountedPrice = (price) => {
-  if (!price) return 0;
-  const numPrice = parseFloat(price);
-  if (isNaN(numPrice) || numPrice === 0) return numPrice;
-  if (!isPromoValid.value || !appliedDiscount.value) return numPrice;
-
-  const d = appliedDiscount.value;
-  let discounted = numPrice;
-  if (d.discountType === "PERCENTAGE") {
-    discounted = numPrice - numPrice * (d.discountValue / 100);
-  } else {
-    discounted = numPrice - d.discountValue;
-  }
-  return Math.max(0, discounted);
-};
-
-const updatePlan = async (plan) => {
-  // If downgrading to FREE, show the confirmation modal
-  if (plan === "FREE" && authStore.user?.plan !== "FREE") {
-    pendingPlanUpdate.value = plan;
-    isDowngradeModalOpen.value = true;
+const choosePlan = async (plan) => {
+  const name = String(plan?.name ?? "").toUpperCase();
+  const mine = String(authStore.user?.plan ?? "").toUpperCase();
+  if (mine === name && name !== "FREE") {
+    cancelModal.value = true;
     return;
   }
-
   try {
     const res = await subscribeStore.subscribe(
-      plan,
-      isPromoValid.value ? promoCodeInput.value : null,
+      plan.name,
+      promo.value.valid ? promo.value.code : null,
     );
-
     if (res?.checkoutUrl) {
-      toast.value = {
-        message: "Redirecting to payment gateway...",
-        type: "success",
-      };
-      // Give the toast a moment to show, then redirect
-      setTimeout(() => {
-        window.location.href = res.checkoutUrl;
-      }, 500);
+      notify("Taking you to the payment page…");
+      setTimeout(() => (window.location.href = res.checkoutUrl), 400);
       return;
     }
-
-    // Refetch profile to get new usage limits only if no checkout redirect
     await authStore.fetchProfile();
-    toast.value = {
-      message: res?.message || `Successfully switched to ${plan} plan!`,
-      type: "success",
-    };
+    notify(res?.message || `You are on ${plan.name} now.`);
   } catch (err) {
-    toast.value = {
-      message:
-        err.response?.data?.message ||
-        subscribeStore.error ||
-        "Failed to update plan",
-      type: "error",
-    };
+    notify(
+      err.response?.data?.message || subscribeStore.error || "Could not change your plan.",
+      "error",
+    );
   }
 };
 
-const confirmDowngrade = async () => {
-  if (!pendingPlanUpdate.value) return;
-  downgradingPlan.value = true;
+const confirmCancel = async () => {
+  cancelling.value = true;
   try {
-    const res = await subscribeStore.subscribe(pendingPlanUpdate.value, null);
+    const res = await subscribeStore.subscribe("FREE", null);
     await authStore.fetchProfile();
-    toast.value = {
-      message: res?.message || "Successfully downgraded to Free plan",
-      type: "success",
-    };
-    isDowngradeModalOpen.value = false;
+    cancelModal.value = false;
+    notify(res?.message || "Cancelled. You keep your benefits until the period ends.");
   } catch (err) {
-    toast.value = {
-      message:
-        err.response?.data?.message ||
-        subscribeStore.error ||
-        "Failed to downgrade plan",
-      type: "error",
-    };
+    notify(
+      err.response?.data?.message || subscribeStore.error || "Could not cancel your plan.",
+      "error",
+    );
   } finally {
-    downgradingPlan.value = false;
-    pendingPlanUpdate.value = null;
+    cancelling.value = false;
   }
 };
+
+const endsOn = computed(() => {
+  const end = currentSub.value?.subscriptionEnds;
+  if (!end) return "";
+  return new Date(end).toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+});
 </script>
 
-<style scoped></style>
+<template>
+  <div class="desk">
+    <header class="desk__head">
+      <div>
+        <h1 class="desk__title">Settings</h1>
+        <p class="desk__sub">
+          How you get paid, what you pay us, and who can get in.
+        </p>
+      </div>
+      <div class="desk__actions">
+        <NuxtLink to="/business" class="desk-btn desk-btn--ghost">
+          Business details
+        </NuxtLink>
+        <button
+          type="button"
+          class="desk-btn desk-btn--icon"
+          aria-label="How this page works"
+          @click="uiStore.openModuleHelp('settings', activeTab)">
+          <UiIcon icon="formkit:help" custom-class="w-5 h-5" />
+        </button>
+      </div>
+    </header>
+
+    <div class="set">
+      <nav class="set__nav" aria-label="Settings sections">
+        <button
+          v-for="t in TABS"
+          :key="t.id"
+          type="button"
+          class="set__tab"
+          :class="{ 'set__tab--on': activeTab === t.id }"
+          :aria-current="activeTab === t.id ? 'page' : undefined"
+          @click="go(t.id)">
+          <UiIcon :icon="t.icon" custom-class="w-4 h-4" />
+          {{ t.name }}
+        </button>
+      </nav>
+
+      <div class="set__panel">
+        <div class="set__body">
+          <SettingsPayments
+            v-if="activeTab === 'payments'"
+            :form="settingsForm"
+            :providers="providers"
+            @connect="openConnect"
+            @disconnect="disconnectFor = $event"
+            @prefer="preferGateway"
+            @prefer-manual="preferManual"
+            @edit-manual="manualModal = true" />
+
+          <SettingsBilling
+            v-else-if="activeTab === 'billing'"
+            :plans="plans"
+            :plan="authStore.user?.plan || 'FREE'"
+            :subscription="activeSub"
+            :cancelling="isCancelling"
+            :promo="promo"
+            @choose="choosePlan"
+            @cancel="cancelModal = true"
+            @apply-promo="applyPromo"
+            @clear-promo="clearPromo"
+            @update:code="promoCode = $event" />
+
+          <SettingsSecurity
+            v-else-if="activeTab === 'security'"
+            :busy="changingPassword"
+            @change="changePassword" />
+        </div>
+
+        <!-- Only tabs that have something to save get a footer. This used to
+             render for every tab except billing, which put a permanently
+             disabled primary button on Security. -->
+        <div v-if="tab.saves" class="set__foot">
+          <p class="set__dirty">
+            {{ isDirty ? "You have unsaved changes." : "Everything here is saved." }}
+          </p>
+          <button
+            type="button"
+            class="desk-btn desk-btn--primary"
+            :disabled="saving || !isDirty"
+            @click="save">
+            <UiIcon
+              v-if="saving"
+              icon="heroicons:arrow-path"
+              custom-class="w-4 h-4 spin" />
+            {{ saving ? "Saving…" : "Save changes" }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Disconnect a gateway ─────────────────────────────────────────── -->
+    <UiModal
+      :model-value="!!disconnectFor"
+      max-width="sm"
+      @update:model-value="disconnectFor = null">
+      <div class="dlg">
+        <h3 class="dlg__title">Disconnect {{ disconnectFor?.name }}?</h3>
+        <p class="dlg__body">
+          Your keys are deleted and new invoices stop offering it. Payment links
+          already sent through {{ disconnectFor?.name }} will stop working.
+        </p>
+        <div class="dlg__acts">
+          <button
+            type="button"
+            class="desk-btn desk-btn--ghost"
+            @click="disconnectFor = null">
+            Keep it connected
+          </button>
+          <button
+            type="button"
+            class="desk-btn desk-btn--danger"
+            @click="confirmDisconnect">
+            Disconnect
+          </button>
+        </div>
+      </div>
+    </UiModal>
+
+    <!-- ── Cancel plan ──────────────────────────────────────────────────── -->
+    <UiModal v-model="cancelModal" max-width="sm">
+      <div class="dlg">
+        <h3 class="dlg__title">
+          Cancel your {{ (authStore.user?.plan || "paid").toUpperCase() }} plan?
+        </h3>
+        <p class="dlg__body">
+          <template v-if="endsOn">
+            You keep everything until <b>{{ endsOn }}</b>, then move to Free.
+          </template>
+          <template v-else>
+            You keep everything until the end of the period you have paid for,
+            then move to Free.
+          </template>
+          Automatic chasing stops on Free, so late invoices go back to being
+          yours to follow up.
+        </p>
+        <div class="dlg__acts">
+          <button
+            type="button"
+            class="desk-btn desk-btn--ghost"
+            @click="cancelModal = false">
+            Stay on it
+          </button>
+          <button
+            type="button"
+            class="desk-btn desk-btn--danger"
+            :disabled="cancelling"
+            @click="confirmCancel">
+            <UiIcon
+              v-if="cancelling"
+              icon="heroicons:arrow-path"
+              custom-class="w-4 h-4 spin" />
+            {{ cancelling ? "Cancelling…" : "Cancel plan" }}
+          </button>
+        </div>
+      </div>
+    </UiModal>
+
+    <!-- ── Bank details ─────────────────────────────────────────────────── -->
+    <UiModal v-model="manualModal" max-width="lg">
+      <div class="dlg">
+        <h3 class="dlg__title">Your bank details</h3>
+        <p class="dlg__body" style="margin-bottom: var(--space-5)">
+          These print on the invoice so a client can transfer directly. We cannot
+          see when that lands, so you mark those invoices paid yourself.
+        </p>
+
+        <div class="f">
+          <span class="f__label">Bank</span>
+          <UiSelect
+            v-model="settingsForm.manualBankName"
+            :options="MALAYSIA_BANKS"
+            placeholder="Pick your bank" />
+        </div>
+
+        <div class="fgrid">
+          <div class="f" style="margin: 0">
+            <label class="f__label" for="bank-acc">Account number</label>
+            <input
+              id="bank-acc"
+              v-model="settingsForm.manualAccountNumber"
+              type="text"
+              inputmode="numeric"
+              class="inp no-ik"
+              placeholder="1234567890" />
+          </div>
+          <div class="f" style="margin: 0">
+            <label class="f__label" for="bank-name">Account holder</label>
+            <input
+              id="bank-name"
+              v-model="settingsForm.manualAccountName"
+              type="text"
+              class="inp no-ik"
+              placeholder="As it appears on the account" />
+          </div>
+        </div>
+
+        <div class="f">
+          <span class="f__label">DuitNow QR</span>
+          <div class="logo-well">
+            <div class="logo-well__box">
+              <UiIcon
+                v-if="readingQr"
+                icon="heroicons:arrow-path"
+                custom-class="w-5 h-5 spin" />
+              <UiIcon
+                v-else-if="settingsForm.manualQrCode"
+                icon="heroicons:qr-code"
+                custom-class="w-6 h-6" />
+              <UiIcon
+                v-else
+                icon="heroicons:arrow-up-tray"
+                custom-class="w-5 h-5" />
+            </div>
+            <div>
+              <div class="bar">
+                <label class="desk-btn desk-btn--ghost desk-btn--sm">
+                  {{ settingsForm.manualQrCode ? "Replace" : "Upload your QR" }}
+                  <input
+                    type="file"
+                    class="sr-only"
+                    accept="image/*"
+                    @change="handleQrUpload" />
+                </label>
+                <button
+                  v-if="settingsForm.manualQrCode"
+                  type="button"
+                  class="desk-btn desk-btn--ghost desk-btn--sm"
+                  @click="settingsForm.manualQrCode = ''">
+                  Remove
+                </button>
+              </div>
+              <p class="f__hint">
+                <template v-if="settingsForm.manualQrCode">
+                  Read and ready. It prints on your invoices so they can scan it.
+                </template>
+                <template v-else>
+                  A screenshot of your DuitNow QR works. We read the code out of
+                  the image rather than storing the picture.
+                </template>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="dlg__acts">
+          <button
+            type="button"
+            class="desk-btn desk-btn--ghost"
+            @click="manualModal = false">
+            Cancel
+          </button>
+          <button
+            type="button"
+            class="desk-btn desk-btn--primary"
+            :disabled="saving"
+            @click="
+              save();
+              manualModal = false;
+            ">
+            Save details
+          </button>
+        </div>
+      </div>
+    </UiModal>
+
+    <PaymentConnectModal
+      v-model="connectModal"
+      :provider="selectedProvider"
+      :existing-data="providers.find((p) => p.provider === selectedProvider) || {}"
+      @save="saveConnection" />
+
+    <UiToast v-model="toast" />
+  </div>
+</template>

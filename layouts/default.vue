@@ -98,11 +98,20 @@
             Dashboard
           </NuxtLink>
 
-          <!-- DATA -->
+          <!-- SALES: quotes, then invoices — the order the work happens in -->
           <div class="pt-6 pb-2 px-4">
-            <h4 class="nav-section-title">DATA</h4>
+            <h4 class="nav-section-title">SALES</h4>
           </div>
 
+          <NuxtLink
+            to="/quotes/"
+            class="nav-link flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
+            active-class="nav-link--active">
+            <UiIcon
+              icon="heroicons:document-duplicate"
+              class="w-[18px] h-[18px] mr-3 opacity-70" />
+            Quotes
+          </NuxtLink>
           <NuxtLink
             to="/invoices/"
             class="nav-link flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
@@ -124,11 +133,29 @@
               class="w-[18px] h-[18px] mr-3 opacity-70" />
             Clients
           </NuxtLink>
+          <NuxtLink
+            to="/catalogue/"
+            class="nav-link flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
+            active-class="nav-link--active">
+            <UiIcon
+              icon="heroicons:squares-2x2"
+              class="w-[18px] h-[18px] mr-3 opacity-70" />
+            Catalogue
+          </NuxtLink>
           <!-- SYSTEM -->
           <div class="pt-6 pb-2 px-4">
             <h4 class="nav-section-title">SYSTEM</h4>
           </div>
 
+          <NuxtLink
+            to="/business/"
+            class="nav-link flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
+            active-class="nav-link--active">
+            <UiIcon
+              icon="heroicons:building-office-2"
+              class="w-[18px] h-[18px] mr-3 opacity-70" />
+            Business
+          </NuxtLink>
           <NuxtLink
             to="/settings/"
             class="nav-link flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
@@ -214,82 +241,85 @@
           <div class="flex items-center gap-2">
             <!-- Dark Mode Toggle (Mobile) -->
             <button
-              @click="themeStore.toggleTheme()"
-              class="p-2 text-slate-500 hover:bg-gray-50 rounded-md relative transition-all"
-              title="Toggle Dark Mode">
+              type="button"
+              class="tb tb--icon"
+              :aria-label="themeStore.isDark ? 'Switch to light' : 'Switch to dark'"
+              @click="themeStore.toggleTheme()">
               <UiIcon
                 :icon="themeStore.isDark ? 'heroicons:sun' : 'heroicons:moon'"
-                custom-class="w-4 h-4" />
+                custom-class="w-[18px] h-[18px]" />
             </button>
-            <UiPopover placement="bottom-end">
+
+            <UiPopover placement="bottom-end" bare>
               <template #trigger="{ isOpen }">
                 <button
-                  class="p-2 text-slate-500 hover:bg-gray-50 rounded-md relative"
-                  :class="{ 'bg-gray-50 text-slate-900': isOpen }">
-                  <UiIcon icon="heroicons:bell" custom-class="w-4 h-4" />
+                  type="button"
+                  class="tb tb--icon"
+                  :class="{ 'tb--on': isOpen }"
+                  :aria-label="
+                    notificationStore.unreadCount > 0
+                      ? `Notifications, ${notificationStore.unreadCount} unread`
+                      : 'Notifications'
+                  ">
+                  <UiIcon icon="heroicons:bell" custom-class="w-[18px] h-[18px]" />
                   <span
                     v-if="notificationStore.unreadCount > 0"
-                    class="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 border-2 border-white rounded-full"></span>
+                    class="tb__dot"
+                    aria-hidden="true"></span>
                 </button>
               </template>
               <template #default="{ close }">
-                <div
-                  class="w-[280px] max-h-[400px] flex flex-col shadow-xl border border-slate-100 rounded-xl bg-white overflow-hidden">
-                  <div
-                    class="flex items-center justify-between px-3 py-2 border-b border-slate-100 bg-slate-50/50">
-                    <span
-                      class="text-[10px] font-bold text-slate-400 uppercase tracking-wider"
-                      >Updates</span
-                    >
+                <div class="pop">
+                  <div class="pop__head">
+                    <span class="pop__title">Notifications</span>
                     <button
                       v-if="notificationStore.unreadCount > 0"
-                      @click="notificationStore.markAllAsRead()"
-                      class="text-[10px] font-bold text-emerald-600 uppercase tracking-wider hover:text-emerald-700">
+                      type="button"
+                      class="pop__act"
+                      @click="notificationStore.markAllAsRead()">
                       Mark all read
                     </button>
                   </div>
-                  <div class="p-2 overflow-y-auto flex-1 custom-scrollbar">
+
+                  <div class="pop__body deskbar">
                     <div
                       v-if="notificationStore.notifications.length === 0"
-                      class="text-center py-6 text-xs text-slate-500">
-                      <UiIcon
-                        icon="heroicons:bell-slash"
-                        class="w-8 h-8 mx-auto mb-2 text-slate-200" />
-                      No new notifications
+                      class="note__empty">
+                      <UiIcon icon="heroicons:bell-slash" custom-class="w-6 h-6" />
+                      Nothing waiting for you.
                     </div>
-                    <div v-else class="space-y-1">
-                      <div
-                        v-for="notif in notificationStore.notifications"
-                        :key="notif.id"
-                        @click="
-                          notificationStore.markAsRead(notif.id);
-                          close();
-                        "
-                        class="p-2.5 rounded-xl text-left cursor-pointer transition-all border border-transparent hover:border-slate-100"
-                        :class="
-                          notif.isRead
-                            ? 'bg-transparent hover:bg-slate-50'
-                            : 'bg-blue-50/50 hover:bg-blue-50'
-                        ">
-                        <div
-                          class="flex items-start justify-between gap-2 mb-1">
-                          <span
-                            class="font-bold text-xs"
-                            :class="
-                              notif.isRead ? 'text-slate-700' : 'text-slate-900'
-                            "
-                            >{{ notif.title }}</span
-                          >
-                        </div>
-                        <p
-                          class="text-xs text-slate-500 leading-relaxed truncate"
-                          :class="{
-                            'font-medium text-slate-600': !notif.isRead,
-                          }">
-                          {{ notif.message }}
-                        </p>
-                      </div>
-                    </div>
+                    <button
+                      v-for="notif in notificationStore.notifications.slice(0, 8)"
+                      v-else
+                      :key="notif.id"
+                      type="button"
+                      class="note"
+                      :class="{ 'note--read': notif.isRead }"
+                      @click="
+                        notificationStore.markAsRead(notif.id);
+                        close();
+                      ">
+                      <span
+                        class="note__pip"
+                        :class="{ 'note__pip--read': notif.isRead }"
+                        aria-hidden="true"></span>
+                      <span>
+                        <span class="note__top">
+                          <span class="note__title">{{ notif.title }}</span>
+                          <span class="note__when">
+                            {{ formatDate(notif.createdAt) }}
+                          </span>
+                        </span>
+                        <span class="note__body">{{ notif.message }}</span>
+                      </span>
+                    </button>
+                  </div>
+
+                  <div class="pop__foot">
+                    <NuxtLink to="/notifications" class="pop__all" @click="close">
+                      See all notifications
+                      <UiIcon icon="heroicons:arrow-right" custom-class="w-3.5 h-3.5" />
+                    </NuxtLink>
                   </div>
                 </div>
               </template>
@@ -316,178 +346,162 @@
           <div class="flex items-center gap-2">
             <!-- Dark Mode Toggle (Desktop) -->
             <button
-              @click="themeStore.toggleTheme()"
-              class="p-2.5 bg-white border border-[#e5e5e5] shadow-[0_2px_12px_rgba(0,0,0,0.03)] text-slate-500 hover:text-slate-900 hover:bg-slate-50 rounded-xl relative transition-all mr-1"
-              title="Toggle Dark Mode">
+              type="button"
+              class="tb tb--icon"
+              :title="themeStore.isDark ? 'Switch to light' : 'Switch to dark'"
+              :aria-label="themeStore.isDark ? 'Switch to light' : 'Switch to dark'"
+              @click="themeStore.toggleTheme()">
               <UiIcon
                 :icon="themeStore.isDark ? 'heroicons:sun' : 'heroicons:moon'"
-                class="w-5 h-5" />
+                custom-class="w-[18px] h-[18px]" />
             </button>
 
-            <!-- Notifications Popover -->
-            <UiPopover placement="bottom-end">
+            <!-- Notifications -->
+            <UiPopover placement="bottom-end" bare>
               <template #trigger="{ isOpen }">
                 <button
-                  class="p-2.5 bg-white border border-[#e5e5e5] shadow-[0_2px_12px_rgba(0,0,0,0.03)] text-slate-500 hover:text-slate-900 hover:bg-slate-50 rounded-xl relative transition-all"
-                  :class="{
-                    'ring-2 ring-emerald-500 border-transparent': isOpen,
-                  }">
-                  <UiIcon
-                    icon="heroicons:bell"
-                    class="w-5 h-5"
-                    :custom-class="{
-                      'text-emerald-500 w-4 h-4  ': isOpen,
-                    }" />
+                  type="button"
+                  class="tb tb--icon"
+                  :class="{ 'tb--on': isOpen }"
+                  :aria-label="
+                    notificationStore.unreadCount > 0
+                      ? `Notifications, ${notificationStore.unreadCount} unread`
+                      : 'Notifications'
+                  ">
+                  <UiIcon icon="heroicons:bell" custom-class="w-[18px] h-[18px]" />
                   <span
                     v-if="notificationStore.unreadCount > 0"
-                    class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 border-2 border-white rounded-full"></span>
+                    class="tb__dot"
+                    aria-hidden="true"></span>
                 </button>
               </template>
               <template #default="{ close }">
-                <div
-                  class="w-[320px] max-h-[400px] flex flex-col overflow-hidden rounded-2xl">
-                  <div
-                    class="flex items-center justify-between px-3 py-3 border-b border-slate-100 bg-slate-50/80 backdrop-blur w-[320px]">
-                    <span class="text-[13px] font-semibold text-slate-500"
-                      >Notifications</span
-                    >
+                <div class="pop">
+                  <div class="pop__head">
+                    <span class="pop__title">Notifications</span>
                     <button
                       v-if="notificationStore.unreadCount > 0"
-                      @click="notificationStore.markAllAsRead()"
-                      class="text-[11px] font-bold text-emerald-600 hover:text-emerald-700 transition-colors">
-                      Mark all as read
+                      type="button"
+                      class="pop__act"
+                      @click="notificationStore.markAllAsRead()">
+                      Mark all read
                     </button>
                   </div>
-                  <div
-                    class="p-2 overflow-y-auto flex-1 custom-scrollbar w-[320px]"
-                    style="scrollbar-gutter: stable">
+
+                  <div class="pop__body deskbar">
                     <div
                       v-if="notificationStore.notifications.length === 0"
-                      class="text-center py-8 text-xs text-slate-500">
-                      <UiIcon
-                        icon="heroicons:bell-slash"
-                        custom-class="w-6 h-6 mx-auto mb-3 text-slate-200" />
-                      You're all caught up!
+                      class="note__empty">
+                      <UiIcon icon="heroicons:bell-slash" custom-class="w-6 h-6" />
+                      Nothing waiting for you.
                     </div>
-                    <div v-else class="space-y-1">
-                      <div
-                        v-for="notif in notificationStore.notifications"
-                        :key="notif.id"
-                        @click="
-                          notificationStore.markAsRead(notif.id);
-                          close();
-                        "
-                        class="p-3 rounded-xl text-left cursor-pointer transition-all border border-transparent hover:border-slate-100"
-                        :class="
-                          notif.isRead
-                            ? 'bg-transparent hover:bg-slate-50'
-                            : 'bg-blue-50/40 hover:bg-blue-50/80'
-                        ">
-                        <div
-                          class="flex items-start justify-between gap-3 mb-1.5">
-                          <span
-                            class="font-semibold text-[13px]"
-                            :class="
-                              notif.isRead ? 'text-slate-700' : 'text-slate-900'
-                            "
-                            >{{ notif.title }}</span
-                          >
-                          <span
-                            class="text-[10px] font-medium text-slate-400 whitespace-nowrap mt-0.5"
-                            >{{ formatDate(notif.createdAt) }}</span
-                          >
-                        </div>
-                        <p
-                          class="text-[12px] text-slate-500 leading-relaxed"
-                          :class="{
-                            'font-medium text-slate-600': !notif.isRead,
-                          }">
-                          {{ notif.message }}
-                        </p>
-                      </div>
-                    </div>
+                    <button
+                      v-for="notif in notificationStore.notifications.slice(0, 8)"
+                      v-else
+                      :key="notif.id"
+                      type="button"
+                      class="note"
+                      :class="{ 'note--read': notif.isRead }"
+                      @click="
+                        notificationStore.markAsRead(notif.id);
+                        close();
+                      ">
+                      <span
+                        class="note__pip"
+                        :class="{ 'note__pip--read': notif.isRead }"
+                        aria-hidden="true"></span>
+                      <span>
+                        <span class="note__top">
+                          <span class="note__title">{{ notif.title }}</span>
+                          <span class="note__when">
+                            {{ formatDate(notif.createdAt) }}
+                          </span>
+                        </span>
+                        <span class="note__body">{{ notif.message }}</span>
+                      </span>
+                    </button>
+                  </div>
+
+                  <div class="pop__foot">
+                    <NuxtLink to="/notifications" class="pop__all" @click="close">
+                      See all notifications
+                      <UiIcon icon="heroicons:arrow-right" custom-class="w-3.5 h-3.5" />
+                    </NuxtLink>
                   </div>
                 </div>
               </template>
             </UiPopover>
 
-            <div class="w-px h-6 bg-slate-200 mx-1"></div>
+            <div class="tb__rule" aria-hidden="true"></div>
 
-            <!-- User Profile Popover -->
-            <UiPopover placement="bottom-end">
+            <!-- User -->
+            <UiPopover placement="bottom-end" bare>
               <template #trigger="{ isOpen }">
-                <div
-                  class="flex items-center gap-3 px-3 py-2 bg-white rounded-xl border border-[#e5e5e5] shadow-[0_2px_12px_rgba(0,0,0,0.03)] cursor-pointer group hover:bg-slate-50 transition-all"
-                  :class="{
-                    'ring-2 ring-emerald-500 border-transparent': isOpen,
-                  }">
-                  <div
-                    class="w-8 h-8 rounded-md bg-emerald-600 flex items-center justify-center text-white text-[11px] font-bold shadow-sm shrink-0 uppercase">
+                <button
+                  type="button"
+                  class="tb tb--user"
+                  :class="{ 'tb--on': isOpen }"
+                  aria-label="Your account">
+                  <span class="tb__av" aria-hidden="true">
                     {{ (authStore.user?.name || "U").charAt(0) }}
-                  </div>
-                  <div class="hidden sm:block min-w-0">
-                    <p class="text-xs font-bold text-slate-900 truncate">
-                      {{ authStore.user?.name || "User" }}
-                    </p>
-                  </div>
+                  </span>
+                  <span class="tb__name">
+                    {{ authStore.user?.name || "User" }}
+                  </span>
                   <UiIcon
                     icon="heroicons:chevron-down"
-                    class="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600 transition-colors shrink-0" />
-                </div>
+                    custom-class="tb__caret w-3.5 h-3.5" />
+                </button>
               </template>
               <template #default="{ close }">
-                <div class="w-[200px] rounded-2xl bg-white overflow-hidden">
-                  <div
-                    class="flex items-center justify-between gap-2 px-4 py-3 border-b border-slate-100 bg-slate-50/50">
-                    <p class="text-[12px] font-bold text-slate-900 truncate">
-                      {{ authStore.user?.name || "User" }}
-                    </p>
-                    <div
-                      :class="[
-                        'w-fit py-1 px-2 rounded-[4px]',
-                        authStore.user?.plan === 'STARTER'
-                          ? 'bg-emerald-500'
-                          : authStore.user?.plan === 'PRO'
-                            ? 'bg-black'
-                            : authStore.user?.plan === 'MAX'
-                              ? 'bg-purple-950'
-                              : 'bg-slate-200',
-                      ]">
-                      <p
-                        :class="[
-                          'text-[10px] font-bold truncate capitalize',
-                          authStore.user?.plan === 'STARTER'
-                            ? 'text-white'
-                            : authStore.user?.plan === 'PRO'
-                              ? 'text-slate-400'
-                              : authStore.user?.plan === 'MAX'
-                                ? 'text-purple-100'
-                                : 'text-slate-600',
-                        ]">
-                        {{ authStore.user?.plan || "Free" }}
-                      </p>
+                <div class="pop pop--sm">
+                  <div class="pop__head">
+                    <div class="pop__who">
+                      <span class="tb__av" aria-hidden="true">
+                        {{ (authStore.user?.name || "U").charAt(0) }}
+                      </span>
+                      <div style="min-width: 0">
+                        <p class="pop__title">
+                          {{ authStore.user?.name || "User" }}
+                        </p>
+                        <p class="pop__mail">{{ authStore.user?.email }}</p>
+                      </div>
                     </div>
                   </div>
 
-                  <div class="p-2">
-                    <NuxtLink
-                      to="/settings/"
-                      @click="close"
-                      class="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-600 hover:text-green-600 hover:bg-green-50 rounded-md transition-all">
-                      <UiIcon icon="heroicons:cog-8-tooth" class="w-4 h-4" />
-                      User Settings
+                  <div class="pmenu">
+                    <NuxtLink to="/business" class="pmenu__item" @click="close">
+                      <UiIcon
+                        icon="heroicons:building-office-2"
+                        custom-class="w-4 h-4" />
+                      Business details
                     </NuxtLink>
-                    <div class="h-px bg-slate-100 my-1 mx-2"></div>
+                    <NuxtLink to="/settings" class="pmenu__item" @click="close">
+                      <UiIcon icon="heroicons:cog-8-tooth" custom-class="w-4 h-4" />
+                      Settings
+                    </NuxtLink>
+                    <NuxtLink
+                      to="/settings?tab=billing"
+                      class="pmenu__item"
+                      @click="close">
+                      <UiIcon icon="heroicons:sparkles" custom-class="w-4 h-4" />
+                      Plan
+                      <span class="chip chip--idle" style="margin-left: auto">
+                        {{ authStore.user?.plan || "Free" }}
+                      </span>
+                    </NuxtLink>
+                    <div class="pmenu__rule" aria-hidden="true"></div>
                     <button
+                      type="button"
+                      class="pmenu__item pmenu__item--danger"
                       @click="
                         isLogoutModalOpen = true;
                         close();
-                      "
-                      class="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 rounded-md transition-all text-left border-none bg-transparent">
+                      ">
                       <UiIcon
                         icon="heroicons:arrow-right-on-rectangle"
-                        class="w-4 h-4" />
-                      Sign Out
+                        custom-class="w-4 h-4" />
+                      Sign out
                     </button>
                   </div>
                 </div>
@@ -497,8 +511,61 @@
         </header>
 
         <main
-          class="flex-1 overflow-y-auto pt-[20px] md:pt-0 relative min-h-0 bg-[#f7f7f9]">
+          class="flex-1 overflow-y-auto pt-[20px] md:pt-0 relative min-h-0 bg-[#f7f7f9]"
+          :aria-busy="progress.active.value ? 'true' : 'false'">
+          <!-- Rides the top edge of the content panel, from its rounded corner
+               to the right edge of the window. aria-hidden because the bar is
+               decoration: aria-busy on <main> above is what actually tells a
+               screen reader something is in flight. -->
+          <!-- The stroke traces the panel's own outline: it starts where the
+               top-left arc begins, sweeps through the corner, then straightens
+               and runs to the right edge. A <div> cannot bend, so this is a
+               path with stroke-dashoffset rather than a scaled bar. -->
+          <svg
+            v-show="progress.visible.value"
+            class="pbar"
+            :width="panelWidth || '100%'"
+            height="20"
+            fill="none"
+            aria-hidden="true">
+            <defs>
+              <!-- Fades the first ~44px of the rail from nothing to solid, so
+                   the stroke emerges out of the panel edge instead of beginning
+                   on a hard round cap parked in the corner. Anchored in user
+                   space at x=0, so it only ever softens the START — the moving
+                   head keeps full strength wherever it happens to be. -->
+              <linearGradient
+                id="pbar-fade"
+                gradientUnits="userSpaceOnUse"
+                x1="0"
+                y1="0"
+                x2="44"
+                y2="0">
+                <stop offset="0" stop-color="#fff" stop-opacity="0" />
+                <stop offset="0.55" stop-color="#fff" stop-opacity="0.72" />
+                <stop offset="1" stop-color="#fff" stop-opacity="1" />
+              </linearGradient>
+              <mask id="pbar-mask" maskUnits="userSpaceOnUse">
+                <rect
+                  x="0"
+                  y="0"
+                  :width="railWidth"
+                  height="20"
+                  fill="url(#pbar-fade)" />
+              </mask>
+            </defs>
+            <g mask="url(#pbar-mask)">
+              <path class="pbar__rail" :d="railPath" />
+              <path
+                class="pbar__fill"
+                :d="railPath"
+                pathLength="100"
+                stroke-dasharray="100"
+                :stroke-dashoffset="100 - progress.value.value" />
+            </g>
+          </svg>
           <div
+            ref="panelEl"
             class="w-full h-full bg-white border border-[#e5e5e5] rounded-tl-2xl p-6 md:p-10 h-full overflow-y-auto overflow-x-hidden">
             <slot />
           </div>
@@ -555,9 +622,23 @@
                     <div class="pt-6 pb-2 px-4">
                       <h4
                         class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-                        DATA
+                        SALES
                       </h4>
                     </div>
+                    <NuxtLink
+                      to="/quotes/"
+                      @click="isMobileMenuOpen = false"
+                      class="flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
+                      active-class="bg-[#ebebec] text-slate-900"
+                      :class="{
+                        'bg-[#ebebec] text-slate-900 flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl':
+                          $route.path.startsWith('/quotes'),
+                      }">
+                      <UiIcon
+                        icon="heroicons:document-duplicate"
+                        class="w-[18px] h-[18px] mr-3 opacity-70" />
+                      Quotes
+                    </NuxtLink>
                     <NuxtLink
                       to="/invoices/"
                       @click="isMobileMenuOpen = false"
@@ -582,6 +663,16 @@
                         class="w-[18px] h-[18px] mr-3 opacity-70" />
                       Clients
                     </NuxtLink>
+                    <NuxtLink
+                      to="/catalogue/"
+                      @click="isMobileMenuOpen = false"
+                      class="flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
+                      active-class="bg-[#ebebec] text-slate-900">
+                      <UiIcon
+                        icon="heroicons:squares-2x2"
+                        class="w-[18px] h-[18px] mr-3 opacity-70" />
+                      Catalogue
+                    </NuxtLink>
 
                     <div class="pt-6 pb-2 px-4">
                       <h4
@@ -589,6 +680,16 @@
                         SYSTEM
                       </h4>
                     </div>
+                    <NuxtLink
+                      to="/business/"
+                      @click="isMobileMenuOpen = false"
+                      class="flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
+                      active-class="bg-[#ebebec] text-slate-900">
+                      <UiIcon
+                        icon="heroicons:building-office-2"
+                        class="w-[18px] h-[18px] mr-3 opacity-70" />
+                      Business
+                    </NuxtLink>
                     <NuxtLink
                       to="/settings/"
                       @click="isMobileMenuOpen = false"
@@ -716,7 +817,7 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted, onUnmounted } from "vue";
+import { computed, ref, watch, onMounted, onUnmounted } from "vue";
 import { useRoute } from "vue-router";
 import { useAuthStore } from "~/stores/authStore";
 import { useSystemStore } from "~/stores/systemStore";
@@ -730,6 +831,35 @@ const authStore = useAuthStore();
 const systemStore = useSystemStore();
 const uiStore = useUiStore();
 const notificationStore = useNotificationStore();
+const progress = useProgress();
+
+/* The rail is drawn in real pixels, so it has to know how wide the panel is.
+   No viewBox on the <svg> means one user unit is one CSS pixel, which keeps the
+   16px corner a true 16px corner at every window size — a viewBox would scale
+   the arc horizontally along with the width and flatten it into an ellipse. */
+const panelEl = ref(null);
+const panelWidth = ref(0);
+let panelRO = null;
+
+/* Corner radius 16 (rounded-tl-2xl) and stroke width 3. The stroke is centred on
+   the path, so the centreline is inset by half the stroke: it starts at
+   (1.5, 16), arcs to (16, 1.5) on a radius of 16 - 1.5, then runs flat to the
+   right edge. Without that inset the outer half of the stroke would fall
+   outside the svg box and be clipped along its whole length. */
+const railWidth = computed(() => Math.max(panelWidth.value || 0, 16));
+const railPath = computed(
+  () => `M 1.5 16 A 14.5 14.5 0 0 1 16 1.5 H ${railWidth.value}`,
+);
+
+onMounted(() => {
+  if (!panelEl.value) return;
+  panelRO = new ResizeObserver(([entry]) => {
+    panelWidth.value = Math.round(entry.contentRect.width);
+  });
+  panelRO.observe(panelEl.value);
+});
+
+onUnmounted(() => panelRO?.disconnect());
 const themeStore = useThemeStore();
 const isMobileMenuOpen = ref(false);
 const isLogoutModalOpen = ref(false);
@@ -766,7 +896,9 @@ watch(isMobileMenuOpen, (isOpen) => {
 
 /* ── Sidebar shell ── */
 .app-sidebar {
-  background: #f8f9fa;
+  /* token, not a literal: the scoped rule out-specifies the utility override,
+     so a hardcoded value here kept the sidebar light in dark mode */
+  background: var(--app-sidebar-bg, #f5f2ed);
   font-family:
     "Inter",
     -apple-system,
@@ -781,14 +913,18 @@ watch(isMobileMenuOpen, (isOpen) => {
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: #9ca3af;
+  /* was #9ca3af = 2.41:1 on the sidebar, a clear AA failure. Tokenised so it
+     tracks the theme instead of being a literal. */
+  color: var(--nav-section-color, #656c6a);
 }
 
 /* ── Nav links ── */
 .nav-link {
   font-size: 0.875rem;
   font-weight: 500;
-  color: #6b7280;
+  /* #6b7280 measured 4.33:1 on the warmed sidebar. Tokenised so it tracks the
+     theme instead of being tuned to one background. */
+  color: var(--nav-link-color, #626a68);
   border-radius: 10px;
   transition:
     color 0.2s cubic-bezier(0.16, 1, 0.3, 1),
@@ -802,14 +938,14 @@ watch(isMobileMenuOpen, (isOpen) => {
 /* Active state: emerald accent to match landing + auth pages */
 .nav-link--active,
 .nav-link.nav-link--active {
-  background: #ecfdf5 !important;
-  color: #059669 !important;
+  background: var(--nav-active-bg) !important;
+  color: var(--nav-active-text) !important;
   font-weight: 600;
 }
 .nav-link--active :deep(.iconify),
 .nav-link--active :deep(svg) {
   opacity: 1 !important;
-  color: #059669;
+  color: var(--nav-active-text);
 }
 
 /* ── Scrollbars ── */
