@@ -10,6 +10,7 @@
  */
 import { computed } from "vue";
 import { formatDate } from "~/utils/date";
+import { price } from "~/utils/invoice";
 
 const props = defineProps({
   transactions: { type: Array, default: () => [] },
@@ -29,8 +30,12 @@ const CHIP = {
 };
 const chipFor = (status) => CHIP[String(status || "").toUpperCase()] || "chip--idle";
 
-const money = (n) => Number(n || 0).toLocaleString();
+/* Subscription.amount is sen. `money` is the shared boundary — the local
+   formatter that used to sit here reported the MAX subscription as
+   "MYR 9,900" in the admin revenue table. */
+const money = price;
 
+/* Summed in sen, formatted once. */
 const collected = computed(() =>
   props.transactions
     .filter((t) => String(t.status || "").toUpperCase() === "ACTIVE")

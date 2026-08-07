@@ -13,6 +13,7 @@ export default defineNuxtConfig({
   components: [
     { path: '~/components/landing', pathPrefix: false },
     { path: '~/components/legal', pathPrefix: false },
+    { path: '~/components/einvoice', pathPrefix: false },
     { path: '~/components/auth', pathPrefix: false },
     '~/components'
   ],

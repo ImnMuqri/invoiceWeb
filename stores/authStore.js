@@ -238,6 +238,15 @@ export const useAuthStore = defineStore("auth", () => {
         invoiceIncludeAddress: data.invoiceIncludeAddress ?? true,
         defaultTaxRate: data.defaultTaxRate ?? 0,
         invoicePrefix: data.invoicePrefix ?? "INV",
+        /* Spec 05. The two switches AND the four values, because the builder
+           preview has to draw what the saved document will say and the invoice
+           does not exist yet to be read from. */
+        invoiceIncludeTaxIdentifiers: data.invoiceIncludeTaxIdentifiers ?? true,
+        invoiceIncludeClientIdentifiers: data.invoiceIncludeClientIdentifiers ?? true,
+        registrationNumber: data.registrationNumber ?? "",
+        tin: data.tin ?? "",
+        msicCode: data.msicCode ?? "",
+        sstNumber: data.sstNumber ?? "",
       };
     } catch (err) {
       console.error("Failed to fetch invoice config", err);
@@ -251,6 +260,14 @@ export const useAuthStore = defineStore("auth", () => {
         invoiceIncludeAddress: true,
         defaultTaxRate: 0,
         invoicePrefix: "INV",
+        invoiceIncludeTaxIdentifiers: true,
+        invoiceIncludeClientIdentifiers: true,
+        /* Empty, not absent. The preview then simply omits the block rather
+           than drawing a half-built one from a failed request. */
+        registrationNumber: "",
+        tin: "",
+        msicCode: "",
+        sstNumber: "",
       };
     }
   }

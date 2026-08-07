@@ -56,6 +56,7 @@ const notify = (message, type = "success") => (toast.value = { message, type });
 
 const mode = ref("form");
 const saving = ref(false);
+const invoiceConfig = ref(null);
 const savedId = ref(null);
 const usedAi = ref(false);
 const currencyOptions = ref([]);
@@ -115,6 +116,9 @@ onMounted(async () => {
 
   const u = authStore.user;
   const cfg = (await authStore.fetchInvoiceConfig()) || {};
+  /* Kept, not discarded: the preview needs the client-identifier switch too,
+     and re-fetching the same endpoint to read one boolean would be silly. */
+  invoiceConfig.value = cfg;
 
   if (u) {
     const phones = [];
@@ -131,6 +135,11 @@ onMounted(async () => {
         : "",
       companyAddress: cfg.invoiceIncludeAddress ? u.address || "" : "",
       phone: phones.join(" / "),
+      /* Spec 05. Gated by the same kind of switch as every field above it, and
+         only in the preview — the values actually stamped on the row are read
+         server-side at creation, so what the browser sends cannot change what
+         the document says. */
+      identifiers: cfg.invoiceIncludeTaxIdentifiers === false ? null : cfg,
     };
     if (Number(cfg.defaultTaxRate) > 0) {
       form.value.taxRate = Number(cfg.defaultTaxRate);
@@ -146,10 +155,18 @@ const selectedClient = computed(() =>
 const sums = computed(() => totals(form.value));
 const cur = computed(() => currencySymbol(form.value.currency));
 
+/* Read from the config the page already fetched, so the preview matches the
+   document. Undefined means it has not loaded yet, and showing them is the
+   right guess — it is the stored default. */
+const showClientIdentifiers = computed(
+  () => invoiceConfig.value?.invoiceIncludeClientIdentifiers !== false,
+);
+
 const doc = computed(() =>
   docFromForm(form.value, {
     client: selectedClient.value,
     logo: authStore.user?.profile?.logoUrl || null,
+    showClientIdentifiers: showClientIdentifiers.value,
   }),
 );
 

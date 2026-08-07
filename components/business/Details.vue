@@ -11,6 +11,7 @@
  * the object, submits it, and knows which endpoint it belongs to.
  */
 import { computed, watch } from "vue";
+import { findMsic } from "~/utils/msic";
 
 const props = defineProps({
   form: { type: Object, required: true },
@@ -19,9 +20,25 @@ const props = defineProps({
   currencies: { type: Array, default: () => [] },
   logoUrl: { type: String, default: "" },
   uploadingLogo: { type: Boolean, default: false },
+  /** Spec 05: the single dismissable prompt. The parent owns whether it shows,
+      because whether it has been dismissed is server state. */
+  showPrompt: { type: Boolean, default: false },
 });
 
-const emit = defineEmits(["upload-logo", "remove-logo"]);
+const emit = defineEmits([
+  "upload-logo",
+  "remove-logo",
+  "find-msic",
+  "dismiss-prompt",
+]);
+
+/* Confirms a typed or picked code back to the user in words. An unrecognised
+   code is not an error — the field is free text and the list is a subset — so
+   this simply goes quiet and the hint below says so instead. */
+const msicDescription = computed(() => {
+  const hit = findMsic(props.form.msicCode);
+  return hit ? hit.label : "";
+});
 
 const logoInput = ref(null);
 
@@ -253,6 +270,103 @@ const currencyLabel = computed(
       <p class="f__hint">
         New invoices open in {{ currencyLabel }}.
       </p>
+    </section>
+
+    <!-- ── Tax identity (spec 05) ───────────────────────────────────────────
+         Last on the page on purpose. It is the section fewest people need on
+         day one, and putting it above "what clients see" would make signing up
+         feel like a tax registration. -->
+    <section class="sec">
+      <div class="sec__head">
+        <h2 class="sec__title">Tax and registration</h2>
+        <p class="sec__note">
+          All optional. These appear on your invoices only when you fill them
+          in — leave them blank and nothing changes.
+        </p>
+      </div>
+
+      <!-- The one prompt. Never on the dashboard, never during onboarding, and
+           never again once dismissed. -->
+      <div v-if="showPrompt" class="banner">
+        <UiIcon icon="heroicons:information-circle" custom-class="w-5 h-5" />
+        <span>
+          Some clients — larger companies especially — ask for your SSM number
+          or TIN before they will pay an invoice. Worth filling in once now
+          rather than when someone is waiting on it.
+        </span>
+        <button
+          type="button"
+          class="iact"
+          aria-label="Dismiss"
+          @click="emit('dismiss-prompt')">
+          <UiIcon icon="heroicons:x-mark" custom-class="w-4 h-4" />
+        </button>
+      </div>
+
+      <div class="fgrid">
+        <div class="f" style="margin: 0">
+          <label class="f__label" for="g-ssm">Business registration number</label>
+          <input
+            id="g-ssm"
+            v-model="form.registrationNumber"
+            type="text"
+            class="inp no-ik"
+            placeholder="202301012345 (1234567-A)" />
+          <p class="f__hint">Your SSM number, exactly as it appears.</p>
+        </div>
+        <div class="f" style="margin: 0">
+          <label class="f__label" for="g-tin">TIN</label>
+          <input
+            id="g-tin"
+            v-model="form.tin"
+            type="text"
+            class="inp no-ik"
+            placeholder="C25845632010" />
+          <p class="f__hint">Your income tax number from LHDN.</p>
+        </div>
+      </div>
+
+      <div class="f">
+        <label class="f__label" for="g-msic">MSIC code</label>
+        <div class="bar">
+          <input
+            id="g-msic"
+            v-model="form.msicCode"
+            type="text"
+            class="inp no-ik bar__grow"
+            placeholder="Search for it, or type it if you know it" />
+          <button
+            type="button"
+            class="desk-btn desk-btn--ghost"
+            @click="emit('find-msic')">
+            <UiIcon icon="heroicons:magnifying-glass" custom-class="w-4 h-4" />
+            Find mine
+          </button>
+        </div>
+        <p class="f__hint">
+          <template v-if="msicDescription">{{ msicDescription }}</template>
+          <template v-else-if="form.msicCode">
+            Not in our list — it will be saved exactly as you typed it.
+          </template>
+          <template v-else>
+            The five-digit code for what your business does. Almost nobody knows
+            theirs; search by what you actually do.
+          </template>
+        </p>
+      </div>
+
+      <div class="f">
+        <label class="f__label" for="g-sst">SST registration number</label>
+        <input
+          id="g-sst"
+          v-model="form.sstNumber"
+          type="text"
+          class="inp no-ik"
+          placeholder="W10-1808-32000123" />
+        <p class="f__hint">
+          Only if you are SST-registered. Most small businesses are not.
+        </p>
+      </div>
     </section>
   </div>
 </template>

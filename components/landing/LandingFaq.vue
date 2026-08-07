@@ -6,9 +6,16 @@
  * zero JavaScript, and the answers stay in the DOM for crawlers. A custom
  * button/aria-expanded implementation would be more code for less behaviour.
  */
-import type { LandingCopy } from '~/composables/useLandingCopy'
+import type { Locale, LandingCopy } from '~/composables/useLandingCopy'
+import { scopeCheckerPath } from '~/composables/useLandingCopy'
 
-defineProps<{ copy: LandingCopy }>()
+const props = defineProps<{ copy: LandingCopy; locale: Locale }>()
+
+/* The e-Invoice answer is the one that carries a link, so it renders as its
+   own entry rather than as another string in the items list. It sits last on
+   purpose: it is the longest, and it is the one people arrive already looking
+   for, which is what the deep link from the checker relies on. */
+const checkerHref = computed(() => scopeCheckerPath(props.locale))
 </script>
 
 <template>
@@ -29,6 +36,19 @@ defineProps<{ copy: LandingCopy }>()
           </summary>
           <div class="qa__a">
             <p>{{ item.a }}</p>
+          </div>
+        </details>
+
+        <details id="einvoice" class="qa" :name="'faq'">
+          <summary class="qa__q">
+            <span>{{ copy.faq.einvoice.q }}</span>
+            <span class="qa__sign" aria-hidden="true">
+              <i></i><i></i>
+            </span>
+          </summary>
+          <div class="qa__a">
+            <p v-for="(p, i) in copy.faq.einvoice.a" :key="i">{{ p }}</p>
+            <a :href="checkerHref" class="qa__cta">{{ copy.faq.einvoice.linkLabel }} →</a>
           </div>
         </details>
       </div>
@@ -123,6 +143,26 @@ defineProps<{ copy: LandingCopy }>()
   font-size: var(--text-base);
   line-height: var(--leading-relaxed);
   color: var(--text-secondary);
+}
+.qa__a p + p {
+  margin-top: var(--space-4);
+}
+
+.qa__cta {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem;
+  margin-top: var(--space-4);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  color: var(--text-accent);
+  text-decoration: none;
+  border-bottom: 1px solid var(--border-accent);
+  padding-bottom: 2px;
+  transition: border-color var(--dur-fast) var(--ease-out);
+}
+.qa__cta:hover {
+  border-bottom-color: currentColor;
 }
 
 /* Progressive enhancement: browsers that support it animate the disclosure. */

@@ -60,6 +60,31 @@ const FIELDS = computed(() => [
     icon: "heroicons:map-pin",
     needs: props.form.address ? null : "a business address",
   },
+  /* Spec 05. One switch per block rather than one per identifier — four more
+     rows here would bury the six above them, and nobody turns their TIN on but
+     their SSM number off. Greys out until at least one is filled in, same rule
+     as every other row. */
+  {
+    key: "invoiceIncludeTaxIdentifiers",
+    label: "Your tax identifiers",
+    icon: "heroicons:identification",
+    needs:
+      props.form.registrationNumber ||
+      props.form.tin ||
+      props.form.msicCode ||
+      props.form.sstNumber
+        ? null
+        : "an SSM number, TIN, MSIC or SST number",
+  },
+  {
+    key: "invoiceIncludeClientIdentifiers",
+    label: "Client tax identifiers",
+    icon: "heroicons:building-storefront",
+    /* No `needs`: whether there is anything to show is a per-client fact, so
+       it cannot be answered from this page. Each document still prints only
+       what that client actually has. */
+    needs: null,
+  },
 ]);
 
 const onCount = computed(

@@ -258,6 +258,21 @@ const copy = {
           a: 'Any time, from your dashboard. There is no contract and no cancellation step that requires talking to somebody.',
         },
       ],
+
+      /* Spec 06, Part B. Kept as its own entry rather than another item in the
+         list above because it is the one answer that needs to carry a link,
+         and because it is the objection most likely to stop a signup dead.
+         Written to close it honestly: it does not imply compliance the product
+         does not have. */
+      einvoice: {
+        q: 'Does InvoKita handle LHDN e-Invoice?',
+        a: [
+          'Not the MyInvois submission, and we would rather say so than let you find out later. InvoKita sends your invoices over WhatsApp and email, chases them until they are paid, and takes payment through your own gateway. It does not submit to MyInvois and using it does not make your business compliant.',
+          'For most of the people who use InvoKita that is not a problem, because many freelancers and small businesses fall under LHDN’s exemption threshold and have nothing to submit. Whether you do depends on your own circumstances, which is what the checker below is for.',
+          'If a client asks you for a validated e-Invoice and you are under the threshold, say so — a buyer who is mandated can usually issue a self-billed e-Invoice covering the transaction. For anything definitive, LHDN is the only source that counts.',
+        ],
+        linkLabel: 'Check whether e-Invoice applies to you',
+      },
     },
 
     close: {
@@ -277,6 +292,7 @@ const copy = {
         payments: 'Getting paid',
         pricing: 'Pricing',
         faq: 'FAQ',
+        einvoice: 'e-Invoice checker',
         signIn: 'Sign in',
         register: 'Create an account',
         support: 'Support',
@@ -527,6 +543,16 @@ const copy = {
           a: 'Boleh, terus dari papan pemuka. Tiada kontrak dan tiada langkah pembatalan yang memaksa anda bercakap dengan sesiapa.',
         },
       ],
+
+      einvoice: {
+        q: 'InvoKita uruskan e-Invois LHDN ke?',
+        a: [
+          'Bukan penghantaran ke MyInvois, dan kami lebih rela cakap terus terang daripada biar anda tahu kemudian. InvoKita hantar invois anda melalui WhatsApp dan emel, susul sampai ia dibayar, dan terima bayaran melalui gateway anda sendiri. Ia tidak menghantar ke MyInvois dan menggunakannya tidak menjadikan perniagaan anda patuh.',
+          'Bagi kebanyakan pengguna InvoKita itu bukan masalah, sebab ramai pekerja bebas dan perniagaan kecil berada di bawah ambang pengecualian LHDN dan tiada apa untuk dihantar. Sama ada anda termasuk atau tidak bergantung pada keadaan anda sendiri — itulah gunanya penyemak di bawah ini.',
+          'Kalau pelanggan minta e-Invois yang disahkan sedangkan anda di bawah ambang, beritahu mereka — pembeli yang diwajibkan selalunya boleh keluarkan e-Invois bil sendiri (self-billed) untuk transaksi itu. Untuk apa-apa yang muktamad, LHDN sahaja sumber yang dikira.',
+        ],
+        linkLabel: 'Semak sama ada e-Invois terpakai kepada anda',
+      },
     },
 
     close: {
@@ -546,6 +572,7 @@ const copy = {
         payments: 'Terima bayaran',
         pricing: 'Harga',
         faq: 'Soalan lazim',
+        einvoice: 'Penyemak e-Invois',
         signIn: 'Log masuk',
         register: 'Buka akaun',
         support: 'Sokongan',
@@ -579,4 +606,16 @@ export function localePath(locale: Locale, path = '/') {
   const clean = path === '/' ? '' : path.replace(/\/$/, '')
   if (locale !== 'ms') return clean || '/'
   return clean ? `/ms${clean}/` : '/ms/'
+}
+
+/**
+ * The e-Invoice scope checker (spec 06), per locale.
+ *
+ * Lives here beside localePath rather than in useScopeCheckerCopy because the
+ * footer and the FAQ link to it, and having the copy file import from here
+ * while this file imported the path back would be a cycle. One definition, and
+ * Backend/src/utils/einvoiceEmail.js mirrors it so the emailed copy links home.
+ */
+export function scopeCheckerPath(locale: Locale) {
+  return localePath(locale, '/e-invoice-check')
 }

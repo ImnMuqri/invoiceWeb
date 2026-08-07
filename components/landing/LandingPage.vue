@@ -10,6 +10,7 @@ import { useLandingCopy, SITE_URL, localePath } from '~/composables/useLandingCo
 import { THEME_INIT_SCRIPT } from '~/composables/useTheme'
 import { BRAND } from '~/composables/useBrandTokens'
 import { useReveal } from '~/composables/useReveal'
+import { fromSen } from '~/utils/invoice'
 
 const props = defineProps<{ locale: Locale }>()
 
@@ -32,7 +33,10 @@ const { data: planData } = await useFetch<Plan[]>(
 const offers = computed(() => {
   const active = (planData.value ?? []).filter((p) => p.isActive)
   if (!active.length) return null
-  const prices = active.map((p) => p.price)
+  /* Plan.price is sen; Schema.org offers are in the currency's major unit.
+     Left raw, the structured data told Google this product costs RM0–RM4,900 a
+     month, and that is what would have shown in search results. */
+  const prices = active.map((p) => fromSen(p.price))
   return {
     '@type': 'AggregateOffer',
     priceCurrency: active[0]?.currency ?? 'MYR',
@@ -81,11 +85,22 @@ const jsonLd = computed(() => {
       '@type': 'FAQPage',
       '@id': `${canonical}#faq`,
       inLanguage: copy.htmlLang,
-      mainEntity: copy.faq.items.map((item) => ({
-        '@type': 'Question',
-        name: item.q,
-        acceptedAnswer: { '@type': 'Answer', text: item.a },
-      })),
+      mainEntity: [
+        ...copy.faq.items.map((item) => ({
+          '@type': 'Question',
+          name: item.q,
+          acceptedAnswer: { '@type': 'Answer', text: item.a },
+        })),
+        /* The e-Invoice answer is multi-paragraph and lives outside the items
+           list, so it has to be joined in by hand — leaving it out would mean
+           the one question people actually search for is the one question
+           absent from the structured data. */
+        {
+          '@type': 'Question',
+          name: copy.faq.einvoice.q,
+          acceptedAnswer: { '@type': 'Answer', text: copy.faq.einvoice.a.join(' ') },
+        },
+      ],
     },
   ]
 
@@ -188,7 +203,7 @@ useHead({
       <LandingChaser :copy="copy" />
       <LandingBento :copy="copy" />
       <LandingPricing :copy="copy" />
-      <LandingFaq :copy="copy" />
+      <LandingFaq :copy="copy" :locale="locale" />
       <LandingClose :copy="copy" />
     </main>
 

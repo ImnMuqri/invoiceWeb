@@ -112,7 +112,9 @@ useHead({
   <div class="kirim legal">
     <a href="#main" class="k-skip">{{ copy.nav.skip }}</a>
 
-    <LandingNav :copy="copy" locale="en" />
+    <!-- section-base="/" because the nav's links are landing-page sections;
+         without it "#pricing" points at a section this page does not have. -->
+    <LandingNav :copy="copy" locale="en" section-base="/" />
 
     <main id="main">
       <!-- ── Masthead ────────────────────────────────────────────────────── -->

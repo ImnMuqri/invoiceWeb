@@ -10,19 +10,56 @@
  * One set of functions, so a fix lands once.
  */
 
-/* ─── Money ──────────────────────────────────────────────────────────────── */
+/* ─── Money ───────────────────────────────────────────────────────────────────
+   EVERY amount crossing the API is an integer number of SEN, never ringgit and
+   never a float. 0.1 + 0.2 is 0.30000000000000004, and an invoicing product
+   cannot promise its totals reconcile while carrying that.
+
+   So there are exactly two boundaries, and they are the only places the two
+   units meet:
+
+     fromSen()  sen -> ringgit, for display
+     toSen()    what a person typed -> sen, for storage
+
+   Anything between those is sen. If you find yourself dividing by 100 anywhere
+   else, that is the bug.                                                    */
+
+/** Sen to ringgit, as a number. The single read boundary. */
+export const fromSen = (n) => (Number(n) || 0) / 100;
+
+/** A typed value to sen. The single write boundary. Rounds, never truncates. */
+export const toSen = (v) => {
+  const n = Number(v);
+  return Number.isFinite(n) ? Math.round(n * 100) : 0;
+};
 
 /** Whole units, for screen. Amounts in a list do not need cents to be scanned. */
-export const money = (n) =>
-  (Number(n) || 0).toLocaleString(undefined, {
+export const money = (sen) =>
+  fromSen(sen).toLocaleString(undefined, {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   });
 
 /** Two decimals, for documents and for any figure the user is about to commit. */
-export const cash = (n) =>
-  (Number(n) || 0).toLocaleString(undefined, {
+export const cash = (sen) =>
+  fromSen(sen).toLocaleString(undefined, {
     minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+/**
+ * A subscription price, for pricing cards.
+ *
+ * Plan.price, Subscription.amount and TopUp.price are sen like everything else.
+ * Cents only when there are cents: "RM 29", not "RM 29.00" — a price tag with
+ * trailing zeros reads as a form field rather than a price. This exists so the
+ * five surfaces showing a plan price (landing, onboarding, billing settings and
+ * two admin tables) share one boundary instead of each rolling a formatter and
+ * each forgetting to convert, which is exactly what had happened.
+ */
+export const price = (sen) =>
+  fromSen(sen).toLocaleString(undefined, {
+    minimumFractionDigits: 0,
     maximumFractionDigits: 2,
   });
 
@@ -37,6 +74,10 @@ const num = (v) => {
   return Number.isFinite(n) ? n : 0;
 };
 
+/* Everything here is sen. Percentages are the one place a fraction appears, so
+   each result is rounded straight back to whole sen — otherwise the subtotal and
+   the sum of the lines can disagree by a sen, which is exactly the drift the
+   integer model exists to prevent. */
 export const totals = (form) => {
   const items = Array.isArray(form?.lineItems) ? form.lineItems : [];
   const subtotal = items.reduce(
@@ -44,9 +85,9 @@ export const totals = (form) => {
     0,
   );
   const discount = form?.addDiscount
-    ? subtotal * (num(form.discountPercentage) / 100)
+    ? Math.round(subtotal * (num(form.discountPercentage) / 100))
     : 0;
-  const tax = (subtotal - discount) * (num(form?.taxRate) / 100);
+  const tax = Math.round((subtotal - discount) * (num(form?.taxRate) / 100));
   return {
     subtotal,
     discount,
@@ -56,15 +97,22 @@ export const totals = (form) => {
   };
 };
 
-/** Parses what someone typed into a price field: "1,200.50" and "1 200" both work. */
+/** What someone typed into a price field, in SEN. "1,200.50" and "1 200" both work. */
 export const parsePrice = (str) => {
   const n = parseFloat(String(str ?? "").replace(/[^0-9.\-]/g, ""));
-  return Number.isFinite(n) ? n : 0;
+  return Number.isFinite(n) ? Math.round(n * 100) : 0;
+};
+
+/** Sen back into a price field, for editing. The inverse of parsePrice. */
+export const priceToInput = (sen) => {
+  const n = Number(sen) || 0;
+  return n ? String(n / 100) : "";
 };
 
 /* ─── Time ───────────────────────────────────────────────────────────────── */
 
-export const isSettled = (status) => status === "Paid" || status === "Cancelled";
+export const isSettled = (status) =>
+  status === "Paid" || status === "Cancelled" || status === "Void";
 
 /** Days past the due date, or 0. Never negative, so callers can just truthy-test. */
 export const daysLate = (invoice) => {
@@ -96,8 +144,18 @@ export const dueInWords = (invoice) => {
   return "";
 };
 
+/**
+ * What is still owed, in SEN.
+ *
+ * Prefers the server's `amountDue`, which already accounts for credit notes as
+ * well as payments and is the same column the chaser reads. The subtraction is
+ * only a fallback for a payload that predates spec 03 — computing it here
+ * independently is how the dashboard and the reminder end up disagreeing.
+ */
 export const amountOutstanding = (invoice) =>
-  Math.max(0, num(invoice?.amount) - num(invoice?.amountPaid));
+  invoice?.amountDue !== undefined && invoice?.amountDue !== null
+    ? Math.max(0, num(invoice.amountDue))
+    : Math.max(0, num(invoice?.amount) - num(invoice?.amountPaid));
 
 export const isUnpaid = (invoice) =>
   !isSettled(invoice?.status) && amountOutstanding(invoice) > 0;
@@ -175,6 +233,84 @@ export const payHabit = (invoice) => {
    draws. Adding a field to the document means adding it in exactly two places
    instead of in three page templates. */
 
+/**
+ * Tax identifiers, shaped for printing (spec 05).
+ *
+ * Returns a list of `{ label, value }` rather than an object, so the document
+ * template loops instead of asking four questions — and so "only when present"
+ * is decided once, here, instead of in every place that draws a document.
+ *
+ * An empty list means the block does not render at all. That is what makes the
+ * spec's first acceptance criterion true: a user who fills nothing in sees an
+ * invoice identical to the one they got before these fields existed.
+ */
+const identifierList = (source, keys) => {
+  const out = [];
+  for (const [key, label] of keys) {
+    const value = source?.[key];
+    if (value !== null && value !== undefined && String(value).trim() !== "") {
+      out.push({ label, value: String(value).trim() });
+    }
+  }
+  return out;
+};
+
+const BUSINESS_KEYS = [
+  ["registrationNumber", "Reg. No."],
+  ["tin", "TIN"],
+  ["msicCode", "MSIC"],
+  ["sstNumber", "SST No."],
+];
+
+/** The frozen copy on an invoice row uses `from`-prefixed column names. */
+const SNAPSHOT_KEYS = [
+  ["fromRegistrationNumber", "Reg. No."],
+  ["fromTin", "TIN"],
+  ["fromMsicCode", "MSIC"],
+  ["fromSstNumber", "SST No."],
+];
+
+/**
+ * A client's identifiers.
+ *
+ * `isIndividual` suppresses the registration number rather than the whole
+ * block: a person has a TIN but cannot have a company registration number, so
+ * printing "Reg. No." for one would be stating something false. This is the
+ * flag's entire job — the spec says it "changes which identifiers are
+ * relevant", and this is where that becomes true on the page.
+ */
+const clientIdentifiers = (client) => {
+  if (!client) return [];
+  const keys = client.isIndividual
+    ? [["tin", "TIN"]]
+    : [
+        ["registrationNumber", "Reg. No."],
+        ["tin", "TIN"],
+      ];
+  return identifierList(client, keys);
+};
+
+/**
+ * Both identifier blocks for an invoice as the API returns it.
+ *
+ * Exported because two different surfaces draw the same invoice: the PDF (via
+ * InvoicePaper) and the public payment page, which is hand-built markup and
+ * shares none of the document's components. They have to reach the same answer
+ * about what is shown and what is hidden — a payment page listing a TIN that
+ * the PDF omits is a contradiction the client can see — so the decision lives
+ * here once and both call it.
+ */
+export const documentIdentifiers = (invoice) => ({
+  from:
+    invoice?.showTaxIdentifiers === false
+      ? []
+      : identifierList(invoice, SNAPSHOT_KEYS),
+  to:
+    invoice?.showClientIdentifiers === false
+      ? []
+      : clientIdentifiers(invoice?.client),
+});
+
 /** From the builder's live form state (create + edit preview). */
 export const docFromForm = (form, extra = {}) => {
   const t = totals(form);
@@ -200,6 +336,10 @@ export const docFromForm = (form, extra = {}) => {
       email: form?.from?.companyEmail || "",
       phone: form?.from?.phone || "",
       address: form?.from?.companyAddress || "",
+      /* Live from the profile here, because the invoice does not exist yet and
+         so has nothing frozen on it. The preview therefore shows what WILL be
+         stamped on the document the moment it is saved. */
+      identifiers: identifierList(form?.from?.identifiers, BUSINESS_KEYS),
     },
     to: form?.showManualClient
       ? {
@@ -207,12 +347,19 @@ export const docFromForm = (form, extra = {}) => {
           company: form?.manualClient?.company || "",
           email: form?.manualClient?.email || "",
           address: form?.manualClient?.address || "",
+          /* A one-off client typed straight onto the invoice has no record to
+             carry identifiers on. */
+          identifiers: [],
         }
       : {
           name: extra.client?.name || "",
           company: extra.client?.company || "",
           email: extra.client?.email || "",
           address: extra.client?.address || "",
+          identifiers:
+            extra.showClientIdentifiers === false
+              ? []
+              : clientIdentifiers(extra.client),
         },
     items: (form?.lineItems || []).map((i) => ({
       name: i.name,
@@ -278,12 +425,17 @@ export const docFromInvoice = (invoice, extra = {}) => {
       email: invoice?.fromEmail || "",
       phone: invoice?.fromPhone || "",
       address: invoice?.fromAddress || "",
+      /* The FROZEN copy on the row, not the current profile. This is the whole
+         point of snapshotting: re-reading the profile here would make an old
+         PDF disagree with the one the client is holding. */
+      identifiers: documentIdentifiers(invoice).from,
     },
     to: {
       name: invoice?.client?.name || "",
       company: invoice?.client?.company || "",
       email: invoice?.client?.email || "",
       address: invoice?.client?.address || "",
+      identifiers: documentIdentifiers(invoice).to,
     },
     items,
     discount,

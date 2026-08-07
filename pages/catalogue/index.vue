@@ -17,7 +17,7 @@ import { computed, onMounted, ref } from "vue";
 import { useCatalogueStore } from "~/stores/catalogueStore";
 import { useAuthStore } from "~/stores/authStore";
 import { useUiStore } from "~/stores/uiStore";
-import { cash, currencySymbol } from "~/utils/invoice";
+import { cash, currencySymbol, parsePrice, priceToInput } from "~/utils/invoice";
 
 const store = useCatalogueStore();
 const authStore = useAuthStore();
@@ -71,7 +71,12 @@ const openEdit = (item) => {
   draft.value = {
     name: item.name || "",
     description: item.description || "",
-    price: item.price != null ? String(item.price) : "",
+    /* CatalogueItem.price is sen; the field holds what a person types.
+       `String(item.price)` put "10000" in the box for a RM100 item, and saving
+       it back stored 10000 SEN — so opening an item and pressing save without
+       touching anything repriced it from RM100 to RM1. The table beside it was
+       already formatting correctly, so the two disagreed on the same screen. */
+    price: priceToInput(item.price),
     unit: item.unit || "",
   };
   editorOpen.value = true;
@@ -85,7 +90,8 @@ const saveDraft = async () => {
   const payload = {
     name: draft.value.name.trim(),
     description: draft.value.description.trim() || null,
-    price: Number(draft.value.price) || 0,
+    /* The write boundary — "1,200.50" and "1200.5" both land as sen. */
+    price: parsePrice(draft.value.price),
     unit: draft.value.unit.trim() || null,
   };
   try {

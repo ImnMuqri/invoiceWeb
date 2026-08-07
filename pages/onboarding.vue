@@ -430,7 +430,7 @@
                         getDiscountedPrice(plan.price) < plan.price
                       "
                       class="text-xl font-semibold text-slate-400 line-through tracking-tight">
-                      {{ plan.currency }} {{ plan.price }}
+                      {{ plan.currency }} {{ price(plan.price) }}
                     </span>
                     <span
                       :class="[
@@ -441,9 +441,11 @@
                       ]">
                       {{ plan.currency }}
                       {{
-                        isPromoValid
-                          ? getDiscountedPrice(plan.price)
-                          : plan.price
+                        price(
+                          isPromoValid
+                            ? getDiscountedPrice(plan.price)
+                            : plan.price,
+                        )
                       }}
                     </span>
                     <span
@@ -587,6 +589,7 @@ import { ref, reactive, onMounted, computed } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "~/stores/authStore";
 import { useSubscribeStore } from "~/stores/subscribeStore";
+import { price } from "~/utils/invoice";
 
 definePageMeta({
   layout: "blank", // Using blank layout to hide sidebar
@@ -696,20 +699,26 @@ const clearPromo = () => {
   promoError.value = "";
 };
 
-const getDiscountedPrice = (price) => {
-  if (!price) return 0;
-  const numPrice = parseFloat(price);
-  if (isNaN(numPrice) || numPrice === 0) return numPrice;
-  if (!isPromoValid.value || !appliedDiscount.value) return numPrice;
+/**
+ * Sen in, sen out — Plan.price is sen, like every money column.
+ *
+ * The FIXED branch converts `discountValue`, which is a Float an admin typed
+ * and therefore ringgit. This has to match the backend's `applyDiscount`
+ * exactly: this function decides the number on the card, that one decides the
+ * number on the customer's statement, and the two disagreeing is the worst
+ * possible bug in a checkout.
+ */
+const getDiscountedPrice = (senPrice) => {
+  const base = Number(senPrice) || 0;
+  if (!base) return 0;
+  if (!isPromoValid.value || !appliedDiscount.value) return base;
 
   const d = appliedDiscount.value;
-  let discounted = numPrice;
-  if (d.discountType === "PERCENTAGE") {
-    discounted = numPrice - numPrice * (d.discountValue / 100);
-  } else {
-    discounted = numPrice - d.discountValue;
-  }
-  return Math.max(0, discounted);
+  const discounted =
+    d.discountType === "PERCENTAGE"
+      ? base - base * (Number(d.discountValue) / 100)
+      : base - Number(d.discountValue) * 100;
+  return Math.max(0, Math.round(discounted));
 };
 
 const appliedDiscountText = computed(() => {

@@ -122,7 +122,7 @@
                 Amount Due
               </p>
               <h1 class="text-4xl font-semibold text-slate-900 tracking-tight">
-                {{ currencySymbol }}{{ invoice.amount.toLocaleString() }}
+                {{ currencySymbol }}{{ cash(invoice.amount) }}
               </h1>
             </div>
 
@@ -154,6 +154,18 @@
               <p class="text-sm text-slate-500 mt-1">
                 {{ invoice.client?.address }}
               </p>
+              <!-- Spec 05. Only when set — a client with no identifiers gets
+                   the page exactly as it was. -->
+              <dl v-if="clientIds.length" class="mt-3 grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-xs">
+                <template v-for="id in clientIds" :key="id.label">
+                  <dt class="font-semibold text-slate-400 whitespace-nowrap">
+                    {{ id.label }}
+                  </dt>
+                  <dd class="text-slate-600 tabular-nums break-all">
+                    {{ id.value }}
+                  </dd>
+                </template>
+              </dl>
             </div>
             <div>
               <p
@@ -172,6 +184,16 @@
               <p class="text-sm text-slate-500 mt-1">
                 {{ invoice.fromAddress }}
               </p>
+              <dl v-if="senderIds.length" class="mt-3 grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-xs">
+                <template v-for="id in senderIds" :key="id.label">
+                  <dt class="font-semibold text-slate-400 whitespace-nowrap">
+                    {{ id.label }}
+                  </dt>
+                  <dd class="text-slate-600 tabular-nums break-all">
+                    {{ id.value }}
+                  </dd>
+                </template>
+              </dl>
             </div>
           </div>
 
@@ -200,14 +222,14 @@
                         {{ item.name }}<br />
                         <span class="text-slate-400 text-[11px] font-normal"
                           >Qty: {{ item.quantity }} × {{ currencySymbol
-                          }}{{ item.price.toLocaleString() }}</span
+                          }}{{ cash(item.price) }}</span
                         >
                       </div>
                     </div>
                   </td>
                   <td
                     class="py-4 text-slate-900 text-right align-top font-medium">
-                    {{ currencySymbol }}{{ item.total.toLocaleString() }}
+                    {{ currencySymbol }}{{ cash(item.total) }}
                   </td>
                 </tr>
               </tbody>
@@ -215,7 +237,7 @@
                 <tr>
                   <td class="pt-4 pb-2 text-slate-500 text-right">Subtotal</td>
                   <td class="pt-4 pb-2 text-slate-900 font-medium text-right">
-                    {{ currencySymbol }}{{ invoice.amount.toLocaleString() }}
+                    {{ currencySymbol }}{{ cash(invoice.amount) }}
                   </td>
                 </tr>
                 <tr>
@@ -229,7 +251,7 @@
                     Total Amount
                   </td>
                   <td class="pt-4 text-slate-900 font-bold text-right">
-                    {{ currencySymbol }}{{ invoice.amount.toLocaleString() }}
+                    {{ currencySymbol }}{{ cash(invoice.amount) }}
                   </td>
                 </tr>
               </tfoot>
@@ -445,6 +467,11 @@ import { ref, onMounted, computed } from "vue";
 import { useRoute } from "vue-router";
 import { useInvoiceStore } from "~/stores/invoiceStore";
 import { useSystemStore } from "~/stores/systemStore";
+/* Every amount from /pay/invoice/:id is SEN. This page was printing them raw
+   through `.toLocaleString()`, so a RM500 invoice asked the client to pay
+   "RM 50,000" — on the one page in the product that is shown to somebody who is
+   not a user and has no way to know it is wrong. */
+import { cash, documentIdentifiers } from "~/utils/invoice";
 import QRCode from "qrcode";
 
 definePageMeta({
@@ -461,6 +488,11 @@ const invoice = ref(null);
 const toast = ref({ message: "", type: "success" });
 const showManualModal = ref(false);
 const qrCodeDataUrl = ref("");
+
+/* Spec 05. Shaped by the same function the PDF uses, so this page and the
+   document a client downloads cannot disagree about which identifiers appear. */
+const senderIds = computed(() => documentIdentifiers(invoice.value).from);
+const clientIds = computed(() => documentIdentifiers(invoice.value).to);
 
 const currencySymbol = computed(() => {
   if (!invoice.value) return "$";

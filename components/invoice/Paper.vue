@@ -19,6 +19,7 @@
  */
 import { computed } from "vue";
 import { formatDate } from "~/utils/date";
+import { cash } from "~/utils/invoice";
 
 const props = defineProps({
   /** Normalised document. See `emptyDoc()` in ~/utils/invoice for the shape. */
@@ -48,15 +49,27 @@ const items = computed(() =>
   Array.isArray(d.value.items) ? d.value.items : [],
 );
 
-/* Documents get two decimal places, always. `toLocaleString()` with no options
-   drops them — the old preview rendered a 1200.50 line item as "1,200.5", which
-   on a bill is not a rounding choice, it is a typo. */
-const cash = (n) =>
-  (Number(n) || 0).toLocaleString(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+/* `cash` is imported, not defined here.
+   It used to be a local copy that formatted to two decimal places and stopped
+   there — correct when amounts were ringgit, silently wrong once they became
+   sen. A RM100 line item printed as "10,000.00" on the preview AND on the PDF
+   the client receives, because a local formatter shadowed the shared one for
+   every caller of this component at once.
+
+   Every number reaching this file is SEN. The single sen→ringgit boundary is
+   `cash` in ~/utils/invoice. Do not reintroduce a formatter here. */
 const cur = computed(() => d.value.currency || "MYR");
+
+/* Tax identifiers (spec 05). Already filtered and labelled by the normaliser
+   in ~/utils/invoice — this component only decides where they sit, which is
+   directly under the party they belong to rather than in a footer, because
+   that is where an accountant looks for them. */
+const fromIds = computed(() =>
+  Array.isArray(d.value.from?.identifiers) ? d.value.from.identifiers : [],
+);
+const toIds = computed(() =>
+  Array.isArray(d.value.to?.identifiers) ? d.value.to.identifiers : [],
+);
 const withCur = (n) => `${cash(n)} ${cur.value}`;
 
 const subtotal = computed(() =>
@@ -191,6 +204,16 @@ const toLines = computed(() => {
             <b v-if="toLines.company">{{ toLines.company }}<br /></b
             >{{ toLines.rest.join("\n") }}
           </p>
+
+          <!-- Only when present. An empty list renders nothing at all, which is
+               what keeps a document with no identifiers byte-identical to the
+               one this product produced before spec 05. -->
+          <dl v-if="!loading && toIds.length" class="doc__ids">
+            <div v-for="id in toIds" :key="id.label">
+              <dt>{{ id.label }}</dt>
+              <dd>{{ id.value }}</dd>
+            </div>
+          </dl>
         </div>
 
         <div class="doc__party">
@@ -209,6 +232,13 @@ const toLines = computed(() => {
             <b v-if="fromLines.company">{{ fromLines.company }}<br /></b
             >{{ fromLines.rest.join("\n") }}
           </p>
+
+          <dl v-if="!loading && fromIds.length" class="doc__ids">
+            <div v-for="id in fromIds" :key="id.label">
+              <dt>{{ id.label }}</dt>
+              <dd>{{ id.value }}</dd>
+            </div>
+          </dl>
         </div>
 
         <!-- The dates and the reference live side by side in the plain skin;

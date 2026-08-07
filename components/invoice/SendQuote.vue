@@ -11,6 +11,7 @@
  * serves both and the two can never disagree about what the document says.
  */
 import { computed, ref } from "vue";
+import { cash } from "~/utils/invoice";
 
 const props = defineProps({
   quoteId: { type: [Number, String], required: true },
@@ -63,7 +64,10 @@ const download = async () => {
    this long is truncated by several clients and mangled by others. */
 const message = computed(() => {
   const who = props.client?.name ? props.client.name.split(/\s+/)[0] : "there";
-  const sum = `${props.currency} ${Number(props.amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  /* `amount` is sen — it comes straight from `totals()`. Formatting it without
+     converting quoted the client a hundred times the price, in a message the
+     user copies and sends without re-reading. */
+  const sum = `${props.currency} ${cash(props.amount)}`;
   const holds = props.validUntil
     ? ` The price holds until ${props.validUntil}.`
     : "";

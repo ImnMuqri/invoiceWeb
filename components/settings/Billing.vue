@@ -27,6 +27,7 @@
  * the disabled reason is a sentence rather than an inference.
  */
 import { computed } from "vue";
+import { price, toSen } from "~/utils/invoice";
 
 const props = defineProps({
   plans: { type: Array, default: () => [] },
@@ -60,23 +61,32 @@ const renews = computed(() => {
   });
 });
 
-const discounted = (price) => {
-  const n = parseFloat(price);
+/**
+ * Both arguments and the result are SEN, matching Plan.price.
+ *
+ * The FIXED branch is the one place the two units genuinely meet: PromoCode
+ * .discountValue is a Float an admin typed, and nobody types "500" meaning
+ * RM5 off. It is read as ringgit and converted, the same reading the backend's
+ * `applyDiscount` uses when it charges the card — the two must agree, or the
+ * card is charged something other than the price on the card.
+ */
+const discounted = (senPrice) => {
+  const n = Number(senPrice);
   if (!Number.isFinite(n) || n === 0) return n || 0;
   const d = props.promo.applied;
   if (!props.promo.valid || !d) return n;
   const off =
-    d.discountType === "PERCENTAGE" ? n * (Number(d.discountValue) / 100) : Number(d.discountValue);
-  return Math.max(0, n - (Number.isFinite(off) ? off : 0));
+    d.discountType === "PERCENTAGE"
+      ? n * (Number(d.discountValue) / 100)
+      : toSen(d.discountValue);
+  return Math.max(0, Math.round(n - (Number.isFinite(off) ? off : 0)));
 };
 
-const cheaper = (price) => discounted(price) < parseFloat(price || 0);
+const cheaper = (senPrice) => discounted(senPrice) < (Number(senPrice) || 0);
 
-const money = (n) =>
-  Number(n || 0).toLocaleString(undefined, {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  });
+/* `money` here is the shared sen formatter — a local one used to shadow it and
+   print Plan.price raw, so the PRO card offered the plan at "MYR 2,900". */
+const money = price;
 
 /**
  * One place deciding what the button on a plan card says and does.

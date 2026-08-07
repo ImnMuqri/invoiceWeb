@@ -1,11 +1,18 @@
 <script setup lang="ts">
 import type { Locale, LandingCopy } from '~/composables/useLandingCopy'
-import { localePath } from '~/composables/useLandingCopy'
+import { localePath, scopeCheckerPath } from '~/composables/useLandingCopy'
 
 const props = defineProps<{ copy: LandingCopy; locale: Locale }>()
 
 const year = new Date().getFullYear()
 const otherLocale = computed<Locale>(() => (props.locale === 'ms' ? 'en' : 'ms'))
+
+/* Section links are absolute, not bare "#pricing". On the landing page itself
+   "/#pricing" is still a same-document jump, and everywhere else the footer is
+   reused — the legal documents, the e-Invoice checker — it becomes a real
+   navigation instead of a link to a section that is not on the page. */
+const home = computed(() => localePath(props.locale))
+const checker = computed(() => scopeCheckerPath(props.locale))
 </script>
 
 <template>
@@ -27,10 +34,11 @@ const otherLocale = computed<Locale>(() => (props.locale === 'ms' ? 'en' : 'ms')
           <div class="foot__col">
             <h2 class="foot__h">{{ copy.footer.product }}</h2>
             <ul>
-              <li><a href="#how">{{ copy.footer.links.how }}</a></li>
-              <li><a href="#payments">{{ copy.footer.links.payments }}</a></li>
-              <li><a href="#pricing">{{ copy.footer.links.pricing }}</a></li>
-              <li><a href="#faq">{{ copy.footer.links.faq }}</a></li>
+              <li><a :href="`${home}#how`">{{ copy.footer.links.how }}</a></li>
+              <li><a :href="`${home}#payments`">{{ copy.footer.links.payments }}</a></li>
+              <li><a :href="`${home}#pricing`">{{ copy.footer.links.pricing }}</a></li>
+              <li><a :href="`${home}#faq`">{{ copy.footer.links.faq }}</a></li>
+              <li><a :href="checker">{{ copy.footer.links.einvoice }}</a></li>
             </ul>
           </div>
           <div class="foot__col">

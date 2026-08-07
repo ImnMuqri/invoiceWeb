@@ -33,6 +33,7 @@ import { useAuthStore } from "~/stores/authStore";
 import { useUiStore } from "~/stores/uiStore";
 import { useReferralStore } from "~/stores/referralStore";
 import { useSystemStore } from "~/stores/systemStore";
+import { fromSen, money } from "~/utils/invoice";
 import confetti from "canvas-confetti";
 
 const route = useRoute();
@@ -42,6 +43,7 @@ const authStore = useAuthStore();
 const uiStore = useUiStore();
 const referralStore = useReferralStore();
 const systemStore = useSystemStore();
+const { $api } = useNuxtApp();
 const toast = ref({ message: "", type: "success" });
 
 const forecastRange = ref(30);
@@ -105,6 +107,7 @@ watch(profitabilityFilter, (v) => fetchCoreData({ rank: v }));
 onMounted(() => {
   setGreeting();
   fetchCoreData({ rank: profitabilityFilter.value });
+  fetchUsage();
   fetchForecastData();
   referralStore.fetchStats();
 
@@ -127,11 +130,12 @@ onMounted(() => {
 /* ── derived ───────────────────────────────────────────────────────────── */
 const currency = computed(() => dashboardStore.stats?.currency || "MYR");
 
-const money = (n) =>
-  (Number(n) || 0).toLocaleString(undefined, {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  });
+/* `money` is imported from ~/utils/invoice, not defined here.
+   The local copy that used to live on this line formatted the number without
+   converting it, so every figure on the dashboard — outstanding, revenue, each
+   invoice, each client total — was shown a hundred times too large: RM300 owed
+   read as "30,000". It shadowed the correct import silently, which is why it
+   survived. Everything from the API is SEN; `money` is the boundary. */
 
 const firstName = computed(() => {
   const n = authStore.user?.name || authStore.user?.profile?.name || "";
@@ -183,25 +187,60 @@ const statusChip = (inv) => {
 
 const rankedClients = computed(() => [...(dashboardStore.topClients || [])]);
 
+/* The chart is the sen boundary for the cashflow endpoint.
+   UiChart is a generic plotter: it draws whatever numbers it is handed and
+   labels its own axis, so it cannot know the unit. Handing it sen put the y
+   axis and every tooltip out by a factor of a hundred. Converted here, once,
+   rather than teaching a chart component about currency. */
 const chartData = computed(() => {
   const history = dashboardStore.cashflow?.history || [];
   const forecast = dashboardStore.cashflow?.forecast || [];
   return [...history, ...forecast]
     .map((i) => ({
       date: i.date,
-      amount: i.amount || 0,
-      details: Array.isArray(i.details) ? i.details : [],
+      amount: fromSen(i.amount),
+      details: (Array.isArray(i.details) ? i.details : []).map((d) => ({
+        ...d,
+        amount: fromSen(d.amount),
+      })),
     }))
     .sort((a, b) => new Date(a.date) - new Date(b.date));
 });
 
-/* Usage meters. Defensive: the plan record's field names vary. */
+/* Chased-invoice usage (spec 01). Fetched separately from the dashboard payload
+   because it is period-scoped and the dashboard's own figures are not. */
+const usage = ref(null);
+const downgradeDismissed = ref(false);
+const fetchUsage = async () => {
+  try {
+    const { data } = await $api.get("/usage");
+    usage.value = data;
+  } catch {
+    usage.value = null;
+  }
+};
+
+/* Usage meters. Defensive: the plan record's field names vary.
+
+   Chased invoices leads, because it is the only metered unit — invoice
+   creation, email and AI cost nothing to serve and are unlimited on paid plans.
+   Showing a full "Invoices 3/100" bar next to it would put the reader's eye on
+   the number that never runs out. */
 const meters = computed(() => {
   const u = dashboardStore.quotaUsage || {};
   const l = dashboardStore.usageLimits || {};
+  const c = usage.value;
   return [
+    ...(c
+      ? [
+          {
+            label: "Chased invoices",
+            used: c.chasedInvoicesUsed,
+            limit: c.chasedInvoicesAllowance + c.topUpRemaining + c.trialRemaining,
+          },
+        ]
+      : []),
     { label: "Invoices", used: u.invoicesUsed, limit: l.invoices },
-    { label: "WhatsApp", used: u.waSendsUsed, limit: l.waSends },
     { label: "Email", used: u.emailSendsUsed, limit: l.emailSends },
     { label: "AI drafts", used: u.aiUsed, limit: l.ai ?? l.aiCredits },
   ].map((r) => {
@@ -256,6 +295,31 @@ const meters = computed(() => {
     <div v-if="systemStore.globalNotice" class="banner" role="status">
       <UiIcon icon="heroicons:megaphone" custom-class="w-5 h-5" />
       <span>{{ systemStore.globalNotice }}</span>
+    </div>
+
+    <!-- ── WhatsApp allowance spent ─────────────────────────────────────────
+         Reminders are still going out, by email. Says so plainly, because the
+         alternative reading — that chasing has stopped — is the one that makes
+         someone switch the chaser off entirely. -->
+    <div
+      v-if="usage && usage.downgrades > 0 && !downgradeDismissed"
+      class="banner banner--warn"
+      role="status">
+      <UiIcon icon="heroicons:exclamation-triangle" custom-class="w-5 h-5" />
+      <span>
+        Your WhatsApp allowance is used up. Reminders are still going out — by
+        email — until it resets{{ usage.daysUntilReset ? ` in ${usage.daysUntilReset} days` : "" }}.
+      </span>
+      <NuxtLink to="/settings?tab=billing" class="desk-btn desk-btn--ghost desk-btn--sm">
+        Top up
+      </NuxtLink>
+      <button
+        type="button"
+        class="iact"
+        aria-label="Dismiss"
+        @click="downgradeDismissed = true">
+        <UiIcon icon="heroicons:x-mark" custom-class="w-4 h-4" />
+      </button>
     </div>
 
     <!-- ── The money line ───────────────────────────────────────────────── -->
@@ -500,8 +564,23 @@ const meters = computed(() => {
     <!-- ── Account admin, deliberately last ─────────────────────────────── -->
     <section class="usage" aria-labelledby="usage">
       <div class="card__head" style="margin-bottom: 0">
-        <h2 id="usage" class="card__title">This month's allowance</h2>
-        <NuxtLink to="/settings" class="card__link">Settings &rarr;</NuxtLink>
+        <div>
+          <h2 id="usage" class="card__title">This month's allowance</h2>
+          <p v-if="usage" class="money__note">
+            Resets in {{ usage.daysUntilReset }}
+            {{ usage.daysUntilReset === 1 ? "day" : "days" }}.
+            <template v-if="usage.topUpRemaining">
+              {{ usage.topUpRemaining }} from top-ups still available.
+            </template>
+            <template v-else-if="usage.trialRemaining">
+              {{ usage.trialRemaining }} free trial
+              {{ usage.trialRemaining === 1 ? "chase" : "chases" }} left.
+            </template>
+          </p>
+        </div>
+        <NuxtLink to="/settings?tab=billing" class="card__link">
+          Top up &rarr;
+        </NuxtLink>
       </div>
       <div class="usage__grid">
         <div v-for="m in meters" :key="m.label">

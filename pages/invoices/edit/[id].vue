@@ -42,6 +42,7 @@ import {
   dueInWords,
   isSettled,
   parsePrice,
+  priceToInput,
   totals,
 } from "~/utils/invoice";
 
@@ -68,6 +69,18 @@ const currencyOptions = ref([]);
 const original = ref(null);
 /** True when the loaded invoice had no line items and one was reconstructed. */
 const recoveredAmount = ref(false);
+/* Bumped whenever a payment, credit note or void lands, so the panel refetches
+   and the page's own figures follow. */
+const moneyKey = ref(0);
+const reloadMoney = async () => {
+  moneyKey.value += 1;
+  try {
+    original.value = await invoiceStore.fetchInvoiceById(invoiceId);
+    form.value.status = original.value?.status || form.value.status;
+  } catch {
+    /* The panel has already reported the failure. */
+  }
+};
 
 const form = ref({
   clientId: "",
@@ -158,11 +171,26 @@ onMounted(async () => {
         companyAddress:
           data.fromAddress || (cfg.invoiceIncludeAddress ? u?.address : "") || "",
         phone: data.fromPhone || phoneFallback(),
+        /* The FROZEN values off the row, with no fallback to the live profile
+           — unlike every field above it. Those fall back because a blank one
+           is a gap worth filling; these do not, because a blank one is a
+           statement that this invoice was issued without them. Falling back
+           here would show the user identifiers that are not on the document
+           their client is holding. */
+        identifiers:
+          data.showTaxIdentifiers === false
+            ? null
+            : {
+                registrationNumber: data.fromRegistrationNumber,
+                tin: data.fromTin,
+                msicCode: data.fromMsicCode,
+                sstNumber: data.fromSstNumber,
+              },
       },
       lineItems: (data.items || []).map((i) => ({
         name: i.name,
         priceNum: Number(i.price) || 0,
-        priceStr: String(Number(i.price) || 0),
+        priceStr: priceToInput(i.price),
         qty: Number(i.quantity) || 1,
       })),
       showManualClient: false,
@@ -182,7 +210,7 @@ onMounted(async () => {
         {
           name: data.invoiceName || data.subject || "Agreed amount",
           priceNum: stored,
-          priceStr: String(stored),
+          priceStr: priceToInput(stored),
           qty: 1,
         },
       ];
@@ -225,6 +253,9 @@ const doc = computed(() =>
     client: selectedClient.value,
     paid: paidSoFar.value,
     logo: authStore.user?.profile?.logoUrl || null,
+    /* Taken from the invoice, which is the same flag the document renders
+       under — so the preview cannot show a client's TIN that the PDF omits. */
+    showClientIdentifiers: original.value?.showClientIdentifiers !== false,
   }),
 );
 
@@ -542,6 +573,13 @@ const save = async () => {
             </p>
           </div>
         </div>
+
+        <InvoicePaymentHistory
+          v-if="!loading && original"
+          :invoice-id="invoiceId"
+          :refresh-key="moneyKey"
+          @changed="reloadMoney"
+          @notify="toast = $event" />
 
         <InvoiceDeliver
           :invoice-id="invoiceId"

@@ -2,7 +2,17 @@
 import type { Locale, LandingCopy } from '~/composables/useLandingCopy'
 import { localePath } from '~/composables/useLandingCopy'
 
-const props = defineProps<{ copy: LandingCopy; locale: Locale }>()
+/**
+ * `sectionBase` prefixes the section links. Empty on the landing page itself,
+ * where "#pricing" is a jump. Anywhere else the nav is reused — the legal
+ * documents, the e-Invoice checker — a bare "#pricing" is a link to a section
+ * that is not on the page, so those pass the locale home and the link becomes
+ * a real navigation.
+ */
+const props = withDefaults(
+  defineProps<{ copy: LandingCopy; locale: Locale; sectionBase?: string }>(),
+  { sectionBase: '' }
+)
 
 const scrolled = ref(false)
 const menuOpen = ref(false)
@@ -47,7 +57,7 @@ function closeMenu() {
       </a>
 
       <nav class="nav__links" aria-label="Sections">
-        <a v-for="l in copy.nav.links" :key="l.id" :href="`#${l.id}`" class="nav__link">
+        <a v-for="l in copy.nav.links" :key="l.id" :href="`${sectionBase}#${l.id}`" class="nav__link">
           {{ l.label }}
         </a>
       </nav>
@@ -103,7 +113,7 @@ function closeMenu() {
           <a
             v-for="l in copy.nav.links"
             :key="l.id"
-            :href="`#${l.id}`"
+            :href="`${sectionBase}#${l.id}`"
             class="sheet__link"
             @click="closeMenu">
             {{ l.label }}

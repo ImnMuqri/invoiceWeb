@@ -14,7 +14,13 @@ import { useClientStore } from "~/stores/clientStore";
 import { useAuthStore } from "~/stores/authStore";
 import { useUiStore } from "~/stores/uiStore";
 import { toInputDate } from "~/utils/date";
-import { cash, currencySymbol, docFromForm, totals } from "~/utils/invoice";
+import {
+  cash,
+  currencySymbol,
+  docFromForm,
+  priceToInput,
+  totals,
+} from "~/utils/invoice";
 
 const route = useRoute();
 const router = useRouter();
@@ -107,11 +113,22 @@ onMounted(async () => {
         companyAddress:
           data.fromAddress || (cfg.invoiceIncludeAddress ? u?.address : "") || "",
         phone: data.fromPhone || "",
+        /* Frozen at issue, no fallback to the live profile — see the same
+           block in the invoice editor for why. */
+        identifiers:
+          data.showTaxIdentifiers === false
+            ? null
+            : {
+                registrationNumber: data.fromRegistrationNumber,
+                tin: data.fromTin,
+                msicCode: data.fromMsicCode,
+                sstNumber: data.fromSstNumber,
+              },
       },
       lineItems: (data.items || []).map((i) => ({
         name: i.name,
         priceNum: Number(i.price) || 0,
-        priceStr: String(Number(i.price) || 0),
+        priceStr: priceToInput(i.price),
         qty: Number(i.quantity) || 1,
       })),
       showManualClient: false,
@@ -139,6 +156,7 @@ const doc = computed(() =>
   docFromForm(form.value, {
     client: selectedClient.value,
     logo: authStore.user?.profile?.logoUrl || null,
+    showClientIdentifiers: original.value?.showClientIdentifiers !== false,
   }),
 );
 

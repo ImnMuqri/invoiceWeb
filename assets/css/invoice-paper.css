@@ -290,6 +290,44 @@
   font-weight: var(--weight-semibold);
   color: var(--doc-ink-2);
 }
+/* ─── Tax identifiers (spec 05) ──────────────────────────────────────────────
+   Under the party they belong to, in a label/value grid rather than another
+   run of prose. An accountant scans for "TIN" down a left edge; buried in the
+   address block it reads as one more line of the address.
+
+   Quieter than the address on purpose. These are reference numbers somebody
+   looks up when they need them, not something the reader is meant to take in
+   — so they sit a step down in both size and contrast, and the label carries
+   the tabular alignment rather than a heavier weight.
+
+   A <dl> because that is exactly what this is: terms and their definitions.
+   The grid keeps the values on one left edge no matter how long the labels
+   get, which is what makes the column scannable at all. */
+.doc__ids {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.15em 0.7em;
+  margin-top: 0.7em;
+  font-size: 0.82em;
+  line-height: 1.5;
+}
+.doc__ids > div {
+  display: contents;
+}
+.doc__ids dt {
+  font-weight: var(--weight-semibold);
+  color: var(--doc-ink-3);
+  white-space: nowrap;
+}
+.doc__ids dd {
+  margin: 0;
+  color: var(--doc-ink-2);
+  font-variant-numeric: tabular-nums;
+  /* Registration numbers are long and unbreakable; without this one pushes the
+     Bill To column wider than its half of the page. */
+  overflow-wrap: anywhere;
+}
+
 .doc__kv {
   display: flex;
   align-items: baseline;

@@ -549,6 +549,21 @@ html.dark .desk-btn--primary {
   font-weight: var(--weight-semibold);
   text-decoration: none;
 }
+
+/* A banner that is a warning rather than an announcement. The default .banner is
+   accent-coloured, which reads as good news — wrong for "your allowance is gone
+   and reminders have changed channel". Uses the warn triplet added for the
+   toast, so it has a real pair in both themes. */
+.banner--warn {
+  border-color: var(--desk-warn-line);
+  background-color: var(--desk-warn-surface);
+  color: var(--desk-warn);
+}
+/* The dismiss control must not inherit the banner's semibold accent colour. */
+.banner--warn .iact {
+  color: inherit;
+  margin-left: auto;
+}
 .banner--late {
   border-color: var(--desk-late-line);
   background-color: var(--desk-late-surface);

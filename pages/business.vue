@@ -92,6 +92,14 @@ const profileForm = ref({
   globalAutoChaser: true,
   invoicePrefix: "INV",
   quotePrefix: "QUO",
+  /* Spec 05. All optional — an account that leaves every one of these blank
+     looks exactly as it did before they existed. */
+  registrationNumber: "",
+  tin: "",
+  msicCode: "",
+  sstNumber: "",
+  invoiceIncludeTaxIdentifiers: true,
+  invoiceIncludeClientIdentifiers: true,
 });
 
 const settingsForm = ref({
@@ -117,6 +125,41 @@ const isDirty = computed(() => {
 
 const currencyOptions = ref([]);
 const saving = ref(false);
+
+/* ─── Tax identity (spec 05) ────────────────────────────────────────────────
+   "Collect quietly, do not interrupt." One prompt, on this page only, and
+   never again once dismissed — not on the dashboard, not during onboarding,
+   and not after the user has said no. */
+const msicOpen = ref(false);
+const promptDismissed = ref(true);
+const identifiersMissing = ref(false);
+
+const showTaxPrompt = computed(
+  () =>
+    tab.value.id === "details" &&
+    identifiersMissing.value &&
+    !promptDismissed.value,
+);
+
+/* Dismissal is written immediately rather than waiting for Save. Somebody who
+   closes a prompt and navigates away has still dismissed it, and having it
+   reappear because they did not press a button they had no reason to press
+   would be exactly the nagging the spec rules out. */
+const dismissTaxPrompt = async () => {
+  promptDismissed.value = true;
+  try {
+    await authStore.updateSettings({ taxPromptDismissed: true });
+  } catch {
+    /* Silent on purpose. The worst case is that it returns next visit, and a
+       failed dismissal is not worth an error toast. */
+  }
+};
+
+/* The picker writes into the same field the user can type into, so a chosen
+   code and a hand-typed one are the same value taking the same path to save. */
+const pickMsic = (code) => {
+  profileForm.value.msicCode = code;
+};
 
 const fetchCurrencies = async () => {
   try {
@@ -156,8 +199,21 @@ onMounted(async () => {
       globalAutoChaser: authStore.isPro ? !!s.globalAutoChaser : false,
       invoicePrefix: s.invoicePrefix || "INV",
       quotePrefix: s.quotePrefix || "QUO",
+      registrationNumber: s.registrationNumber || "",
+      tin: s.tin || "",
+      msicCode: s.msicCode || "",
+      sstNumber: s.sstNumber || "",
+      invoiceIncludeTaxIdentifiers: s.invoiceIncludeTaxIdentifiers !== false,
+      invoiceIncludeClientIdentifiers: s.invoiceIncludeClientIdentifiers !== false,
     };
   }
+
+  /* The prompt is server-state, not a local flag: dismissing it on a laptop has
+     to dismiss it on a phone, because it is the same person who already said
+     no. `taxIdentifiersMissing` is computed by the API so the prompt and the
+     export cannot disagree about what "missing" means. */
+  promptDismissed.value = !!s.taxPromptDismissed;
+  identifiersMissing.value = !!s.taxIdentifiersMissing;
 
   settingsForm.value = {
     whatsappSendTemplate: s.whatsappSendTemplate || "",
@@ -288,8 +344,11 @@ const removeLogo = async () => {
             :currencies="currencyOptions"
             :logo-url="authStore.user?.profile?.logoUrl || ''"
             :uploading-logo="uploadingLogo"
+            :show-prompt="showTaxPrompt"
             @upload-logo="uploadLogo"
-            @remove-logo="confirmLogoRemoval = true" />
+            @remove-logo="confirmLogoRemoval = true"
+            @find-msic="msicOpen = true"
+            @dismiss-prompt="dismissTaxPrompt" />
 
           <BusinessDocuments
             v-else-if="activeTab === 'documents'"
@@ -332,6 +391,11 @@ const removeLogo = async () => {
         </div>
       </div>
     </div>
+
+    <BusinessMsicPicker
+      v-model="msicOpen"
+      :selected="profileForm.msicCode"
+      @pick="pickMsic" />
 
     <UiModal v-model="confirmLogoRemoval" max-width="sm">
       <div class="dlg">

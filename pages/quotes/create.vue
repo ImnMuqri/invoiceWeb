@@ -35,6 +35,7 @@ const saving = ref(false);
 const savedId = ref(null);
 const usedAi = ref(false);
 const currencyOptions = ref([]);
+const invoiceConfig = ref(null);
 
 /* Thirty days. Quotes are held open longer than invoices are given to be paid,
    and a price you offered three months ago is not a price you still mean. */
@@ -89,6 +90,7 @@ onMounted(async () => {
 
   const u = authStore.user;
   const cfg = (await authStore.fetchInvoiceConfig()) || {};
+  invoiceConfig.value = cfg;
   if (u) {
     const phones = [];
     if (cfg.invoiceIncludeCompanyPhone && u.companyPhone) phones.push(u.companyPhone);
@@ -99,6 +101,9 @@ onMounted(async () => {
       companyEmail: cfg.invoiceIncludeEmail ? u.companyEmail || u.email || "" : "",
       companyAddress: cfg.invoiceIncludeAddress ? u.address || "" : "",
       phone: phones.join(" / "),
+      /* Spec 05. A quotation carries them too — the client keeps it, and the
+         invoice that follows must say the same thing. */
+      identifiers: cfg.invoiceIncludeTaxIdentifiers === false ? null : cfg,
     };
     if (Number(cfg.defaultTaxRate) > 0) form.value.taxRate = Number(cfg.defaultTaxRate);
   }
@@ -114,6 +119,8 @@ const doc = computed(() =>
   docFromForm(form.value, {
     client: selectedClient.value,
     logo: authStore.user?.profile?.logoUrl || null,
+    showClientIdentifiers:
+      invoiceConfig.value?.invoiceIncludeClientIdentifiers !== false,
   }),
 );
 

@@ -125,6 +125,15 @@
             Invoices
           </NuxtLink>
           <NuxtLink
+            to="/recurring/"
+            class="nav-link flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
+            active-class="nav-link--active">
+            <UiIcon
+              icon="heroicons:arrow-path-rounded-square"
+              class="w-[18px] h-[18px] mr-3 opacity-70" />
+            Recurring
+          </NuxtLink>
+          <NuxtLink
             to="/clients/"
             class="nav-link flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
             active-class="nav-link--active">
@@ -141,6 +150,15 @@
               icon="heroicons:squares-2x2"
               class="w-[18px] h-[18px] mr-3 opacity-70" />
             Catalogue
+          </NuxtLink>
+          <NuxtLink
+            to="/exports/"
+            class="nav-link flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
+            active-class="nav-link--active">
+            <UiIcon
+              icon="heroicons:arrow-down-tray"
+              class="w-[18px] h-[18px] mr-3 opacity-70" />
+            Export
           </NuxtLink>
           <!-- SYSTEM -->
           <div class="pt-6 pb-2 px-4">
@@ -640,6 +658,16 @@
                       Invoices
                     </NuxtLink>
                     <NuxtLink
+                      to="/recurring/"
+                      @click="isMobileMenuOpen = false"
+                      class="flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
+                      active-class="bg-[#ebebec] text-slate-900">
+                      <UiIcon
+                        icon="heroicons:arrow-path-rounded-square"
+                        class="w-[18px] h-[18px] mr-3 opacity-70" />
+                      Recurring
+                    </NuxtLink>
+                    <NuxtLink
                       to="/clients/"
                       @click="isMobileMenuOpen = false"
                       class="flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
@@ -658,6 +686,16 @@
                         icon="heroicons:squares-2x2"
                         class="w-[18px] h-[18px] mr-3 opacity-70" />
                       Catalogue
+                    </NuxtLink>
+                    <NuxtLink
+                      to="/exports/"
+                      @click="isMobileMenuOpen = false"
+                      class="flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
+                      active-class="bg-[#ebebec] text-slate-900">
+                      <UiIcon
+                        icon="heroicons:arrow-down-tray"
+                        class="w-[18px] h-[18px] mr-3 opacity-70" />
+                      Export
                     </NuxtLink>
 
                     <div class="pt-6 pb-2 px-4">
@@ -758,30 +796,32 @@
     </div>
 
     <!-- Logout Confirmation Modal -->
-    <UiModal v-model="isLogoutModalOpen" maxWidth="sm">
-      <div class="p-6">
-        <div
-          class="flex items-center justify-center w-12 h-12 mx-auto bg-slate-100 rounded-full mb-4">
-          <UiIcon
-            icon="heroicons:arrow-right-on-rectangle"
-            class="w-6 h-6 text-slate-600" />
-        </div>
-        <div class="text-center">
-          <h3 class="text-lg font-semibold text-slate-900">Sign Out?</h3>
-          <p class="mt-2 text-sm text-slate-500 font-medium">
-            Are you sure you want to sign out of your account?
-          </p>
-        </div>
-        <div class="mt-6 flex flex-col gap-3">
+    <UiModal v-model="isLogoutModalOpen" max-width="sm">
+      <div class="dlg">
+        <h3 class="dlg__title">Sign out?</h3>
+        <p class="dlg__body">
+          You will be signed out on this device. Nothing is deleted — your
+          invoices, clients and settings will be exactly as you left them when
+          you sign back in.
+        </p>
+        <div class="dlg__acts">
           <button
-            @click="authStore.logout()"
-            class="w-full inline-flex justify-center items-center rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 transition-colors">
-            Yes, Sign Out
+            type="button"
+            class="desk-btn desk-btn--ghost"
+            :disabled="signingOut"
+            @click="isLogoutModalOpen = false">
+            Stay signed in
           </button>
           <button
-            @click="isLogoutModalOpen = false"
-            class="w-full inline-flex justify-center rounded-lg bg-white px-4 py-2.5 text-sm font-semibold text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50 transition-colors">
-            Cancel
+            type="button"
+            class="desk-btn desk-btn--primary"
+            :disabled="signingOut"
+            @click="signOut">
+            <UiIcon
+              v-if="signingOut"
+              icon="heroicons:arrow-path"
+              custom-class="w-4 h-4 spin" />
+            {{ signingOut ? "Signing out…" : "Sign out" }}
           </button>
         </div>
       </div>
@@ -870,6 +910,21 @@ onUnmounted(() => panelRO?.disconnect());
 const themeStore = useThemeStore();
 const isMobileMenuOpen = ref(false);
 const isLogoutModalOpen = ref(false);
+const signingOut = ref(false);
+
+/* authStore.logout() awaits a network call before clearing anything, so without
+   a busy state the dialog just sits there on a slow connection and invites a
+   second click. It ends in a hard location change, so the flag is not reset on
+   the happy path — only if the call throws and we are still here. */
+const signOut = async () => {
+  if (signingOut.value) return;
+  signingOut.value = true;
+  try {
+    await authStore.logout();
+  } catch {
+    signingOut.value = false;
+  }
+};
 
 onMounted(async () => {
   themeStore.initTheme();

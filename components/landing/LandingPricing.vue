@@ -14,6 +14,7 @@
  * See the comment there.
  */
 import type { LandingCopy } from '~/composables/useLandingCopy'
+import { price } from '~/utils/invoice'
 
 const props = defineProps<{ copy: LandingCopy }>()
 
@@ -21,6 +22,7 @@ interface Plan {
   id: number
   name: string
   description: string | null
+  /** SEN, as Plan.price is stored. Never render it without `price()`. */
   price: number
   currency: string
   interval: string
@@ -82,7 +84,9 @@ const CURRENCY_SYMBOL: Record<string, string> = { MYR: 'RM' }
 function priceLabel(plan: Plan) {
   if (plan.price === 0) return props.copy.pricing.free
   const symbol = CURRENCY_SYMBOL[plan.currency] ?? plan.currency
-  return `${symbol} ${plan.price}`
+  /* `price()` is the sen boundary. Interpolating plan.price directly put
+     "RM 2900" on the public pricing page — the first number a visitor sees. */
+  return `${symbol} ${price(plan.price)}`
 }
 </script>
 

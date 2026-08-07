@@ -157,6 +157,11 @@ const blank = () => ({
   address: "",
   autoChaser: false,
   autoEmailChaser: false,
+  /* Spec 05. Optional, like the business ones — a client with none of these
+     set produces exactly the document it produced before. */
+  registrationNumber: "",
+  tin: "",
+  isIndividual: false,
 });
 
 const form = ref(blank());
@@ -179,6 +184,9 @@ const openEdit = (client) => {
     address: client.address || "",
     autoChaser: !!client.autoChaser,
     autoEmailChaser: !!client.autoEmailChaser,
+    registrationNumber: client.registrationNumber || "",
+    tin: client.tin || "",
+    isIndividual: !!client.isIndividual,
   };
   showForm.value = true;
 };
@@ -617,6 +625,61 @@ const initial = (name) => String(name || "?").trim().charAt(0) || "?";
             rows="2"
             class="inp no-ik"
             placeholder="Optional — prints on the invoice"></textarea>
+        </div>
+
+        <!-- ── Tax identity (spec 05) ───────────────────────────────────────
+             The individual flag comes first because it decides whether the two
+             fields under it are worth asking for at all. -->
+        <div class="f">
+          <label class="tog" for="c-individual">
+            <input
+              id="c-individual"
+              v-model="form.isIndividual"
+              type="checkbox"
+              class="tog__inp" />
+            <span class="tog__mark" aria-hidden="true"></span>
+            <span>
+              <span class="tog__title">This is a person, not a business</span>
+              <span class="tog__note">
+                Individuals do not have a company registration number, so there
+                is no point asking you for one.
+              </span>
+            </span>
+          </label>
+        </div>
+
+        <div v-if="!form.isIndividual" class="fgrid">
+          <div class="f" style="margin: 0">
+            <label class="f__label" for="c-ssm">Registration number</label>
+            <input
+              id="c-ssm"
+              v-model="form.registrationNumber"
+              type="text"
+              class="inp no-ik"
+              placeholder="Optional" />
+          </div>
+          <div class="f" style="margin: 0">
+            <label class="f__label" for="c-tin">TIN</label>
+            <input
+              id="c-tin"
+              v-model="form.tin"
+              type="text"
+              class="inp no-ik"
+              placeholder="Optional" />
+          </div>
+        </div>
+        <div v-else class="f">
+          <label class="f__label" for="c-tin-individual">TIN</label>
+          <input
+            id="c-tin-individual"
+            v-model="form.tin"
+            type="text"
+            class="inp no-ik"
+            placeholder="Optional" />
+          <p class="f__hint">
+            Individuals have one too. Only fill it in if they have asked you to
+            put it on their invoices.
+          </p>
         </div>
 
         <div class="f">

@@ -15,6 +15,7 @@
  * on the scale.
  */
 import { computed } from "vue";
+import { price } from "~/utils/invoice";
 
 const props = defineProps({
   analytics: { type: Object, default: null },
@@ -47,6 +48,9 @@ const yearOptions = computed(() => {
   return out;
 });
 
+/* `n` counts things — invoices, sends, credits. It must NOT touch money.
+   `price` is the sen boundary, and the two are deliberately separate: the price
+   column used to go through `n` and read "MYR 2,900/month" for a RM29 plan. */
 const n = (v) => Number(v || 0).toLocaleString();
 const summary = computed(() => props.analytics?.summary || null);
 
@@ -75,7 +79,7 @@ const isLocked = (plan) => LOCKED.includes(String(plan?.name ?? "").toUpperCase(
       <div v-else class="metrics">
         <div class="metric">
           <p class="desk__eyebrow">Revenue, lifetime</p>
-          <p class="metric__v">MYR {{ n(summary.revenue?.lifetime) }}</p>
+          <p class="metric__v">MYR {{ price(summary.revenue?.lifetime) }}</p>
           <p class="metric__n">Everything ever collected</p>
         </div>
 
@@ -209,7 +213,7 @@ const isLocked = (plan) => LOCKED.includes(String(plan?.name ?? "").toUpperCase(
                   <span class="cel__sub">{{ p.description || "No description" }}</span>
                 </div>
               </td>
-              <td class="num">{{ p.currency }} {{ n(p.price) }}/{{ p.interval }}</td>
+              <td class="num">{{ p.currency }} {{ price(p.price) }}/{{ p.interval }}</td>
               <td class="num">{{ cap(p.invoices) }}</td>
               <td class="num">{{ cap(p.aiCredits) }}</td>
               <td>

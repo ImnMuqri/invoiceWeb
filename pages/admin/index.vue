@@ -25,6 +25,7 @@ import { useAdminStore } from "~/stores/adminStore";
 import { usePromoStore } from "~/stores/promoStore";
 import { useSystemStore } from "~/stores/systemStore";
 import { toInputDate } from "~/utils/date";
+import { fromSen, toSen } from "~/utils/invoice";
 
 definePageMeta({ layout: "default", middleware: "admin" });
 
@@ -182,6 +183,11 @@ const openEditPlan = (plan) => {
   planForm.value = {
     ...blankPlan(),
     ...plan,
+    /* Plan.price is sen; the field is ringgit, because "29" is what a price is
+       called. Opening PRO used to put 2900 in the box, and saving it back wrote
+       2900 SEN — so one open-and-save of the plan editor silently repriced PRO
+       from RM29 to RM0.29. Converted here and in savePlan, nowhere else. */
+    price: fromSen(plan.price),
     features: Array.isArray(plan.features) ? [...plan.features] : [],
   };
   planModal.value = true;
@@ -194,7 +200,8 @@ const savePlan = async () => {
   const payload = {
     name: f.name,
     description: f.description,
-    price: f.price,
+    /* Ringgit in the field, sen in the column. See openEditPlan. */
+    price: toSen(f.price),
     currency: f.currency,
     interval: f.interval,
     waSends: f.waSends,

@@ -25,6 +25,7 @@
  */
 import { computed, onMounted, reactive, ref } from "vue";
 import { useInvoiceStore } from "~/stores/invoiceStore";
+import { usePaymentStore } from "~/stores/paymentStore";
 import { useAuthStore } from "~/stores/authStore";
 import { useUiStore } from "~/stores/uiStore";
 import { useSystemStore } from "~/stores/systemStore";
@@ -40,9 +41,11 @@ import {
   lastNudge,
   money,
   payHabit,
+  toSen,
 } from "~/utils/invoice";
 
 const invoiceStore = useInvoiceStore();
+const paymentStore = usePaymentStore();
 const authStore = useAuthStore();
 const uiStore = useUiStore();
 const systemStore = useSystemStore();
@@ -247,27 +250,34 @@ const paying = ref(false);
 
 const openPayment = (inv) => {
   payFor.value = inv;
-  payAmount.value = amountOutstanding(inv);
+  /* Ringgit, because a person types into this field. Everything else in the
+     page is sen — these two lines are the entire boundary. */
+  payAmount.value = amountOutstanding(inv) / 100;
 };
 
 const remainingAfter = computed(() => {
   if (!payFor.value) return 0;
-  return amountOutstanding(payFor.value) - (Number(payAmount.value) || 0);
+  return amountOutstanding(payFor.value) - toSen(payAmount.value);
 });
 
 const submitPayment = async () => {
   const inv = payFor.value;
   if (!inv || Number(payAmount.value) <= 0) return;
   paying.value = true;
-  const amountPaid = (Number(inv.amountPaid) || 0) + Number(payAmount.value);
-  /* Settle the status here rather than leaving the user to do it in a second
-     menu: if the whole balance has landed, the invoice is paid. */
-  const payload = { amountPaid };
-  if (amountPaid >= (Number(inv.amount) || 0)) payload.status = "Paid";
+  /* Records a PAYMENT rather than overwriting a running total (spec 03).
+     This used to compute `amountPaid = old + new` and set the status itself,
+     which meant two places in the product decided what an invoice was worth.
+     Now the payment is a row, and the balance and status are derived from the
+     rows by one function — so a part payment, a credit note and a gateway
+     confirmation can never disagree about what is owed. */
   try {
-    await invoiceStore.updateInvoice(inv.id, payload, true);
+    await paymentStore.recordPayment(inv.id, {
+      amount: Number(payAmount.value),
+      method: "BANK_TRANSFER",
+    });
+    await invoiceStore.fetchInvoices();
     notify(
-      payload.status === "Paid"
+      remainingAfter.value <= 0
         ? `${label(inv)} is settled in full.`
         : `Recorded. ${sym(inv)} ${cash(Math.max(0, remainingAfter.value))} still to come.`,
     );

@@ -19,12 +19,25 @@
 export const PROTECTED_PREFIXES = [
   '/dashboard',
   '/invoices',
+  '/quotes',
+  '/recurring',
   '/clients',
+  '/catalogue',
+  '/business',
+  '/notifications',
+  '/exports',
   '/settings',
   '/admin',
   '/onboarding',
   '/referral-management',
 ] as const
+
+/* NOTE FOR WHOEVER ADDS THE NEXT MODULE.
+   The inversion above — public unless listed — is right for marketing pages and
+   wrong to forget for app pages. Quotations, Recurring, Catalogue, Business and
+   Notifications were all shipped without being added here, so each was reachable
+   logged out: no redirect to login, just a page that renders its shell and fails
+   every API call. Add the prefix in the same commit as the module. */
 
 /** Public invoice export links are reachable without a session. */
 const PROTECTED_EXCEPTIONS = [
