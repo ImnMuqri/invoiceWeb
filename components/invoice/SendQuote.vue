@@ -1,17 +1,26 @@
 <script setup>
 /**
- * Getting a quotation to the client.
+ * Getting a quotation to the client (spec 07).
  *
  * Deliberately not InvoiceDeliver. That component offers a payment link and
  * talks about being paid, neither of which applies here — a quotation is an
- * offer, and the only thing to do with it is put it in front of somebody.
+ * offer, and the only thing to do with it is put it in front of somebody and
+ * wait for an answer.
  *
- * The PDF comes from the invoice PDF route, which renders /invoices/:id/export;
- * that page reads `kind` off the record and draws a quotation, so one route
- * serves both and the two can never disagree about what the document says.
+ * What changed with spec 07: this used to hand the user a PDF and a block of
+ * text to paste somewhere themselves, which meant the answer came back — if it
+ * came back at all — into a WhatsApp thread the product knew nothing about. Now
+ * the send goes through the same channels invoices do, and what the client
+ * receives is a LINK to a page with accept and decline on it. The answer lands
+ * in the product.
+ *
+ * What has not changed, and must not: nothing here schedules a follow-up. A
+ * quotation is sent when the user presses this button, and never again unless
+ * they press it again. The client who does not reply is not chased.
  */
 import { computed, ref } from "vue";
 import { cash } from "~/utils/invoice";
+import { useQuoteStore } from "~/stores/quoteStore";
 
 const props = defineProps({
   quoteId: { type: [Number, String], required: true },
@@ -20,11 +29,17 @@ const props = defineProps({
   amount: { type: [Number, String], default: 0 },
   currency: { type: String, default: "MYR" },
   validUntil: { type: String, default: "" },
+  /** The client-facing url, from GET /quotes/:id. */
+  publicUrl: { type: String, default: "" },
+  /** Already answered — sending again would be talking past the answer. */
+  answered: { type: Boolean, default: false },
 });
 
-const emit = defineEmits(["notify"]);
+const emit = defineEmits(["notify", "sent"]);
 
 const { $api } = useNuxtApp();
+const quoteStore = useQuoteStore();
+
 const busy = ref("");
 const copied = ref(false);
 
@@ -33,6 +48,39 @@ const copied = ref(false);
    up as a reference number is one they will quote back at you. If there is no
    quote number yet, say nothing rather than something wrong. */
 const label = computed(() => props.quoteNumber || "");
+
+const hasEmail = computed(() => !!props.client?.email);
+const hasPhone = computed(() => !!props.client?.phone);
+const canSend = computed(() => hasEmail.value || hasPhone.value);
+
+const send = async (channel) => {
+  busy.value = channel;
+  try {
+    const data = await quoteStore.sendQuote(props.quoteId, channel);
+
+    /* A partial send comes back 207 with `failed` alongside `sent`. Reporting
+       "sent" when only half of it went is the kind of small lie that costs
+       somebody a deal, so the half that failed is named. */
+    if (data?.failed?.length) {
+      emit("notify", {
+        message: `${data.message} The email went; WhatsApp did not.`,
+        type: "error",
+      });
+    } else {
+      emit("notify", { message: data.message, type: "success" });
+    }
+    emit("sent", data);
+  } catch (err) {
+    emit("notify", {
+      message:
+        err.response?.data?.message ||
+        "Could not send that. Nothing has gone to your client.",
+      type: "error",
+    });
+  } finally {
+    busy.value = "";
+  }
+};
 
 const download = async () => {
   busy.value = "pdf";
@@ -48,7 +96,7 @@ const download = async () => {
     a.click();
     a.remove();
     URL.revokeObjectURL(url);
-    emit("notify", { message: "Downloaded. Send it however you like.", type: "success" });
+    emit("notify", { message: "Downloaded.", type: "success" });
   } catch {
     emit("notify", {
       message: "Could not build the PDF. Try again in a moment.",
@@ -59,40 +107,18 @@ const download = async () => {
   }
 };
 
-/* A ready-made message, because the alternative is the user writing the same
-   three sentences every time. Clipboard, not a mailto: — a mailto with a body
-   this long is truncated by several clients and mangled by others. */
-const message = computed(() => {
-  const who = props.client?.name ? props.client.name.split(/\s+/)[0] : "there";
-  /* `amount` is sen — it comes straight from `totals()`. Formatting it without
-     converting quoted the client a hundred times the price, in a message the
-     user copies and sends without re-reading. */
-  const sum = `${props.currency} ${cash(props.amount)}`;
-  const holds = props.validUntil
-    ? ` The price holds until ${props.validUntil}.`
-    : "";
-  const ref = label.value ? ` ${label.value}` : "";
-  return `Hi ${who}, here is quotation${ref} for ${sum}.${holds} The PDF is attached — let me know if you would like to go ahead and I will send the invoice.`;
-});
-
-const copyMessage = async () => {
+const copyLink = async () => {
   try {
-    await navigator.clipboard.writeText(message.value);
+    await navigator.clipboard.writeText(props.publicUrl);
     copied.value = true;
     setTimeout(() => (copied.value = false), 2000);
   } catch {
     emit("notify", {
-      message: "Could not reach your clipboard — select the text and copy it.",
+      message: "Could not reach your clipboard — select the link and copy it.",
       type: "error",
     });
   }
 };
-
-const mailto = computed(() => {
-  const to = props.client?.email || "";
-  const subject = label.value ? `Quotation ${label.value}` : "Quotation";
-  return `mailto:${to}?subject=${encodeURIComponent(subject)}`;
-});
 </script>
 
 <template>
@@ -101,56 +127,87 @@ const mailto = computed(() => {
       <div>
         <h2 id="send-quote" class="card__title">Send it to them</h2>
         <p class="money__note">
-          Download the PDF and attach it. Quotations are not emailed
-          automatically — nothing goes out until you send it.
+          They get a page with accept and decline on it — no account, no login.
+          Nothing follows up on its own.
         </p>
       </div>
     </div>
 
     <div class="deliver">
-      <div class="deliver__grid deliver__grid--one">
+      <!-- Already answered: sending again talks past the answer. -->
+      <p v-if="answered" class="f__hint">
+        This quotation has been answered, so there is nothing left to send. You
+        can still download the PDF for your records.
+      </p>
+
+      <div v-else class="deliver__grid">
         <button
           type="button"
           class="desk-btn desk-btn--primary desk-btn--block"
-          :disabled="!!busy"
-          @click="download">
+          :disabled="!!busy || !hasEmail"
+          @click="send('email')">
           <UiIcon
-            :icon="busy === 'pdf' ? 'heroicons:arrow-path' : 'heroicons:arrow-down-tray'"
-            :custom-class="busy === 'pdf' ? 'w-4 h-4 spin' : 'w-4 h-4'" />
-          Download PDF
+            :icon="busy === 'email' ? 'heroicons:arrow-path' : 'heroicons:envelope'"
+            :custom-class="busy === 'email' ? 'w-4 h-4 spin' : 'w-4 h-4'" />
+          {{ busy === "email" ? "Sending…" : "Send by email" }}
+        </button>
+
+        <button
+          type="button"
+          class="desk-btn desk-btn--ghost desk-btn--block"
+          :disabled="!!busy || !hasPhone"
+          @click="send('whatsapp')">
+          <UiIcon
+            :icon="busy === 'whatsapp' ? 'heroicons:arrow-path' : 'ic:baseline-whatsapp'"
+            :custom-class="busy === 'whatsapp' ? 'w-4 h-4 spin' : 'w-4 h-4'" />
+          {{ busy === "whatsapp" ? "Sending…" : "Send on WhatsApp" }}
         </button>
       </div>
 
-      <div>
-        <span class="f__label">A message to go with it</span>
-        <p class="deliver__msg">{{ message }}</p>
+      <p v-if="!answered && !canSend" class="f__hint">
+        This client has neither an email address nor a phone number saved, so
+        there is nowhere to send it. Add one on their record and the buttons
+        come alive.
+      </p>
+      <p v-else-if="!answered && !hasPhone" class="f__hint">
+        No phone number saved for this client, so WhatsApp is unavailable.
+      </p>
+      <p v-else-if="!answered && !hasEmail" class="f__hint">
+        No email address saved for this client, so email is unavailable.
+      </p>
+
+      <!-- The link itself, for the user who would rather paste it into a thread
+           they already have open. Same url, same page, same buttons. -->
+      <div v-if="publicUrl">
+        <span class="f__label">Their link</span>
+        <p class="deliver__msg" style="word-break: break-all">{{ publicUrl }}</p>
         <div class="deliver__msg-acts">
           <button
             type="button"
             class="desk-btn desk-btn--ghost desk-btn--sm"
-            @click="copyMessage">
+            @click="copyLink">
             <UiIcon
               :icon="copied ? 'heroicons:check' : 'heroicons:clipboard'"
               custom-class="w-4 h-4" />
-            {{ copied ? "Copied" : "Copy message" }}
+            {{ copied ? "Copied" : "Copy link" }}
           </button>
-          <a
-            v-if="client?.email"
-            :href="mailto"
-            class="desk-btn desk-btn--ghost desk-btn--sm">
-            <UiIcon icon="heroicons:envelope" custom-class="w-4 h-4" />
-            Open email
-          </a>
+          <button
+            type="button"
+            class="desk-btn desk-btn--ghost desk-btn--sm"
+            :disabled="!!busy"
+            @click="download">
+            <UiIcon
+              :icon="busy === 'pdf' ? 'heroicons:arrow-path' : 'heroicons:arrow-down-tray'"
+              :custom-class="busy === 'pdf' ? 'w-4 h-4 spin' : 'w-4 h-4'" />
+            Download PDF
+          </button>
         </div>
         <p class="f__hint">
-          <template v-if="client?.email">
-            Opens a new email to {{ client.email }} with the subject filled in.
-            Paste the message and attach the PDF.
-          </template>
-          <template v-else>
-            No email saved for this client, so there is nobody to open a message
-            to — add one on their record and it appears here.
-          </template>
+          Anyone with this link can accept or decline, so send it to your client
+          and nobody else. The quoted price of
+          {{ currency }} {{ cash(amount) }}
+          <template v-if="validUntil"> holds until {{ validUntil }}</template>
+          <template v-else> has no expiry date set</template>.
         </p>
       </div>
     </div>

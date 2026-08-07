@@ -39,6 +39,16 @@ export const PROTECTED_PREFIXES = [
    logged out: no redirect to login, just a page that renders its shell and fails
    every API call. Add the prefix in the same commit as the module. */
 
+/* SINGULAR vs PLURAL, and it is load-bearing (spec 07).
+     /quotes      → the authenticated module. Protected, listed above.
+     /quote/:token→ the page the CLIENT opens to accept or decline. Public.
+     /quotation   → the marketing page. Public.
+     /ms/sebut-harga/ → the same marketing page in Malay. Public.
+   Prefix matching keeps these apart on its own: "/quote/abc" is neither equal
+   to "/quotes" nor prefixed by "/quotes/". Do not "tidy" the list by shortening
+   the entry to "/quote" — that single deleted character would put a login wall
+   in front of every client who was ever sent a quotation. */
+
 /** Public invoice export links are reachable without a session. */
 const PROTECTED_EXCEPTIONS = [
   (path: string) => path.startsWith('/invoices/') && path.endsWith('/export'),

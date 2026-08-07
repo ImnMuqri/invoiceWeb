@@ -87,18 +87,28 @@ const copy = {
       title: 'From nothing to sent, in one sitting.',
       lead: 'There is no data import and no onboarding call. You can do this before your coffee goes cold.',
       items: [
+        /* Spec 07 puts quoting before invoicing, which is the order the work
+           actually happens in — you price the job, then you bill it. It is
+           marked optional in the copy because plenty of people invoice without
+           ever quoting, and a first step that does not apply to you reads as a
+           product that is not for you. */
         {
           n: '01',
-          title: 'Write the invoice',
-          body: 'Type one line — "invoice Wayne RM1,200 for the website" — and the AI drafts it: client, items, amounts, total. Or fill the form yourself. Either way it is a minute of work.',
+          title: 'Quote it first, if you quote',
+          body: 'Send a quotation and your client gets a page with accept and decline on it — one tap, no account. You find out where you stand instead of wondering. Nothing chases a quote: they have not agreed to anything yet.',
         },
         {
           n: '02',
+          title: 'Write the invoice',
+          body: 'Type one line — "invoice Wayne RM1,200 for the website" — and the AI drafts it: client, items, amounts, total. Or, if they accepted a quotation, turn that into the invoice in one click and retype nothing.',
+        },
+        {
+          n: '03',
           title: 'Send it where they read',
           body: 'WhatsApp, email, or both. Your client gets a link that opens a payment page — not a PDF attachment they have to download, find later, and lose.',
         },
         {
-          n: '03',
+          n: '04',
           title: 'Set the chase and walk away',
           body: 'Pick how many days between follow-ups. That is the last decision you make about this invoice unless something goes wrong.',
         },
@@ -198,6 +208,17 @@ const copy = {
           link: 'invokita.my/pay/k3f9a',
           pdf: 'Invoice-INV-0042.pdf',
         },
+        /* Spec 07. One card, not a second headline — quoting is a supporting
+           capability and the page stays about chasing invoices. */
+        quotes: {
+          title: 'Quotes that come back with an answer.',
+          body: 'Send a quotation and your client gets accept and decline in one tap — no account, no login. A yes becomes an invoice without retyping anything. Quotes are never chased: nobody who has not agreed to anything gets a follow-up from us.',
+          number: 'QUO-0018',
+          accept: 'Accept',
+          decline: 'Decline',
+          result: 'Accepted by Wayne Lim',
+          convert: 'Invoice raised · INV-0043',
+        },
       },
       cta: 'Try it on your own invoices',
     },
@@ -292,6 +313,7 @@ const copy = {
         payments: 'Getting paid',
         pricing: 'Pricing',
         faq: 'FAQ',
+        quotations: 'Quotations',
         einvoice: 'e-Invoice checker',
         signIn: 'Sign in',
         register: 'Create an account',
@@ -374,16 +396,21 @@ const copy = {
       items: [
         {
           n: '01',
-          title: 'Tulis invois',
-          body: 'Taip satu ayat — "invois Wayne RM1,200 untuk website" — dan AI akan draf: pelanggan, item, jumlah, total. Atau isi borang sendiri. Dua-dua ambil masa seminit.',
+          title: 'Sebut harga dulu, kalau anda buat sebut harga',
+          body: 'Hantar sebut harga dan pelanggan dapat satu halaman dengan butang terima dan tolak — satu tekan, tanpa akaun. Anda terus tahu di mana anda berdiri. Sebut harga tidak dikejar: mereka belum bersetuju apa-apa lagi.',
         },
         {
           n: '02',
+          title: 'Tulis invois',
+          body: 'Taip satu ayat — "invois Wayne RM1,200 untuk website" — dan AI akan draf: pelanggan, item, jumlah, total. Atau, kalau mereka dah terima sebut harga, tukar terus jadi invois dengan satu klik tanpa taip semula.',
+        },
+        {
+          n: '03',
           title: 'Hantar ke tempat mereka baca',
           body: 'WhatsApp, emel, atau kedua-duanya. Pelanggan dapat pautan yang terus buka halaman bayaran — bukan fail PDF yang kena muat turun, cari balik, kemudian hilang.',
         },
         {
-          n: '03',
+          n: '04',
           title: 'Set kejaran, kemudian tinggalkan',
           body: 'Pilih berapa hari jarak antara susulan. Itu keputusan terakhir yang anda buat untuk invois ini melainkan ada masalah.',
         },
@@ -483,6 +510,15 @@ const copy = {
           link: 'invokita.my/pay/k3f9a',
           pdf: 'Invois-INV-0042.pdf',
         },
+        quotes: {
+          title: 'Sebut harga yang balik dengan jawapan.',
+          body: 'Hantar sebut harga dan pelanggan dapat butang terima dan tolak — satu tekan, tanpa akaun. Bila mereka setuju, ia jadi invois tanpa taip semula. Sebut harga tak pernah dikejar: orang yang belum bersetuju apa-apa takkan terima susulan dari kami.',
+          number: 'QUO-0018',
+          accept: 'Terima',
+          decline: 'Tolak',
+          result: 'Diterima oleh Wayne Lim',
+          convert: 'Invois dikeluarkan · INV-0043',
+        },
       },
       cta: 'Cuba dengan invois anda sendiri',
     },
@@ -572,6 +608,7 @@ const copy = {
         payments: 'Terima bayaran',
         pricing: 'Harga',
         faq: 'Soalan lazim',
+        quotations: 'Sebut harga',
         einvoice: 'Penyemak e-Invois',
         signIn: 'Log masuk',
         register: 'Buka akaun',
@@ -618,4 +655,17 @@ export function localePath(locale: Locale, path = '/') {
  */
 export function scopeCheckerPath(locale: Locale) {
   return localePath(locale, '/e-invoice-check')
+}
+
+/**
+ * The quotations page (spec 07), per locale.
+ *
+ * NOT localePath('/quotation') for BM. The Malay slug is the actual search
+ * term — "sebut harga" is what people type, and a Malay page sitting on an
+ * English word in the url is a page that ranks for nothing it is written for.
+ * The two locales therefore have genuinely different paths, which is why this
+ * cannot be derived and has to be stated.
+ */
+export function quotationPath(locale: Locale) {
+  return locale === 'ms' ? '/ms/sebut-harga/' : '/quotation'
 }

@@ -59,16 +59,20 @@ const VIEWS = [
   { key: "all", label: "All" },
 ];
 
-const isExpired = (q) =>
-  !!q.validUntil &&
-  new Date(q.validUntil).getTime() < Date.now() &&
-  ["Draft", "Sent"].includes(q.status);
-
+/* Expiry is decided by the API, not here.
+   This page used to recompute it, and it got it wrong in a way nobody would
+   have noticed for a while: it compared against midnight, so a quote that
+   "holds until 30 November" showed as expired all through the 30th — a day the
+   client could still legitimately accept on. The backend now returns the status
+   already corrected (see effectiveStatus), and one answer beats two. */
 const bucketOf = (q) => {
   if (q.status === "Accepted") return "won";
-  if (["Declined", "Expired"].includes(q.status) || isExpired(q)) return "lost";
+  if (["Declined", "Expired"].includes(q.status)) return "lost";
   return "live";
 };
+
+/** Accepted and not yet billed — work won and not asked for. */
+const isUnbilled = (q) => q.status === "Accepted" && !q.convertedTo;
 
 const matches = (q) => {
   const s = search.value.trim().toLowerCase();
@@ -104,10 +108,16 @@ const rows = computed(() => {
 const summary = computed(() => {
   const live = quoteStore.quotes.filter((q) => bucketOf(q) === "live");
   const won = quoteStore.quotes.filter((q) => bucketOf(q) === "won");
+  const unbilled = quoteStore.quotes.filter(isUnbilled);
   const decided = won.length + quoteStore.quotes.filter((q) => bucketOf(q) === "lost").length;
   return {
     outValue: live.reduce((sum, q) => sum + (Number(q.amount) || 0), 0),
     outCount: live.length,
+    /* Accepted and not yet invoiced. The spec singles this out as the most
+       valuable thing to remind somebody of, and it is: the work is agreed, the
+       client is expecting to pay, and nobody has asked them to. */
+    unbilledValue: unbilled.reduce((sum, q) => sum + (Number(q.amount) || 0), 0),
+    unbilledCount: unbilled.length,
     winRate: decided ? Math.round((won.length / decided) * 100) : null,
     currency: quoteStore.quotes[0]?.currency || "MYR",
   };
@@ -119,20 +129,27 @@ const label = (q) => q?.invoiceNumber || "this quotation";
 const CHIP = {
   Draft: "chip--idle",
   Sent: "chip--idle",
+  /* Viewed is not the same as Sent and should not look the same. "They opened
+     it and have not replied" is a different situation from "it might still be
+     sitting unread", and it is the one that tells the user a nudge by phone
+     would land rather than annoy. */
+  Viewed: "chip--warn",
   Accepted: "chip--paid",
   Declined: "chip--late",
   Expired: "chip--late",
 };
-const chipFor = (q) => (isExpired(q) ? "chip--late" : CHIP[q.status] || "chip--idle");
-const statusOf = (q) => (isExpired(q) ? "Expired" : q.status);
+const chipFor = (q) => CHIP[q.status] || "chip--idle";
+const statusOf = (q) => q.status;
 
 const waitingFor = (q) => {
+  if (bucketOf(q) !== "live") return "";
   const days = Math.floor(
     (Date.now() - new Date(q.updatedAt || q.date).getTime()) / 86400000,
   );
-  if (bucketOf(q) !== "live") return "";
-  if (days < 1) return "Sent today";
-  return `Waiting ${days} ${days === 1 ? "day" : "days"}`;
+  const age = days < 1 ? "today" : `${days} ${days === 1 ? "day" : "days"}`;
+  if (q.status === "Draft") return "Not sent yet";
+  if (q.status === "Viewed") return days < 1 ? "Opened today" : `Opened, ${age} ago`;
+  return days < 1 ? "Sent today" : `Waiting ${age}`;
 };
 
 /* ─── Convert ─────────────────────────────────────────────────────────────── */
@@ -212,9 +229,18 @@ const doDelete = async () => {
         </p>
       </div>
       <div>
-        <p class="desk__eyebrow">Waiting on a reply</p>
-        <p class="strip__v">{{ viewCounts.live }}</p>
-        <p class="strip__n">Nobody has said yes or no yet</p>
+        <p class="desk__eyebrow">Won, not yet billed</p>
+        <p class="strip__v">
+          {{ summary.currency }} {{ money(summary.unbilledValue) }}
+        </p>
+        <p class="strip__n">
+          <template v-if="summary.unbilledCount">
+            across {{ summary.unbilledCount }} accepted
+            {{ summary.unbilledCount === 1 ? "quotation" : "quotations" }} — one
+            click each
+          </template>
+          <template v-else>Everything accepted has been invoiced</template>
+        </p>
       </div>
       <div>
         <p class="desk__eyebrow">You win</p>
@@ -426,12 +452,18 @@ const doDelete = async () => {
                         downloading === q.id ? 'w-4 h-4 spin' : 'w-4 h-4'
                       " />
                   </button>
+                  <!-- An accepted quotation gets the primary button, because
+                       raising its invoice is the one action on this page that
+                       is worth money today. Everything else is a ghost. -->
                   <button
                     v-if="!q.convertedTo"
                     type="button"
-                    class="desk-btn desk-btn--ghost desk-btn--sm"
+                    class="desk-btn desk-btn--sm"
+                    :class="isUnbilled(q) ? 'desk-btn--primary' : 'desk-btn--ghost'"
                     @click="convertFor = q">
-                    Accept &amp; invoice
+                    <!-- A literal ampersand: this is an interpolation, so an
+                         &amp; entity here would print as "&amp;". -->
+                    {{ isUnbilled(q) ? "Raise the invoice" : "Accept & invoice" }}
                   </button>
                   <button
                     v-if="!q.convertedTo"

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Locale, LandingCopy } from '~/composables/useLandingCopy'
-import { localePath, scopeCheckerPath } from '~/composables/useLandingCopy'
+import { localePath, scopeCheckerPath, quotationPath } from '~/composables/useLandingCopy'
 
 const props = defineProps<{ copy: LandingCopy; locale: Locale }>()
 
@@ -13,6 +13,7 @@ const otherLocale = computed<Locale>(() => (props.locale === 'ms' ? 'en' : 'ms')
    navigation instead of a link to a section that is not on the page. */
 const home = computed(() => localePath(props.locale))
 const checker = computed(() => scopeCheckerPath(props.locale))
+const quotations = computed(() => quotationPath(props.locale))
 </script>
 
 <template>
@@ -38,6 +39,7 @@ const checker = computed(() => scopeCheckerPath(props.locale))
               <li><a :href="`${home}#payments`">{{ copy.footer.links.payments }}</a></li>
               <li><a :href="`${home}#pricing`">{{ copy.footer.links.pricing }}</a></li>
               <li><a :href="`${home}#faq`">{{ copy.footer.links.faq }}</a></li>
+              <li><a :href="quotations">{{ copy.footer.links.quotations }}</a></li>
               <li><a :href="checker">{{ copy.footer.links.einvoice }}</a></li>
             </ul>
           </div>

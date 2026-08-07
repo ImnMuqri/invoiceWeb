@@ -671,6 +671,16 @@ html.dark .desk-btn--primary {
   color: var(--desk-text-2);
   border: 1px solid var(--desk-line);
 }
+/* The ball is in their court. Used for a quotation the client has OPENED and
+   not answered (spec 07) — which is genuinely different from one that might
+   still be sitting unread, and is the state where a phone call lands rather
+   than annoys. The warn triplet is used because it has a real pair in both
+   themes; --desk-warn is clay in light and amber in dark, so this does not
+   render identically to .chip--idle when the theme flips. */
+.chip--warn {
+  background-color: var(--desk-warn-surface);
+  color: var(--desk-warn);
+}
 .chip__dot {
   width: 6px;
   height: 6px;

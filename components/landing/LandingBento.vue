@@ -16,6 +16,8 @@
  *   brand     -> profile.logoUrl + invoice.template
  *   money     -> invoice.currency (MYR default) + tax settings
  *   deliver   -> tokenised /pay/:id page + puppeteer PDF export
+ *   quotes    -> tokenised /quote/:token accept-decline page + one-click
+ *                conversion, Backend/src/routes/quote/index.js
  *
  * The tiles are asymmetric by design — a grid of six equal cards is the exact
  * SaaS template this direction is trying not to be.
@@ -177,6 +179,41 @@ defineProps<{ copy: LandingCopy }>()
               </svg>
               {{ copy.bento.tiles.deliver.pdf }}
             </p>
+          </div>
+        </article>
+        <!-- ── Quotations: the answer comes back ───────────────────────── -->
+        <article class="tile tile--quotes" data-reveal data-reveal-group="bento">
+          <div class="tile__text">
+            <h3 class="tile__title">{{ copy.bento.tiles.quotes.title }}</h3>
+            <p class="tile__body">{{ copy.bento.tiles.quotes.body }}</p>
+          </div>
+
+          <div class="tile__art art-quotes" aria-hidden="true">
+            <div class="art-quotes__sheet">
+              <span class="art-quotes__num">{{ copy.bento.tiles.quotes.number }}</span>
+              <div class="art-quotes__acts">
+                <span class="art-quotes__btn art-quotes__btn--yes">
+                  {{ copy.bento.tiles.quotes.accept }}
+                </span>
+                <span class="art-quotes__btn">
+                  {{ copy.bento.tiles.quotes.decline }}
+                </span>
+              </div>
+            </div>
+
+            <p class="art-quotes__result">
+              <svg viewBox="0 0 16 16" class="art-quotes__ico">
+                <path
+                  d="M3.5 8.5 6.5 11.5 12.5 5"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round" />
+              </svg>
+              {{ copy.bento.tiles.quotes.result }}
+            </p>
+            <p class="art-quotes__convert">{{ copy.bento.tiles.quotes.convert }}</p>
           </div>
         </article>
       </div>
@@ -538,6 +575,78 @@ defineProps<{ copy: LandingCopy }>()
   background: linear-gradient(to right, var(--border-default), transparent);
 }
 
+/* ─── Quotations tile art ───────────────────────────────────────────────── */
+.art-quotes {
+  display: grid;
+  gap: var(--space-2);
+  margin-top: auto;
+}
+.art-quotes__sheet {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background-color: var(--surface-page);
+}
+.art-quotes__num {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-wide);
+  color: var(--text-tertiary);
+}
+.art-quotes__acts {
+  display: flex;
+  gap: var(--space-2);
+}
+.art-quotes__btn {
+  padding: 5px var(--space-3);
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-default);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-bold);
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+/* The same two tokens .k-btn--primary uses, and like that button they resolve
+   to the same green in both themes — the accent is a fixed brand colour on the
+   marketing surface, not a themed one. What changes underneath it is
+   --surface-page and --surface-raised, so the tile reads differently in dark
+   even though the pill itself does not. Deliberate here; do NOT copy the
+   pattern onto an app surface, where a filled control that renders identically
+   in both themes is a bug rather than a decision. */
+.art-quotes__btn--yes {
+  background-color: var(--surface-accent);
+  border-color: var(--surface-accent);
+  color: var(--text-on-accent);
+}
+.art-quotes__result {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border-accent);
+  border-radius: var(--radius-md);
+  background-color: var(--surface-accent-soft);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-bold);
+  color: var(--text-accent);
+}
+.art-quotes__ico {
+  width: 14px;
+  height: 14px;
+  flex: none;
+}
+.art-quotes__convert {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--text-tertiary);
+  padding-left: var(--space-4);
+}
+
 .bento__cta {
   margin-top: var(--space-7);
 }
@@ -559,13 +668,36 @@ defineProps<{ copy: LandingCopy }>()
   }
   /*  A A B B
       A A C D
-      E E F F  */
+      E E F F
+      G G G G   <- quotations, full width: it is a whole capability rather
+                   than a detail, and the accept/decline art needs the room  */
   .tile--ai      { grid-column: span 2; grid-row: span 2; }
   .tile--risk    { grid-column: span 2; }
   .tile--switch  { grid-column: span 1; }
   .tile--brand   { grid-column: span 1; }
   .tile--money   { grid-column: span 2; }
   .tile--deliver { grid-column: span 2; }
+  .tile--quotes  { grid-column: span 4; }
+
+  /* Full width means the copy would otherwise run to a 70rem measure, which is
+     unreadable. Two columns instead: text left, art right. */
+  .tile--quotes {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    gap: var(--space-7);
+    align-items: center;
+    padding: var(--space-7);
+  }
+  .tile--quotes .tile__title {
+    font-size: var(--text-xl);
+  }
+  .tile--quotes .tile__body {
+    font-size: var(--text-base);
+    max-width: 34rem;
+  }
+  .tile--quotes .tile__art {
+    margin-top: 0;
+  }
 
   .tile--ai {
     padding: var(--space-7);

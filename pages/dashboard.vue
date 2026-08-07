@@ -109,6 +109,11 @@ onMounted(() => {
   fetchCoreData({ rank: profitabilityFilter.value });
   fetchUsage();
   fetchForecastData();
+  /* Its own request, not part of /core. Quotations are not receivables and the
+     spec is emphatic that they must never appear in those totals — keeping the
+     two on separate endpoints is what stops a future refactor folding one into
+     the other. See the store comment. */
+  dashboardStore.fetchQuotes();
   referralStore.fetchStats();
 
   if (route.query.welcome === "true") {
@@ -425,6 +430,142 @@ const meters = computed(() => {
         <NuxtLink to="/invoices/create" class="desk-btn desk-btn--ghost">
           Create an invoice
         </NuxtLink>
+      </div>
+    </section>
+
+    <!-- ── Quotations ───────────────────────────────────────────────────────
+         Deliberately BELOW the money line and visually separate from it. A
+         quotation is not money owed: nobody has agreed to anything, and the
+         spec is explicit that these figures must never appear in receivables
+         or overdue totals. They are fetched from their own endpoint into their
+         own state precisely so they cannot be summed with the row above by
+         accident. The words matter as much as the placement — "waiting on a
+         reply", never "outstanding".
+
+         The second panel is the one worth the space. Accepted and not yet
+         invoiced is work already won that nobody has been asked to pay for,
+         which is the most valuable thing this page can point at.
+    -->
+    <section
+      v-if="dashboardStore.quotes.waiting.length || dashboardStore.quotes.won.length"
+      class="grid2"
+      aria-label="Quotations">
+      <div class="card" aria-labelledby="quotes-won">
+        <div class="card__head">
+          <div>
+            <h2 id="quotes-won" class="card__title">Won, not yet billed</h2>
+            <p class="money__note">
+              <template v-if="dashboardStore.quotes.wonCount">
+                {{ dashboardStore.quotes.currency }}
+                {{ money(dashboardStore.quotes.wonValue) }} of accepted work
+                nobody has been invoiced for.
+              </template>
+              <template v-else>
+                Accepted work nobody has been invoiced for.
+              </template>
+            </p>
+          </div>
+          <NuxtLink to="/quotes" class="card__link">All &rarr;</NuxtLink>
+        </div>
+
+        <ul v-if="dashboardStore.quotes.won.length" class="work">
+          <li v-for="q in dashboardStore.quotes.won" :key="q.id">
+            <NuxtLink :to="`/quotes/edit/${q.id}`" class="work__row">
+              <span class="work__client">{{
+                q.client?.name || "Unknown client"
+              }}</span>
+              <span class="work__meta">
+                {{ q.invoiceNumber }}
+                <span class="chip chip--paid">
+                  <i class="chip__dot" aria-hidden="true"></i>Accepted
+                </span>
+                <template v-if="q.ageDays">
+                  · {{ q.ageDays }} {{ q.ageDays === 1 ? "day" : "days" }} ago
+                </template>
+              </span>
+              <span class="work__amount">
+                {{ q.currency || dashboardStore.quotes.currency }}
+                {{ money(q.amount) }}
+              </span>
+            </NuxtLink>
+          </li>
+        </ul>
+
+        <div v-else class="empty">
+          <p class="empty__title">Nothing waiting to be billed.</p>
+          <p class="empty__body">
+            Every quotation your clients have accepted has an invoice against
+            it.
+          </p>
+        </div>
+
+        <!-- Never let a capped list read as the whole set. -->
+        <p
+          v-if="dashboardStore.quotes.wonCount > dashboardStore.quotes.won.length"
+          class="money__note">
+          Showing {{ dashboardStore.quotes.won.length }} of
+          {{ dashboardStore.quotes.wonCount }}.
+        </p>
+      </div>
+
+      <div class="card" aria-labelledby="quotes-open">
+        <div class="card__head">
+          <div>
+            <h2 id="quotes-open" class="card__title">Out for decision</h2>
+            <p class="money__note">
+              <template v-if="dashboardStore.quotes.waitingCount">
+                {{ dashboardStore.quotes.currency }}
+                {{ money(dashboardStore.quotes.waitingValue) }} sent and
+                unanswered. Nothing chases these.
+              </template>
+              <template v-else>
+                Sent, and nobody has answered. Nothing chases these.
+              </template>
+            </p>
+          </div>
+          <NuxtLink to="/quotes" class="card__link">All &rarr;</NuxtLink>
+        </div>
+
+        <ul v-if="dashboardStore.quotes.waiting.length" class="work">
+          <li v-for="q in dashboardStore.quotes.waiting" :key="q.id">
+            <NuxtLink :to="`/quotes/edit/${q.id}`" class="work__row">
+              <span class="work__client">{{
+                q.client?.name || "Unknown client"
+              }}</span>
+              <span class="work__meta">
+                {{ q.invoiceNumber }}
+                <span
+                  class="chip"
+                  :class="q.status === 'Viewed' ? 'chip--warn' : 'chip--idle'">
+                  <i class="chip__dot" aria-hidden="true"></i
+                  >{{ q.status === "Viewed" ? "Opened" : "Sent" }}
+                </span>
+                <template v-if="q.ageDays">
+                  · waiting {{ q.ageDays }}
+                  {{ q.ageDays === 1 ? "day" : "days" }}
+                </template>
+              </span>
+              <span class="work__amount">
+                {{ q.currency || dashboardStore.quotes.currency }}
+                {{ money(q.amount) }}
+              </span>
+            </NuxtLink>
+          </li>
+        </ul>
+
+        <div v-else class="empty">
+          <p class="empty__title">Nothing out for decision.</p>
+          <p class="empty__body">
+            Quotations you have sent appear here until your client answers.
+          </p>
+        </div>
+
+        <p
+          v-if="dashboardStore.quotes.waitingCount > dashboardStore.quotes.waiting.length"
+          class="money__note">
+          Showing {{ dashboardStore.quotes.waiting.length }} of
+          {{ dashboardStore.quotes.waitingCount }}.
+        </p>
       </div>
     </section>
 
