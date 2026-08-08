@@ -41,6 +41,10 @@ const converting = ref(false);
 const convertOpen = ref(false);
 const original = ref(null);
 const currencyOptions = ref([]);
+/* Spec 09. Held on the component because the preview renders long after the
+   onMounted fetch that produced it — a local `cfg` in that function is gone by
+   the time the computed runs, so the footer would silently never draw. */
+const attribution = ref(null);
 
 const form = ref({
   type: "quote",
@@ -155,6 +159,7 @@ onMounted(async () => {
   fetchCurrencies();
   clientStore.fetchClients();
   const cfg = (await authStore.fetchInvoiceConfig()) || {};
+  attribution.value = cfg.attribution ?? null;
   const u = authStore.user;
 
   try {
@@ -232,6 +237,8 @@ const doc = computed(() =>
     client: selectedClient.value,
     logo: authStore.user?.profile?.logoUrl || null,
     showClientIdentifiers: original.value?.showClientIdentifiers !== false,
+    /* Spec 09 — the preview draws the same footer the PDF will. */
+    attribution: attribution.value,
   }),
 );
 

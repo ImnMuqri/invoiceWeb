@@ -51,6 +51,15 @@ const plans = computed(() =>
 const failed = computed(() => !!error.value || (status.value !== 'pending' && plans.value.length === 0))
 
 /**
+ * How many columns the plan row gets on a wide screen.
+ *
+ * Capped at four: beyond that the cards get too narrow to read a feature list
+ * in, and a fifth plan is better wrapped onto a second row than squeezed. The
+ * floor of one keeps `repeat()` valid if the API ever returns a single plan.
+ */
+const columns = computed(() => Math.min(Math.max(plans.value.length, 1), 4))
+
+/**
  * Which plans actually get auto-chased.
  *
  * This MUST stay in sync with Backend/src/plugins/cron.js, which selects users
@@ -118,7 +127,13 @@ function priceLabel(plan: Plan) {
         <a href="/register" class="k-btn k-btn--secondary">{{ copy.pricing.errorAction }}</a>
       </div>
 
-      <ul v-else class="plans">
+      <!-- The column count follows the DATA, not a guess. This was hardcoded
+           to four, which was right while there were four plans and wrong the
+           moment one was retired: three cards laid out in a four-column grid
+           left a dangling empty column and squeezed every card to 25% of the
+           row. Plans come from the API, so the count is genuinely variable and
+           the layout has to be too. -->
+      <ul v-else class="plans" :style="{ '--_cols': columns }">
         <li
           v-for="plan in plans"
           :key="plan.id"
@@ -396,12 +411,12 @@ function priceLabel(plan: Plan) {
 
 @media (min-width: 640px) {
   .plans {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(min(var(--_cols, 3), 2), minmax(0, 1fr));
   }
 }
 @media (min-width: 1024px) {
   .plans {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(var(--_cols, 3), minmax(0, 1fr));
     gap: var(--space-3);
   }
   .plan {

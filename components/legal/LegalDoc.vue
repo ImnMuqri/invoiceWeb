@@ -151,7 +151,16 @@ useHead({
       </header>
 
       <!-- ── Body ────────────────────────────────────────────────────────── -->
-      <div class="k-container doc">
+      <!-- `ldoc`, NOT `doc`.
+           `.doc` is the INVOICE PAPER class in invoice-paper.css, which is
+           loaded globally — so this container was inheriting a printed
+           invoice's styling: `background-color: var(--doc-sheet)` (a sheet of
+           paper, deliberately light in both themes), `color: var(--doc-ink)`
+           and a pinned 13.5px type size. In dark mode that painted the legal
+           text onto a white slab while the rest of the page went dark, and the
+           scoped rules below only ever overrode the LAYOUT, so the colours were
+           never contested. Two components had claimed one global class name. -->
+      <div class="k-container ldoc">
         <!-- Contents -->
         <nav class="toc" aria-labelledby="toc-title">
           <div class="toc__sticky k-scroll">
@@ -330,7 +339,7 @@ useHead({
 }
 
 /* ─── Layout ──────────────────────────────────────────────────────────────── */
-.doc {
+.ldoc {
   display: grid;
   gap: clamp(2.5rem, 5vw, 3.5rem);
   padding-block: clamp(2.5rem, 6vw, 4.5rem) clamp(3.5rem, 8vw, 6rem);
@@ -640,7 +649,7 @@ useHead({
 
 /* ─── Breakpoints ─────────────────────────────────────────────────────────── */
 @media (min-width: 1024px) {
-  .doc {
+  .ldoc {
     grid-template-columns: 16rem minmax(0, 1fr);
     gap: clamp(3rem, 6vw, 5rem);
     align-items: start;
@@ -661,7 +670,7 @@ useHead({
 }
 
 @media (min-width: 1280px) {
-  .doc {
+  .ldoc {
     grid-template-columns: 18rem minmax(0, 1fr);
   }
 }

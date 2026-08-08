@@ -247,6 +247,12 @@ export const useAuthStore = defineStore("auth", () => {
         tin: data.tin ?? "",
         msicCode: data.msicCode ?? "",
         sstNumber: data.sstNumber ?? "",
+        /* Spec 09. Passed straight through — the server decided whether this
+           account shows attribution and what it says, and the preview must not
+           form a second opinion about it. Null means draw nothing. */
+        attribution: data.attribution ?? null,
+        attributionEnabled: data.attributionEnabled ?? true,
+        canRemoveAttribution: data.canRemoveAttribution ?? false,
       };
     } catch (err) {
       console.error("Failed to fetch invoice config", err);

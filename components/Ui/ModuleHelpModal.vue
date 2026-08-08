@@ -156,9 +156,19 @@ const configs = {
           "It carries no payment link, nothing chases it, and it never appears in what you are owed. Until somebody accepts it, it is an offer.",
       },
       {
+        label: "They answer it themselves",
+        description:
+          "Send it and your client gets a page with accept and decline on it — one tap, no account, no login. Accepting records who agreed and when, so you are not tracking the outcome in your head.",
+      },
+      {
+        label: "You can see they opened it",
+        description:
+          "A quotation that has been read and not answered is a different situation from one that might still be sitting unread. The first is worth a phone call; the second is worth waiting a day.",
+      },
+      {
         label: "Accepting it writes the invoice",
         description:
-          "One click copies the client, the lines and the total into a new invoice with a fresh number and a due date. You never retype it.",
+          "One click copies the client, the lines and the total into a new invoice with a fresh number and a due date. You never retype it — and it is offered, never done for you, because most people invoice on their own schedule.",
       },
       {
         label: "The quotation survives",
@@ -168,7 +178,7 @@ const configs = {
       {
         label: "Valid until, not due",
         description:
-          "Thirty days by default. After that it reads as expired, because a price you offered months ago is not a price you still mean.",
+          "Thirty days by default. After that it expires and we tell you — once — because a price you offered months ago is not a price you still mean. Your client is never messaged about it: they agreed to nothing, so chasing them would be sales pressure rather than collections.",
       },
       {
         label: "Their own numbering",
@@ -185,9 +195,14 @@ const configs = {
     accentBase: "bg-amber-500",
     tips: [
       {
-        label: "Add them once",
+        label: "Bring the whole list in at once",
         description:
-          "Name and email are all that is required. Everything you fill in here prints on their invoices, so you only ever type it the one time.",
+          "Paste your clients straight from a spreadsheet or drop in a CSV — the columns are worked out for you and you check everything before anything is saved. Phone numbers are tidied into one format, and anything that cannot be read is flagged rather than imported broken.",
+      },
+      {
+        label: "A name, and a way to reach them",
+        description:
+          "That is all that is required — an email or a phone number, either will do. Everything else you fill in prints on their invoices, so you only type it the once.",
       },
       {
         label: "Let us do the chasing",
@@ -227,6 +242,78 @@ const configs = {
     accentBase: "bg-slate-400",
     tips: [], // Dynamic below, same table as Settings
   },
+  /* Recurring and Exports both had a help button on the page and no entry
+     here, and a missing key falls back to `configs.dashboard` — so pressing
+     help on either explained a completely different screen. A silent wrong
+     answer is worse than no button. */
+  recurring: {
+    title: "Recurring invoices",
+    icon: "heroicons:arrow-path-rounded-square",
+    iconBg: "bg-violet-50 border-violet-100",
+    iconColor: "text-violet-600",
+    accentBase: "bg-violet-500",
+    tips: [
+      {
+        label: "A schedule is not an invoice",
+        description:
+          "It is a template plus a cadence. Nothing is owed by a schedule — it issues real invoices on the dates you set, and those behave like any other invoice from then on.",
+      },
+      {
+        label: "It issues before the working day",
+        description:
+          "Generation runs early each morning, Malaysian time, so an invoice dated today is out before your client opens their inbox — and before the reminder sweep, so nothing is chased the same morning it was created.",
+      },
+      {
+        label: "Running it twice changes nothing",
+        description:
+          "Each schedule can produce only one invoice per period. A retry, a restart or a double-run cannot bill your client twice for the same month.",
+      },
+      {
+        label: "The schedule holds the price",
+        description:
+          "A retainer agreed at one rate keeps issuing at that rate, even if you later change your default tax rate or currency. Editing the schedule is the only thing that changes what it issues.",
+      },
+      {
+        label: "Pausing stops the next one, not the last one",
+        description:
+          "Invoices already issued stay exactly as they are, and keep being chased. Pausing only stops the next one being created.",
+      },
+    ],
+  },
+  exports: {
+    title: "Exports",
+    icon: "heroicons:arrow-down-tray",
+    iconBg: "bg-sky-50 border-sky-100",
+    iconColor: "text-sky-600",
+    accentBase: "bg-sky-500",
+    tips: [
+      {
+        label: "Built for your accountant",
+        description:
+          "A CSV with one row per invoice and the columns an accountant actually asks for — dates, client, amounts, tax identifiers and what has been paid against each one.",
+      },
+      {
+        label: "Pick the months you need",
+        description:
+          "Export any range. Most people take one month at a time when the books are done, or a full year when it is time to file.",
+      },
+      {
+        label: "Have it sent automatically",
+        description:
+          "Put your accountant's email in Business settings and last month's records go to them on the first of each month. The address is the switch — leave it blank and nothing is sent.",
+      },
+      {
+        label: "Empty months are sent too",
+        description:
+          "A month with no invoices is information. An accountant expecting twelve files a year should get twelve.",
+      },
+      {
+        label: "Voided invoices are left out",
+        description:
+          "Unless you ask for them. A voided invoice was never owed, so including it by default would overstate what you billed.",
+      },
+    ],
+  },
   catalogue: {
     title: "Catalogue",
     icon: "heroicons:squares-2x2",
@@ -264,19 +351,29 @@ const configs = {
     accentBase: "bg-pink-500",
     tips: [
       {
-        label: "Share & Earn",
+        label: "They get something too",
         description:
-          "Copy and share your unique code to earn credits for every successful signup.",
+          "Their first month is discounted. That is deliberate — it makes the link worth sending, rather than feeling like you are taking a commission off a friend.",
       },
       {
-        label: "Claim Rewards",
+        label: "Credit, not a claim",
         description:
-          "Redeem your accumulated credits for free months of PRO or MAX plans.",
+          "When somebody you referred subscribes, credit lands on your account and comes off your next subscription payment by itself. There is nothing to redeem and no payout to request.",
       },
       {
-        label: "Status tracking",
+        label: "It pays when they pay",
         description:
-          "Monitor your referral status and claimable rewards in real-time.",
+          "Not when they sign up. An account that signs up and never subscribes earns nothing, which is what keeps the programme worth running.",
+      },
+      {
+        label: "Four numbers, not one",
+        description:
+          "Opened, signed up, subscribed and credit earned are shown separately. Clicks with no signups is a different problem from signups with no subscriptions, and one figure would hide which you have.",
+      },
+      {
+        label: "Refunds come back off",
+        description:
+          "If a referred subscription is refunded, the credit for it is reversed. Your balance never goes below zero — you are not charged for somebody else's refund.",
       },
     ],
   },
@@ -315,6 +412,16 @@ const settingsSubTips = {
       label: "Prefix and tax are only defaults",
       description:
         "They set what a new invoice opens as. You can change either on the invoice itself.",
+    },
+    {
+      label: "Your tax identifiers are frozen at issue",
+      description:
+        "An invoice keeps the SSM number and TIN it was sent with. Correcting a typo here fixes your next invoice, never one your client already holds a copy of.",
+    },
+    {
+      label: "Our name on your invoices",
+      description:
+        "Free accounts carry a single quiet line at the foot of the payment page and the PDF. Any paid plan can switch it off — not just the top one.",
     },
   ],
   whatsapp: [
@@ -365,6 +472,16 @@ const settingsSubTips = {
   ],
   billing: [
     {
+      label: "Top up without changing plan",
+      description:
+        "Run out of WhatsApp allowance mid-month and you can buy a block of extra chases here. It is used only after your plan allowance, and it does not carry into next month — which is said at the point of purchase, not buried.",
+    },
+    {
+      label: "A top-up lands when the bank confirms it",
+      description:
+        "Not when you close the checkout tab. That is a few seconds, and it is why closing the tab early buys nothing.",
+    },
+    {
       label: "Cancelling is not immediate",
       description:
         "You keep everything you are paying for until the period ends, then move to Free.",
@@ -400,7 +517,20 @@ const settingsSubTips = {
 const SUB_ALIASES = { details: "general", documents: "invoice_config" };
 
 const moduleConfig = computed(() => {
-  const baseConfig = configs[uiStore.activeModuleHelp] || configs.dashboard;
+  /* A missing key used to fall back to the Dashboard guide silently, so a page
+     whose guide had never been written answered "how does this work?" with an
+     explanation of a different screen — which is worse than saying nothing,
+     because it reads as an answer. Recurring and Exports were both in that
+     state. The fallback stays (a blank modal helps nobody) but it is now loud
+     in development, so the next module that ships without a guide is noticed
+     while it is being built rather than by a user. */
+  const known = configs[uiStore.activeModuleHelp];
+  if (!known && import.meta.dev) {
+    console.warn(
+      `[ModuleHelp] No guide for "${uiStore.activeModuleHelp}" — showing the Dashboard guide instead. Add an entry in ModuleHelpModal.vue.`,
+    );
+  }
+  const baseConfig = known || configs.dashboard;
   const tabbed = ["settings", "business"].includes(uiStore.activeModuleHelp);
 
   if (tabbed && uiStore.activeSubContext) {

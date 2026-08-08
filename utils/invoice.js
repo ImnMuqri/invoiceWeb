@@ -373,6 +373,10 @@ export const docFromForm = (form, extra = {}) => {
     total: t.total,
     logo: extra.logo || null,
     terms: extra.terms || null,
+    /* Spec 09, on the builder preview too — "what your client will see" has to
+       actually be what they see, attribution line included. Supplied by the
+       caller from the account's own settings. */
+    attribution: extra.attribution || null,
   };
 };
 
@@ -445,5 +449,12 @@ export const docFromInvoice = (invoice, extra = {}) => {
     total: num(invoice?.amount),
     logo: extra.logo || null,
     terms: extra.terms || null,
+    /* Spec 09. Decided by the SERVER (utils/attribution.js) and carried here
+       verbatim — never recomputed from the plan on this side. Two different
+       surfaces draw this document, and a second opinion about whether to show
+       attribution is exactly how a paying customer ends up with it stripped
+       from the payment page and still printed on the PDF attached to it.
+       Null means draw nothing. */
+    attribution: extra.attribution || invoice?.attribution || null,
   };
 };

@@ -1,217 +1,320 @@
+<script setup>
+/**
+ * REFERRALS (spec 09, part B).
+ *
+ * Rebuilt on the desk design layer, like the rest of the app — no Tailwind
+ * utilities, so nothing here depends on the `!important` dark-mode remaps.
+ *
+ * Four numbers, not one. Clicks, signups, converted and credit are separate
+ * because they are separate problems: nobody clicking is a sharing problem,
+ * clicks without signups is a landing-page problem, and signups without
+ * conversions is a product problem. A single "referrals" figure hides which one
+ * you have and therefore what to do about it.
+ *
+ * The share text is prefilled in English and Malay because most sharing here
+ * happens on WhatsApp, and a message somebody has to compose is a message they
+ * do not send.
+ */
+import { computed, onMounted, ref } from "vue";
+import { useReferralStore } from "~/stores/referralStore";
+import { useUiStore } from "~/stores/uiStore";
+/* `cash`, not `money`: money() rounds to whole ringgit, and the cap can grant a
+   partial credit (a conversion worth RM2.50 when only that much of the monthly
+   allowance is left). Rounding a balance somebody is owed up to "RM 3" is the
+   kind of small dishonesty that costs trust in a page whose entire job is to
+   say what they have earned. */
+import { cash } from "~/utils/invoice";
+import { formatDate } from "~/utils/date";
+
+const referralStore = useReferralStore();
+const uiStore = useUiStore();
+
+const toast = ref({ message: "", type: "success" });
+const notify = (message, type = "success") => (toast.value = { message, type });
+
+const lang = ref("en");
+const copied = ref("");
+
+onMounted(() => referralStore.fetchStats());
+
+const stats = computed(() => referralStore.stats);
+const terms = computed(() => stats.value.terms || {});
+
+const shareMessage = computed(() => stats.value.share?.[lang.value] || "");
+
+const copy = async (what, text) => {
+  if (!text) return;
+  try {
+    await navigator.clipboard.writeText(text);
+    copied.value = what;
+    setTimeout(() => (copied.value = ""), 2000);
+  } catch {
+    notify("Could not reach your clipboard — select the text and copy it.", "error");
+  }
+};
+
+/* wa.me rather than a share sheet: it is the channel this is actually shared
+   on, and it works on desktop where the Web Share API does not. */
+const whatsappHref = computed(
+  () => `https://wa.me/?text=${encodeURIComponent(shareMessage.value)}`,
+);
+
+const STATUS_LABEL = {
+  PENDING: "Signed up",
+  CONVERTED: "Subscribed",
+  REVERSED: "Refunded",
+  REJECTED: "Not counted",
+};
+
+const STATUS_CHIP = {
+  PENDING: "chip--idle",
+  CONVERTED: "chip--paid",
+  REVERSED: "chip--late",
+  REJECTED: "chip--idle",
+};
+</script>
+
 <template>
-  <div class="referral-management-page w-full mx-auto font-sans pb-8 px-4">
-    <div class="flex flex-col gap-8">
-      <!-- Header -->
-      <div class="flex items-center gap-4">
-        <NuxtLink
-          to="/dashboard"
-          class="p-2 hover:bg-slate-100 rounded-lg transition-colors">
-          <UiIcon icon="heroicons:arrow-left" class="w-5 h-5 text-slate-600" />
-        </NuxtLink>
-        <div class="flex items-center justify-between flex-1">
-          <div>
-            <h2 class="text-2xl font-bold text-slate-900 tracking-tight">
-              Referral Management
-            </h2>
-            <p class="text-xs font-medium text-slate-500 mt-1">
-              Manage your referrals and claim rewards.
-            </p>
-          </div>
-          <button
-            @click="uiStore.openModuleHelp('referrals')"
-            class="text-slate-400 hover:text-pink-600 transition-colors p-1"
-            title="Referrals Help">
-            <UiIcon icon="formkit:help" custom-class="w-5 h-5" />
-          </button>
-        </div>
+  <div class="desk">
+    <header class="desk__head">
+      <div>
+        <h1 class="desk__title">Refer someone</h1>
+        <p class="desk__sub">
+          Share your link. When somebody you sent subscribes, you both get
+          something — they get their first month discounted, you get credit
+          against your next payment.
+        </p>
       </div>
-
-      <!-- Stats Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div
-          class="bg-indigo-50 border border-indigo-100 rounded-2xl p-6 shadow-sm">
-          <dt class="text-sm font-bold text-indigo-500 capitalize mb-1">
-            Available Credits
-          </dt>
-          <dd class="text-3xl font-semibold text-indigo-950">
-            {{ referralStore.stats.referralCredits || 0 }}
-          </dd>
-        </div>
-        <div
-          class="bg-emerald-50 border border-emerald-100 rounded-2xl p-6 shadow-sm">
-          <dt class="text-sm font-bold text-emerald-500 capitalize mb-1">
-            Total Referrals
-          </dt>
-          <dd class="text-3xl font-semibold text-emerald-950">
-            {{ referralStore.stats.totalReferrals || 0 }}
-          </dd>
-        </div>
-        <div
-          class="bg-slate-50 border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between">
-          <div>
-            <dt class="text-sm font-bold text-slate-500 capitalize mb-1">
-              Your Referral Code
-            </dt>
-            <dd class="text-xl font-mono font-semibold text-slate-900">
-              {{ referralStore.stats.referralCode || "..." }}
-            </dd>
-          </div>
-          <button
-            @click="copyCode"
-            class="mt-4 text-xs font-bold text-slate-900 flex items-center gap-1 hover:text-emerald-600 transition-colors">
-            <UiIcon icon="heroicons:document-duplicate" class="w-3.5 h-3.5" />
-            Copy Code
-          </button>
-        </div>
+      <div class="desk__actions">
+        <button
+          type="button"
+          class="desk-btn desk-btn--icon"
+          aria-label="How this page works"
+          @click="uiStore.openModuleHelp('referrals')">
+          <UiIcon icon="formkit:help" custom-class="w-5 h-5" />
+        </button>
       </div>
+    </header>
 
-      <!-- Rewards Section -->
-      <div
-        class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
-        <div class="p-6 border-b border-slate-100">
-          <h3 class="text-lg font-bold text-slate-900">Claim Rewards</h3>
-          <p class="text-sm text-slate-500 mt-1 font-medium">
-            Use your credits to upgrade your plan for free.
+    <!-- ── The four figures ─────────────────────────────────────────────── -->
+    <section class="strip" aria-label="Referral summary">
+      <div>
+        <p class="desk__eyebrow">Credit earned</p>
+        <p class="strip__v">RM {{ cash(stats.creditSen) }}</p>
+        <p class="strip__n">
+          Comes off your next subscription payment automatically
+        </p>
+      </div>
+      <div>
+        <p class="desk__eyebrow">Link opened</p>
+        <p class="strip__v">{{ stats.clicks }}</p>
+        <p class="strip__n">
+          {{ stats.clicks ? "People who followed your link" : "Nobody has opened it yet" }}
+        </p>
+      </div>
+      <div>
+        <p class="desk__eyebrow">Signed up</p>
+        <p class="strip__v">{{ stats.signups }}</p>
+        <p class="strip__n">
+          {{ stats.converted }} went on to subscribe
+        </p>
+      </div>
+    </section>
+
+    <!-- ── The link ─────────────────────────────────────────────────────── -->
+    <section class="card" aria-labelledby="ref-link">
+      <div class="card__head">
+        <div>
+          <h2 id="ref-link" class="card__title">Your link</h2>
+          <p class="money__note">
+            Anyone who signs up through this within
+            {{ terms.attributionWindowDays || 30 }} days counts as yours.
           </p>
         </div>
-        <div class="divide-y divide-slate-100">
-          <!-- Pro Plan Reward -->
-          <div
-            class="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-6 hover:bg-slate-50/50 transition-colors">
-            <div class="flex items-start gap-4">
-              <div class="py-3 pl-4 pr-2 bg-emerald-100 rounded-xl">
-                <UiLogo :showText="false" />
-              </div>
-              <div>
-                <h4 class="text-base font-bold text-slate-900">
-                  1 Month Free of PRO Plan
-                </h4>
-                <p class="text-sm text-slate-500 mt-1 max-w-sm leading-relaxed">
-                  Unlock advanced multi-currency tracking, AI insights, and
-                  increased WhatsApp limits.
-                </p>
-              </div>
-            </div>
-            <div class="flex items-center gap-4 shrink-0">
-              <div class="text-right">
-                <p class="text-sm font-semibold text-slate-400">Cost</p>
-                <p class="text-[15px] font-semibold text-slate-900">
-                  5 Credits
-                </p>
-              </div>
-              <button
-                @click="claim('PRO')"
-                :disabled="referralStore.stats.referralCredits < 5 || loading"
-                class="px-6 py-2.5 rounded-lg font-bold transition-all"
-                :class="
-                  referralStore.stats.referralCredits < 5
-                    ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
-                    : 'bg-slate-900 text-white hover:bg-slate-800 shadow-md'
-                ">
-                {{ loading && rewardType === "PRO" ? "Claiming..." : "Claim" }}
-              </button>
-            </div>
-          </div>
+      </div>
 
-          <!-- Max Plan Reward -->
-          <div
-            class="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-6 hover:bg-slate-50/50 transition-colors">
-            <div class="flex items-start gap-4">
-              <div
-                class="py-3 pl-4 pr-2 bg-indigo-100 text-amber-600 rounded-xl">
-                <UiLogo :showText="false" />
-              </div>
-              <div>
-                <h4 class="text-base font-bold text-slate-900">
-                  1 Month Free of MAX Plan
-                </h4>
-                <p class="text-sm text-slate-500 mt-1 max-w-sm leading-relaxed">
-                  Full access to all premium features with maximum usage limits
-                  for power users.
-                </p>
-              </div>
-            </div>
-            <div class="flex items-center gap-4 shrink-0">
-              <div class="text-right">
-                <p class="text-sm font-semibold text-slate-400">Cost</p>
-                <p class="text-[15px] font-semibold text-slate-900">
-                  10 Credits
-                </p>
-              </div>
-              <button
-                @click="claim('MAX')"
-                :disabled="referralStore.stats.referralCredits < 10 || loading"
-                class="px-6 py-2.5 rounded-xl font-bold transition-all"
-                :class="
-                  referralStore.stats.referralCredits < 10
-                    ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
-                    : 'bg-slate-900 text-white hover:bg-slate-800 shadow-md'
-                ">
-                {{ loading && rewardType === "MAX" ? "Claiming..." : "Claim" }}
-              </button>
-            </div>
+      <p class="reflink">{{ stats.url || "…" }}</p>
+      <div class="reflink__acts">
+        <button
+          type="button"
+          class="desk-btn desk-btn--ghost desk-btn--sm"
+          @click="copy('link', stats.url)">
+          <UiIcon
+            :icon="copied === 'link' ? 'heroicons:check' : 'heroicons:clipboard'"
+            custom-class="w-4 h-4" />
+          {{ copied === "link" ? "Copied" : "Copy link" }}
+        </button>
+      </div>
+
+      <!-- ── Prefilled message ────────────────────────────────────────────
+           Written to be pasted into a chat: short, first person, and it leads
+           with what the reader gets rather than with what the sender earns. A
+           share message that reads like an advert is one people rewrite or
+           quietly do not send. -->
+      <div class="refshare">
+        <div class="refshare__head">
+          <span class="f__label">A message to go with it</span>
+          <div class="segs" role="group" aria-label="Message language">
+            <button
+              v-for="l in [
+                { key: 'en', label: 'English' },
+                { key: 'ms', label: 'Bahasa Malaysia' },
+              ]"
+              :key="l.key"
+              type="button"
+              class="seg"
+              :class="{ 'seg--on': lang === l.key }"
+              :aria-pressed="lang === l.key"
+              @click="lang = l.key">
+              {{ l.label }}
+            </button>
           </div>
         </div>
+
+        <p class="deliver__msg">{{ shareMessage }}</p>
+
+        <div class="deliver__msg-acts">
+          <a
+            :href="whatsappHref"
+            target="_blank"
+            rel="noopener"
+            class="desk-btn desk-btn--primary desk-btn--sm">
+            <UiIcon icon="ic:baseline-whatsapp" custom-class="w-4 h-4" />
+            Share on WhatsApp
+          </a>
+          <button
+            type="button"
+            class="desk-btn desk-btn--ghost desk-btn--sm"
+            @click="copy('msg', shareMessage)">
+            <UiIcon
+              :icon="copied === 'msg' ? 'heroicons:check' : 'heroicons:clipboard'"
+              custom-class="w-4 h-4" />
+            {{ copied === "msg" ? "Copied" : "Copy message" }}
+          </button>
+        </div>
       </div>
-    </div>
+    </section>
+
+    <!-- ── How it works, stated plainly ─────────────────────────────────── -->
+    <section class="card" aria-labelledby="ref-terms">
+      <div class="card__head">
+        <h2 id="ref-terms" class="card__title">How it works</h2>
+      </div>
+      <ul class="refterms">
+        <li>
+          They get <b>RM {{ cash(terms.referredDiscountSen || 0) }}</b> off their
+          first month.
+        </li>
+        <li>
+          You get <b>RM {{ cash(terms.creditSen || 0) }}</b> credit — but only
+          once they actually subscribe, not when they sign up.
+        </li>
+        <li>
+          Up to <b>RM {{ cash(terms.periodCapSen || 0) }}</b> a month.
+          <template v-if="terms.remainingThisPeriodSen !== undefined">
+            RM {{ cash(terms.remainingThisPeriodSen) }} of that is still
+            available this month.
+          </template>
+        </li>
+        <li>
+          If their subscription is refunded, the credit comes back off. Nobody
+          is charged for it — the balance just goes back down.
+        </li>
+      </ul>
+    </section>
+
+    <!-- ── Who you have sent ────────────────────────────────────────────────
+         Addresses are masked. The referrer is owed proof their referral landed,
+         not a view into somebody else's account. -->
+    <section class="card" aria-labelledby="ref-list">
+      <div class="card__head">
+        <h2 id="ref-list" class="card__title">People you have referred</h2>
+      </div>
+
+      <ul v-if="stats.recent?.length" class="work">
+        <li v-for="r in stats.recent" :key="r.id">
+          <div class="work__row">
+            <span class="work__client">{{ r.who }}</span>
+            <span class="work__meta">
+              <span class="chip" :class="STATUS_CHIP[r.status] || 'chip--idle'">
+                <i class="chip__dot" aria-hidden="true"></i
+                >{{ STATUS_LABEL[r.status] || r.status }}
+              </span>
+              · {{ formatDate(r.signedUpAt) }}
+            </span>
+            <span class="work__amount">
+              <template v-if="r.status === 'CONVERTED' && r.creditSen">
+                RM {{ cash(r.creditSen) }}
+              </template>
+              <template v-else>—</template>
+            </span>
+          </div>
+        </li>
+      </ul>
+
+      <div v-else class="empty">
+        <p class="empty__title">Nobody yet.</p>
+        <p class="empty__body">
+          Anyone who signs up through your link appears here, along with whether
+          they went on to subscribe.
+        </p>
+      </div>
+    </section>
+
+    <!-- Only for accounts still holding the old count-based credits. Nothing
+         writes to that counter any more; this exists so nobody loses what they
+         already earned. -->
+    <section v-if="stats.legacyCredits" class="banner">
+      <UiIcon icon="heroicons:gift" custom-class="w-5 h-5" />
+      <span>
+        You have {{ stats.legacyCredits }} referral
+        {{ stats.legacyCredits === 1 ? "credit" : "credits" }} from before we
+        changed how rewards work. They can still be redeemed for a free month —
+        contact support and we will apply it.
+      </span>
+    </section>
+
     <UiToast v-model="toast" />
   </div>
 </template>
 
-<script setup>
-import { onMounted, ref } from "vue";
-import { useReferralStore } from "~/stores/referralStore";
-import { useUiStore } from "~/stores/uiStore";
+<style scoped>
+.reflink {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--desk-text);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--desk-radius-inset);
+  background-color: var(--desk-item);
+  word-break: break-all;
+}
+.reflink__acts {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
 
-const referralStore = useReferralStore();
-const uiStore = useUiStore();
-const toast = ref({ message: "", type: "success" });
-const loading = ref(false);
-const rewardType = ref("");
+.refshare {
+  margin-top: var(--space-5);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--desk-line);
+}
+.refshare__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
+}
 
-const fetchStats = async () => {
-  try {
-    await referralStore.fetchStats();
-  } catch (err) {
-    toast.value = {
-      message: err.message || "Failed to load stats",
-      type: "error",
-    };
-  }
-};
-
-const copyCode = () => {
-  if (referralStore.stats.referralCode) {
-    navigator.clipboard.writeText(referralStore.stats.referralCode);
-    toast.value = { message: "Referral code copied!", type: "success" };
-  }
-};
-
-const claim = async (type) => {
-  loading.value = true;
-  rewardType.value = type;
-  try {
-    await referralStore.claimReward(type);
-    toast.value = {
-      message: `Successfully claimed 1 month of ${type}!`,
-      type: "success",
-    };
-  } catch (err) {
-    toast.value = {
-      message: err.message || "Failed to claim reward",
-      type: "error",
-    };
-  } finally {
-    loading.value = false;
-    rewardType.value = "";
-  }
-};
-
-onMounted(() => {
-  fetchStats();
-});
-
-definePageMeta({
-  layout: "default",
-});
-</script>
+.refterms {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding-left: var(--space-5);
+  font-size: var(--text-sm);
+  line-height: var(--leading-relaxed);
+  color: var(--desk-text-2);
+}
+</style>

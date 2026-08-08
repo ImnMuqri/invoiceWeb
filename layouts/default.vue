@@ -174,6 +174,21 @@
               class="w-[18px] h-[18px] mr-3 opacity-70" />
             Business
           </NuxtLink>
+          <!-- Referrals (spec 09).
+               The page existed with no way to reach it: the only link was
+               inside the share prompt, which by design appears rarely and
+               never again after two dismissals — so anybody who dismissed it
+               could not find their own referral link again. The spec says
+               every account gets its link from the dashboard, on all tiers. -->
+          <NuxtLink
+            to="/referral-management"
+            class="nav-link flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
+            active-class="nav-link--active">
+            <UiIcon
+              icon="heroicons:gift"
+              class="w-[18px] h-[18px] mr-3 opacity-70" />
+            Refer &amp; earn
+          </NuxtLink>
           <NuxtLink
             to="/settings/"
             class="nav-link flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
@@ -713,6 +728,19 @@
                         icon="heroicons:building-office-2"
                         class="w-[18px] h-[18px] mr-3 opacity-70" />
                       Business
+                    </NuxtLink>
+                    <!-- Mirrors the desktop sidebar. Most sharing happens on a
+                         phone over WhatsApp, so if either nav were going to
+                         carry this one it would be this one. -->
+                    <NuxtLink
+                      to="/referral-management"
+                      @click="isMobileMenuOpen = false"
+                      class="flex items-center px-4 py-2.5 text-[15px] font-medium rounded-xl text-slate-600 hover:bg-[#ebebec] hover:text-slate-900 transition-colors"
+                      active-class="bg-[#ebebec] text-slate-900">
+                      <UiIcon
+                        icon="heroicons:gift"
+                        class="w-[18px] h-[18px] mr-3 opacity-70" />
+                      Refer &amp; earn
                     </NuxtLink>
                     <NuxtLink
                       to="/settings/"

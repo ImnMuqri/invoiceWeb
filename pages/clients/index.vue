@@ -166,6 +166,18 @@ const blank = () => ({
 
 const form = ref(blank());
 
+/* Import lives beside "add a client" rather than behind a menu (spec 08).
+   The empty account is the drop-off point for exactly the users worth having —
+   the ones who arrive with enough clients that typing them in is a chore — so
+   the way out of it has to be visible, not discovered. */
+const showImport = ref(false);
+
+const onImported = () => {
+  /* The modal has already refreshed the store; this is just the confirmation
+     the user is owed on the page they came from. */
+  toast.value = { message: "Clients imported.", type: "success" };
+};
+
 const openAdd = () => {
   editingId.value = null;
   form.value = blank();
@@ -194,7 +206,14 @@ const openEdit = (client) => {
 const problems = computed(() => {
   const out = [];
   if (!form.value.name.trim()) out.push("give them a name");
-  if (!form.value.email.trim()) out.push("add an email to send invoices to");
+  /* Email OR phone, not email specifically (spec 08).
+     Requiring an email here made every phone-only client uneditable the moment
+     the import could create one — you could not open them and save so much as
+     a corrected spelling without inventing an address for them. The rule that
+     matters is that there is SOME way to reach them. */
+  if (!form.value.email.trim() && !form.value.phone.trim()) {
+    out.push("add an email or a phone number so you can send to them");
+  }
   return out;
 });
 
@@ -268,6 +287,12 @@ const initial = (name) => String(name || "?").trim().charAt(0) || "?";
           aria-label="How this page works"
           @click="uiStore.openModuleHelp('clients')">
           <UiIcon icon="formkit:help" custom-class="w-5 h-5" />
+        </button>
+        <button
+          type="button"
+          class="desk-btn desk-btn--ghost"
+          @click="showImport = true">
+          Import
         </button>
         <button type="button" class="desk-btn desk-btn--primary" @click="openAdd">
           Add a client
@@ -414,15 +439,25 @@ const initial = (name) => String(name || "?").trim().charAt(0) || "?";
                   <template v-else>
                     <p class="empty__title">No clients yet.</p>
                     <p class="empty__body">
-                      Add whoever you bill once, and their details fill themselves
-                      into every invoice you send them after that.
+                      Bring your list in from a spreadsheet or your phone
+                      contacts — paste it and the columns sort themselves out.
+                      Or add whoever you bill one at a time; either way their
+                      details fill themselves into every invoice after that.
                     </p>
-                    <button
-                      type="button"
-                      class="desk-btn desk-btn--primary"
-                      @click="openAdd">
-                      Add your first client
-                    </button>
+                    <div class="empty__acts">
+                      <button
+                        type="button"
+                        class="desk-btn desk-btn--primary"
+                        @click="showImport = true">
+                        Import your clients
+                      </button>
+                      <button
+                        type="button"
+                        class="desk-btn desk-btn--ghost"
+                        @click="openAdd">
+                        Add one by hand
+                      </button>
+                    </div>
                   </template>
                 </div>
               </td>
@@ -766,6 +801,17 @@ const initial = (name) => String(name || "?").trim().charAt(0) || "?";
           </button>
         </div>
       </div>
+    </UiModal>
+
+    <!-- ── Import (spec 08) ─────────────────────────────────────────────
+         Wider than the other dialogs because the preview is a table, and a
+         preview the user has to scroll sideways to read is a preview they will
+         skip — which defeats the point of having one. -->
+    <UiModal v-model="showImport" max-width="4xl">
+      <ClientsImportModal
+        v-if="showImport"
+        @close="showImport = false"
+        @imported="onImported" />
     </UiModal>
 
     <UiToast v-model="toast" />

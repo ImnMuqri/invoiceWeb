@@ -213,10 +213,23 @@ const openDialog = (kind) => {
         v-else
         class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden relative">
         <div class="p-8 sm:p-10">
+          <!-- The SENDER's letterhead (not ours).
+               This page had our logo above the card and nothing of theirs
+               anywhere, while the PDF of the same quotation carried their logo
+               properly — so a client opening the link saw an unbranded page
+               from a company they have never heard of. Capped in height so a
+               large upload cannot dominate the document. -->
+          <div v-if="quote.logoUrl" class="mb-8">
+            <img
+              :src="quote.logoUrl"
+              :alt="senderLabel"
+              class="h-12 w-auto max-w-[12rem] object-contain object-left" />
+          </div>
+
           <!-- Status + price -->
           <div
-            class="flex flex-col sm:flex-row sm:justify-between sm:items-end mb-12 border-b border-slate-100 pb-8">
-            <div>
+            class="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end gap-6 mb-12 border-b border-slate-100 pb-8">
+            <div class="min-w-0">
               <div class="flex items-center gap-2 mb-4">
                 <div
                   class="w-2 h-2 rounded-full"
@@ -253,7 +266,7 @@ const openDialog = (kind) => {
               </h1>
             </div>
 
-            <div class="mt-6 sm:mt-0 text-left sm:text-right">
+            <div class="text-left sm:text-right sm:whitespace-nowrap">
               <p class="text-sm text-slate-500 font-medium">
                 Quoted {{ formatDate(quote.date) }}
               </p>
@@ -362,12 +375,15 @@ const openDialog = (kind) => {
                   </td>
                 </tr>
               </tbody>
+              <!-- One row, where the invoice page has three (subtotal, tax,
+                   total). Its spacing came from having three; with one, `pt-4`
+                   alone left the total hugging the last line item. -->
               <tfoot class="border-t border-slate-200 text-sm">
                 <tr>
-                  <td class="pt-4 text-slate-900 font-bold text-right">
+                  <td class="pt-5 pb-1 text-slate-900 font-bold text-right">
                     Total Quoted
                   </td>
-                  <td class="pt-4 text-slate-900 font-bold text-right">
+                  <td class="pt-5 pb-1 text-slate-900 font-bold text-right">
                     {{ currencySymbol }}{{ cash(quote.amount) }}
                   </td>
                 </tr>
@@ -383,7 +399,7 @@ const openDialog = (kind) => {
                simply says nothing, and silence is the outcome this whole spec
                is trying to eliminate.
           -->
-          <div v-if="quote.answerable" class="mt-12">
+          <div v-if="quote.answerable" class="mt-12 border-t border-slate-100 pt-8">
             <div class="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-3">
               <button
                 @click="openDialog('accept')"

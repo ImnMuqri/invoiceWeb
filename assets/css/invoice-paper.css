@@ -7,6 +7,20 @@
    the client receives, because Puppeteer generates that PDF by loading
    /invoices/:id/export and printing it.
 
+   THE `.doc` NAMESPACE IS OWNED BY THIS FILE, AND THIS FILE IS GLOBAL.
+   Loaded in nuxt.config for every route, so `.doc` and `.doc__*` mean "printed
+   invoice" everywhere in the app. A component that puts class="doc" on
+   something else does not merely add styles — it inherits a sheet of paper:
+   a light `background-color`, a dark `color` and a pinned 13.5px font-size,
+   none of which flip with the theme (see below for why they must not).
+
+   That already happened once. The legal pages used class="k-container doc" for
+   their content grid, so in dark mode the terms rendered as light text on a
+   white slab while the rest of the page went dark — and it was hard to find,
+   because the scoped rules there overrode the LAYOUT properties and left the
+   colours uncontested. They are `.ldoc` now. If you need a "document" class,
+   namespace it.
+
    WHY IT IS THEME-INDEPENDENT
    Every colour below is a fixed step of a brand ramp (--ink-*, --paper-*,
    --green-*, --clay-*), never a semantic alias. The aliases flip in dark mode;

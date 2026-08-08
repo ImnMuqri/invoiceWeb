@@ -39,6 +39,17 @@ export const PROTECTED_PREFIXES = [
    logged out: no redirect to login, just a page that renders its shell and fails
    every API call. Add the prefix in the same commit as the module. */
 
+/* THE REFERRAL LINK IS PUBLIC (spec 09).
+     /r?ref=CODE          → the link people are sent. Public, obviously: the
+                            whole point is that somebody with no account can
+                            follow it.
+     /referral-management → the account owner's own page. Protected, listed
+                            above.
+   Prefix matching keeps them apart, but note how close they are: adding '/r'
+   to the list below would put a login wall in front of every referral link the
+   product has ever issued, and the only symptom would be referrals quietly
+   never converting. */
+
 /* SINGULAR vs PLURAL, and it is load-bearing (spec 07).
      /quotes      → the authenticated module. Protected, listed above.
      /quote/:token→ the page the CLIENT opens to accept or decline. Public.

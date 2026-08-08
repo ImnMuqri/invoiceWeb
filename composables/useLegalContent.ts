@@ -80,7 +80,11 @@ export interface LegalDoc {
   contactBody: string
 }
 
-const ENTITY = 'BSYX LABS SDN BHD (Company No. 202603086039)'
+/* Sole proprietorship, so no "Sdn Bhd" — that suffix denotes a private limited
+   company, and claiming it in the terms of service is a misstatement of who the
+   contracting party actually is. "Registration No." rather than "Company No."
+   for the same reason. */
+const ENTITY = 'BSYX LABS (Registration No. 202603086039)'
 const UPDATED = '31 July 2026'
 const UPDATED_ISO = '2026-07-31'
 const SUPPORT = 'support@invokita.my'

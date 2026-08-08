@@ -681,6 +681,28 @@ html.dark .desk-btn--primary {
   background-color: var(--desk-warn-surface);
   color: var(--desk-warn);
 }
+
+/* Two ways out of an empty state, side by side. The .empty stack is a column,
+   so a pair of buttons in it would otherwise sit one above the other and read
+   as a primary action with an afterthought under it — wrong when both are
+   genuine choices (spec 08: import IS the primary action alongside add). */
+.empty__acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+/* The share prompt's buttons (spec 09). "Not now" sits in the same row at the
+   same size as the other two rather than as a grey ✕ in a corner: somebody who
+   cannot easily say no learns to ignore the card instead, and an ignored card
+   is one that keeps coming back forever. */
+.share__acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
 .chip__dot {
   width: 6px;
   height: 6px;

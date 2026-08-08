@@ -26,8 +26,12 @@
  * label, the variant and whether it is available, so the rules are readable and
  * the disabled reason is a sentence rather than an inference.
  */
-import { computed } from "vue";
+import { computed, onMounted, ref } from "vue";
+/* No `money` import: this file already aliases it to `price` below, which is
+   the sen boundary the plan cards use. Importing the other one would give the
+   top-up prices a different formatter from the plan prices sitting under them. */
 import { price, toSen } from "~/utils/invoice";
+import { useTopUpStore } from "~/stores/topUpStore";
 
 const props = defineProps({
   plans: { type: Array, default: () => [] },
@@ -36,6 +40,33 @@ const props = defineProps({
   cancelling: { type: Boolean, default: false },
   promo: { type: Object, required: true },
 });
+
+/* ── Top-ups (spec 01) ──────────────────────────────────────────────────────
+   The backend has had this since spec 01 and the dashboard has had two "Top up"
+   links, but neither had anywhere to land: this tab rendered a promo box and a
+   plan list, so somebody whose WhatsApp allowance ran out mid-month was offered
+   a bigger subscription instead of the small thing they came for. */
+const topUps = useTopUpStore();
+const topUpError = ref("");
+
+onMounted(() => topUps.fetchTopUps());
+
+const buyTopUp = async (blockKey) => {
+  topUpError.value = "";
+  try {
+    const url = await topUps.buy(blockKey);
+    if (url) {
+      /* A full navigation, not a new tab: the gateway sends the user back to
+         this exact page with ?topup=success, and a popup would strand that
+         return on a window the original page cannot see. */
+      window.location.href = url;
+    } else {
+      topUpError.value = "Could not open checkout. Try again in a moment.";
+    }
+  } catch (err) {
+    topUpError.value = topUps.error || "Could not start that purchase.";
+  }
+};
 
 const emit = defineEmits([
   "choose",
@@ -190,6 +221,72 @@ const cta = (p) => {
       </p>
     </section>
 
+    <!-- ── Top-ups (spec 01) ────────────────────────────────────────────────
+         Deliberately ABOVE the plan list. Everybody who arrives here from a
+         "Top up" link has one specific question — how do I send more messages
+         this month — and answering it with a plan comparison is answering a
+         small question with a big one. The plans are still underneath for
+         anybody who decides the bigger answer is the right one.
+    -->
+    <section class="sec">
+      <div class="sec__head">
+        <h2 class="sec__title">Need more this month?</h2>
+        <p class="sec__note">
+          Extra chased invoices for
+          {{ topUps.periodKey || "the current period" }}, on top of your plan.
+        </p>
+      </div>
+
+      <div v-if="topUps.balance" class="banner" style="margin-bottom: var(--space-4)">
+        <UiIcon icon="heroicons:bolt" custom-class="w-5 h-5" />
+        <span>
+          You have <b>{{ topUps.balance }}</b> topped-up
+          {{ topUps.balance === 1 ? "chase" : "chases" }} left this period.
+        </span>
+      </div>
+
+      <div v-if="topUps.loading && !topUps.blocks.length" class="empty empty--pad">
+        <p class="empty__body">Loading…</p>
+      </div>
+
+      <div v-else-if="!topUps.blocks.length" class="empty empty--pad">
+        <p class="empty__title">Top-ups are not available right now.</p>
+        <p class="empty__body">
+          {{ topUps.error || "Try again in a moment." }}
+        </p>
+      </div>
+
+      <div v-else class="topups">
+        <article v-for="b in topUps.blocks" :key="b.key" class="topup">
+          <div class="topup__body">
+            <p class="topup__n">
+              {{ b.chasedInvoices }}
+              <span>extra {{ b.chasedInvoices === 1 ? "chase" : "chases" }}</span>
+            </p>
+            <p class="topup__price">RM {{ money(b.price) }}</p>
+          </div>
+          <button
+            type="button"
+            class="desk-btn desk-btn--primary desk-btn--sm"
+            :disabled="!!topUps.buying"
+            @click="buyTopUp(b.key)">
+            <UiIcon
+              v-if="topUps.buying === b.key"
+              icon="heroicons:arrow-path"
+              custom-class="w-4 h-4 spin" />
+            {{ topUps.buying === b.key ? "Opening…" : "Buy" }}
+          </button>
+        </article>
+      </div>
+
+      <!-- Said plainly at the point of purchase, per the spec, rather than
+           buried in terms somebody reads afterwards. -->
+      <p v-if="topUps.note" class="f__hint">{{ topUps.note }}</p>
+      <p v-if="topUpError" class="f__hint" style="color: var(--desk-late)">
+        {{ topUpError }}
+      </p>
+    </section>
+
     <!-- ── Plans ────────────────────────────────────────────────────────── -->
     <section class="sec">
       <div class="sec__head">
@@ -258,3 +355,45 @@ const cta = (p) => {
     </section>
   </div>
 </template>
+
+<style scoped>
+/* ─── Top-up blocks (spec 01) ─────────────────────────────────────────────
+   Deliberately not styled like the plan cards below. A top-up is a small,
+   reversible, one-off purchase and a plan is a commitment; making them look
+   alike invites somebody to buy the wrong one. Two flat rows, price stated,
+   nothing selling. */
+.topups {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+}
+.topup {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+  border: 1px solid var(--desk-line);
+  border-radius: var(--desk-radius-inset);
+  background-color: var(--desk-card);
+}
+.topup__n {
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+  color: var(--desk-text);
+  line-height: 1.2;
+}
+.topup__n span {
+  display: block;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-normal);
+  color: var(--desk-text-3);
+  margin-top: 2px;
+}
+.topup__price {
+  margin-top: var(--space-2);
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+  color: var(--desk-text-2);
+}
+</style>

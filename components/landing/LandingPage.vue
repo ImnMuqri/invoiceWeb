@@ -52,7 +52,11 @@ const jsonLd = computed(() => {
       '@type': 'Organization',
       '@id': `${SITE_URL}/#organization`,
       name: 'InvoKita',
-      legalName: 'BSYX LABS SDN BHD',
+      /* A sole proprietorship, NOT a Sdn Bhd. "Sdn Bhd" denotes a private
+         limited company and stating it of a business that is not one is a
+         misrepresentation of legal form on a public page — and this one also
+         fed Google's knowledge panel through the Organization markup. */
+      legalName: 'BSYX LABS',
       identifier: '202603086039',
       url: SITE_URL,
       logo: `${SITE_URL}/InvoKitaLogo.png`,

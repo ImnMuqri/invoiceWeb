@@ -32,6 +32,11 @@ const site = useLandingCopy(props.locale)
 const root = ref<HTMLElement | null>(null)
 useReveal(root)
 
+/* LandingClose takes the whole LandingCopy object and reads copy.close from it,
+   so this hands it the site copy with the quotation page's closing words
+   substituted — type-correct, and no second implementation to keep in step. */
+const closeCopy = computed(() => ({ ...site, close: copy.close }))
+
 const canonical = `${SITE_URL}${quotationPath(props.locale)}`
 const homeHref = computed(() => localePath(props.locale))
 const ogImage = `${SITE_URL}/og/og-${props.locale}.png`
@@ -139,7 +144,8 @@ useHead({
     <main id="main">
       <!-- ── Masthead ──────────────────────────────────────────────────── -->
       <header class="mast">
-        <div class="k-container mast__inner">
+        <div class="k-container mast__grid">
+          <div class="mast__inner">
           <nav class="crumbs" aria-label="Breadcrumb">
             <a :href="homeHref">InvoKita</a>
             <span aria-hidden="true">/</span>
@@ -160,6 +166,45 @@ useHead({
             </a>
           </div>
           <p class="mast__note">{{ copy.ctaNote }}</p>
+          </div>
+
+          <!-- The masthead visual.
+               This page shipped as an unbroken wall of text on a site where
+               every other page carries generated art, which reads as an
+               unfinished page rather than a considered one. It draws the one
+               thing the page is selling — the client's screen, with the two
+               buttons on it — so the promise is shown before it is explained. -->
+          <figure class="art" aria-hidden="true">
+            <figcaption class="art__cap">{{ copy.art.caption }}</figcaption>
+
+            <div class="art__sheet">
+              <p class="art__num">{{ copy.art.number }}</p>
+              <p class="art__subject">{{ copy.art.subject }}</p>
+
+              <p class="art__label">{{ copy.art.amountLabel }}</p>
+              <p class="art__amount k-num">{{ copy.art.amount }}</p>
+              <p class="art__valid">{{ copy.art.validUntil }}</p>
+
+              <div class="art__acts">
+                <span class="art__btn art__btn--yes">{{ copy.art.accept }}</span>
+                <span class="art__btn">{{ copy.art.decline }}</span>
+              </div>
+            </div>
+
+            <p class="art__result">
+              <svg viewBox="0 0 16 16" class="art__tick">
+                <path
+                  d="M3.5 8.5 6.5 11.5 12.5 5"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round" />
+              </svg>
+              {{ copy.art.result }}
+            </p>
+            <p class="art__convert">{{ copy.art.convert }}</p>
+          </figure>
         </div>
       </header>
 
@@ -237,8 +282,12 @@ useHead({
            is in the delivered HTML where a crawler can read it.
       -->
       <section class="k-section" aria-labelledby="quo-faq">
-        <div class="k-container">
-          <header class="head" data-reveal>
+        <!-- Two columns at desktop, the same 0.8fr/1.4fr split LandingFaq uses.
+             Single-column, this section capped itself at reading width and sat
+             against the left edge of a much wider container, leaving half the
+             viewport empty on a large screen. -->
+        <div class="k-container faq__grid">
+          <header class="head head--sticky" data-reveal>
             <p class="k-eyebrow">{{ copy.faq.eyebrow }}</p>
             <h2 id="quo-faq" class="k-headline head__title">
               <KirimText :text="copy.faq.title" />
@@ -259,17 +308,15 @@ useHead({
         </div>
       </section>
 
-      <!-- ── Close ─────────────────────────────────────────────────────── -->
-      <section class="k-section close" aria-labelledby="quo-close">
-        <div class="k-container close__inner" data-reveal>
-          <h2 id="quo-close" class="k-headline">
-            <KirimText :text="copy.close.title" />
-          </h2>
-          <p class="k-lead close__lead">{{ copy.close.lead }}</p>
-          <a href="/register" class="k-btn k-btn--primary">{{ copy.close.cta }}</a>
-          <p class="close__note">{{ copy.close.note }}</p>
-        </div>
-      </section>
+      <!-- ── Close ─────────────────────────────────────────────────────────
+           THE ACTUAL LandingClose, not a lookalike. This page had its own
+           hand-rolled version — plain, left-aligned, no slab — sitting directly
+           above the shared footer, so the page ended on a different note from
+           every other page on the site. The real one is an inverse slab with
+           the grain, the glow and the serif that bookends the landing page, and
+           reusing it means the two cannot drift again. Only the WORDS differ,
+           which is the only thing that should. -->
+      <LandingClose :copy="closeCopy" />
     </main>
 
     <LandingFooter :copy="site" :locale="locale" />
@@ -282,6 +329,14 @@ useHead({
   padding-block: clamp(2rem, 6vw, 3.5rem) clamp(2.5rem, 6vw, 4rem);
   background-color: var(--surface-sunken);
   border-bottom: 1px solid var(--border-default);
+}
+/* Two columns at desktop, like the landing hero: copy left, the client's screen
+   right. Stacks on anything narrower, art last, because on a phone the headline
+   has to come first. */
+.mast__grid {
+  display: grid;
+  gap: clamp(2.5rem, 5vw, 4rem);
+  align-items: center;
 }
 .mast__inner {
   max-width: 44rem;
@@ -325,6 +380,134 @@ useHead({
   color: var(--text-tertiary);
 }
 
+
+/* ─── Masthead art ──────────────────────────────────────────────────────────
+   The client's screen, drawn rather than screenshotted so it stays correct when
+   the real page changes and costs nothing to load. Same vocabulary as the bento
+   tile on the landing page, so the two read as one system. */
+.art {
+  margin: 0;
+  display: grid;
+  gap: var(--space-2);
+  justify-items: stretch;
+}
+.art__cap {
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-widest);
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  margin-bottom: var(--space-1);
+}
+.art__sheet {
+  padding: var(--space-6);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
+  background-color: var(--surface-raised);
+  box-shadow: var(--shadow-lg);
+}
+.art__num {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-wide);
+  color: var(--text-tertiary);
+}
+.art__subject {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+  margin-top: 2px;
+}
+.art__label {
+  margin-top: var(--space-5);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-widest);
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+.art__amount {
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-primary);
+  line-height: 1.1;
+  margin-top: 2px;
+}
+.art__valid {
+  font-size: var(--text-2xs);
+  color: var(--text-tertiary);
+  margin-top: var(--space-2);
+}
+.art__acts {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-5);
+}
+.art__btn {
+  flex: 1;
+  text-align: center;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-default);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  color: var(--text-secondary);
+}
+/* Filled, so it uses the accent PAIR — the same two tokens .k-btn--primary
+   uses. Both resolve to the same green in either theme because the accent is a
+   fixed brand colour on the marketing surface; what changes underneath is
+   --surface-raised, so the card reads differently in dark even though the pill
+   does not. */
+.art__btn--yes {
+  background-color: var(--surface-accent);
+  border-color: var(--surface-accent);
+  color: var(--text-on-accent);
+}
+.art__result {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border-accent);
+  border-radius: var(--radius-md);
+  background-color: var(--surface-accent-soft);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-bold);
+  color: var(--text-accent);
+}
+.art__tick {
+  width: 14px;
+  height: 14px;
+  flex: none;
+}
+.art__convert {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--text-tertiary);
+  padding-left: var(--space-4);
+}
+
+@media (min-width: 1024px) {
+  .mast__grid {
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+  }
+  .faq__grid {
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.4fr);
+    align-items: start;
+  }
+  /* The heading rides alongside the questions rather than scrolling away from
+     them — the list is long enough that it otherwise loses its title. */
+  .head--sticky {
+    position: sticky;
+    /* 6rem clears the sticky nav, matching the legal pages' TOC. An earlier
+       version referenced a --nav-h token that does not exist anywhere in this
+       codebase and only worked because of its fallback. */
+    top: 6rem;
+    margin-bottom: 0;
+  }
+}
+
 /* ─── Section heads ─────────────────────────────────────────────────────── */
 .head {
   max-width: var(--measure);
@@ -335,8 +518,11 @@ useHead({
 }
 
 /* ─── The promise ───────────────────────────────────────────────────────── */
+/* Centred, not left-aligned. A single 44rem card inside a container twice that
+   wide read as a layout that had lost its second column. */
 .promise__card {
-  max-width: 44rem;
+  max-width: 48rem;
+  margin-inline: auto;
   padding: clamp(var(--space-6), 4vw, var(--space-8));
   border: 1px solid var(--border-accent);
   border-radius: var(--radius-xl);
@@ -348,6 +534,11 @@ useHead({
 }
 .promise__body {
   color: var(--text-secondary);
+}
+
+.faq__grid {
+  display: grid;
+  gap: clamp(2rem, 4vw, 3rem);
 }
 
 /* ─── Steps ─────────────────────────────────────────────────────────────── */
@@ -443,7 +634,10 @@ useHead({
   margin: 0;
   padding: 0;
   list-style: none;
-  max-width: var(--measure);
+  /* No max-width: the grid column is the constraint now. Capping it as well
+     would re-create the dead space one level in — the questions would sit
+     against the left of their own column instead of the page's. The ANSWER
+     text still caps, which is where reading width actually matters. */
   border-top: 1px solid var(--border-default);
 }
 .faq__item {
@@ -509,15 +703,7 @@ useHead({
 }
 
 /* ─── Close ─────────────────────────────────────────────────────────────── */
-.close__inner {
-  max-width: var(--measure);
-}
-.close__lead {
-  margin-block: var(--space-5) var(--space-7);
-}
-.close__note {
-  margin-top: var(--space-4);
-  font-size: var(--text-xs);
-  color: var(--text-tertiary);
-}
+/* No .close rules here any more — LandingClose brings its own, and a second set
+   under the same names would be the start of exactly the drift that made this
+   page's ending look wrong in the first place. */
 </style>

@@ -42,6 +42,23 @@ const copy = {
     ctaSecondary: 'See how the chasing works',
     ctaNote: 'Free plan · no card needed',
 
+    /* The masthead visual. Every other page on this site carries generated art
+       and this one shipped as an unbroken wall of text, which read as an
+       unfinished page rather than a considered one. It shows the single thing
+       the page is selling: the client's screen, with the two buttons on it. */
+    art: {
+      caption: 'What your client opens',
+      number: 'QUO-0018',
+      subject: 'Website build',
+      amountLabel: 'Quoted price',
+      amount: 'RM 1,200.00',
+      validUntil: 'Holds until 30 November',
+      accept: 'Accept',
+      decline: 'Decline',
+      result: 'Accepted by Wayne Lim',
+      convert: 'Invoice raised · INV-0043',
+    },
+
     /* The one thing this page has to be unambiguous about, because it is the
        decision that makes the product trustworthy rather than pushy. */
     promise: {
@@ -167,6 +184,19 @@ const copy = {
     ctaPrimary: 'Buat sebut harga pertama, percuma',
     ctaSecondary: 'Lihat cara kejaran berfungsi',
     ctaNote: 'Pelan percuma · tanpa kad kredit',
+
+    art: {
+      caption: 'Apa yang pelanggan anda buka',
+      number: 'QUO-0018',
+      subject: 'Pembinaan website',
+      amountLabel: 'Harga sebut',
+      amount: 'RM 1,200.00',
+      validUntil: 'Sah sehingga 30 November',
+      accept: 'Terima',
+      decline: 'Tolak',
+      result: 'Diterima oleh Wayne Lim',
+      convert: 'Invois dikeluarkan · INV-0043',
+    },
 
     promise: {
       title: 'Sebut harga tidak pernah dikejar.',

@@ -67,6 +67,10 @@ const usedAi = ref(false);
 const currencyOptions = ref([]);
 /** The invoice as loaded, kept for the facts the form does not own. */
 const original = ref(null);
+/* Spec 09. Held on the component, not as a local in onMounted: the preview
+   computed runs long after that fetch, so a local would be gone by then and the
+   footer would silently never draw — while the real PDF drew it. */
+const attribution = ref(null);
 /** True when the loaded invoice had no line items and one was reconstructed. */
 const recoveredAmount = ref(false);
 /* Bumped whenever a payment, credit note or void lands, so the panel refetches
@@ -129,6 +133,7 @@ onMounted(async () => {
   clientStore.fetchClients();
 
   const cfg = (await authStore.fetchInvoiceConfig()) || {};
+  attribution.value = cfg.attribution ?? null;
   const u = authStore.user;
 
   try {
@@ -256,6 +261,8 @@ const doc = computed(() =>
     /* Taken from the invoice, which is the same flag the document renders
        under — so the preview cannot show a client's TIN that the PDF omits. */
     showClientIdentifiers: original.value?.showClientIdentifiers !== false,
+    /* Spec 09 — the preview draws the same footer the PDF will. */
+    attribution: attribution.value,
   }),
 );
 

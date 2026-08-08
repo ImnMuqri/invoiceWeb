@@ -95,6 +95,15 @@ const toggle = (field) => {
   if (field.needs) return;
   props.form[field.key] = !props.form[field.key];
 };
+
+/* Spec 09. Guarded here as well as by the `disabled` attribute, because
+   `disabled` is a hint to the browser and not a rule — and the real rule is
+   enforced server-side anyway: attributionFor() ignores this flag entirely for
+   a free account, so a tampered request changes nothing a client would see. */
+const toggleAttribution = () => {
+  if (!props.form.canRemoveAttribution) return;
+  props.form.attributionEnabled = !props.form.attributionEnabled;
+};
 </script>
 
 <template>
@@ -133,6 +142,60 @@ const toggle = (field) => {
             <span class="pickcard__name">{{ field.label }}</span>
             <span v-if="field.needs" class="pickcard__note pickcard__note--warn">
               Add {{ field.needs }} to use this
+            </span>
+          </span>
+          <span class="pickcard__mark" aria-hidden="true">
+            <UiIcon icon="heroicons:check-16-solid" custom-class="w-3 h-3" />
+          </span>
+        </label>
+      </div>
+    </section>
+
+    <!-- ── Attribution (spec 09) ────────────────────────────────────────────
+         Its own section rather than a tenth card in the grid above. That grid
+         answers "which of MY details print"; this is our line, on their
+         document, and the difference is worth a heading. It is also the only
+         switch on this page whose availability depends on the plan, and
+         burying that in a greyed-out card would read as a bug.
+    -->
+    <section class="sec">
+      <div class="sec__head">
+        <h2 class="sec__title">Our name on your invoices</h2>
+        <p class="sec__note">
+          A single quiet line at the foot of the payment page and the PDF.
+        </p>
+      </div>
+
+      <div class="pickcard">
+        <label
+          class="pickcard__opt"
+          :class="{
+            'pickcard__opt--on': form.attributionEnabled,
+            'pickcard__opt--off': !form.canRemoveAttribution,
+          }">
+          <input
+            type="checkbox"
+            class="pickcard__inp"
+            :checked="form.attributionEnabled"
+            :disabled="!form.canRemoveAttribution"
+            @change="toggleAttribution" />
+          <UiIcon icon="heroicons:sparkles" custom-class="w-4 h-4" />
+          <span class="pickcard__body">
+            <span class="pickcard__name">Show “Sent with InvoKita”</span>
+            <span
+              class="pickcard__note"
+              :class="{ 'pickcard__note--warn': !form.canRemoveAttribution }">
+              <template v-if="!form.canRemoveAttribution">
+                Included on the free plan. Any paid plan can switch it off — not
+                just the top one.
+              </template>
+              <template v-else-if="form.attributionEnabled">
+                On. Turn it off and your documents carry nothing of ours.
+              </template>
+              <template v-else>
+                Off. Your invoices and payment pages show only your own
+                branding.
+              </template>
             </span>
           </span>
           <span class="pickcard__mark" aria-hidden="true">

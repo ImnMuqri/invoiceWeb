@@ -33,7 +33,10 @@ import { useAuthStore } from "~/stores/authStore";
 import { useUiStore } from "~/stores/uiStore";
 import { useReferralStore } from "~/stores/referralStore";
 import { useSystemStore } from "~/stores/systemStore";
-import { fromSen, money } from "~/utils/invoice";
+/* `cash` alongside `money` for the referral figures only: money() rounds to
+   whole ringgit, which is right for the dashboard's headline totals and wrong
+   for a credit amount somebody is being promised. */
+import { fromSen, money, cash } from "~/utils/invoice";
 import confetti from "canvas-confetti";
 
 const route = useRoute();
@@ -94,13 +97,6 @@ const fetchForecastData = async () => {
   }
 };
 
-const copyReferralCode = () => {
-  const code = referralStore.stats?.referralCode;
-  if (!code) return;
-  navigator.clipboard.writeText(code);
-  toast.value = { message: "Referral code copied.", type: "success" };
-};
-
 watch([forecastRange, selectedMonth, selectedYear], () => fetchForecastData());
 watch(profitabilityFilter, (v) => fetchCoreData({ rank: v }));
 
@@ -115,6 +111,9 @@ onMounted(() => {
      the other. See the store comment. */
   dashboardStore.fetchQuotes();
   referralStore.fetchStats();
+  /* Spec 09. Asks the SERVER whether this is a moment worth asking at — see
+     the store. Returns null nearly every time, which is the point. */
+  referralStore.fetchPrompt();
 
   if (route.query.welcome === "true") {
     uiStore.toggleWelcomeModal(true);
@@ -430,6 +429,61 @@ const meters = computed(() => {
         <NuxtLink to="/invoices/create" class="desk-btn desk-btn--ghost">
           Create an invoice
         </NuxtLink>
+      </div>
+    </section>
+
+    <!-- ── Share prompt (spec 09) ───────────────────────────────────────────
+         Shown ONLY after a qualifying event: an invoice paid following a
+         reminder this product sent. That is the one moment it has demonstrably
+         done the thing it promises, which is when asking for a recommendation
+         is a fair request rather than an interruption.
+
+         The server decides whether to show it, enforces the cooldown, and stops
+         asking after two dismissals. This component only renders the answer —
+         and dismissing is a real button with equal weight, not a grey ✕, since
+         somebody who cannot easily say no just learns to ignore the card.
+    -->
+    <section
+      v-if="referralStore.prompt"
+      class="card share"
+      aria-labelledby="share-prompt">
+      <div class="card__head">
+        <div>
+          <h2 id="share-prompt" class="card__title">
+            That invoice got paid after we chased it.
+          </h2>
+          <p class="money__note">
+            If that was useful, the quickest way to help is to send someone your
+            link. They get RM {{ cash(referralStore.prompt.referredDiscountSen) }}
+            off their first month, and you get RM
+            {{ cash(referralStore.prompt.creditSen) }} credit when they
+            subscribe.
+          </p>
+        </div>
+      </div>
+
+      <div class="share__acts">
+        <a
+          :href="`https://wa.me/?text=${encodeURIComponent(referralStore.prompt.share.en)}`"
+          target="_blank"
+          rel="noopener"
+          class="desk-btn desk-btn--primary desk-btn--sm"
+          @click="referralStore.acknowledgePrompt(false)">
+          <UiIcon icon="ic:baseline-whatsapp" custom-class="w-4 h-4" />
+          Share on WhatsApp
+        </a>
+        <NuxtLink
+          to="/referral-management"
+          class="desk-btn desk-btn--ghost desk-btn--sm"
+          @click="referralStore.acknowledgePrompt(false)">
+          See my link
+        </NuxtLink>
+        <button
+          type="button"
+          class="desk-btn desk-btn--ghost desk-btn--sm"
+          @click="referralStore.acknowledgePrompt(true)">
+          Not now
+        </button>
       </div>
     </section>
 

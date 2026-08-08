@@ -17,14 +17,14 @@
 
     <div
       class="mt-8 sm:mx-auto px-6 transition-all duration-500"
-      :class="{ 'sm:max-w-xl w-full': step !== 4, '!w-fit': step === 4 }">
+      :class="{ 'sm:max-w-xl w-full': step !== 5, '!w-fit': step === 5 }">
       <div
         class="bg-white py-8 px-4 shadow-sm shadow-slate-200/40 rounded-2xl sm:px-10 border border-slate-100 relative transition-all duration-500">
         <!-- Progress Bar -->
         <div class="mb-8">
           <div
             class="flex justify-between text-xs font-semibold text-slate-500 mb-2 uppercase tracking-widest">
-            <span>Step {{ step }} of 4</span>
+            <span>Step {{ step }} of 5</span>
             <span>{{
               step === 1
                 ? "Role"
@@ -32,17 +32,19 @@
                   ? "Discovery"
                   : step === 3
                     ? "Profile"
-                    : "Plan Selection"
+                    : step === 4
+                      ? "Your Clients"
+                      : "Plan Selection"
             }}</span>
           </div>
           <div class="w-full bg-slate-100 rounded-full h-1 overflow-hidden">
             <div
               class="bg-emerald-500 h-1 rounded-full transition-all duration-500 ease-out"
-              :style="{ width: `${(step / 4) * 100}%` }"></div>
+              :style="{ width: `${(step / 5) * 100}%` }"></div>
           </div>
         </div>
 
-        <form @submit.prevent="step < 4 ? nextStep() : null" class="space-y-6">
+        <form @submit.prevent="step < 5 ? nextStep() : null" class="space-y-6">
           <!-- Step 1: Current Status -->
           <div
             v-show="step === 1"
@@ -260,9 +262,62 @@
             </div>
           </div>
 
-          <!-- Step 4: Plan Selection -->
+          <!-- ── Step 4: Bring your clients in (spec 08) ────────────────────
+               Optional, and it says so twice — in the heading and on the button
+               that leaves. The empty account is the drop-off point for exactly
+               the users worth having, so the offer belongs here; but a new user
+               who does not have their list to hand must never feel stuck behind
+               it, which is why Continue is always enabled and never validates
+               anything.
+          -->
           <div
             v-show="step === 4"
+            class="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
+            <div>
+              <h3 class="text-lg font-black text-slate-900 tracking-tight">
+                Bring your clients in
+                <span class="text-slate-400 font-medium text-sm">— optional</span>
+              </h3>
+              <p class="text-sm text-slate-500 mt-2 leading-relaxed">
+                If you already have your clients in a spreadsheet or your phone
+                contacts, paste the list and we will sort out the columns. You
+                can always do this later from the Clients page.
+              </p>
+            </div>
+
+            <div
+              v-if="importedCount"
+              class="flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
+              <UiIcon
+                icon="heroicons:check-circle"
+                custom-class="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
+              <p class="text-sm text-emerald-900 font-medium">
+                {{ importedCount }}
+                {{ importedCount === 1 ? "client" : "clients" }} added. You can
+                import more any time.
+              </p>
+            </div>
+
+            <button
+              v-else
+              type="button"
+              class="w-full rounded-xl border border-dashed border-slate-300 px-4 py-6 text-center transition-all hover:border-slate-400 hover:bg-slate-50"
+              @click="showImport = true">
+              <UiIcon
+                icon="heroicons:arrow-up-tray"
+                custom-class="w-6 h-6 text-slate-400 mx-auto mb-2" />
+              <span class="block text-sm font-bold text-slate-900">
+                Paste or upload your client list
+              </span>
+              <span class="block text-xs text-slate-500 mt-1">
+                Name, phone and email in any order
+              </span>
+            </button>
+          </div>
+
+          <!-- Step 5: Plan Selection -->
+          <div
+            v-show="step === 5"
             class="animate-in fade-in slide-in-from-right-4 duration-500">
             <div class="text-center mb-8">
               <h3 class="text-2xl font-black text-slate-900 tracking-tight">
@@ -549,9 +604,9 @@
             </div>
           </div>
 
-          <!-- Navigation Buttons (Only Steps 1-3) -->
+          <!-- Navigation Buttons (every step before plan selection) -->
           <div
-            v-show="step < 4"
+            v-show="step < 5"
             class="flex gap-4 pt-4 border-t border-slate-100">
             <button
               v-if="step > 1"
@@ -564,7 +619,7 @@
               type="button"
               @click="nextStep"
               class="flex-1 flex justify-center items-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-bold text-white bg-slate-900 hover:bg-slate-800 focus:outline-none transition-colors">
-              Continue
+              {{ step === 4 && !importedCount ? "Skip for now" : "Continue" }}
               <svg
                 class="w-4 h-4 ml-2"
                 fill="none"
@@ -581,6 +636,15 @@
         </form>
       </div>
     </div>
+
+    <!-- The same import component the Clients page uses. One implementation,
+         so the onboarding path cannot drift from the permanent one. -->
+    <UiModal v-model="showImport" max-width="4xl">
+      <ClientsImportModal
+        v-if="showImport"
+        @close="showImport = false"
+        @imported="onImported" />
+    </UiModal>
   </div>
 </template>
 
@@ -606,6 +670,19 @@ const promoError = ref("");
 const appliedDiscount = ref(null);
 
 const step = ref(parseInt(router.currentRoute.value.query.step) || 1);
+
+/* Client import (spec 08), offered as step 4 and skippable.
+   `importedCount` only changes what the step SAYS — nothing about it gates
+   Continue, because a new user who does not have their client list to hand must
+   never be stuck behind an optional step. */
+const showImport = ref(false);
+const importedCount = ref(0);
+
+const onImported = (result) => {
+  importedCount.value +=
+    (result?.counts?.created || 0) + (result?.counts?.updated || 0);
+  showImport.value = false;
+};
 const loading = ref(false);
 const error = ref("");
 const dynamicPlans = ref([]);
@@ -752,7 +829,7 @@ const nextStep = () => {
     }
   }
 
-  if (step.value < 4) {
+  if (step.value < 5) {
     step.value++;
   }
 };
@@ -774,7 +851,10 @@ const selectPlan = async (plan) => {
     } else {
       // PRO or MAX
       const successUrl = `${window.location.origin}/dashboard?welcome=true`;
-      const failureUrl = `${window.location.origin}/onboarding?step=4&payment_failed=true`;
+      /* Back to the PLAN step, which is 5 since the client import was added
+         between the profile and the plan. A stale 4 here would drop somebody
+         whose card was declined onto the import screen with no explanation. */
+      const failureUrl = `${window.location.origin}/onboarding?step=5&payment_failed=true`;
 
       const res = await subscribeStore.subscribe(
         plan,

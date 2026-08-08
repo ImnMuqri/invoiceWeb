@@ -39,7 +39,10 @@ const notify = (message, type = "success") => (toast.value = { message, type });
 
 const TABS = [
   { id: "payments", name: "Payments", icon: "heroicons:banknotes", form: "settings", saves: false },
-  { id: "billing", name: "Plan", icon: "heroicons:sparkles", form: null, saves: false },
+  /* "Plan & top-ups", not "Plan". Both dashboard "Top up" links land here, and
+     a tab labelled Plan told those users they had been sent somewhere else —
+     which, until the top-up section was built, they effectively had. */
+  { id: "billing", name: "Plan & top-ups", icon: "heroicons:sparkles", form: null, saves: false },
   { id: "security", name: "Security", icon: "heroicons:lock-closed", form: null, saves: false },
 ];
 
@@ -66,7 +69,28 @@ const route_ = (next) => {
   activeTab.value = TABS.some((t) => t.id === next) ? next : "payments";
 };
 
-onMounted(() => route_(route.query.tab));
+onMounted(() => {
+  route_(route.query.tab);
+
+  /* Coming back from a top-up checkout (spec 01).
+     The gateway returns to ?topup=success|failed and nothing read it, so a user
+     who had just paid landed back on this page with no acknowledgement at all —
+     the balance does not update instantly either, because it is granted by the
+     webhook rather than by this redirect, so silence reads as "did that work?".
+
+     The query is cleared afterwards so a refresh does not replay the message. */
+  const outcome = route.query.topup;
+  if (outcome === "success") {
+    notify("Payment received. Your top-up appears as soon as the bank confirms it — usually seconds.");
+  } else if (outcome === "failed") {
+    notify("That payment did not go through. Nothing has been charged.", "error");
+  }
+  if (outcome) {
+    const q = { ...route.query };
+    delete q.topup;
+    router.replace({ query: q });
+  }
+});
 watch(() => route.query.tab, route_);
 
 const go = (id) => {

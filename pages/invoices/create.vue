@@ -167,6 +167,8 @@ const doc = computed(() =>
     client: selectedClient.value,
     logo: authStore.user?.profile?.logoUrl || null,
     showClientIdentifiers: showClientIdentifiers.value,
+    /* Spec 09 — the preview draws the same footer the PDF will. */
+    attribution: invoiceConfig.value?.attribution ?? null,
   }),
 );
 

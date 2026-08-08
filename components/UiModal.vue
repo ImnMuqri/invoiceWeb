@@ -72,7 +72,7 @@ const props = defineProps({
   },
   maxWidth: {
     type: String,
-    default: "sm", // sm, md, lg, xl, 2xl
+    default: "sm", // sm, md, lg, xl, 2xl, 3xl, 4xl
   },
   showClose: {
     type: Boolean,
@@ -93,6 +93,12 @@ const maxWidthClass = computed(() => {
     lg: "sm:max-w-lg",
     xl: "sm:max-w-xl",
     "2xl": "sm:max-w-2xl",
+    /* Added for the client import preview (spec 08). A preview table the user
+       has to scroll sideways to read is a preview they will skip — which
+       defeats the point of having one, since it is the only thing standing
+       between a bad paste and 200 wrong clients. */
+    "3xl": "sm:max-w-3xl",
+    "4xl": "sm:max-w-4xl",
   };
   return classes[props.maxWidth] || classes.sm;
 });

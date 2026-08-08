@@ -100,6 +100,12 @@ const profileForm = ref({
   sstNumber: "",
   invoiceIncludeTaxIdentifiers: true,
   invoiceIncludeClientIdentifiers: true,
+  /* Spec 09. `canRemoveAttribution` is read-only — the SERVER decides whether
+     this plan may switch it off, and posting it back changes nothing. It lives
+     on the form only so the switch can explain itself rather than appearing
+     broken on a free account. */
+  attributionEnabled: true,
+  canRemoveAttribution: false,
 });
 
 const settingsForm = ref({
@@ -205,6 +211,8 @@ onMounted(async () => {
       sstNumber: s.sstNumber || "",
       invoiceIncludeTaxIdentifiers: s.invoiceIncludeTaxIdentifiers !== false,
       invoiceIncludeClientIdentifiers: s.invoiceIncludeClientIdentifiers !== false,
+      attributionEnabled: s.attributionEnabled !== false,
+      canRemoveAttribution: !!s.canRemoveAttribution,
     };
   }
 

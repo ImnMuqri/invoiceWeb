@@ -65,7 +65,7 @@ const quotations = computed(() => quotationPath(props.locale))
       <hr class="k-rule foot__rule" />
 
       <p class="foot__legal">
-        © {{ year }} InvoKita — BSYX LABS SDN BHD (202603086039). {{ copy.footer.rights }}
+        © {{ year }} InvoKita — BSYX LABS (202603086039). {{ copy.footer.rights }}
       </p>
     </div>
   </footer>
