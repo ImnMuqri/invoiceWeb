@@ -32,6 +32,7 @@ import { computed, onMounted, ref } from "vue";
    top-up prices a different formatter from the plan prices sitting under them. */
 import { price, toSen } from "~/utils/invoice";
 import { useTopUpStore } from "~/stores/topUpStore";
+import { useSystemStore } from "~/stores/systemStore";
 
 const props = defineProps({
   plans: { type: Array, default: () => [] },
@@ -78,6 +79,20 @@ const emit = defineEmits([
 
 const norm = (v) => String(v ?? "").trim().toUpperCase();
 const same = (a, b) => norm(a) === norm(b);
+
+/* ── The admin's "paid plans" switch ────────────────────────────────────────
+   Off means nobody may move onto a paid plan. It does NOT touch a plan somebody
+   already has, and it does NOT block cancelling down to Free — `cta()` below
+   keeps both of those paths open, and the server agrees (systemGuards lets FREE
+   through, since that is the cancellation path). The cards stay on the page,
+   dimmed, so this reads as paused rather than as a product with one plan.
+
+   The layout fetches the switches on mount; the default is on, so the worst a
+   slow response does is show a live button for a moment. Pressing it in that
+   moment gets a 403 with the same explanation rather than a charge. */
+const system = useSystemStore();
+const upgradesOn = computed(() => system.arePlanUpgradesEnabled);
+const paused = (p) => !upgradesOn.value && !same(p.name, current.value) && Number(p.price) > 0;
 
 const current = computed(() => norm(props.plan) || "FREE");
 const isFree = computed(() => current.value === "FREE");
@@ -136,6 +151,17 @@ const cta = (p) => {
     };
   if (mine)
     return { label: "Cancel this plan", variant: "ghost", ok: true, why: "" };
+  /* Checked before the "cancel first" rule: when both apply, the pause is the
+     one that is actually binding, and telling somebody to cancel their plan so
+     they can switch to one they cannot buy would be the worst possible advice
+     to give them. */
+  if (paused(p))
+    return {
+      label: "Paused",
+      variant: "ghost",
+      ok: false,
+      why: "Plan changes are paused right now. Your current plan is unaffected.",
+    };
   if (!isFree.value && !props.cancelling)
     return {
       label: "Switch",
@@ -175,8 +201,11 @@ const cta = (p) => {
       </div>
     </section>
 
-    <!-- ── Promo ────────────────────────────────────────────────────────── -->
-    <section class="sec">
+    <!-- ── Promo ──────────────────────────────────────────────────────────
+         Hidden while paid plans are paused. A code only ever changes the price
+         of a plan, so with every paid plan out of reach this is a box that can
+         do nothing but say "Applied" and then leave you nowhere to spend it. -->
+    <section v-if="upgradesOn" class="sec">
       <div class="sec__head">
         <h2 class="sec__title">Got a code?</h2>
       </div>
@@ -293,6 +322,15 @@ const cta = (p) => {
         <h2 class="sec__title">Plans</h2>
       </div>
 
+      <div v-if="!upgradesOn" class="banner" style="margin-bottom: var(--space-4)">
+        <UiIcon icon="heroicons:pause-circle" custom-class="w-5 h-5" />
+        <span>
+          Plan changes are paused across the platform for now, so these cannot be
+          selected. Whatever you are on keeps running exactly as it is, and you
+          can still cancel down to Free.
+        </span>
+      </div>
+
       <div v-if="!plans.length" class="empty empty--pad">
         <p class="empty__title">Plans are not loading.</p>
         <p class="empty__body">
@@ -306,7 +344,8 @@ const cta = (p) => {
           v-for="p in plans"
           :key="p.id"
           class="plan"
-          :class="{ 'plan--now': same(p.name, current) }">
+          :class="{ 'plan--now': same(p.name, current), 'plan--locked': paused(p) }"
+          :aria-disabled="paused(p) || undefined">
           <div class="plan__top">
             <div style="min-width: 0">
               <h3 class="plan__name">{{ p.name }}</h3>
@@ -357,6 +396,19 @@ const cta = (p) => {
 </template>
 
 <style scoped>
+/* ─── Paused by the admin switch ──────────────────────────────────────────
+   The card stays — it is the reason somebody would come back — but plainly out
+   of reach. Dimmed, desaturated, and inert: nothing inside can be clicked or
+   tabbed to. The button carries `disabled` as well, so the state is announced
+   and not merely drawn. `.plan.plan--locked` rather than `.plan--locked` so it
+   outranks `.desk .plan` in app-desk.css whichever way the sheets are ordered.
+   ───────────────────────────────────────────────────────────────────────── */
+.plan.plan--locked {
+  opacity: 0.5;
+  filter: saturate(0.55);
+  pointer-events: none;
+}
+
 /* ─── Top-up blocks (spec 01) ─────────────────────────────────────────────
    Deliberately not styled like the plan cards below. A top-up is a small,
    reversible, one-off purchase and a plan is a commitment; making them look

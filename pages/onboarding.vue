@@ -24,6 +24,7 @@
  */
 import { useAuthStore } from '~/stores/authStore'
 import { useSubscribeStore } from '~/stores/subscribeStore'
+import { useSystemStore } from '~/stores/systemStore'
 import { price, currencySymbol } from '~/utils/invoice'
 
 definePageMeta({ layout: false })
@@ -32,6 +33,7 @@ const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
 const subscribeStore = useSubscribeStore()
+const systemStore = useSystemStore()
 
 /* The rail reads this. Hints are written for the person on that step, not as
    descriptions of the feature. */
@@ -211,7 +213,19 @@ const fetchPlans = async () => {
   }
 }
 
-onMounted(fetchPlans)
+/* This page runs with no layout, so nothing else fetches the platform switches
+   for it. Soft-fails to "everything on"; the server enforces regardless. */
+onMounted(() => {
+  fetchPlans()
+  systemStore.fetchConfig()
+})
+
+/* The admin switch. Off means Free is the only plan anyone can start on — the
+   rest stay on screen, dimmed and inert, because a plan list that silently
+   shrinks reads as "this product has one plan" rather than "this is paused". */
+const canUpgrade = computed(() => systemStore.arePlanUpgradesEnabled)
+const isFreePlan = (plan) => Number(plan.price) === 0
+const canChoose = (plan) => canUpgrade.value || isFreePlan(plan)
 
 /* Cheapest first, and retired plans stay out — the page was rendering whatever
    order the API returned and showing inactive rows, which the public pricing
@@ -307,6 +321,10 @@ const loading = ref(false)
 const paymentFailed = ref(route.query.payment_failed === 'true')
 
 const selectPlan = async (plan) => {
+  /* Belt and braces. The card is inert and its button disabled, so this only
+     catches a stale view — the switch having flipped while this step was open. */
+  if (!canUpgrade.value && String(plan).toUpperCase() !== 'FREE') return
+
   error.value = ''
   paymentFailed.value = false
   loading.value = true
@@ -572,8 +590,21 @@ const selectPlan = async (plan) => {
           started. Try again, or start free and upgrade later.
         </p>
 
-        <!-- Promo -->
-        <div class="promo">
+        <p v-if="!canUpgrade" class="alert alert--info" role="status">
+          <svg viewBox="0 0 16 16" aria-hidden="true">
+            <circle cx="8" cy="8" r="6.6" fill="none" stroke="currentColor" stroke-width="1.5" />
+            <path d="M8 7.2v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+            <circle cx="8" cy="4.6" r="0.9" fill="currentColor" />
+          </svg>
+          Paid plans are paused at the moment, so start on Free — it is a working
+          account, not a trial. The others are here waiting, and you can move up
+          from Settings the day they are back.
+        </p>
+
+        <!-- Promo. Hidden while paid plans are paused: a discount code can only
+             be applied to a purchase, and offering to check one for a plan
+             nobody can buy is a dead end with a spinner on it. -->
+        <div v-if="canUpgrade" class="promo">
           <label for="promo" class="promo__label">Promo code</label>
           <div class="promo__row">
             <input
@@ -619,8 +650,12 @@ const selectPlan = async (plan) => {
             :class="{
               'plan--accent': isRecommended(plan),
               'plan--slab': isFlagship(plan),
-            }">
-            <p v-if="isRecommended(plan)" class="plan__flag">Recommended</p>
+              'plan--locked': !canChoose(plan),
+            }"
+            :aria-disabled="!canChoose(plan) || undefined">
+            <p v-if="isRecommended(plan)" class="plan__flag">
+              {{ canChoose(plan) ? 'Recommended' : 'Paused' }}
+            </p>
 
             <header class="plan__head">
               <h3 class="plan__name">{{ plan.name }}</h3>
@@ -654,9 +689,15 @@ const selectPlan = async (plan) => {
               type="button"
               class="k-btn plan__cta"
               :class="isRecommended(plan) || isFlagship(plan) ? 'k-btn--primary' : 'k-btn--secondary'"
-              :disabled="loading"
+              :disabled="loading || !canChoose(plan)"
               @click="selectPlan(plan.name)">
-              {{ plan.price === 0 ? 'Start free' : `Choose ${plan.name}` }}
+              {{
+                !canChoose(plan)
+                  ? 'Paused'
+                  : plan.price === 0
+                    ? 'Start free'
+                    : `Choose ${plan.name}`
+              }}
             </button>
           </li>
         </ul>
@@ -1097,6 +1138,22 @@ const selectPlan = async (plan) => {
   border-bottom-color: var(--border-on-slab);
 }
 
+/* Paused by the admin switch. Still legible — this is the reason somebody would
+   come back — but plainly out of reach: dimmed, desaturated, no hover lift, and
+   nothing inside it can be clicked or tabbed to. The button carries `disabled`
+   as well, so the state is announced rather than only drawn. */
+.plan--locked {
+  opacity: 0.5;
+  filter: saturate(0.55);
+  pointer-events: none;
+  box-shadow: none;
+  transform: none;
+}
+.plan--locked .plan__flag {
+  background-color: var(--surface-sunken);
+  color: var(--text-tertiary);
+}
+
 .plan__flag {
   position: absolute;
   top: 0;
@@ -1222,6 +1279,19 @@ const selectPlan = async (plan) => {
   border-color: var(--state-warning);
   background-color: var(--state-warning-surface);
   color: var(--state-warning);
+}
+/* Not an error and not a warning — nothing has gone wrong for this person, they
+   are just being told what is available today. */
+.alert--info {
+  max-width: var(--measure);
+  margin-inline: auto;
+  border-color: var(--border-default);
+  background-color: var(--surface-sunken);
+  color: var(--text-secondary);
+  font-weight: var(--weight-regular);
+}
+.alert--info svg {
+  color: var(--text-tertiary);
 }
 .alert svg {
   width: 16px;

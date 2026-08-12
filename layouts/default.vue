@@ -962,7 +962,7 @@ const signOut = async () => {
 onMounted(async () => {
   themeStore.initTheme();
   try {
-    await systemStore.fetchPublicConfig();
+    await systemStore.fetchConfig();
   } catch (e) {}
   if (authStore.user) {
     notificationStore.startPolling();

@@ -2,10 +2,14 @@
 /**
  * Admin → General.
  *
- * Four kill switches and one broadcast message. These turn features off for
+ * Five kill switches and one broadcast message. These turn features off for
  * every account on the platform at once, so the copy says what each one stops
  * rather than what it "enables", and the save button says what it does rather
  * than "Deploy System Changes".
+ *
+ * Each `off` line has to say what it does NOT stop as well. An admin reaching
+ * for one of these is usually mid-incident, and "plan upgrades off" is only a
+ * decision you can make quickly if you already know it does not cancel anybody.
  */
 const props = defineProps({
   config: { type: Object, required: true },
@@ -31,6 +35,11 @@ const FLAGS = [
     key: "paymentsEnabled",
     name: "Online payments",
     off: "Payment links stop working. Clients can still be shown bank details.",
+  },
+  {
+    key: "planUpgradesEnabled",
+    name: "Paid plans",
+    off: "Free is the only plan anyone can pick, in onboarding and in Settings. Current paid plans keep running and still renew, and people can still cancel down to Free.",
   },
 ];
 </script>
