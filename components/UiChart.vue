@@ -10,6 +10,7 @@
 
 <script setup>
 import { computed } from "vue";
+import { useThemeStore } from "~/stores/themeStore";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -121,6 +122,46 @@ const chartData = computed(() => {
   };
 });
 
+const themeStore = useThemeStore();
+
+/**
+ * A desk token, resolved to the literal value Chart.js needs.
+ *
+ * Chart.js paints onto a canvas, so it cannot read a CSS custom property the way
+ * the rest of the app does — the value has to be pulled out of the document and
+ * handed over as a string. The fallbacks are for SSR, where there is no document
+ * to read from; the client render corrects them immediately.
+ */
+const token = (name, fallback) => {
+  if (typeof document === "undefined") return fallback;
+  const value = getComputedStyle(document.documentElement)
+    .getPropertyValue(name)
+    .trim();
+  /* The desk tokens are declared as var() chains (--desk-text-3: var(--gray-660)),
+     and a browser substitutes those at computed-value time — so this normally
+     comes back as a literal colour. If one ever arrives unsubstituted, handing
+     "var(--gray-660)" to a canvas is not an error it reports: Chart.js quietly
+     paints something else. Fall back instead. */
+  if (!value || value.includes("var(")) return fallback;
+  return value;
+};
+
+const palette = computed(() => {
+  /* Reads the app's theme flag purely to take a dependency on it. The canvas has
+     already been rasterised by the time a theme toggle lands, and no stylesheet
+     can reach inside it — so without this the chart would keep the colours it
+     was first drawn with until something else forced a redraw. */
+  void themeStore.isDark;
+
+  return {
+    /* --desk-text-3, not slate-400. The hardcoded #94a3b8 measured about 2.6:1
+       on the light card, which fails AA for the axis numbers in the theme it was
+       chosen for. The token is AA in both. */
+    axis: token("--desk-text-3", "#656c6a"),
+    legend: token("--desk-text-2", "#626a68"),
+  };
+});
+
 const defaultOptions = computed(() => ({
   responsive: true,
   maintainAspectRatio: false,
@@ -134,7 +175,7 @@ const defaultOptions = computed(() => ({
       position: "bottom",
       labels: {
         font: { family: "Inter, sans-serif", weight: "600", size: 10 },
-        color: "#475569",
+        color: palette.value.legend,
       },
     },
     tooltip: {
@@ -176,14 +217,29 @@ const defaultOptions = computed(() => ({
     props.type === "doughnut"
       ? {}
       : {
+          /* NO GRIDLINES, and no axis borders either.
+             The y axis used to draw its grid at a hardcoded #f1f5f9 — slate-50,
+             chosen against a white card. In dark mode that is a near-white line
+             across a dark panel, which is what it looked like: stripes.
+
+             Removed rather than re-tinted, which is what was asked for, and it
+             leaves the two axes consistent — x had already been set to
+             display: false. The tick labels stay, so values are still readable
+             off the axis.
+
+             `border` is a separate switch in Chart.js v4: turning the grid off
+             leaves the axis line itself drawn, which would have left one more
+             rule on the panel after removing the rest. */
           x: {
             grid: { display: false },
-            ticks: { font: { size: 10 }, color: "#94a3b8" },
+            border: { display: false },
+            ticks: { font: { size: 10 }, color: palette.value.axis },
           },
           y: {
             beginAtZero: true,
-            grid: { color: "#f1f5f9" },
-            ticks: { font: { size: 10 }, color: "#94a3b8" },
+            grid: { display: false },
+            border: { display: false },
+            ticks: { font: { size: 10 }, color: palette.value.axis },
           },
         },
 }));
