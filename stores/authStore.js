@@ -370,9 +370,13 @@ export const useAuthStore = defineStore("auth", () => {
       const { data } = await $api.post("/users/logo", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      // Update local user state
-      if (user.value && user.value.profile) {
-        user.value.profile.logoUrl = data.logoUrl;
+      /* GET /users/me FLATTENS the profile — it destructures `profile` out and
+         returns logoUrl at the top level, so `user.profile` does not exist.
+         Writing to user.profile.logoUrl was a silent no-op behind a truthiness
+         guard: the upload succeeded, the toast said so, and nothing on screen
+         ever changed. */
+      if (user.value) {
+        user.value.logoUrl = data.logoUrl;
       }
       return data;
     } catch (err) {
@@ -388,8 +392,9 @@ export const useAuthStore = defineStore("auth", () => {
     loading.value = true;
     try {
       await $api.delete("/users/logo");
-      if (user.value && user.value.profile) {
-        user.value.profile.logoUrl = null;
+      // Top level, not user.profile — see uploadLogo.
+      if (user.value) {
+        user.value.logoUrl = null;
       }
     } catch (err) {
       error.value = "Failed to delete logo";

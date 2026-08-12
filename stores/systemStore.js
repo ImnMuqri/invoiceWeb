@@ -92,6 +92,11 @@ export const useSystemStore = defineStore("system", {
     /* Undefined counts as on — an older API that does not return the field yet
        must not silently switch selling off. */
     arePlanUpgradesEnabled: (state) => state.config.planUpgradesEnabled !== false,
+    /* Same defensive default. These two are read-only signals in the UI: they
+       explain why a chaser has gone quiet, and nothing here enforces them — the
+       cron does, which is the only place that can. */
+    isAutoChaseEmailEnabled: (state) => state.config.autoChaseEmailEnabled !== false,
+    isAutoChaseWaEnabled: (state) => state.config.autoChaseWaEnabled !== false,
     globalNotice: (state) => state.config.globalNotice,
   },
 });

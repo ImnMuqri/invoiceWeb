@@ -257,7 +257,7 @@ const doc = computed(() =>
   docFromForm(form.value, {
     client: selectedClient.value,
     paid: paidSoFar.value,
-    logo: authStore.user?.profile?.logoUrl || null,
+    logo: authStore.user?.logoUrl || null,
     /* Taken from the invoice, which is the same flag the document renders
        under — so the preview cannot show a client's TIN that the PDF omits. */
     showClientIdentifiers: original.value?.showClientIdentifiers !== false,

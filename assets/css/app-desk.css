@@ -2861,6 +2861,12 @@ i.sk {
   line-height: var(--leading-relaxed);
   color: var(--desk-text-3);
 }
+/* For a hint that reports something the user cannot fix from this screen — a
+   paused platform switch, say. Same token as `.pickcard__note--warn`, so the
+   two read as one kind of message rather than two severities. */
+.f__hint--warn {
+  color: var(--desk-late);
+}
 .inp {
   width: 100%;
   min-height: 2.5rem;

@@ -235,7 +235,7 @@ const cur = computed(() => currencySymbol(form.value.currency));
 const doc = computed(() =>
   docFromForm(form.value, {
     client: selectedClient.value,
-    logo: authStore.user?.profile?.logoUrl || null,
+    logo: authStore.user?.logoUrl || null,
     showClientIdentifiers: original.value?.showClientIdentifiers !== false,
     /* Spec 09 — the preview draws the same footer the PDF will. */
     attribution: attribution.value,

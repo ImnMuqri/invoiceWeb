@@ -2,7 +2,7 @@
 /**
  * Admin → General.
  *
- * Five kill switches and one broadcast message. These turn features off for
+ * Seven kill switches and one broadcast message. These turn features off for
  * every account on the platform at once, so the copy says what each one stops
  * rather than what it "enables", and the save button says what it does rather
  * than "Deploy System Changes".
@@ -10,6 +10,12 @@
  * Each `off` line has to say what it does NOT stop as well. An admin reaching
  * for one of these is usually mid-incident, and "plan upgrades off" is only a
  * decision you can make quickly if you already know it does not cancel anybody.
+ *
+ * The two auto-chaser switches sit next to the channel switches above them and
+ * are deliberately narrower: WhatsApp delivery off stops a user sending an
+ * invoice by hand, while auto-chaser off stops only the unattended 9am sweep.
+ * The pairing is the point — during an incident the question is almost always
+ * "stop the thing nobody is watching" rather than "stop the product".
  */
 const props = defineProps({
   config: { type: Object, required: true },
@@ -40,6 +46,16 @@ const FLAGS = [
     key: "planUpgradesEnabled",
     name: "Paid plans",
     off: "Free is the only plan anyone can pick, in onboarding and in Settings. Current paid plans keep running and still renew, and people can still cancel down to Free.",
+  },
+  {
+    key: "autoChaseEmailEnabled",
+    name: "Auto-chaser: email",
+    off: "The scheduled chaser sends no email reminders. Invoices people send themselves are unaffected, and so is every other email we send.",
+  },
+  {
+    key: "autoChaseWaEnabled",
+    name: "Auto-chaser: WhatsApp",
+    off: "The scheduled chaser sends no WhatsApp reminders — each one goes by email instead, marked as downgraded. Switch off the email chaser too if nothing should be sent at all.",
   },
 ];
 </script>

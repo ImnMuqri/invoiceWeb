@@ -350,7 +350,7 @@ const removeLogo = async () => {
             :form="profileForm"
             :account="authStore.user || {}"
             :currencies="currencyOptions"
-            :logo-url="authStore.user?.profile?.logoUrl || ''"
+            :logo-url="authStore.user?.logoUrl || ''"
             :uploading-logo="uploadingLogo"
             :show-prompt="showTaxPrompt"
             @upload-logo="uploadLogo"

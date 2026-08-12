@@ -20,6 +20,20 @@ const props = defineProps({
 
 const emit = defineEmits(["go"]);
 
+/* Why the chaser might be quiet for reasons that are nothing to do with the
+   switch directly below. Without this line the user's next move is to toggle
+   their own settings looking for the fault, which changes nothing and loses
+   their existing configuration on the way. */
+const systemStore = useSystemStore();
+const chasePaused = computed(() => {
+  const email = systemStore.isAutoChaseEmailEnabled;
+  const wa = systemStore.isAutoChaseWaEnabled;
+  if (email && wa) return null;
+  if (!email && !wa) return "Automatic chasing is paused on our side right now. Nothing is being sent out, and your settings here are unchanged.";
+  if (!wa) return "WhatsApp chasing is paused on our side right now. Scheduled reminders are going out by email instead.";
+  return "Email chasing is paused on our side right now. Scheduled WhatsApp reminders are unaffected.";
+});
+
 /* Which contact switch is the last one still on.
    At least one of email or phone must always print, so once the other is off
    the remaining one cannot be turned off either. Null while both are on —
@@ -232,8 +246,7 @@ const toggleAttribution = () => {
               class="pickcard__note"
               :class="{ 'pickcard__note--warn': !form.canRemoveAttribution }">
               <template v-if="!form.canRemoveAttribution">
-                Included on the free plan. Any paid plan can switch it off — not
-                just the top one.
+                Included on Free and Pro. Switching it off is a Max feature.
               </template>
               <template v-else-if="form.attributionEnabled">
                 On. Turn it off and your documents carry nothing of ours.
@@ -284,6 +297,10 @@ const toggleAttribution = () => {
         <span class="tog__track" aria-hidden="true"></span>
         <span class="tog__label">Chase late invoices automatically</span>
       </label>
+
+      <p v-if="isPro && chasePaused" class="f__hint f__hint--warn">
+        {{ chasePaused }}
+      </p>
 
       <p v-if="isPro" class="f__hint">
         <template v-if="form.globalAutoChaser">

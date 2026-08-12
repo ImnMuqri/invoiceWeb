@@ -58,14 +58,18 @@ const props = defineProps({
 const authStore = useAuthStore();
 const config = useRuntimeConfig();
 
+/* GET /users/me flattens the profile, so this is `user.logoUrl` and NOT
+   `user.profile.logoUrl`. The nested form silently resolved to undefined, which
+   is indistinguishable from "no logo uploaded" — every surface fell back to the
+   InvoKita mark and nothing looked broken enough to report. */
 const isCustomLogo = computed(() => {
-  return props.src || (props.userLogo && authStore.user?.profile?.logoUrl);
+  return props.src || (props.userLogo && authStore.user?.logoUrl);
 });
 
 const finalSrc = computed(() => {
   if (props.src) return props.src;
-  if (props.userLogo && authStore.user?.profile?.logoUrl) {
-    const url = authStore.user.profile.logoUrl;
+  if (props.userLogo && authStore.user?.logoUrl) {
+    const url = authStore.user.logoUrl;
     if (url.startsWith("http")) return url;
     return `${config.public.apiBase}${url}`;
   }
