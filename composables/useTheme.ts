@@ -23,7 +23,7 @@ const STORAGE_KEY = 'kirim-theme'
  * users got the remapped tokens but not the component rules, which inverted
  * the ink slab to paper while its text stayed light.
  */
-export const THEME_INIT_SCRIPT = `(function(){try{var s=localStorage.getItem('${STORAGE_KEY}');var t=(s==='dark'||s==='light')?s:(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.setAttribute('data-theme',t)}catch(e){document.documentElement.setAttribute('data-theme','light')}})();`
+export const THEME_INIT_SCRIPT = `(function(){try{var s=localStorage.getItem('${STORAGE_KEY}');var t=(s==='dark'||s==='light')?s:(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.setAttribute('data-theme',t);document.documentElement.classList.remove('dark')}catch(e){document.documentElement.setAttribute('data-theme','light')}})();`
 
 export function useTheme() {
   const choice = useState<ThemeChoice>('kirim-theme', () => 'system')
@@ -31,11 +31,19 @@ export function useTheme() {
   const systemDark = ref(false)
 
   /* "system" is always resolved to an explicit value on <html> — never left
-     unset — so CSS has exactly one dark-mode condition to match. */
+     unset — so CSS has exactly one dark-mode condition to match.
+
+     `html.dark` is REMOVED rather than mirrored. It is the app's marker, it
+     carries 64 main.css rules written for the dashboard's Tailwind markup, and
+     a page arriving here from the app would otherwise keep painting by them —
+     including `html.dark body`, which is what put a mismatched stripe down the
+     reserved scrollbar gutter. Marketing pages answer to the attribute only.
+     The app re-asserts both markers on its way back in; see themeStore. */
   const apply = (value: ThemeChoice) => {
     if (typeof document === 'undefined') return
     const resolved = value === 'system' ? (systemDark.value ? 'dark' : 'light') : value
     document.documentElement.setAttribute('data-theme', resolved)
+    document.documentElement.classList.remove('dark')
   }
 
   const isDark = computed(() =>

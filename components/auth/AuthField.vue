@@ -14,7 +14,10 @@ const props = withDefaults(
     id: string
     label: string
     modelValue: string
-    type?: 'text' | 'email' | 'password'
+    /* `tel` is here for the onboarding profile step, which asks for two phone
+       numbers. Without it those fields could not get a numeric keypad on a
+       phone without lying about their type. */
+    type?: 'text' | 'email' | 'password' | 'tel'
     /** Required: an auth field without it breaks password managers. */
     autocomplete: string
     placeholder?: string

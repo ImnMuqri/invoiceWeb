@@ -1,780 +1,273 @@
-<template>
-  <div
-    style="zoom: 0.9"
-    class="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-    <div class="sm:mx-auto sm:w-full sm:max-w-md">
-      <div class="flex justify-center mb-6">
-        <UiLogo size="lg" />
-      </div>
-      <h2
-        class="mt-2 text-center text-3xl font-extrabold text-slate-900 tracking-tight">
-        Welcome to InvoKita
-      </h2>
-      <p class="mt-2 text-center text-sm text-slate-600 max-w">
-        Let's get your account set up so you can start creating invoices.
-      </p>
-    </div>
-
-    <div
-      class="mt-8 sm:mx-auto px-6 transition-all duration-500"
-      :class="{ 'sm:max-w-xl w-full': step !== 5, '!w-fit': step === 5 }">
-      <div
-        class="bg-white py-8 px-4 shadow-sm shadow-slate-200/40 rounded-2xl sm:px-10 border border-slate-100 relative transition-all duration-500">
-        <!-- Progress Bar -->
-        <div class="mb-8">
-          <div
-            class="flex justify-between text-xs font-semibold text-slate-500 mb-2 uppercase tracking-widest">
-            <span>Step {{ step }} of 5</span>
-            <span>{{
-              step === 1
-                ? "Role"
-                : step === 2
-                  ? "Discovery"
-                  : step === 3
-                    ? "Profile"
-                    : step === 4
-                      ? "Your Clients"
-                      : "Plan Selection"
-            }}</span>
-          </div>
-          <div class="w-full bg-slate-100 rounded-full h-1 overflow-hidden">
-            <div
-              class="bg-emerald-500 h-1 rounded-full transition-all duration-500 ease-out"
-              :style="{ width: `${(step / 5) * 100}%` }"></div>
-          </div>
-        </div>
-
-        <form @submit.prevent="step < 5 ? nextStep() : null" class="space-y-6">
-          <!-- Step 1: Current Status -->
-          <div
-            v-show="step === 1"
-            class="space-y-4 animate-in fade-in slide-in-from-right-4 duration-500">
-            <label class="block text-sm font-semibold text-slate-900 mb-4">
-              I am primarily a...
-            </label>
-            <div class="grid grid-cols-1 gap-4">
-              <label
-                v-for="status in [
-                  'Freelancer / Solopreneur',
-                  'Small Business Owner',
-                  'Agency / Studio',
-                  'Finance Team',
-                  'Other',
-                ]"
-                :key="status"
-                class="relative border rounded-xl p-4 flex cursor-pointer hover:border-slate-400 transition-all shadow-sm"
-                :class="
-                  form.currentStatus === status
-                    ? 'border-emerald-500 ring-1 ring-emerald-500 bg-emerald-50'
-                    : 'border-slate-200 bg-white'
-                ">
-                <input
-                  type="radio"
-                  v-model="form.currentStatus"
-                  :value="status"
-                  class="sr-only" />
-                <div class="flex-1">
-                  <span class="block text-sm font-medium text-slate-900">{{
-                    status
-                  }}</span>
-                </div>
-                <div
-                  class="flex items-center justify-center w-5 h-5 rounded-full transition-colors"
-                  :class="
-                    form.currentStatus === status ? ' bg-emerald-600' : ''
-                  ">
-                  <UiIcon
-                    v-if="form.currentStatus === status"
-                    icon="heroicons:check"
-                    custom-class="w-3 h-3 text-white" />
-                </div>
-              </label>
-            </div>
-          </div>
-
-          <!-- Step 2: Heard About -->
-          <div
-            v-show="step === 2"
-            class="space-y-4 animate-in fade-in slide-in-from-right-4 duration-500">
-            <label class="block text-sm font-semibold text-slate-900 mb-4">
-              Where did you hear about InvoKita?
-            </label>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <label
-                v-for="source in [
-                  'Social Media',
-                  'Google Search',
-                  'Friend / Colleague',
-                  'Advertisement',
-                  'Blog / Article',
-                  'Other',
-                ]"
-                :key="source"
-                class="relative border rounded-xl p-3 flex items-center cursor-pointer hover:border-slate-400 transition-all text-sm font-medium shadow-sm"
-                :class="
-                  form.heardAbout === source
-                    ? 'border-emerald-500 ring-1 ring-emerald-500 bg-emerald-50 text-slate-900'
-                    : 'border-slate-200 bg-white text-slate-600'
-                ">
-                <input
-                  type="radio"
-                  v-model="form.heardAbout"
-                  :value="source"
-                  class="sr-only" />
-                <div class="flex-1">
-                  <span class="block text-sm font-medium text-slate-900">{{
-                    source
-                  }}</span>
-                </div>
-                <div
-                  class="flex items-center justify-center w-5 h-5 rounded-full transition-colors"
-                  :class="form.heardAbout === source ? ' bg-emerald-600' : ''">
-                  <UiIcon
-                    v-if="form.heardAbout === source"
-                    icon="heroicons:check"
-                    custom-class="w-3 h-3 text-white" />
-                </div>
-              </label>
-            </div>
-          </div>
-
-          <!-- Step 3: Contact Info -->
-          <div
-            v-show="step === 3"
-            class="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-            <!-- User Details Section -->
-            <div class="space-y-4">
-              <h3
-                class="text-sm font-bold text-slate-900 border-b border-slate-100 pb-2">
-                User Details
-              </h3>
-              <div>
-                <label
-                  class="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1"
-                  >Full Name</label
-                >
-                <input
-                  type="text"
-                  v-model="form.name"
-                  required
-                  placeholder="John Doe"
-                  class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-slate-950 outline-none transition-all" />
-              </div>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label
-                    class="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1"
-                    >Login Email</label
-                  >
-                  <input
-                    type="email"
-                    :value="authStore.user?.email"
-                    disabled
-                    class="block w-full rounded-md border border-slate-100 bg-slate-50 px-3 py-2 text-sm text-slate-500 cursor-not-allowed outline-none" />
-                </div>
-                <div>
-                  <label
-                    class="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1"
-                    >Phone Number</label
-                  >
-                  <input
-                    type="tel"
-                    v-model="form.phoneNumber"
-                    required
-                    placeholder="+60 12-345 6789"
-                    class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-slate-950 outline-none transition-all" />
-                </div>
-              </div>
-            </div>
-
-            <!-- Company Details Section -->
-            <div class="space-y-4 pt-2">
-              <div class="space-y-1 pb-2 border-b border-slate-100">
-                <h3 class="text-sm font-bold text-slate-900">
-                  Company Details
-                </h3>
-                <div class="text-[11px] text-slate-500">
-                  This details will be displayed on your invoices.
-                </div>
-              </div>
-              <div>
-                <label
-                  class="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1"
-                  >Company / Business Name</label
-                >
-                <input
-                  type="text"
-                  v-model="form.companyName"
-                  required
-                  placeholder="Acme Corp"
-                  class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-slate-950 outline-none transition-all" />
-              </div>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label
-                    class="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1"
-                    >Company Email</label
-                  >
-                  <input
-                    type="email"
-                    v-model="form.companyEmail"
-                    required
-                    placeholder="billing@acme.com"
-                    class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-slate-950 outline-none transition-all" />
-                  <label
-                    class="flex items-center gap-2 mt-2 cursor-pointer group">
-                    <input
-                      type="checkbox"
-                      v-model="useUserEmail"
-                      @change="syncEmail"
-                      class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-600 w-3.5 h-3.5" />
-                    <span
-                      class="text-[11px] font-medium text-slate-500 group-hover:text-slate-700 transition-colors"
-                      >Use same as user's</span
-                    >
-                  </label>
-                </div>
-                <div>
-                  <label
-                    class="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1"
-                    >Company Phone</label
-                  >
-                  <input
-                    type="tel"
-                    v-model="form.companyPhone"
-                    required
-                    placeholder="+60 12-345 6789"
-                    class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-slate-950 outline-none transition-all" />
-                  <label
-                    class="flex items-center gap-2 mt-2 cursor-pointer group">
-                    <input
-                      type="checkbox"
-                      v-model="useUserPhone"
-                      @change="syncPhone"
-                      class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-600 w-3.5 h-3.5" />
-                    <span
-                      class="text-[11px] font-medium text-slate-500 group-hover:text-slate-700 transition-colors"
-                      >Use same as user's</span
-                    >
-                  </label>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- ── Step 4: Bring your clients in (spec 08) ────────────────────
-               Optional, and it says so twice — in the heading and on the button
-               that leaves. The empty account is the drop-off point for exactly
-               the users worth having, so the offer belongs here; but a new user
-               who does not have their list to hand must never feel stuck behind
-               it, which is why Continue is always enabled and never validates
-               anything.
-          -->
-          <div
-            v-show="step === 4"
-            class="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-            <div>
-              <h3 class="text-lg font-black text-slate-900 tracking-tight">
-                Bring your clients in
-                <span class="text-slate-400 font-medium text-sm">— optional</span>
-              </h3>
-              <p class="text-sm text-slate-500 mt-2 leading-relaxed">
-                If you already have your clients in a spreadsheet or your phone
-                contacts, paste the list and we will sort out the columns. You
-                can always do this later from the Clients page.
-              </p>
-            </div>
-
-            <div
-              v-if="importedCount"
-              class="flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
-              <UiIcon
-                icon="heroicons:check-circle"
-                custom-class="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
-              <p class="text-sm text-emerald-900 font-medium">
-                {{ importedCount }}
-                {{ importedCount === 1 ? "client" : "clients" }} added. You can
-                import more any time.
-              </p>
-            </div>
-
-            <button
-              v-else
-              type="button"
-              class="w-full rounded-xl border border-dashed border-slate-300 px-4 py-6 text-center transition-all hover:border-slate-400 hover:bg-slate-50"
-              @click="showImport = true">
-              <UiIcon
-                icon="heroicons:arrow-up-tray"
-                custom-class="w-6 h-6 text-slate-400 mx-auto mb-2" />
-              <span class="block text-sm font-bold text-slate-900">
-                Paste or upload your client list
-              </span>
-              <span class="block text-xs text-slate-500 mt-1">
-                Name, phone and email in any order
-              </span>
-            </button>
-          </div>
-
-          <!-- Step 5: Plan Selection -->
-          <div
-            v-show="step === 5"
-            class="animate-in fade-in slide-in-from-right-4 duration-500">
-            <div class="text-center mb-8">
-              <h3 class="text-2xl font-black text-slate-900 tracking-tight">
-                Select your starting plan
-              </h3>
-              <p class="text-sm text-slate-500 mt-2 font-medium">
-                You can upgrade or downgrade at any time.
-              </p>
-            </div>
-
-            <!-- Promo Code Section -->
-            <div class="max-w-md mx-auto mb-8">
-              <div class="flex gap-2">
-                <div class="relative flex-1">
-                  <input
-                    v-model="promoCodeInput"
-                    type="text"
-                    placeholder="Promo code (Optional)"
-                    class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:ring-slate-900 focus:border-slate-900 uppercase"
-                    :disabled="isPromoValid" />
-                  <div
-                    v-if="promoLoading"
-                    class="absolute right-3 top-1/2 -translate-y-1/2">
-                    <UiIcon
-                      icon="heroicons:arrow-path"
-                      class="w-4 h-4 animate-spin text-slate-400" />
-                  </div>
-                </div>
-                <button
-                  v-if="!isPromoValid"
-                  type="button"
-                  @click="validatePromo"
-                  :disabled="!promoCodeInput || promoLoading"
-                  class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-bold rounded-xl transition-all disabled:opacity-50">
-                  Apply
-                </button>
-                <button
-                  v-else
-                  type="button"
-                  @click="clearPromo"
-                  class="px-4 py-2 bg-rose-50 text-rose-600 text-sm font-bold rounded-xl hover:bg-rose-100 transition-all">
-                  Clear
-                </button>
-              </div>
-              <p
-                v-if="promoError"
-                class="text-[10px] font-bold text-rose-500 mt-1 ml-1">
-                {{ promoError }}
-              </p>
-              <p
-                v-if="isPromoValid"
-                class="text-[10px] font-bold text-emerald-600 mt-1 ml-1">
-                Applied: {{ appliedDiscountText }} off!
-              </p>
-            </div>
-
-            <!-- Loading overlay during save -->
-            <div
-              v-if="loading"
-              class="absolute inset-0 z-50 bg-white/80 backdrop-blur-[4px] rounded-2xl flex flex-col items-center justify-center">
-              <div
-                class="w-20 h-20 relative flex items-center justify-center mb-6">
-                <UiLogo
-                  size="lg"
-                  :showText="false"
-                  class="absolute z-10 right-5 animate-pulse" />
-                <svg
-                  class="absolute inset-0 w-full h-full text-emerald-500 animate-[spin_2s_linear_infinite]"
-                  fill="none"
-                  viewBox="0 0 100 100">
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r="46"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    class="opacity-10" />
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r="46"
-                    stroke="currentColor"
-                    stroke-width="3"
-                    stroke-dasharray="80 200"
-                    stroke-linecap="round" />
-                </svg>
-              </div>
-
-              <h3
-                class="text-xs font-bold text-slate-800 tracking-[0.2em] uppercase mb-3">
-                Setting up workspace...
-              </h3>
-
-              <div class="flex gap-1.5">
-                <div
-                  class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-bounce"
-                  style="animation-delay: 0ms"></div>
-                <div
-                  class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-bounce"
-                  style="animation-delay: 150ms"></div>
-                <div
-                  class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-bounce"
-                  style="animation-delay: 300ms"></div>
-              </div>
-            </div>
-
-            <div class="grid md:grid-cols-4 gap-4">
-              <!-- Dynamic Plans -->
-              <div
-                v-for="plan in dynamicPlans"
-                :key="plan.id"
-                :class="[
-                  'border rounded-2xl p-6 transition-all duration-500 flex flex-col relative',
-                  plan.name.toUpperCase() === 'FREE'
-                    ? 'border-slate-100 bg-white hover:border-slate-200'
-                    : '',
-                  plan.name.toUpperCase() === 'STARTER'
-                    ? 'border-emerald-100 bg-emerald-50 hover:border-emerald-200'
-                    : '',
-                  plan.name.toUpperCase() === 'PRO'
-                    ? 'border-slate-800 bg-slate-900 shadow-xl'
-                    : '',
-                  plan.name.toUpperCase() === 'MAX'
-                    ? 'border-indigo-500/30 bg-gradient-to-br from-indigo-900 to-slate-900 shadow-lg'
-                    : '',
-                ]">
-                <div
-                  v-if="plan.name.toUpperCase() === 'PRO'"
-                  class="absolute -top-3 left-1/2 -translate-x-1/2 bg-emerald-600 text-white text-[10px] font-bold uppercase tracking-widest py-1 px-3 rounded-full shadow-lg shadow-emerald-600/20">
-                  Recommended
-                </div>
-                <div
-                  v-if="plan.name.toUpperCase() === 'MAX'"
-                  class="absolute -top-3 left-1/2 -translate-x-1/2 bg-indigo-600 text-white text-[10px] font-bold uppercase tracking-widest py-1 px-3 rounded-full shadow-lg shadow-indigo-600/20">
-                  Ultimate
-                </div>
-                <div class="mb-8 mt-2">
-                  <h5
-                    :class="[
-                      'text-lg font-bold mb-2 uppercase tracking-tight',
-                      ['PRO', 'MAX'].includes(plan.name.toUpperCase())
-                        ? 'text-white'
-                        : 'text-slate-900',
-                    ]">
-                    {{ plan.name }}
-                  </h5>
-                  <p
-                    :class="[
-                      'text-[13px] font-medium leading-relaxed',
-                      plan.name.toUpperCase() === 'PRO'
-                        ? 'text-slate-400'
-                        : plan.name.toUpperCase() === 'MAX'
-                          ? 'text-indigo-200/70'
-                          : 'text-slate-500',
-                    ]">
-                    {{ plan.description }}
-                  </p>
-                </div>
-                <div class="mb-8 flex flex-col items-start min-h-[50px]">
-                  <div class="flex items-baseline flex-wrap gap-2">
-                    <span
-                      v-if="
-                        isPromoValid &&
-                        appliedDiscount &&
-                        getDiscountedPrice(plan.price) < plan.price
-                      "
-                      class="text-xl font-semibold text-slate-400 line-through tracking-tight">
-                      {{ plan.currency }} {{ price(plan.price) }}
-                    </span>
-                    <span
-                      :class="[
-                        'text-3xl font-black tracking-tight',
-                        ['PRO', 'MAX'].includes(plan.name.toUpperCase())
-                          ? 'text-white'
-                          : 'text-slate-900',
-                      ]">
-                      {{ plan.currency }}
-                      {{
-                        price(
-                          isPromoValid
-                            ? getDiscountedPrice(plan.price)
-                            : plan.price,
-                        )
-                      }}
-                    </span>
-                    <span
-                      :class="[
-                        'text-sm ml-1 font-bold',
-                        plan.name.toUpperCase() === 'PRO'
-                          ? 'text-slate-500'
-                          : plan.name.toUpperCase() === 'MAX'
-                            ? 'text-indigo-400'
-                            : 'text-slate-400',
-                      ]"
-                      >/{{ plan.interval }}</span
-                    >
-                  </div>
-                  <p
-                    v-if="
-                      isPromoValid &&
-                      appliedDiscount &&
-                      getDiscountedPrice(plan.price) < plan.price
-                    "
-                    class="text-[9px] text-emerald-600 font-bold mt-2 tracking-wide text-left uppercase">
-                    First term discount applied
-                  </p>
-                </div>
-                <ul class="space-y-4 mb-8 flex-1 text-left">
-                  <li
-                    v-for="feature in plan.features"
-                    :key="feature"
-                    class="flex items-center text-xs font-semibold"
-                    :class="
-                      plan.name.toUpperCase() === 'PRO'
-                        ? 'text-slate-300'
-                        : plan.name.toUpperCase() === 'MAX'
-                          ? 'text-indigo-100/90'
-                          : 'text-slate-600'
-                    ">
-                    <div
-                      class="w-4 h-4 rounded-full flex items-center justify-center shrink-0 mr-3"
-                      :class="
-                        plan.name.toUpperCase() === 'PRO'
-                          ? 'bg-emerald-500/10'
-                          : plan.name.toUpperCase() === 'MAX'
-                            ? 'bg-indigo-500/20'
-                            : 'bg-emerald-50'
-                      ">
-                      <UiIcon
-                        icon="heroicons:check"
-                        :class="[
-                          'w-2.5 h-2.5',
-                          plan.name.toUpperCase() === 'PRO'
-                            ? 'text-emerald-400'
-                            : plan.name.toUpperCase() === 'MAX'
-                              ? 'text-indigo-400'
-                              : 'text-emerald-600',
-                        ]" />
-                    </div>
-                    {{ feature }}
-                  </li>
-                </ul>
-                <button
-                  type="button"
-                  @click="selectPlan(plan.name)"
-                  :class="[
-                    'w-full py-2.5 rounded-xl text-sm font-bold transition-all border outline-none cursor-pointer ',
-                    plan.name.toUpperCase() === 'FREE'
-                      ? 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
-                      : '',
-                    plan.name.toUpperCase() === 'STARTER'
-                      ? 'bg-emerald-600 border-emerald-600 text-white hover:bg-emerald-700 shadow-md shadow-emerald-600/20'
-                      : '',
-                    plan.name.toUpperCase() === 'PRO'
-                      ? 'bg-white border-white text-slate-900 hover:bg-slate-100'
-                      : '',
-                    plan.name.toUpperCase() === 'MAX'
-                      ? 'bg-indigo-600 border-indigo-600 text-white hover:bg-indigo-500 shadow-md shadow-indigo-600/30'
-                      : '',
-                  ]">
-                  {{
-                    plan.name.toUpperCase() === "FREE"
-                      ? "Continue Free"
-                      : `Select ${plan.name}`
-                  }}
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Error Alert -->
-          <div
-            v-if="error"
-            class="bg-rose-50 border border-rose-100 rounded-xl p-4">
-            <div class="flex">
-              <div class="flex-shrink-0">
-                <UiIcon
-                  icon="tabler:exclamation-circle"
-                  custom-class="h-5 w-5" />
-              </div>
-              <div class="pl-3">
-                <h3 class="text-sm font-medium text-rose-800">{{ error }}</h3>
-              </div>
-            </div>
-          </div>
-
-          <!-- Navigation Buttons (every step before plan selection) -->
-          <div
-            v-show="step < 5"
-            class="flex gap-4 pt-4 border-t border-slate-100">
-            <button
-              v-if="step > 1"
-              type="button"
-              @click="step--"
-              class="w-1/3 flex justify-center py-3 px-4 border border-slate-300 rounded-xl shadow-sm text-sm font-bold text-slate-700 bg-white hover:bg-slate-50 focus:outline-none transition-colors">
-              Back
-            </button>
-            <button
-              type="button"
-              @click="nextStep"
-              class="flex-1 flex justify-center items-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-bold text-white bg-slate-900 hover:bg-slate-800 focus:outline-none transition-colors">
-              {{ step === 4 && !importedCount ? "Skip for now" : "Continue" }}
-              <svg
-                class="w-4 h-4 ml-2"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M14 5l7 7m0 0l-7 7m7-7H3" />
-              </svg>
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <!-- The same import component the Clients page uses. One implementation,
-         so the onboarding path cannot drift from the permanent one. -->
-    <UiModal v-model="showImport" max-width="4xl">
-      <ClientsImportModal
-        v-if="showImport"
-        @close="showImport = false"
-        @imported="onImported" />
-    </UiModal>
-  </div>
-</template>
-
 <script setup>
-import { ref, reactive, onMounted, computed } from "vue";
-import { useRouter } from "vue-router";
-import { useAuthStore } from "~/stores/authStore";
-import { useSubscribeStore } from "~/stores/subscribeStore";
-import { price } from "~/utils/invoice";
+/**
+ * Workspace setup, in the KIRIM system.
+ *
+ * Same five steps and the same payload as before — role, discovery, profile,
+ * client import, plan. What changed is that the screen is now built from the
+ * design tokens instead of raw Tailwind slate/emerald, so it is the same room
+ * as the landing page and the register screen the user just came from, and it
+ * follows the theme instead of being permanently light.
+ *
+ * Three things that were not just paint:
+ *
+ *   1. `zoom: 0.9` on the page root is gone. It shrank every dimension by 10%,
+ *      including the ones that make a tap target legal and the ones that make
+ *      16px inputs not trigger iOS Safari's zoom-on-focus.
+ *   2. Step 3 validated all five fields into one sentence at the bottom of the
+ *      form. It now marks the field that is actually wrong, like register.vue.
+ *   3. The Xendit failure URL has always come back to `?payment_failed=true`
+ *      and the page has never said anything about it, so a declined card
+ *      landed silently on the plan grid. It is now acknowledged.
+ *
+ * The client import is still the Clients page's own modal — one implementation,
+ * so the onboarding path cannot drift from the permanent one.
+ */
+import { useAuthStore } from '~/stores/authStore'
+import { useSubscribeStore } from '~/stores/subscribeStore'
+import { price, currencySymbol } from '~/utils/invoice'
 
-definePageMeta({
-  layout: "blank", // Using blank layout to hide sidebar
-});
+definePageMeta({ layout: false })
 
-const router = useRouter();
-const authStore = useAuthStore();
-const subscribeStore = useSubscribeStore();
+const router = useRouter()
+const route = useRoute()
+const authStore = useAuthStore()
+const subscribeStore = useSubscribeStore()
 
-const promoCodeInput = ref("");
-const isPromoValid = ref(false);
-const promoLoading = ref(false);
-const promoError = ref("");
-const appliedDiscount = ref(null);
+/* The rail reads this. Hints are written for the person on that step, not as
+   descriptions of the feature. */
+const STEPS = [
+  { label: 'What you do', hint: 'So we lead with the parts you will actually use.' },
+  { label: 'Where you found us', hint: 'One tap. It tells us what is worth doing again.' },
+  { label: 'Your details', hint: 'You, and what prints at the top of an invoice.' },
+  { label: 'Your clients', hint: 'Paste a list now, or do it later from Clients.', optional: true },
+  { label: 'Choose a plan', hint: 'Start free. Change it whenever you like.' },
+]
+const LAST = STEPS.length
 
-const step = ref(parseInt(router.currentRoute.value.query.step) || 1);
+const ROLES = [
+  { value: 'Freelancer / Solopreneur', description: 'Just me, billing my own clients.' },
+  { value: 'Small Business Owner', description: 'A business name goes on the invoice.' },
+  { value: 'Agency / Studio', description: 'Retainers and project work, several clients at once.' },
+  { value: 'Finance Team', description: 'I invoice on behalf of the business.' },
+  { value: 'Other', description: '' },
+]
 
-/* Client import (spec 08), offered as step 4 and skippable.
-   `importedCount` only changes what the step SAYS — nothing about it gates
-   Continue, because a new user who does not have their client list to hand must
-   never be stuck behind an optional step. */
-const showImport = ref(false);
-const importedCount = ref(0);
+const SOURCES = [
+  'Social Media',
+  'Google Search',
+  'Friend / Colleague',
+  'Advertisement',
+  'Blog / Article',
+  'Other',
+]
 
-const onImported = (result) => {
-  importedCount.value +=
-    (result?.counts?.created || 0) + (result?.counts?.updated || 0);
-  showImport.value = false;
-};
-const loading = ref(false);
-const error = ref("");
-const dynamicPlans = ref([]);
+const step = ref(parseInt(route.query.step) || 1)
 
-watch(step, (newStep) => {
-  router.replace({
-    query: { ...router.currentRoute.value.query, step: newStep },
-  });
-});
+watch(step, (next) => {
+  router.replace({ query: { ...route.query, step: next } })
+  if (import.meta.client) window.scrollTo({ top: 0, behavior: 'smooth' })
+})
 
-const fetchPlans = async () => {
-  const { $api } = useNuxtApp();
-  try {
-    const { data } = await $api.get("/plans");
-    dynamicPlans.value = data;
-  } catch (err) {
-    console.error("Failed to fetch plans", err);
-  }
-};
+/* Backwards only — forwards has to clear validation. */
+const goTo = (n) => {
+  if (n < step.value) step.value = n
+}
 
-onMounted(() => {
-  fetchPlans();
-});
-
+/* ── Form ─────────────────────────────────────────────────────────────────── */
 const form = reactive({
-  currentStatus: "",
-  heardAbout: "",
-  name: "",
-  companyName: "",
-  companyEmail: "",
-  companyPhone: "",
-  phoneNumber: "",
-});
+  currentStatus: '',
+  heardAbout: '',
+  name: '',
+  companyName: '',
+  companyEmail: '',
+  companyPhone: '',
+  phoneNumber: '',
+})
 
-const useUserEmail = ref(false);
-const useUserPhone = ref(false);
+const useUserEmail = ref(false)
+const useUserPhone = ref(false)
 
 const syncEmail = () => {
-  if (useUserEmail.value) {
-    form.companyEmail = authStore.user?.email || "";
-  } else {
-    form.companyEmail = "";
-  }
-};
+  form.companyEmail = useUserEmail.value ? authStore.user?.email || '' : ''
+}
 
 const syncPhone = () => {
-  if (useUserPhone.value) {
-    form.companyPhone = form.phoneNumber || "";
-  } else {
-    form.companyPhone = "";
-  }
-};
+  form.companyPhone = useUserPhone.value ? form.phoneNumber || '' : ''
+}
 
-// Autofill fields explicitly on mount
-onMounted(() => {
-  if (authStore.user) {
-    if (authStore.user.name) form.name = authStore.user.name;
-    if (authStore.user.email) form.companyEmail = authStore.user.email;
-    if (authStore.user.companyName)
-      form.companyName = authStore.user.companyName;
-    if (authStore.user.companyPhone)
-      form.companyPhone = authStore.user.companyPhone;
-    if (authStore.user.phoneNumber)
-      form.phoneNumber = authStore.user.phoneNumber;
+/* The mirror has to keep mirroring. Ticking "same as mine" and then typing the
+   personal number — which is the order most people do it in — used to leave the
+   company number on whatever had been copied at the moment of the tick. */
+watch(
+  () => form.phoneNumber,
+  (v) => {
+    if (useUserPhone.value) form.companyPhone = v
   }
-});
+)
+
+onMounted(() => {
+  const u = authStore.user
+  if (!u) return
+  if (u.name) form.name = u.name
+  if (u.email) form.companyEmail = u.email
+  if (u.companyName) form.companyName = u.companyName
+  if (u.companyPhone) form.companyPhone = u.companyPhone
+  if (u.phoneNumber) form.phoneNumber = u.phoneNumber
+  /* The company email is prefilled from the login email above, so the checkbox
+     that says so must start ticked. It did not, which read as "this was typed
+     for you and we do not know why". */
+  if (u.email && form.companyEmail === u.email) useUserEmail.value = true
+  if (u.phoneNumber && form.companyPhone === u.phoneNumber) useUserPhone.value = true
+})
+
+/* ── Validation ───────────────────────────────────────────────────────────── */
+const stepError = ref('')
+const fieldErrors = ref({})
+const error = ref('')
+
+const clearField = (key) => {
+  if (fieldErrors.value[key]) fieldErrors.value = { ...fieldErrors.value, [key]: undefined }
+}
+watch(() => form.name, () => clearField('name'))
+watch(() => form.phoneNumber, () => clearField('phoneNumber'))
+watch(() => form.companyName, () => clearField('companyName'))
+watch(() => form.companyEmail, () => clearField('companyEmail'))
+watch(() => form.companyPhone, () => clearField('companyPhone'))
+watch(() => form.currentStatus, () => (stepError.value = ''))
+watch(() => form.heardAbout, () => (stepError.value = ''))
+
+const validateProfile = () => {
+  const next = {}
+  if (!form.name.trim()) next.name = 'We need a name to put on your invoices.'
+  if (!form.phoneNumber.trim()) next.phoneNumber = 'Add a number we can reach you on.'
+  if (!form.companyName.trim()) next.companyName = 'This is the name your clients will see.'
+  if (!form.companyEmail.trim()) next.companyEmail = 'Add the email replies should go to.'
+  else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.companyEmail.trim()))
+    next.companyEmail = 'That does not look like an email address.'
+  if (!form.companyPhone.trim()) next.companyPhone = 'Add the number printed on the invoice.'
+  fieldErrors.value = next
+  return Object.keys(next).length === 0
+}
+
+const nextStep = () => {
+  stepError.value = ''
+  if (step.value === 1 && !form.currentStatus) {
+    stepError.value = 'Pick the one that fits closest — none of them lock anything in.'
+    return
+  }
+  if (step.value === 2 && !form.heardAbout) {
+    stepError.value = 'Pick one so we know what is working.'
+    return
+  }
+  if (step.value === 3 && !validateProfile()) return
+  if (step.value < LAST) step.value++
+}
+
+/* ── Client import (spec 08) ──────────────────────────────────────────────────
+   `importedCount` only changes what step 4 SAYS. Nothing about it gates
+   Continue, because a new user who does not have their client list to hand must
+   never be stuck behind an optional step. */
+const showImport = ref(false)
+const importedCount = ref(0)
+
+/* The import modal is the app's own component, so its dark styling answers to
+   `html.dark` while this page answers to [data-theme]. The class is borrowed
+   for exactly as long as the modal is open — not for the whole page, which
+   would race the head script that clears it, and not never, which would open a
+   white modal on a dark screen. `flush: 'sync'` so the class lands before the
+   modal renders rather than a frame after it. */
+watch(
+  showImport,
+  (open) => {
+    if (!import.meta.client) return
+    const root = document.documentElement
+    root.classList.toggle('dark', open && root.getAttribute('data-theme') === 'dark')
+  },
+  { flush: 'sync' }
+)
+
+const onImported = (result) => {
+  importedCount.value += (result?.counts?.created || 0) + (result?.counts?.updated || 0)
+  showImport.value = false
+}
+
+/* ── Plans ────────────────────────────────────────────────────────────────── */
+const rawPlans = ref([])
+const plansLoading = ref(true)
+const plansFailed = ref(false)
+
+const fetchPlans = async () => {
+  const { $api } = useNuxtApp()
+  plansLoading.value = true
+  try {
+    const { data } = await $api.get('/plans')
+    rawPlans.value = Array.isArray(data) ? data : []
+    plansFailed.value = rawPlans.value.length === 0
+  } catch (err) {
+    console.error('Failed to fetch plans', err)
+    plansFailed.value = true
+  } finally {
+    plansLoading.value = false
+  }
+}
+
+onMounted(fetchPlans)
+
+/* Cheapest first, and retired plans stay out — the page was rendering whatever
+   order the API returned and showing inactive rows, which the public pricing
+   page has never done. */
+const plans = computed(() =>
+  rawPlans.value
+    .filter((p) => p.isActive !== false)
+    .slice()
+    .sort((a, b) => a.price - b.price)
+)
+const columns = computed(() => Math.min(Math.max(plans.value.length, 1), 4))
+
+/* Which plan gets which treatment. These mirror the public pricing page — the
+   plan it accents is the plan someone will expect to see accented here, one
+   screen later — and they are names, not colours: the accent and the ink slab
+   both come out of the palette, so no plan needs a hue the brand does not have.
+   Anything not named here renders as a plain card. */
+const RECOMMENDED = 'PRO'
+const FLAGSHIP = 'MAX'
+const isRecommended = (plan) => plan.name.toUpperCase() === RECOMMENDED
+const isFlagship = (plan) => plan.name.toUpperCase() === FLAGSHIP
+
+/* Nobody in Malaysia writes "MYR 19" on a price tag. The mapping already
+   exists in utils/invoice — a second copy here is how the two drift. */
+const symbolFor = (plan) => currencySymbol(plan.currency)
+
+/* ── Promo ────────────────────────────────────────────────────────────────── */
+const promoCodeInput = ref('')
+const isPromoValid = ref(false)
+const promoLoading = ref(false)
+const promoError = ref('')
+const appliedDiscount = ref(null)
 
 const validatePromo = async () => {
-  if (!promoCodeInput.value) return;
-  promoLoading.value = true;
-  promoError.value = "";
+  if (!promoCodeInput.value) return
+  promoLoading.value = true
+  promoError.value = ''
   try {
-    const { $api } = useNuxtApp();
-    const { data } = await $api.post("/promo/validate", {
-      code: promoCodeInput.value,
-    });
-    appliedDiscount.value = data;
-    isPromoValid.value = true;
+    const { $api } = useNuxtApp()
+    const { data } = await $api.post('/promo/validate', { code: promoCodeInput.value })
+    appliedDiscount.value = data
+    isPromoValid.value = true
   } catch (err) {
-    promoError.value = err.response?.data?.message || "Invalid promo code";
-    isPromoValid.value = false;
+    promoError.value = err.response?.data?.message || 'That code did not work.'
+    isPromoValid.value = false
   } finally {
-    promoLoading.value = false;
+    promoLoading.value = false
   }
-};
+}
 
 const clearPromo = () => {
-  promoCodeInput.value = "";
-  isPromoValid.value = false;
-  appliedDiscount.value = null;
-  promoError.value = "";
-};
+  promoCodeInput.value = ''
+  isPromoValid.value = false
+  appliedDiscount.value = null
+  promoError.value = ''
+}
 
 /**
  * Sen in, sen out — Plan.price is sen, like every money column.
@@ -786,92 +279,1023 @@ const clearPromo = () => {
  * possible bug in a checkout.
  */
 const getDiscountedPrice = (senPrice) => {
-  const base = Number(senPrice) || 0;
-  if (!base) return 0;
-  if (!isPromoValid.value || !appliedDiscount.value) return base;
+  const base = Number(senPrice) || 0
+  if (!base) return 0
+  if (!isPromoValid.value || !appliedDiscount.value) return base
 
-  const d = appliedDiscount.value;
+  const d = appliedDiscount.value
   const discounted =
-    d.discountType === "PERCENTAGE"
+    d.discountType === 'PERCENTAGE'
       ? base - base * (Number(d.discountValue) / 100)
-      : base - Number(d.discountValue) * 100;
-  return Math.max(0, Math.round(discounted));
-};
+      : base - Number(d.discountValue) * 100
+  return Math.max(0, Math.round(discounted))
+}
+
+const isDiscounted = (plan) =>
+  isPromoValid.value && !!appliedDiscount.value && getDiscountedPrice(plan.price) < plan.price
 
 const appliedDiscountText = computed(() => {
-  if (!appliedDiscount.value) return "";
-  const d = appliedDiscount.value;
-  return d.discountType === "PERCENTAGE"
-    ? `${d.discountValue}%`
-    : `${d.discountValue} MYR`;
-});
+  if (!appliedDiscount.value) return ''
+  const d = appliedDiscount.value
+  return d.discountType === 'PERCENTAGE' ? `${d.discountValue}%` : `RM ${d.discountValue}`
+})
 
-const nextStep = () => {
-  error.value = "";
-  if (step.value === 1 && !form.currentStatus) {
-    error.value = "Please select your current role.";
-    return;
-  }
-  if (step.value === 2 && !form.heardAbout) {
-    error.value = "Please select where you heard about us.";
-    return;
-  }
-  if (step.value === 3) {
-    if (
-      !form.name ||
-      !form.companyName ||
-      !form.companyEmail ||
-      !form.companyPhone ||
-      !form.phoneNumber
-    ) {
-      error.value = "Please fill out all contact fields to continue.";
-      return;
-    }
-  }
+/* ── Submit ───────────────────────────────────────────────────────────────── */
+const loading = ref(false)
 
-  if (step.value < 5) {
-    step.value++;
-  }
-};
+/* Xendit sends a declined card back here. Nothing used to read it. */
+const paymentFailed = ref(route.query.payment_failed === 'true')
 
 const selectPlan = async (plan) => {
-  error.value = "";
-  loading.value = true;
+  error.value = ''
+  paymentFailed.value = false
+  loading.value = true
 
   try {
-    // 1. Update Profile & complete onboarding flag
-    await authStore.updateProfile({
-      ...form,
-      onboardingCompleted: true,
-    });
+    await authStore.updateProfile({ ...form, onboardingCompleted: true })
 
-    // 2. Validate and subscribe
-    if (plan === "FREE") {
-      router.push("/dashboard?welcome=true");
+    if (plan === 'FREE') {
+      router.push('/dashboard?welcome=true')
     } else {
-      // PRO or MAX
-      const successUrl = `${window.location.origin}/dashboard?welcome=true`;
+      const successUrl = `${window.location.origin}/dashboard?welcome=true`
       /* Back to the PLAN step, which is 5 since the client import was added
          between the profile and the plan. A stale 4 here would drop somebody
          whose card was declined onto the import screen with no explanation. */
-      const failureUrl = `${window.location.origin}/onboarding?step=5&payment_failed=true`;
+      const failureUrl = `${window.location.origin}/onboarding?step=5&payment_failed=true`
 
       const res = await subscribeStore.subscribe(
         plan,
         isPromoValid.value ? promoCodeInput.value : null,
         successUrl,
-        failureUrl,
-      );
-      if (res?.checkoutUrl) {
-        window.location.href = res.checkoutUrl;
-      } else {
-        // Fallback incase of unexpected response
-        router.push("/dashboard?welcome=true");
-      }
+        failureUrl
+      )
+      if (res?.checkoutUrl) window.location.href = res.checkoutUrl
+      else router.push('/dashboard?welcome=true')
     }
   } catch (err) {
-    error.value = err.message || "Failed to complete setup.";
-    loading.value = false;
+    error.value = err.message || 'We could not finish setting up your account.'
+    loading.value = false
   }
-};
+}
 </script>
+
+<template>
+  <OnboardingShell
+    :steps="STEPS"
+    :current="step"
+    :wide="step === LAST"
+    :identity="authStore.user?.email"
+    @navigate="goTo">
+    <form class="flow" novalidate @submit.prevent="step < LAST ? nextStep() : null">
+      <!-- ── 1 · Role ────────────────────────────────────────────────────
+           A radiogroup rather than a fieldset: `legend` cannot be laid out
+           reliably inside a grid container, and the group still gets its name
+           from the heading through aria-labelledby.
+      -->
+      <div v-show="step === 1" class="panel" role="radiogroup" aria-labelledby="role-title">
+        <div class="panel__head">
+          <h2 id="role-title" class="panel__title">What best describes you?</h2>
+          <p class="panel__lead">
+            It decides what the dashboard shows first. Nothing here is locked in.
+          </p>
+        </div>
+
+        <div class="choices">
+          <OnboardingChoice
+            v-for="role in ROLES"
+            :key="role.value"
+            v-model="form.currentStatus"
+            name="role"
+            :value="role.value"
+            :description="role.description" />
+        </div>
+      </div>
+
+      <!-- ── 2 · Discovery ─────────────────────────────────────────────── -->
+      <div v-show="step === 2" class="panel" role="radiogroup" aria-labelledby="source-title">
+        <div class="panel__head">
+          <h2 id="source-title" class="panel__title">Where did you hear about us?</h2>
+          <p class="panel__lead">
+            We are a small team and this is the only analytics we trust.
+          </p>
+        </div>
+
+        <div class="choices choices--two">
+          <OnboardingChoice
+            v-for="source in SOURCES"
+            :key="source"
+            v-model="form.heardAbout"
+            name="source"
+            :value="source" />
+        </div>
+      </div>
+
+      <!-- ── 3 · Profile ───────────────────────────────────────────────── -->
+      <div v-show="step === 3" class="panel">
+        <div class="panel__head">
+          <h2 class="panel__title">Your details</h2>
+          <p class="panel__lead">
+            The company block is what prints at the top of every invoice and
+            quotation you send.
+          </p>
+        </div>
+
+        <section class="group">
+          <h3 class="group__title">You</h3>
+
+          <AuthField
+            id="name"
+            v-model="form.name"
+            label="Full name"
+            type="text"
+            autocomplete="name"
+            placeholder="Aina Rahman"
+            :error="fieldErrors.name"
+            required />
+
+          <div class="pair">
+            <!-- Read-only by nature, not by a disabled input: a greyed-out
+                 field invites people to try to type in it and then wonder what
+                 they did wrong. -->
+            <div class="locked">
+              <span class="locked__label">Login email</span>
+              <span class="locked__value">
+                <svg viewBox="0 0 16 16" aria-hidden="true">
+                  <rect
+                    x="3.2" y="7" width="9.6" height="6.4" rx="1.6"
+                    fill="none" stroke="currentColor" stroke-width="1.4" />
+                  <path
+                    d="M5.6 7V5.4a2.4 2.4 0 0 1 4.8 0V7"
+                    fill="none" stroke="currentColor" stroke-width="1.4"
+                    stroke-linecap="round" />
+                </svg>
+                {{ authStore.user?.email }}
+              </span>
+            </div>
+
+            <AuthField
+              id="phoneNumber"
+              v-model="form.phoneNumber"
+              label="Phone number"
+              type="tel"
+              autocomplete="tel"
+              inputmode="tel"
+              placeholder="+60 12-345 6789"
+              :error="fieldErrors.phoneNumber"
+              required />
+          </div>
+        </section>
+
+        <section class="group">
+          <h3 class="group__title">Your business</h3>
+
+          <AuthField
+            id="companyName"
+            v-model="form.companyName"
+            label="Business name"
+            type="text"
+            autocomplete="organization"
+            placeholder="Acme Enterprise"
+            hint="Printed at the top of the invoice, above everything else."
+            :error="fieldErrors.companyName"
+            required />
+
+          <div class="pair">
+            <div class="mirrored">
+              <AuthField
+                id="companyEmail"
+                v-model="form.companyEmail"
+                label="Business email"
+                type="email"
+                autocomplete="off"
+                inputmode="email"
+                placeholder="billing@acme.com"
+                :error="fieldErrors.companyEmail"
+                required />
+              <label class="mirror">
+                <input v-model="useUserEmail" type="checkbox" class="no-ik" @change="syncEmail" />
+                <span>Same as my login email</span>
+              </label>
+            </div>
+
+            <div class="mirrored">
+              <AuthField
+                id="companyPhone"
+                v-model="form.companyPhone"
+                label="Business phone"
+                type="tel"
+                autocomplete="off"
+                inputmode="tel"
+                placeholder="+60 12-345 6789"
+                :error="fieldErrors.companyPhone"
+                required />
+              <label class="mirror">
+                <input v-model="useUserPhone" type="checkbox" class="no-ik" @change="syncPhone" />
+                <span>Same as my phone number</span>
+              </label>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- ── 4 · Clients (spec 08) ─────────────────────────────────────────
+           Optional, and it says so in three places — the rail, the heading and
+           the button that leaves. The empty account is the drop-off point for
+           exactly the users worth having, so the offer belongs here; but
+           Continue is never gated on it and never validates anything.
+      -->
+      <div v-show="step === 4" class="panel">
+        <div class="panel__head">
+          <h2 class="panel__title">
+            Bring your clients in
+            <span class="panel__optional">optional</span>
+          </h2>
+          <p class="panel__lead">
+            Already have them in a spreadsheet or your phone contacts? Paste the
+            list and we will work out the columns. You can also do this any time
+            from the Clients page.
+          </p>
+        </div>
+
+        <div v-if="importedCount" class="imported">
+          <span class="imported__tick" aria-hidden="true">
+            <svg viewBox="0 0 16 16">
+              <path
+                d="M3.4 8.4 6.4 11.4 12.6 4.6"
+                fill="none" stroke="currentColor" stroke-width="2.2"
+                stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </span>
+          <div>
+            <p class="imported__title">
+              <span class="k-num">{{ importedCount }}</span>
+              {{ importedCount === 1 ? 'client' : 'clients' }} added
+            </p>
+            <p class="imported__note">You can import more whenever you like.</p>
+          </div>
+          <button type="button" class="imported__more" @click="showImport = true">
+            Import more
+          </button>
+        </div>
+
+        <button v-else type="button" class="dropzone" @click="showImport = true">
+          <span class="dropzone__ico" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path
+                d="M12 16V5m0 0L8 9m4-4 4 4M4.5 15.5V18a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-2.5"
+                fill="none" stroke="currentColor" stroke-width="1.8"
+                stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </span>
+          <span class="dropzone__title">Paste or upload your client list</span>
+          <span class="dropzone__hint">Name, phone and email, in any order</span>
+        </button>
+      </div>
+
+      <!-- ── 5 · Plan ──────────────────────────────────────────────────── -->
+      <div v-show="step === LAST" class="panel panel--wide">
+        <div class="panel__head panel__head--center">
+          <h2 class="panel__title">Pick a starting plan</h2>
+          <p class="panel__lead">
+            Start free if you are not sure. Upgrading and downgrading is a
+            two-click job in Settings, and nothing is lost either way.
+          </p>
+        </div>
+
+        <p v-if="paymentFailed" class="alert alert--warn" role="alert">
+          <svg viewBox="0 0 16 16" aria-hidden="true">
+            <circle cx="8" cy="8" r="6.6" fill="none" stroke="currentColor" stroke-width="1.5" />
+            <path d="M8 4.6v4.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+            <circle cx="8" cy="11.4" r="0.9" fill="currentColor" />
+          </svg>
+          That payment did not go through, so nothing was charged and no plan was
+          started. Try again, or start free and upgrade later.
+        </p>
+
+        <!-- Promo -->
+        <div class="promo">
+          <label for="promo" class="promo__label">Promo code</label>
+          <div class="promo__row">
+            <input
+              id="promo"
+              v-model="promoCodeInput"
+              class="promo__input no-ik"
+              type="text"
+              autocomplete="off"
+              spellcheck="false"
+              placeholder="Optional"
+              :disabled="isPromoValid"
+              @keydown.enter.prevent="validatePromo" />
+            <button
+              v-if="!isPromoValid"
+              type="button"
+              class="k-btn k-btn--secondary promo__btn"
+              :disabled="!promoCodeInput || promoLoading"
+              @click="validatePromo">
+              {{ promoLoading ? 'Checking…' : 'Apply' }}
+            </button>
+            <button v-else type="button" class="k-btn k-btn--secondary promo__btn" @click="clearPromo">
+              Remove
+            </button>
+          </div>
+          <p v-if="promoError" class="promo__msg promo__msg--error" role="alert">{{ promoError }}</p>
+          <p v-else-if="isPromoValid" class="promo__msg promo__msg--ok">
+            {{ appliedDiscountText }} off your first term.
+          </p>
+        </div>
+
+        <p v-if="plansLoading" class="plans__status">Loading plans…</p>
+
+        <div v-else-if="plansFailed" class="plans__status plans__status--error">
+          <p>We could not load the plans just now.</p>
+          <button type="button" class="k-btn k-btn--secondary" @click="fetchPlans">Try again</button>
+        </div>
+
+        <ul v-else class="plans" :style="{ '--_cols': columns }">
+          <li
+            v-for="plan in plans"
+            :key="plan.id"
+            class="plan"
+            :class="{
+              'plan--accent': isRecommended(plan),
+              'plan--slab': isFlagship(plan),
+            }">
+            <p v-if="isRecommended(plan)" class="plan__flag">Recommended</p>
+
+            <header class="plan__head">
+              <h3 class="plan__name">{{ plan.name }}</h3>
+              <p v-if="plan.description" class="plan__desc">{{ plan.description }}</p>
+            </header>
+
+            <p class="plan__price">
+              <span v-if="isDiscounted(plan)" class="plan__was k-num">
+                {{ symbolFor(plan) }} {{ price(plan.price) }}
+              </span>
+              <span class="plan__amount k-num">
+                {{ plan.price === 0 ? 'Free' : `${symbolFor(plan)} ${price(getDiscountedPrice(plan.price))}` }}
+              </span>
+              <span v-if="plan.price > 0" class="plan__interval">/{{ plan.interval }}</span>
+            </p>
+            <p v-if="isDiscounted(plan)" class="plan__discount">First term discount applied</p>
+
+            <ul class="plan__features">
+              <li v-for="feature in plan.features ?? []" :key="feature" class="feature">
+                <svg viewBox="0 0 16 16" class="feature__tick" aria-hidden="true">
+                  <path
+                    d="M3.4 8.4 6.4 11.4 12.6 4.6"
+                    fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                <span>{{ feature }}</span>
+              </li>
+            </ul>
+
+            <button
+              type="button"
+              class="k-btn plan__cta"
+              :class="isRecommended(plan) || isFlagship(plan) ? 'k-btn--primary' : 'k-btn--secondary'"
+              :disabled="loading"
+              @click="selectPlan(plan.name)">
+              {{ plan.price === 0 ? 'Start free' : `Choose ${plan.name}` }}
+            </button>
+          </li>
+        </ul>
+      </div>
+
+      <!-- ── Errors + navigation ───────────────────────────────────────── -->
+      <p v-if="stepError || error" class="alert" role="alert">
+        <svg viewBox="0 0 16 16" aria-hidden="true">
+          <circle cx="8" cy="8" r="6.6" fill="none" stroke="currentColor" stroke-width="1.5" />
+          <path d="M8 4.6v4.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+          <circle cx="8" cy="11.4" r="0.9" fill="currentColor" />
+        </svg>
+        {{ stepError || error }}
+      </p>
+
+      <!-- Back stays on the plan step. The ledger is the way back on a desktop,
+           but below 1024 the rail is a banner with nothing to click, so hiding
+           this row on the last step left a phone with no way to correct
+           anything typed on the one before it. -->
+      <div v-show="step > 1 || step < LAST" class="nav">
+        <button v-if="step > 1" type="button" class="k-btn k-btn--secondary" @click="step--">
+          Back
+        </button>
+        <button
+          v-if="step < LAST"
+          type="button"
+          class="k-btn k-btn--primary nav__next"
+          @click="nextStep">
+          {{ step === 4 && !importedCount ? 'Skip for now' : 'Continue' }}
+          <svg viewBox="0 0 20 20" aria-hidden="true" class="nav__arrow">
+            <path
+              d="M4 10h11M10.5 5.5 15 10l-4.5 4.5"
+              fill="none" stroke="currentColor" stroke-width="1.9"
+              stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </button>
+      </div>
+    </form>
+
+    <!-- Saving. It covers the viewport rather than the card because the plan
+         step is wider than the card ever was, and a spinner floating over one
+         corner of a four-column grid does not read as "wait". -->
+    <Teleport to="body">
+      <div v-if="loading" class="saving kirim" role="status" aria-live="polite">
+        <div class="saving__card">
+          <span class="saving__ring" aria-hidden="true">
+            <svg viewBox="0 0 44 44">
+              <circle cx="22" cy="22" r="19" fill="none" stroke="currentColor" stroke-width="2" opacity="0.15" />
+              <circle
+                cx="22" cy="22" r="19" fill="none" stroke="currentColor" stroke-width="3"
+                stroke-linecap="round" stroke-dasharray="34 200" />
+            </svg>
+          </span>
+          <p class="saving__title">Setting up your workspace</p>
+          <p class="saving__note">One moment — do not close this tab.</p>
+        </div>
+      </div>
+    </Teleport>
+
+    <!-- The same import component the Clients page uses. One implementation,
+         so the onboarding path cannot drift from the permanent one. -->
+    <UiModal v-model="showImport" max-width="4xl">
+      <ClientsImportModal v-if="showImport" @close="showImport = false" @imported="onImported" />
+    </UiModal>
+  </OnboardingShell>
+</template>
+
+<style scoped>
+.flow {
+  display: grid;
+  gap: var(--space-6);
+}
+
+/* ─── Panels ─────────────────────────────────────────────────────────────── */
+.panel {
+  display: grid;
+  gap: var(--space-5);
+  /* fieldset reset — the survey steps are real fieldsets so the legend names
+     the group for a screen reader. */
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.panel--wide {
+  gap: var(--space-6);
+}
+
+.panel__head {
+  display: block;
+  padding: 0;
+}
+.panel__head--center {
+  text-align: center;
+  max-width: var(--measure);
+  margin-inline: auto;
+}
+.panel__title {
+  font-size: var(--text-xl);
+  font-weight: var(--weight-extrabold);
+  letter-spacing: var(--tracking-tighter);
+  line-height: var(--leading-snug);
+  color: var(--text-primary);
+  text-wrap: balance;
+}
+.panel__optional {
+  margin-left: var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  vertical-align: middle;
+}
+.panel__lead {
+  margin-top: var(--space-3);
+  font-size: var(--text-sm);
+  line-height: var(--leading-relaxed);
+  color: var(--text-secondary);
+}
+
+/* ─── Choices ────────────────────────────────────────────────────────────── */
+.choices {
+  display: grid;
+  gap: var(--space-3);
+}
+@media (min-width: 560px) {
+  .choices--two {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* ─── Profile ────────────────────────────────────────────────────────────── */
+.group {
+  display: grid;
+  gap: var(--space-5);
+}
+.group__title {
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--border-default);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-widest);
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.pair {
+  display: grid;
+  gap: var(--space-5);
+}
+@media (min-width: 560px) {
+  .pair {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+}
+
+.locked {
+  display: grid;
+  gap: var(--space-2);
+  align-content: start;
+}
+.locked__label {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-primary);
+}
+.locked__value {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 3rem;
+  padding: var(--space-3) var(--space-4);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-md);
+  background-color: var(--surface-sunken);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  word-break: break-all;
+}
+.locked__value svg {
+  width: 15px;
+  height: 15px;
+  flex: none;
+  color: var(--text-tertiary);
+}
+
+.mirrored {
+  display: grid;
+  gap: var(--space-2);
+}
+.mirror {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
+  cursor: pointer;
+}
+.mirror:hover {
+  color: var(--text-secondary);
+}
+.mirror input {
+  width: 0.95rem;
+  height: 0.95rem;
+  flex: none;
+  accent-color: var(--surface-accent);
+  cursor: pointer;
+}
+
+/* ─── Client import ──────────────────────────────────────────────────────── */
+.dropzone {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-1);
+  width: 100%;
+  padding: var(--space-8) var(--space-5);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-lg);
+  background-color: var(--surface-raised);
+  font-family: inherit;
+  cursor: pointer;
+  transition:
+    border-color var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out);
+}
+.dropzone:hover {
+  border-color: var(--surface-accent);
+  background-color: var(--surface-accent-soft);
+}
+.dropzone__ico {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  margin-bottom: var(--space-2);
+  border-radius: var(--radius-full);
+  background-color: var(--surface-accent-soft);
+  color: var(--text-accent);
+}
+.dropzone:hover .dropzone__ico {
+  background-color: var(--surface-accent);
+  color: var(--text-on-accent);
+}
+.dropzone__ico svg {
+  width: 22px;
+  height: 22px;
+}
+.dropzone__title {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-primary);
+}
+.dropzone__hint {
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
+}
+
+.imported {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: var(--space-4);
+  align-items: center;
+  padding: var(--space-4) var(--space-5);
+  border: 1px solid var(--border-accent);
+  border-radius: var(--radius-lg);
+  background-color: var(--surface-accent-soft);
+}
+.imported__tick {
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: var(--radius-full);
+  background-color: var(--surface-accent);
+  color: var(--text-on-accent);
+}
+.imported__tick svg {
+  width: 15px;
+  height: 15px;
+}
+.imported__title {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+}
+.imported__note {
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+}
+.imported__more {
+  border: 0;
+  background: none;
+  padding: var(--space-2);
+  font-family: inherit;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  color: var(--text-accent);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ─── Promo ──────────────────────────────────────────────────────────────── */
+.promo {
+  display: grid;
+  gap: var(--space-2);
+  width: 100%;
+  max-width: 26rem;
+  margin-inline: auto;
+}
+.promo__label {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+.promo__row {
+  display: flex;
+  gap: var(--space-2);
+}
+.promo__input {
+  flex: 1;
+  min-width: 0;
+  min-height: 3rem;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background-color: var(--surface-raised);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: var(--text-base);
+  text-transform: uppercase;
+  transition: border-color var(--dur-fast) var(--ease-out);
+}
+.promo__input::placeholder {
+  color: var(--text-tertiary);
+  text-transform: none;
+}
+.promo__input:focus {
+  border-color: var(--surface-accent);
+}
+.promo__input:disabled {
+  border-style: dashed;
+  background-color: var(--surface-sunken);
+  color: var(--text-secondary);
+  cursor: not-allowed;
+}
+.promo__btn {
+  flex: none;
+  padding-inline: var(--space-5);
+}
+.promo__btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.promo__msg {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+}
+.promo__msg--error {
+  color: var(--state-error);
+}
+.promo__msg--ok {
+  color: var(--text-accent);
+}
+
+/* ─── Plans ──────────────────────────────────────────────────────────────── */
+.plans__status {
+  display: grid;
+  gap: var(--space-4);
+  justify-items: center;
+  padding: var(--space-8);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-lg);
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.plans {
+  display: grid;
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.plan {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-6);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
+  background-color: var(--surface-raised);
+  transition:
+    border-color var(--dur-base) var(--ease-out),
+    transform var(--dur-base) var(--ease-out),
+    box-shadow var(--dur-base) var(--ease-out);
+}
+.plan:hover {
+  border-color: var(--border-accent);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+}
+.plan--accent {
+  border-color: var(--border-accent);
+  box-shadow: var(--shadow-md);
+}
+/* The top tier gets the ink slab rather than a colour the palette does not
+   own. It is the same slab as the rail, so "premium" is said in the brand's
+   own vocabulary and stays itself in both themes. */
+.plan--slab {
+  border-color: transparent;
+  background-color: var(--surface-slab);
+  color: var(--text-on-slab);
+}
+.plan--slab .plan__name,
+.plan--slab .plan__amount {
+  color: var(--text-on-slab);
+}
+.plan--slab .plan__desc,
+.plan--slab .plan__interval,
+.plan--slab .plan__was,
+.plan--slab .feature {
+  color: var(--text-on-slab-muted);
+}
+.plan--slab .feature__tick,
+.plan--slab .plan__discount {
+  color: var(--text-on-slab-accent);
+}
+.plan--slab .plan__price {
+  border-bottom-color: var(--border-on-slab);
+}
+
+.plan__flag {
+  position: absolute;
+  top: 0;
+  left: var(--space-6);
+  transform: translateY(-50%);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  background-color: var(--surface-accent);
+  color: var(--text-on-accent);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+
+.plan__name {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-extrabold);
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-primary);
+}
+.plan__desc {
+  margin-top: var(--space-1);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+  color: var(--text-tertiary);
+}
+
+.plan__price {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.plan__was {
+  font-size: var(--text-base);
+  color: var(--text-tertiary);
+  text-decoration: line-through;
+}
+.plan__amount {
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-extrabold);
+  letter-spacing: var(--tracking-tighter);
+  line-height: 1;
+  color: var(--text-primary);
+}
+.plan__interval {
+  font-size: var(--text-sm);
+  color: var(--text-tertiary);
+}
+.plan__discount {
+  margin-top: calc(var(--space-3) * -1);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--text-accent);
+}
+
+.plan__features {
+  display: grid;
+  gap: var(--space-3);
+  align-content: start;
+  flex: 1;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.feature {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-3);
+  align-items: start;
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+  color: var(--text-secondary);
+}
+.feature__tick {
+  width: 15px;
+  height: 15px;
+  margin-top: 3px;
+  flex: none;
+  color: var(--text-accent);
+}
+
+.plan__cta {
+  width: 100%;
+  margin-top: var(--space-2);
+}
+.plan__cta:disabled {
+  opacity: 0.55;
+  cursor: progress;
+}
+
+@media (min-width: 640px) {
+  .plans {
+    grid-template-columns: repeat(min(var(--_cols, 3), 2), minmax(0, 1fr));
+  }
+}
+@media (min-width: 1280px) {
+  .plans {
+    grid-template-columns: repeat(var(--_cols, 3), minmax(0, 1fr));
+  }
+}
+
+/* ─── Alerts and navigation ──────────────────────────────────────────────── */
+.alert {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--state-error);
+  border-radius: var(--radius-md);
+  background-color: var(--state-error-surface);
+  color: var(--state-error);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-normal);
+}
+.alert--warn {
+  border-color: var(--state-warning);
+  background-color: var(--state-warning-surface);
+  color: var(--state-warning);
+}
+.alert svg {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  margin-top: 2px;
+}
+
+.nav {
+  display: flex;
+  gap: var(--space-3);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--border-default);
+}
+.nav__next {
+  flex: 1;
+}
+.nav__arrow {
+  width: 18px;
+  height: 18px;
+}
+
+/* ─── Saving ─────────────────────────────────────────────────────────────── */
+.saving {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: grid;
+  place-items: center;
+  padding: var(--gutter);
+  background-color: var(--a-ink-72);
+  backdrop-filter: blur(4px);
+}
+.saving__card {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-2);
+  padding: var(--space-8) var(--space-7);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
+  background-color: var(--surface-raised);
+  box-shadow: var(--shadow-xl);
+  text-align: center;
+}
+.saving__ring {
+  display: block;
+  width: 2.75rem;
+  height: 2.75rem;
+  margin-bottom: var(--space-4);
+  color: var(--surface-accent);
+  animation: saving-spin 1.1s linear infinite;
+}
+.saving__title {
+  font-size: var(--text-base);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-primary);
+}
+.saving__note {
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
+}
+@keyframes saving-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .plan:hover {
+    transform: none;
+  }
+  .saving__ring {
+    animation-duration: 2.4s;
+  }
+}
+</style>

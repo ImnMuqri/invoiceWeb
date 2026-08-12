@@ -881,7 +881,12 @@ const progress = useProgress();
 
    The copy names the actual difference between their tier and the next one.
    "Upgrade to Pro" tells somebody nothing they cannot already guess; "Pro
-   chases overdue invoices on its own" is the reason they would. */
+   chases overdue invoices on its own" is the reason they would.
+
+   One line each, and one benefit each. This card sits in the sidebar of every
+   module, permanently, next to work somebody is trying to do — at that size a
+   feature list is not read, it is just something the eye has to get past. The
+   CTA is where the full comparison lives. */
 const boost = computed(() => {
   const plan = String(authStore.user?.plan ?? "FREE").toUpperCase();
 
@@ -889,7 +894,7 @@ const boost = computed(() => {
     return {
       eyebrow: "On Starter",
       title: "Still chasing them yourself?",
-      body: "Starter sends reminders when you press send. Pro follows up on overdue invoices on its own, and raises your monthly limits.",
+      body: "Pro follows up on overdue invoices on its own.",
       cta: "See what Pro adds",
     };
   }
@@ -900,7 +905,7 @@ const boost = computed(() => {
     return {
       eyebrow: "Free plan",
       title: "Need more power?",
-      body: "Pro lifts you to 100 invoices a month, adds WhatsApp reminders, AI drafts, and chases the late ones for you.",
+      body: "Pro chases the late ones, and lifts you to 100 a month.",
       cta: "Get Pro",
     };
   }
