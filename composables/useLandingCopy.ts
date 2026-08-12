@@ -238,7 +238,9 @@ const copy = {
       noChaserNote: 'Manual reminders only — you press send.',
       footnote: 'Prices in MYR, billed monthly. Cancel from your dashboard at any time.',
       customTitle: 'Need something bigger?',
-      customBody: 'Higher volumes and white-labelling are available. Tell us what you need.',
+      /* No longer offers white-labelling: removing "Sent with InvoKita" is part
+         of Max now, so listing it here read as an extra you had to ask for. */
+      customBody: 'Chasing more than 75 invoices a month, or something shaped differently. Tell us what you need.',
       customCta: 'Talk to us',
     },
 
@@ -538,7 +540,7 @@ const copy = {
       noChaserNote: 'Peringatan manual sahaja — anda yang tekan hantar.',
       footnote: 'Harga dalam MYR, dibil bulanan. Batal dari papan pemuka bila-bila masa.',
       customTitle: 'Perlu sesuatu yang lebih besar?',
-      customBody: 'Volum lebih tinggi dan white-label ada disediakan. Beritahu kami apa yang anda perlukan.',
+      customBody: 'Mengejar lebih 75 invois sebulan, atau sesuatu yang lain bentuknya. Beritahu kami apa yang anda perlukan.',
       customCta: 'Hubungi kami',
     },
 

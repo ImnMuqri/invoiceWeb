@@ -4267,3 +4267,472 @@ html.dark .tb__av {
 .pickcard__opt--locked .pickcard__mark {
   opacity: 0.55;
 }
+
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   PUBLIC DOCUMENTS â€” /pay/:id and /quote/:token
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+
+   The only two pages in the product shown to somebody who is not a user. Both
+   were built in raw Tailwind slate utilities and never moved onto the desk, so
+   the surface a paying client actually judges the sender by was the one surface
+   with no design system behind it: hardcoded #f8fafc, light-only, and drifting
+   further from the app with every change made to the app.
+
+   ONE BLOCK FOR BOTH PAGES, deliberately. /quote/:token's header comment says it
+   "mirrors /pay/:id â€” same shell, same typography, same card, so a client who
+   has had an invoice from this user before recognises the page instantly". That
+   was true only because the two templates had been copied from one another,
+   which is the version of shared design that lasts until the next edit. Sharing
+   the classes is what makes the claim survive.
+
+   WHOSE BRAND LEADS. The sender's, not ours. Both pages used to open with the
+   InvoKita logo at full size above the card, which put our name at the top of a
+   document a stranger received from a company they are meant to be paying. The
+   letterhead inside the paper is now the sender's, and our line is the quiet
+   attribution at the foot â€” where spec 09 puts it, and where an account paying
+   to remove it can remove it.
+
+   Everything reads off desk tokens, so these pages theme with the app and are
+   the same temperature as the invoice the client was sent from it.
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+
+.pdoc {
+  --pdoc-gap: clamp(1.5rem, 3vw, 2.5rem);
+
+  min-height: 100vh;
+  min-height: 100svh;
+  padding: clamp(var(--space-6), 5vw, var(--space-10)) var(--space-4);
+  background-color: var(--shell-page);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--desk-text);
+  -webkit-font-smoothing: antialiased;
+}
+:root[data-theme='dark'] .pdoc,
+html.dark .pdoc {
+  background-color: var(--app-1);
+}
+.pdoc :where(p, h1, h2, h3, dl, dd, dt, table) {
+  margin: 0;
+}
+.pdoc__inner {
+  width: 100%;
+  max-width: 44rem;
+  margin: 0 auto;
+}
+
+/* â”€â”€â”€ The paper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+   Squarer than a marketing card and flatter than a modal: this is a document,
+   and the shadow is there to lift it off the page rather than to make it feel
+   like a control. */
+.pdoc__paper {
+  background-color: var(--desk-card);
+  border: 1px solid var(--desk-line);
+  border-radius: var(--desk-radius-shell);
+  padding: clamp(var(--space-5), 4vw, var(--space-8));
+  box-shadow: var(--shadow-sm);
+}
+
+/* â”€â”€â”€ States: loading, missing, paused â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+   A stranger who lands on a broken link has no support channel and no account
+   to check, so each state says what to do next rather than only what is wrong. */
+.pdoc__state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  min-height: 20rem;
+  text-align: center;
+}
+.pdoc__state-title {
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-tight);
+}
+.pdoc__state-body {
+  font-size: var(--text-sm);
+  line-height: var(--leading-relaxed);
+  color: var(--desk-text-2);
+  max-width: 38ch;
+}
+.pdoc__spin {
+  color: var(--desk-text-3);
+  animation: pdoc-spin 900ms linear infinite;
+}
+@keyframes pdoc-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pdoc__spin {
+    animation-duration: 3s;
+  }
+}
+
+/* â”€â”€â”€ Letterhead â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+   Capped in height so a large upload cannot dominate a document that is mostly
+   numbers. Falls back to the sender's name set as type, which is better than an
+   empty band â€” a client has to be able to see who this is from above the fold. */
+.pdoc__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding-bottom: var(--pdoc-gap);
+  border-bottom: 1px solid var(--desk-line-soft);
+}
+.pdoc__logo {
+  height: 2.75rem;
+  width: auto;
+  max-width: 11rem;
+  object-fit: contain;
+  object-position: left center;
+}
+.pdoc__from {
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-tight);
+}
+
+/* â”€â”€â”€ The headline: what is owed, and where it stands â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+   The figure is the largest thing on the page because it is the one fact the
+   visitor opened the link for. Tabular figures so the decimals line up with the
+   line items below and nothing appears to shift as it loads. */
+.pdoc__head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-5);
+  padding: var(--pdoc-gap) 0;
+  border-bottom: 1px solid var(--desk-line-soft);
+}
+@media (min-width: 40rem) {
+  .pdoc__head {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+  }
+}
+.pdoc__status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+.pdoc__ref {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  color: var(--desk-text-3);
+  font-variant-numeric: tabular-nums;
+}
+.pdoc__name {
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-tight);
+  margin-bottom: var(--space-1);
+}
+.pdoc__subject {
+  font-size: var(--text-sm);
+  color: var(--desk-text-2);
+  margin-bottom: var(--space-4);
+}
+.pdoc__label {
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-widest);
+  text-transform: uppercase;
+  color: var(--desk-text-3);
+  margin-bottom: var(--space-1);
+}
+.pdoc__amount {
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-tighter);
+  line-height: var(--leading-tight);
+  font-variant-numeric: tabular-nums;
+}
+.pdoc__dates {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  font-size: var(--text-sm);
+  color: var(--desk-text-2);
+}
+@media (min-width: 40rem) {
+  .pdoc__dates {
+    text-align: right;
+    white-space: nowrap;
+  }
+}
+
+/* â”€â”€â”€ Who to who â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.pdoc__parties {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--pdoc-gap);
+  padding: var(--pdoc-gap) 0;
+}
+@media (min-width: 40rem) {
+  .pdoc__parties {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.pdoc__party-head {
+  padding-bottom: var(--space-2);
+  margin-bottom: var(--space-3);
+  border-bottom: 1px solid var(--desk-line-soft);
+}
+.pdoc__party-name {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+}
+.pdoc__party-org {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  color: var(--desk-text-2);
+  margin-top: 2px;
+}
+.pdoc__party-line {
+  font-size: var(--text-sm);
+  color: var(--desk-text-2);
+  margin-top: var(--space-2);
+  overflow-wrap: anywhere;
+}
+/* Tax identifiers (spec 05). Present only when the sender has filled them in
+   and left the block switched on, so this is often absent entirely. */
+.pdoc__ids {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 2px var(--space-3);
+  margin-top: var(--space-3);
+  font-size: var(--text-xs);
+}
+.pdoc__ids dt {
+  font-weight: var(--weight-semibold);
+  color: var(--desk-text-3);
+  white-space: nowrap;
+}
+.pdoc__ids dd {
+  color: var(--desk-text-2);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+/* â”€â”€â”€ Line items â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+   No icon per row. A cube glyph beside every description was decoration that
+   scaled with the length of the invoice; the description is the content. */
+.pdoc__items {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: var(--text-sm);
+}
+.pdoc__items th {
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--desk-line);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-widest);
+  text-transform: uppercase;
+  color: var(--desk-text-3);
+}
+.pdoc__items td {
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--desk-line-soft);
+  vertical-align: top;
+}
+.pdoc__items tbody tr:last-child td {
+  border-bottom: 0;
+}
+.pdoc__item-name {
+  font-weight: var(--weight-medium);
+}
+.pdoc__item-calc {
+  display: block;
+  margin-top: 2px;
+  font-size: var(--text-xs);
+  color: var(--desk-text-3);
+  font-variant-numeric: tabular-nums;
+}
+.pdoc__num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.pdoc__items tfoot td {
+  border-bottom: 0;
+  border-top: 1px solid var(--desk-line);
+  padding-top: var(--space-4);
+  color: var(--desk-text);
+  font-weight: var(--weight-semibold);
+}
+
+/* â”€â”€â”€ The action â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+   Full width at every size. This is the one thing the page is asking the
+   visitor to do, and a centred pill on a phone reads as one option among
+   several rather than as the point. */
+.pdoc__act {
+  padding-top: var(--pdoc-gap);
+  margin-top: var(--pdoc-gap);
+  border-top: 1px solid var(--desk-line-soft);
+}
+.pdoc__act .desk-btn {
+  width: 100%;
+  min-height: 3rem;
+}
+.pdoc__act--split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-3);
+}
+@media (min-width: 40rem) {
+  .pdoc__act--split {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .pdoc__act--split .desk-btn--ghost {
+    width: auto;
+    padding: 0 var(--space-6);
+  }
+}
+.pdoc__assure {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--desk-text-3);
+}
+.pdoc__assure img {
+  width: 1rem;
+  height: 1rem;
+  object-fit: contain;
+}
+.pdoc__note {
+  margin-top: var(--space-4);
+  font-size: var(--text-xs);
+  line-height: var(--leading-relaxed);
+  color: var(--desk-text-3);
+  text-align: center;
+}
+.pdoc__settled {
+  text-align: center;
+}
+.pdoc__settled-line {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--desk-accent);
+  margin-bottom: var(--space-3);
+}
+
+/* â”€â”€â”€ Attribution â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+   Outside the paper, below it, in the quietest text on the page. Spec 09 is
+   blunt that this must never compete with the sender's own logo or make their
+   invoice look like an advert â€” so it is set at the smallest size in the scale
+   and only reaches full strength on hover. */
+.pdoc__foot {
+  margin-top: var(--space-6);
+  text-align: center;
+}
+.pdoc__mark {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-widest);
+  text-transform: uppercase;
+  color: var(--desk-text-3);
+  opacity: 0.75;
+  text-decoration: none;
+}
+a.pdoc__mark:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+
+/* â”€â”€â”€ Bank transfer panel, inside the modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.pdoc__bank {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  background-color: var(--desk-sunken);
+  border: 1px solid var(--desk-line);
+  border-radius: var(--desk-radius-shell);
+}
+@media (min-width: 30rem) {
+  .pdoc__bank {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.pdoc__bank-v {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+/* The QR keeps DuitNow's own magenta. It is a payment mark a Malaysian user
+   recognises at a glance in their banking app, and recolouring it to fit the
+   page would make it harder to identify for no gain. Fixed white plate behind
+   the code in both themes, because a scanner needs the contrast. */
+.pdoc__qr {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+.pdoc__qr-plate {
+  padding: var(--space-3);
+  background-color: #ffffff;
+  border: 3px solid #ed2c67;
+  border-radius: var(--radius-md);
+  max-width: 12rem;
+}
+.pdoc__qr-plate img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* â”€â”€â”€ Fields, for the accept/decline dialogs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.pdoc__field {
+  display: block;
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-widest);
+  text-transform: uppercase;
+  color: var(--desk-text-3);
+  margin-bottom: var(--space-2);
+}
+.pdoc__input {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  background-color: var(--desk-field);
+  border: 1px solid var(--desk-control-line);
+  border-radius: var(--desk-radius-control);
+  font: inherit;
+  font-size: var(--text-sm);
+  color: var(--desk-text);
+}
+.pdoc__input::placeholder {
+  color: var(--desk-text-3);
+}
+.pdoc__input:focus-visible {
+  outline: 2px solid var(--desk-accent);
+  outline-offset: 1px;
+}
+textarea.pdoc__input {
+  resize: none;
+}
+.pdoc__stack {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+}
+.pdoc__stack .desk-btn {
+  width: 100%;
+}
+

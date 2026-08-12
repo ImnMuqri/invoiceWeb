@@ -9,11 +9,14 @@
  * price is the biggest thing on the page, the two actions are directly under
  * it, and nothing asks the visitor to make an account or log in.
  *
- * Deliberately mirrors /pay/:id — same shell, same typography, same card. A
- * client who has had an invoice from this user before should recognise the
- * page instantly. What is missing is every trace of payment: there is no
- * gateway, no bank block, no "amount due", because a quotation is an offer and
- * nothing is owed on it.
+ * Mirrors /pay/:id, and now does so by SHARING ITS CLASSES rather than by
+ * having been copied from it. Both pages are built from the `.pdoc` block in
+ * app-desk.css, so a client who has had an invoice from this user recognises
+ * the page instantly — and still will after the next edit to either one.
+ *
+ * What is missing is every trace of payment: there is no gateway, no bank
+ * block, no "amount due", because a quotation is an offer and nothing is owed
+ * on it.
  *
  * Addressed by TOKEN, never by row id. The pay page can live on an integer
  * because the worst a stranger does by walking it is look; the buttons here
@@ -22,12 +25,19 @@
  */
 import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
+import { THEME_INIT_SCRIPT } from "~/composables/useTheme";
 /* Every amount from the API is SEN. Formatting one without converting quotes
    the client a hundred times the price — on the one page in the product shown
    to somebody who has no way to know it is wrong. */
 import { cash, documentIdentifiers } from "~/utils/invoice";
 
 definePageMeta({ layout: false });
+
+/* Resolves the visitor's OS preference to an explicit data-theme before first
+   paint, so the desk tokens paint the right theme. Same as /pay/:id. */
+useHead({
+  script: [{ innerHTML: THEME_INIT_SCRIPT, tagPosition: "head" }],
+});
 
 const route = useRoute();
 const { $api } = useNuxtApp();
@@ -68,13 +78,18 @@ const senderLabel = computed(
 /* One sentence describing where this quotation stands, written for the CLIENT
    rather than for the user. "Awaiting your response" is a fact about them; the
    product's internal words — Sent, Viewed — are facts about the sender and mean
-   nothing on this side of the link. */
+   nothing on this side of the link.
+
+   `chip` names the shared status pill each state uses. Open takes .chip--warn
+   rather than .chip--idle because the ball is in the reader's court, and
+   because warn is the one tone with a genuine pair in both themes. */
 const standing = computed(() => {
   const q = quote.value;
   if (!q) return null;
   if (q.acceptedAt)
     return {
       tone: "good",
+      chip: "chip--paid",
       label: "Accepted",
       line: `You accepted this quotation on ${formatDate(q.acceptedAt)}${
         q.acceptedName ? ` as ${q.acceptedName}` : ""
@@ -83,12 +98,14 @@ const standing = computed(() => {
   if (q.declinedAt)
     return {
       tone: "closed",
+      chip: "chip--idle",
       label: "Declined",
       line: `You declined this quotation on ${formatDate(q.declinedAt)}.`,
     };
   if (q.expired)
     return {
       tone: "closed",
+      chip: "chip--idle",
       label: "Expired",
       line: q.validUntil
         ? `This quotation was valid until ${formatDate(q.validUntil)} and has now lapsed. Ask ${senderLabel.value} for an updated one.`
@@ -96,6 +113,7 @@ const standing = computed(() => {
     };
   return {
     tone: "open",
+    chip: "chip--warn",
     label: "Awaiting your response",
     line: q.validUntil
       ? `This price holds until ${formatDate(q.validUntil)}.`
@@ -167,275 +185,208 @@ const openDialog = (kind) => {
 </script>
 
 <template>
-  <div
-    class="min-h-screen bg-slate-50 py-16 px-4 sm:px-6 lg:px-8 font-sans flex flex-col items-center selection:bg-slate-200 selection:text-slate-900">
-    <div class="w-full max-w-2xl mx-auto">
-      <!-- Brand header, outside the card -->
-      <div class="mb-6 flex flex-col items-center text-center px-2">
-        <UiLogo size="lg" :showText="true" containerClass="flex-col" />
-        <p class="text-slate-500 font-medium text-sm mt-1 max-w-sm">
-          A quotation, not a bill. Nothing is owed unless you accept it.
-        </p>
-      </div>
-
+  <div class="pdoc">
+    <div class="pdoc__inner">
       <!-- Loading -->
-      <div
-        v-if="loading"
-        class="bg-white rounded-xl shadow-sm border border-slate-200 p-16 flex flex-col items-center justify-center min-h-[400px]">
-        <UiIcon
-          icon="heroicons:arrow-path"
-          custom-class="w-6 h-6 text-slate-400 animate-spin" />
+      <div v-if="loading" class="pdoc__paper">
+        <div class="pdoc__state">
+          <UiIcon
+            icon="heroicons:arrow-path"
+            custom-class="w-6 h-6 pdoc__spin" />
+        </div>
       </div>
 
       <!-- Not found -->
-      <div
-        v-else-if="notFound || !quote"
-        class="bg-white rounded-xl shadow-sm border border-slate-200 p-12 text-center min-h-[400px] flex flex-col justify-center items-center">
-        <UiIcon
-          icon="heroicons:exclamation-triangle"
-          custom-class="w-8 h-8 text-slate-300 mb-4" />
-        <h2 class="text-lg font-semibold text-slate-900 mb-2">
-          Quotation Not Found
-        </h2>
-        <p class="text-slate-500 mb-6 text-sm max-w-sm">
-          This link may have been mistyped, or the quotation may have been
-          withdrawn. Ask whoever sent it for a fresh link.
-        </p>
-        <NuxtLink
-          to="/"
-          class="text-sm font-medium text-slate-900 border-b border-slate-900 pb-0.5 hover:text-slate-600 transition-colors">
-          Return Home
-        </NuxtLink>
+      <div v-else-if="notFound || !quote" class="pdoc__paper">
+        <div class="pdoc__state">
+          <UiIcon
+            icon="heroicons:exclamation-triangle"
+            custom-class="w-7 h-7"
+            style="color: var(--desk-text-3)" />
+          <p class="pdoc__state-title">This quotation could not be found</p>
+          <p class="pdoc__state-body">
+            The link may have been mistyped, or the quotation may have been
+            withdrawn. Ask whoever sent it for a fresh link.
+          </p>
+        </div>
       </div>
 
       <!-- The quotation -->
-      <div
-        v-else
-        class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden relative">
-        <div class="p-8 sm:p-10">
-          <!-- The SENDER's letterhead (not ours).
-               This page had our logo above the card and nothing of theirs
-               anywhere, while the PDF of the same quotation carried their logo
-               properly — so a client opening the link saw an unbranded page
-               from a company they have never heard of. Capped in height so a
-               large upload cannot dominate the document. -->
-          <div v-if="quote.logoUrl" class="mb-8">
-            <img
-              :src="quote.logoUrl"
-              :alt="senderLabel"
-              class="h-12 w-auto max-w-[12rem] object-contain object-left" />
-          </div>
+      <div v-else class="pdoc__paper">
+        <!-- The SENDER's letterhead (not ours).
+             This page had our logo above the card and nothing of theirs
+             anywhere, while the PDF of the same quotation carried their logo
+             properly — so a client opening the link saw an unbranded page from
+             a company they have never heard of. Their name renders whether or
+             not a logo was uploaded. -->
+        <div class="pdoc__brand">
+          <img
+            v-if="quote.logoUrl"
+            :src="quote.logoUrl"
+            :alt="senderLabel"
+            class="pdoc__logo" />
+          <p class="pdoc__from">
+            {{ quote.fromCompanyName || quote.fromName || "Quotation" }}
+          </p>
+        </div>
 
-          <!-- Status + price -->
-          <div
-            class="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end gap-6 mb-12 border-b border-slate-100 pb-8">
-            <div class="min-w-0">
-              <div class="flex items-center gap-2 mb-4">
-                <div
-                  class="w-2 h-2 rounded-full"
-                  :class="{
-                    'bg-emerald-600': standing.tone === 'good',
-                    'bg-slate-400': standing.tone === 'closed',
-                    'bg-amber-400': standing.tone === 'open',
-                  }"></div>
-                <span
-                  class="text-xs font-semibold uppercase tracking-widest text-slate-500">
-                  {{ standing.label }}
-                </span>
-                <span class="text-xs text-slate-300 px-1">•</span>
-                <span class="text-xs font-medium text-slate-500">
-                  {{ quote.invoiceNumber }}
-                </span>
-              </div>
-
-              <div class="mb-4" v-if="quote.invoiceName">
-                <h2 class="text-lg font-bold text-slate-900 tracking-tight">
-                  {{ quote.invoiceName }}
-                </h2>
-                <p class="text-sm text-slate-500 mt-0.5" v-if="quote.subject">
-                  {{ quote.subject }}
-                </p>
-              </div>
-
-              <p
-                class="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-1">
-                Quoted Price
-              </p>
-              <h1 class="text-4xl font-semibold text-slate-900 tracking-tight">
-                {{ currencySymbol }}{{ cash(quote.amount) }}
-              </h1>
+        <!-- Standing + price -->
+        <div class="pdoc__head">
+          <div>
+            <div class="pdoc__status">
+              <span class="chip" :class="standing.chip">
+                <i class="chip__dot" aria-hidden="true"></i>
+                {{ standing.label }}
+              </span>
+              <span class="pdoc__ref">{{ quote.invoiceNumber }}</span>
             </div>
 
-            <div class="text-left sm:text-right sm:whitespace-nowrap">
-              <p class="text-sm text-slate-500 font-medium">
-                Quoted {{ formatDate(quote.date) }}
+            <template v-if="quote.invoiceName">
+              <h1 class="pdoc__name">{{ quote.invoiceName }}</h1>
+              <p v-if="quote.subject" class="pdoc__subject">
+                {{ quote.subject }}
               </p>
-              <p
-                v-if="quote.validUntil"
-                class="text-sm text-slate-500 font-medium mt-1">
-                Valid until {{ formatDate(quote.validUntil) }}
-              </p>
-            </div>
-          </div>
+            </template>
 
-          <!-- Parties -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-10 mb-12">
-            <div>
-              <p
-                class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 border-b border-slate-100 pb-2">
-                Prepared For
-              </p>
-              <p class="text-sm font-bold text-slate-900 mt-3">
-                {{ quote.client?.name }}
-              </p>
-              <p
-                class="text-xs font-semibold text-slate-600 mt-0.5"
-                v-if="quote.client?.company">
-                {{ quote.client.company }}
-              </p>
-              <p class="text-sm text-slate-500 mt-2">
-                {{ quote.client?.email }}
-              </p>
-              <p class="text-sm text-slate-500 mt-1">
-                {{ quote.client?.address }}
-              </p>
-              <dl
-                v-if="clientIds.length"
-                class="mt-3 grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-xs">
-                <template v-for="id in clientIds" :key="id.label">
-                  <dt class="font-semibold text-slate-400 whitespace-nowrap">
-                    {{ id.label }}
-                  </dt>
-                  <dd class="text-slate-600 tabular-nums break-all">
-                    {{ id.value }}
-                  </dd>
-                </template>
-              </dl>
-            </div>
-            <div>
-              <p
-                class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 border-b border-slate-100 pb-2">
-                From
-              </p>
-              <p class="text-sm font-bold text-slate-900 mt-3">
-                {{ quote.fromName || "Our Company" }}
-              </p>
-              <p
-                class="text-xs font-semibold text-slate-600 mt-0.5"
-                v-if="quote.fromCompanyName">
-                {{ quote.fromCompanyName }}
-              </p>
-              <p class="text-sm text-slate-500 mt-2">{{ quote.fromEmail }}</p>
-              <p class="text-sm text-slate-500 mt-1">{{ quote.fromAddress }}</p>
-              <dl
-                v-if="senderIds.length"
-                class="mt-3 grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-xs">
-                <template v-for="id in senderIds" :key="id.label">
-                  <dt class="font-semibold text-slate-400 whitespace-nowrap">
-                    {{ id.label }}
-                  </dt>
-                  <dd class="text-slate-600 tabular-nums break-all">
-                    {{ id.value }}
-                  </dd>
-                </template>
-              </dl>
-            </div>
-          </div>
-
-          <!-- What is being quoted -->
-          <div class="mb-10">
-            <table class="w-full text-left text-sm">
-              <thead>
-                <tr class="border-b border-slate-200">
-                  <th class="py-3 font-semibold text-slate-500">Description</th>
-                  <th class="py-3 font-semibold text-slate-500 text-right">
-                    Amount
-                  </th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-100">
-                <tr v-for="item in quote.items" :key="item.id">
-                  <td class="py-4 text-slate-900 font-medium">
-                    <div class="flex items-start gap-2">
-                      <UiIcon
-                        icon="heroicons:cube"
-                        class="w-4 h-4 text-teal-600 mt-0.5 flex-shrink-0" />
-                      <div>
-                        {{ item.name }}<br />
-                        <span class="text-slate-400 text-[11px] font-normal">
-                          Qty: {{ item.quantity }} × {{ currencySymbol
-                          }}{{ cash(item.price) }}
-                        </span>
-                      </div>
-                    </div>
-                  </td>
-                  <td
-                    class="py-4 text-slate-900 text-right align-top font-medium">
-                    {{ currencySymbol }}{{ cash(item.total) }}
-                  </td>
-                </tr>
-              </tbody>
-              <!-- One row, where the invoice page has three (subtotal, tax,
-                   total). Its spacing came from having three; with one, `pt-4`
-                   alone left the total hugging the last line item. -->
-              <tfoot class="border-t border-slate-200 text-sm">
-                <tr>
-                  <td class="pt-5 pb-1 text-slate-900 font-bold text-right">
-                    Total Quoted
-                  </td>
-                  <td class="pt-5 pb-1 text-slate-900 font-bold text-right">
-                    {{ currencySymbol }}{{ cash(quote.amount) }}
-                  </td>
-                </tr>
-              </tfoot>
-            </table>
-          </div>
-
-          <!-- ── The decision ─────────────────────────────────────────────
-               The reason this page exists. Two buttons, no account, no login.
-               Accept is the primary because it is the answer both sides are
-               hoping for, but decline is a real button beside it rather than a
-               grey afterthought — a client who cannot find a way to say no
-               simply says nothing, and silence is the outcome this whole spec
-               is trying to eliminate.
-          -->
-          <div v-if="quote.answerable" class="mt-12 border-t border-slate-100 pt-8">
-            <div class="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-3">
-              <button
-                @click="openDialog('accept')"
-                class="w-full py-3.5 px-4 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold text-sm transition-all shadow-lg active:scale-[0.98] flex items-center justify-center gap-2">
-                <UiIcon icon="heroicons:check-circle" custom-class="w-4 h-4" />
-                Accept this quotation
-              </button>
-              <button
-                @click="openDialog('decline')"
-                class="w-full sm:w-auto py-3.5 px-6 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-xl font-semibold text-sm transition-all active:scale-[0.98]">
-                Decline
-              </button>
-            </div>
-            <p class="text-center text-xs text-slate-400 mt-4 leading-relaxed">
-              {{ standing.line }}
-              <br />
-              Accepting does not charge you anything — {{ senderLabel }} will
-              send an invoice separately.
+            <p class="pdoc__label">Quoted price</p>
+            <p class="pdoc__amount">
+              {{ currencySymbol }}{{ cash(quote.amount) }}
             </p>
           </div>
 
-          <!-- Already answered, or lapsed -->
-          <div v-else class="mt-12 border-t border-slate-100 pt-8 text-center">
+          <div class="pdoc__dates">
+            <span>Quoted {{ formatDate(quote.date) }}</span>
+            <span v-if="quote.validUntil">
+              Valid until {{ formatDate(quote.validUntil) }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Parties -->
+        <div class="pdoc__parties">
+          <div>
+            <p class="pdoc__label pdoc__party-head">Prepared for</p>
+            <p class="pdoc__party-name">{{ quote.client?.name }}</p>
+            <p v-if="quote.client?.company" class="pdoc__party-org">
+              {{ quote.client.company }}
+            </p>
+            <p v-if="quote.client?.email" class="pdoc__party-line">
+              {{ quote.client.email }}
+            </p>
+            <p v-if="quote.client?.address" class="pdoc__party-line">
+              {{ quote.client.address }}
+            </p>
+            <dl v-if="clientIds.length" class="pdoc__ids">
+              <template v-for="id in clientIds" :key="id.label">
+                <dt>{{ id.label }}</dt>
+                <dd>{{ id.value }}</dd>
+              </template>
+            </dl>
+          </div>
+
+          <div>
+            <p class="pdoc__label pdoc__party-head">From</p>
+            <p class="pdoc__party-name">
+              {{ quote.fromName || "Our Company" }}
+            </p>
+            <p v-if="quote.fromCompanyName" class="pdoc__party-org">
+              {{ quote.fromCompanyName }}
+            </p>
+            <p v-if="quote.fromEmail" class="pdoc__party-line">
+              {{ quote.fromEmail }}
+            </p>
+            <p v-if="quote.fromAddress" class="pdoc__party-line">
+              {{ quote.fromAddress }}
+            </p>
+            <dl v-if="senderIds.length" class="pdoc__ids">
+              <template v-for="id in senderIds" :key="id.label">
+                <dt>{{ id.label }}</dt>
+                <dd>{{ id.value }}</dd>
+              </template>
+            </dl>
+          </div>
+        </div>
+
+        <!-- What is being quoted -->
+        <table class="pdoc__items">
+          <thead>
+            <tr>
+              <th scope="col">Description</th>
+              <th scope="col" class="pdoc__num">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="item in quote.items" :key="item.id">
+              <td>
+                <span class="pdoc__item-name">{{ item.name }}</span>
+                <span class="pdoc__item-calc">
+                  {{ item.quantity }} × {{ currencySymbol
+                  }}{{ cash(item.price) }}
+                </span>
+              </td>
+              <td class="pdoc__num">
+                {{ currencySymbol }}{{ cash(item.total) }}
+              </td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td>Total quoted</td>
+              <td class="pdoc__num">
+                {{ currencySymbol }}{{ cash(quote.amount) }}
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+
+        <!-- ── The decision ─────────────────────────────────────────────
+             The reason this page exists. Two buttons, no account, no login.
+             Accept is the primary because it is the answer both sides are
+             hoping for, but decline is a real button beside it rather than a
+             grey afterthought — a client who cannot find a way to say no
+             simply says nothing, and silence is the outcome this whole spec
+             is trying to eliminate.
+        -->
+        <div v-if="quote.answerable" class="pdoc__act">
+          <div class="pdoc__act--split">
+            <button
+              type="button"
+              class="desk-btn desk-btn--primary"
+              @click="openDialog('accept')">
+              <UiIcon icon="heroicons:check-circle" custom-class="w-4 h-4" />
+              Accept this quotation
+            </button>
+            <button
+              type="button"
+              class="desk-btn desk-btn--ghost"
+              @click="openDialog('decline')">
+              Decline
+            </button>
+          </div>
+          <p class="pdoc__note">
+            {{ standing.line }}
+            <br />
+            Accepting does not charge you anything — {{ senderLabel }} will send
+            an invoice separately.
+          </p>
+        </div>
+
+        <!-- Already answered, or lapsed -->
+        <div v-else class="pdoc__act">
+          <div class="pdoc__settled">
             <p
-              class="text-sm font-medium mb-1"
-              :class="
-                standing.tone === 'good' ? 'text-emerald-600' : 'text-slate-600'
+              class="pdoc__settled-line"
+              :style="
+                standing.tone === 'good' ? null : 'color: var(--desk-text-2)'
               ">
               {{ standing.label }}
             </p>
-            <p class="text-sm text-slate-500 max-w-sm mx-auto leading-relaxed">
+            <p class="pdoc__state-body" style="margin: 0 auto">
               {{ standing.line }}
             </p>
             <p
               v-if="quote.acceptedAt && !quote.invoiced"
-              class="text-xs text-slate-400 mt-4 max-w-sm mx-auto leading-relaxed">
+              class="pdoc__note">
               {{ senderLabel }} has been told. They will send the invoice
               separately.
             </p>
@@ -443,12 +394,10 @@ const openDialog = (kind) => {
         </div>
       </div>
 
-      <div v-if="quote?.watermark" class="mt-8 text-center pb-12">
-        <p
-          class="text-[10px] font-bold text-slate-300 uppercase tracking-[0.2em] flex items-center justify-center gap-2">
-          <span>Generated by</span>
-          <span class="text-slate-400">InvoKita</span>
-        </p>
+      <!-- Ours, at the foot and nowhere else. Same placement and weight as the
+           attribution line on /pay/:id, so the two documents end the same way. -->
+      <div v-if="quote?.watermark" class="pdoc__foot">
+        <p class="pdoc__mark">Generated by InvoKita</p>
       </div>
     </div>
 
@@ -462,40 +411,38 @@ const openDialog = (kind) => {
       description="Your name is recorded with the date so both sides have the same record of what was agreed."
       max-width="sm"
       @update:model-value="dialog = null">
-      <div class="px-4 py-4 space-y-4">
+      <div class="pdoc__stack">
         <div>
-          <label
-            for="quote-signature"
-            class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
-            Your name
-          </label>
+          <label for="quote-signature" class="pdoc__field">Your name</label>
           <input
             id="quote-signature"
             v-model="signature"
             type="text"
             autocomplete="name"
             placeholder="Type your full name"
-            class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400" />
-          <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+            class="pdoc__input" />
+          <p class="pdoc__note" style="text-align: left">
             Optional. This stands as a simple record of who accepted — it is not
             a certified electronic signature.
           </p>
         </div>
 
         <button
+          type="button"
+          class="desk-btn desk-btn--primary"
           :disabled="submitting"
-          @click="answer('accept')"
-          class="w-full py-3 bg-slate-900 hover:bg-slate-800 disabled:opacity-60 text-white rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2">
+          @click="answer('accept')">
           <UiIcon
             v-if="submitting"
             icon="heroicons:arrow-path"
-            custom-class="w-4 h-4 animate-spin" />
+            custom-class="w-4 h-4 pdoc__spin" />
           {{ submitting ? "Recording…" : "Confirm acceptance" }}
         </button>
         <button
+          type="button"
+          class="desk-btn desk-btn--ghost"
           :disabled="submitting"
-          @click="dialog = null"
-          class="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-bold transition-all">
+          @click="dialog = null">
           Cancel
         </button>
       </div>
@@ -512,11 +459,9 @@ const openDialog = (kind) => {
       description="They will be told. Nothing further will be sent to you about it."
       max-width="sm"
       @update:model-value="dialog = null">
-      <div class="px-4 py-4 space-y-4">
+      <div class="pdoc__stack">
         <div>
-          <label
-            for="quote-reason"
-            class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+          <label for="quote-reason" class="pdoc__field">
             Anything you want to say?
           </label>
           <textarea
@@ -525,26 +470,28 @@ const openDialog = (kind) => {
             rows="3"
             maxlength="500"
             placeholder="Price, timing, went with someone else — whatever is useful"
-            class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 resize-none"></textarea>
-          <p class="text-xs text-slate-400 mt-2">
+            class="pdoc__input"></textarea>
+          <p class="pdoc__note" style="text-align: left">
             Optional, and only {{ senderLabel }} sees it.
           </p>
         </div>
 
         <button
+          type="button"
+          class="desk-btn desk-btn--primary"
           :disabled="submitting"
-          @click="answer('decline')"
-          class="w-full py-3 bg-slate-900 hover:bg-slate-800 disabled:opacity-60 text-white rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2">
+          @click="answer('decline')">
           <UiIcon
             v-if="submitting"
             icon="heroicons:arrow-path"
-            custom-class="w-4 h-4 animate-spin" />
+            custom-class="w-4 h-4 pdoc__spin" />
           {{ submitting ? "Recording…" : "Confirm decline" }}
         </button>
         <button
+          type="button"
+          class="desk-btn desk-btn--ghost"
           :disabled="submitting"
-          @click="dialog = null"
-          class="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-bold transition-all">
+          @click="dialog = null">
           Cancel
         </button>
       </div>

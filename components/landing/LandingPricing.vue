@@ -3,10 +3,13 @@
  * Pricing, read live from the same source of truth the app bills against
  * (GET {apiBase}/api/plans -> the Plan table).
  *
- * Deliberately NOT hardcoded. Plans are admin-editable records, so any
- * hardcoded price here would silently drift out of date and start misleading
- * people. The static list below is a last-resort fallback for when the API is
- * unreachable at render time, and is marked as such.
+ * Deliberately NOT hardcoded, and with no static fallback either. Plans are
+ * admin-editable records, so a hardcoded copy here would drift out of date and
+ * start misleading people — which is exactly what happened to `Plan.features`
+ * itself, where bullets written before the metering change went on advertising
+ * caps the backend had stopped enforcing. When the API cannot be reached the
+ * section says so and links to the app, because showing prices we are no longer
+ * sure of is worse than showing none.
  *
  * Prices, plan names and feature bullets all come from the DB. The one thing
  * that does NOT is which plans are auto-chased: that is governed by cron.js,
@@ -65,12 +68,13 @@ const columns = computed(() => Math.min(Math.max(plans.value.length, 1), 4))
  * This MUST stay in sync with Backend/src/plugins/cron.js, which selects users
  * with `plan: { in: [...] }` before queueing any reminder. A plan that is not
  * in that list never gets processed, no matter what its feature row in the DB
- * says. The Starter plan currently advertises "Auto Chaser" in the database but
- * is not in the cron's list, so it is excluded here — the page will not sell a
- * capability the backend does not deliver.
+ * says — so the page will not sell a capability the backend does not deliver.
+ * It caught Starter advertising "Auto Chaser" while the cron skipped those
+ * subscribers entirely; Starter has since been retired.
  *
- * When cron.js is fixed to include Starter, add it here and the badge and the
- * feature bullet both come back on their own.
+ * `visibleFeatures()` is the other half of the same rule and applies to Free:
+ * any bullet mentioning chasing is dropped from a plan without the chaser, so
+ * word a free-tier bullet in terms of what the user does by hand.
  */
 const CHASER_PLANS = new Set(['PRO', 'MAX'])
 

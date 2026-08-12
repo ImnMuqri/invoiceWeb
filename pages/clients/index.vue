@@ -33,11 +33,13 @@ import { computed, onMounted, ref } from "vue";
 import { useClientStore } from "~/stores/clientStore";
 import { useAuthStore } from "~/stores/authStore";
 import { useUiStore } from "~/stores/uiStore";
+import { useSystemStore } from "~/stores/systemStore";
 import { payDelay } from "~/utils/invoice";
 
 const clientStore = useClientStore();
 const authStore = useAuthStore();
 const uiStore = useUiStore();
+const systemStore = useSystemStore();
 
 const toast = ref({ message: "", type: "success" });
 const notify = (message, type = "success") => (toast.value = { message, type });
@@ -112,6 +114,28 @@ const summary = computed(() => {
 /* ─── Chasing ─────────────────────────────────────────────────────────────── */
 const busy = ref({});
 
+/* Whether the platform-wide chaser is paused, per channel.
+   These switches are OURS, not the user's, and they gate the cron rather than
+   anything on this page. The toggles below stay usable while one is off: they
+   record a preference for when chasing resumes, and taking that away would mean
+   an incident on our side left people unable to configure their own accounts.
+   What the page must not do is let somebody switch chasing "on" and walk away
+   believing their client will be chased tonight. */
+const wa = computed(() => systemStore.isAutoChaseWaEnabled);
+const email = computed(() => systemStore.isAutoChaseEmailEnabled);
+const chasePaused = computed(() => {
+  if (wa.value && email.value) return null;
+  if (!wa.value && !email.value)
+    return "Automatic chasing is paused on our side right now — nothing is going out on either channel. These switches still save, and they take effect the moment it resumes.";
+  if (!wa.value)
+    return "WhatsApp chasing is paused on our side right now. Scheduled reminders are going out by email instead, so clients set to WhatsApp are still being chased.";
+  return "Email chasing is paused on our side right now. WhatsApp reminders are unaffected.";
+});
+
+/** True when switching this field on will not actually chase anyone yet. */
+const pausedFor = (field) =>
+  field === "autoChaser" ? !wa.value && !email.value : !email.value;
+
 const toggleChaser = async (client, field) => {
   if (!authStore.isPro) return;
   const key = `${client.id}:${field}`;
@@ -120,9 +144,14 @@ const toggleChaser = async (client, field) => {
   try {
     await clientStore.updateClient(client.id, { [field]: next });
     const channel = field === "autoChaser" ? "WhatsApp" : "Email";
+    /* The confirmation has to match reality. "WhatsApp reminders on for Ada"
+       while the chaser is paused is a promise the product will not keep, and
+       the user has no other way to find that out from this screen. */
     notify(
       next
-        ? `${channel} reminders on for ${client.name}.`
+        ? pausedFor(field)
+          ? `Saved — ${channel} reminders will start for ${client.name} once chasing resumes.`
+          : `${channel} reminders on for ${client.name}.`
         : `${channel} reminders off for ${client.name}.`,
     );
   } catch (err) {
@@ -299,6 +328,15 @@ const initial = (name) => String(name || "?").trim().charAt(0) || "?";
         </button>
       </div>
     </header>
+
+    <!-- Not dismissable, unlike the allowance banner on the dashboard. That one
+         reports a state the user caused and can fix; this one reports that we
+         have stopped chasing, and it stays until we start again — otherwise the
+         two switches below go back to looking like they work. -->
+    <div v-if="authStore.isPro && chasePaused" class="banner banner--warn" role="status">
+      <UiIcon icon="heroicons:pause-circle" custom-class="w-5 h-5" />
+      <span>{{ chasePaused }}</span>
+    </div>
 
     <!-- ── Three figures ────────────────────────────────────────────────── -->
     <section class="strip" aria-label="Client summary">
