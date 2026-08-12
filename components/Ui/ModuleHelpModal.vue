@@ -1,5 +1,11 @@
 <template>
-  <UiModal v-model="uiStore.isModuleHelpOpen" maxWidth="md" :showClose="true">
+  <!-- surface="light": the content below is still hardcoded Tailwind slate, so
+       it needs the fixed-white shell rather than the themed one. -->
+  <UiModal
+    v-model="uiStore.isModuleHelpOpen"
+    maxWidth="md"
+    surface="light"
+    :showClose="true">
     <!-- Capped and split into three bands: the heading and the button stay put
          and only the tips scroll. Before this the panel simply grew with the
          number of tips — the Invoices guide came out 749px tall, which spills

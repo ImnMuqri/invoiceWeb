@@ -52,6 +52,32 @@ const downloadPdf = async (q) => {
   }
 };
 
+/* Composes the message server-side (the wording, the price through the sen
+   formatter, the public accept/decline link) and hands it to the user's own
+   WhatsApp. Nothing is sent from here, so there is no allowance to spend and no
+   plan to check. */
+const { share, sharing } = useWhatsappShare();
+
+const shareWhatsapp = async (q) => {
+  const res = await share("quote", q.id);
+
+  if (res.ok) {
+    notify(
+      res.hasPhone
+        ? "WhatsApp Web is open with the message ready — press send there."
+        : "WhatsApp Web is open with the message ready. No phone number saved for this client, so pick the chat yourself.",
+    );
+    return;
+  }
+
+  notify(
+    res.blocked
+      ? "Your browser blocked the new tab. Allow pop-ups for this site and try again."
+      : res.error,
+    "error",
+  );
+};
+
 const VIEWS = [
   { key: "live", label: "Waiting" },
   { key: "won", label: "Accepted" },
@@ -451,6 +477,22 @@ const doDelete = async () => {
                       :custom-class="
                         downloading === q.id ? 'w-4 h-4 spin' : 'w-4 h-4'
                       " />
+                  </button>
+                  <!-- Hand it over on WhatsApp. The user's own WhatsApp sends
+                       it, so this is offered on every row regardless of plan —
+                       the list's note above says a quotation goes out when you
+                       put it in front of somebody, and this is that, with the
+                       wording and the accept/decline link written for you. -->
+                  <button
+                    type="button"
+                    class="iact"
+                    :aria-label="`Open ${label(q)} in WhatsApp Web`"
+                    title="Open in WhatsApp Web — the message is written, you press send"
+                    :disabled="sharing"
+                    @click="shareWhatsapp(q)">
+                    <UiIcon
+                      :icon="sharing ? 'heroicons:arrow-path' : 'ic:baseline-whatsapp'"
+                      :custom-class="sharing ? 'w-4 h-4 spin' : 'w-4 h-4'" />
                   </button>
                   <!-- An accepted quotation gets the primary button, because
                        raising its invoice is the one action on this page that

@@ -1,9 +1,12 @@
 <template>
+  <!-- surface="light": the content below is still hardcoded Tailwind slate, so
+       it needs the fixed-white shell rather than the themed one. -->
   <UiModal
     v-model="isOpen"
     :title="title"
     :description="providerDescription"
-    maxWidth="md">
+    maxWidth="md"
+    surface="light">
     <div class="p-6">
       <div v-if="step === 1">
         <div class="flex items-center gap-3 mb-6">

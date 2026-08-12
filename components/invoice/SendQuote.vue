@@ -107,6 +107,33 @@ const download = async () => {
   }
 };
 
+/* Share by hand — the user's own WhatsApp, our wording. Offered even on an
+   answered quotation: re-sending the link to someone who already accepted is a
+   normal thing to do, and unlike the send button it talks past nothing because
+   the client is the one choosing to look again. */
+const { share, sharing } = useWhatsappShare();
+
+const shareWhatsapp = async () => {
+  const res = await share("quote", props.quoteId);
+
+  if (res.ok) {
+    emit("notify", {
+      message: res.hasPhone
+        ? "WhatsApp Web is open with the message ready — press send there."
+        : "WhatsApp Web is open with the message ready. No phone number saved for this client, so pick the chat yourself.",
+      type: "success",
+    });
+    return;
+  }
+
+  emit("notify", {
+    message: res.blocked
+      ? "Your browser blocked the new tab. Allow pop-ups for this site, or copy the link below and paste it into WhatsApp."
+      : res.error,
+    type: "error",
+  });
+};
+
 const copyLink = async () => {
   try {
     await navigator.clipboard.writeText(props.publicUrl);
@@ -134,35 +161,64 @@ const copyLink = async () => {
     </div>
 
     <div class="deliver">
-      <!-- Already answered: sending again talks past the answer. -->
+      <!-- Already answered: sending again talks past the answer. The manual
+           share still stands below, because handing someone the link again is
+           not the same as sending them the offer again. -->
       <p v-if="answered" class="f__hint">
         This quotation has been answered, so there is nothing left to send. You
-        can still download the PDF for your records.
+        can still download the PDF or open it in WhatsApp Web for your records.
       </p>
 
-      <div v-else class="deliver__grid">
-        <button
-          type="button"
-          class="desk-btn desk-btn--primary desk-btn--block"
-          :disabled="!!busy || !hasEmail"
-          @click="send('email')">
-          <UiIcon
-            :icon="busy === 'email' ? 'heroicons:arrow-path' : 'heroicons:envelope'"
-            :custom-class="busy === 'email' ? 'w-4 h-4 spin' : 'w-4 h-4'" />
-          {{ busy === "email" ? "Sending…" : "Send by email" }}
-        </button>
+      <div class="deliver__grid" :class="{ 'deliver__grid--few': answered }">
+        <template v-if="!answered">
+          <button
+            type="button"
+            class="desk-btn desk-btn--primary desk-btn--block"
+            :disabled="!!busy || !hasEmail"
+            @click="send('email')">
+            <UiIcon
+              :icon="busy === 'email' ? 'heroicons:arrow-path' : 'heroicons:envelope'"
+              :custom-class="busy === 'email' ? 'w-4 h-4 spin' : 'w-4 h-4'" />
+            {{ busy === "email" ? "Sending…" : "Send by email" }}
+          </button>
+
+          <!-- "Send on WhatsApp" goes out from InvoKita and spends an
+               allowance; "Open in WhatsApp Web" below hands it to the user's own
+               WhatsApp Web and spends nothing. The labels have to carry that
+               difference — the icons cannot. -->
+          <button
+            type="button"
+            class="desk-btn desk-btn--ghost desk-btn--block"
+            :disabled="!!busy || !hasPhone"
+            @click="send('whatsapp')">
+            <UiIcon
+              :icon="busy === 'whatsapp' ? 'heroicons:arrow-path' : 'ic:baseline-whatsapp'"
+              :custom-class="busy === 'whatsapp' ? 'w-4 h-4 spin' : 'w-4 h-4'" />
+            {{ busy === "whatsapp" ? "Sending…" : "Send on WhatsApp" }}
+          </button>
+        </template>
 
         <button
           type="button"
           class="desk-btn desk-btn--ghost desk-btn--block"
-          :disabled="!!busy || !hasPhone"
-          @click="send('whatsapp')">
+          :disabled="!!busy || sharing"
+          title="Opens WhatsApp Web with the message already written. You press send. On a phone it opens the WhatsApp app instead."
+          @click="shareWhatsapp">
           <UiIcon
-            :icon="busy === 'whatsapp' ? 'heroicons:arrow-path' : 'ic:baseline-whatsapp'"
-            :custom-class="busy === 'whatsapp' ? 'w-4 h-4 spin' : 'w-4 h-4'" />
-          {{ busy === "whatsapp" ? "Sending…" : "Send on WhatsApp" }}
+            :icon="sharing ? 'heroicons:arrow-path' : 'ic:baseline-whatsapp'"
+            :custom-class="sharing ? 'w-4 h-4 spin' : 'w-4 h-4'" />
+          {{ sharing ? "Opening…" : "Open in WhatsApp Web" }}
         </button>
       </div>
+
+      <p class="f__hint">
+        <b>Open in WhatsApp Web</b> writes the message and opens your own WhatsApp
+        Web on your client's chat — nothing reaches them until you press send
+        there, and it costs nothing. On a phone it opens the WhatsApp app instead.
+        <template v-if="!answered">
+          <b>Send on WhatsApp</b> delivers it from InvoKita for you.
+        </template>
+      </p>
 
       <p v-if="!answered && !canSend" class="f__hint">
         This client has neither an email address nor a phone number saved, so
@@ -170,7 +226,8 @@ const copyLink = async () => {
         come alive.
       </p>
       <p v-else-if="!answered && !hasPhone" class="f__hint">
-        No phone number saved for this client, so WhatsApp is unavailable.
+        No phone number saved for this client, so we cannot send it on WhatsApp
+        for you. Opening it in WhatsApp still works — you pick the chat.
       </p>
       <p v-else-if="!answered && !hasEmail" class="f__hint">
         No email address saved for this client, so email is unavailable.

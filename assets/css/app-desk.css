@@ -1445,6 +1445,14 @@ html.dark .desk-btn--primary {
 .mnu__sep + .mnu__head {
   padding-top: var(--space-2);
 }
+/* A statement, not a control. For the case where a section's actions have all
+   dropped out — a settled invoice has nothing to record — so the heading above
+   is answered rather than left standing over a gap. */
+.mnu__note {
+  padding: var(--space-1) var(--space-4) var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--desk-text-3);
+}
 
 /* ═══════════════════════════════════════════════════════════════════════════
    WHATSAPP PREVIEW
@@ -4224,13 +4232,18 @@ html.dark .tb__av {
   .strip {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
+  /* auto-fit rather than a fixed three: there is a fourth action now ("Open in
+     WhatsApp", the manual share), and a hard 3-column track dropped it onto a
+     row of its own stretched full width. This flows to four across when there is
+     room and two-by-two when there is not. */
   .deliver__grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
   }
-  /* A settled invoice has one action, and one action should not be stretched
-     across a third of the panel as if two siblings were missing. */
-  .deliver__grid--one {
-    grid-template-columns: minmax(0, 14rem);
+  /* A settled invoice has only the two actions that still make sense — download
+     a copy, or send that copy by hand. They should not stretch across the panel
+     as if siblings were missing. */
+  .deliver__grid--few {
+    grid-template-columns: repeat(2, minmax(0, 14rem));
   }
   .dlg__acts {
     flex-direction: row;
@@ -4297,11 +4310,17 @@ html.dark .tb__av {
    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
 .pdoc {
-  --pdoc-gap: clamp(1.5rem, 3vw, 2.5rem);
+  /* Every band charges this as BOTH its own bottom padding and the next band's
+     top padding, so the figure below is doubled at each boundary — at the old
+     2.5rem ceiling that was 80px of air between the letterhead and the amount,
+     and a document that ran well past the fold on a laptop for a page holding
+     a dozen lines of text. Tightened so the whole invoice is closer to one
+     screen; the bands still separate, since each also carries a hairline. */
+  --pdoc-gap: clamp(0.875rem, 1.6vw, 1.25rem);
 
   min-height: 100vh;
   min-height: 100svh;
-  padding: clamp(var(--space-6), 5vw, var(--space-10)) var(--space-4);
+  padding: clamp(var(--space-5), 3.5vw, var(--space-7)) var(--space-4);
   background-color: var(--shell-page);
   font-family: var(--font-sans);
   font-size: var(--text-sm);
@@ -4329,7 +4348,9 @@ html.dark .pdoc {
   background-color: var(--desk-card);
   border: 1px solid var(--desk-line);
   border-radius: var(--desk-radius-shell);
-  padding: clamp(var(--space-5), 4vw, var(--space-8));
+  /* Ceiling down from --space-8: 48px of inset on top of the band padding
+     inside it was compounding into a very tall box. */
+  padding: clamp(var(--space-5), 3.2vw, var(--space-7));
   box-shadow: var(--shadow-sm);
 }
 
@@ -4377,6 +4398,7 @@ html.dark .pdoc {
    empty band â€” a client has to be able to see who this is from above the fold. */
 .pdoc__brand {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--space-3);
   padding-bottom: var(--pdoc-gap);
@@ -4389,10 +4411,16 @@ html.dark .pdoc {
   object-fit: contain;
   object-position: left center;
 }
+/* The sender's name is the letterhead of the document — it should read as the
+   masthead of the page, so it takes --text-lg and full-strength text. It does
+   not compete with the document title any more, because the title has moved out
+   of this band: the letterhead row now holds identity, and the band below holds
+   the headline and the figure. */
 .pdoc__from {
-  font-size: var(--text-md);
+  font-size: var(--text-lg);
   font-weight: var(--weight-semibold);
   letter-spacing: var(--tracking-tight);
+  color: var(--desk-text);
 }
 
 /* â”€â”€â”€ The headline: what is owed, and where it stands â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -4402,22 +4430,49 @@ html.dark .pdoc {
 .pdoc__head {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: var(--space-5);
+  gap: var(--space-4);
   padding: var(--pdoc-gap) 0;
   border-bottom: 1px solid var(--desk-line-soft);
 }
 @media (min-width: 40rem) {
   .pdoc__head {
     grid-template-columns: minmax(0, 1fr) auto;
-    align-items: end;
+    /* start, not end: the title and the figure top-align, so the band is only
+       as tall as its taller column. Bottom-aligning left a ragged gap above
+       whichever side was shorter. */
+    align-items: start;
   }
 }
+/* The figure, its label and the dates share one right-hand column. The amount
+   used to sit UNDER the title in the left column while the right column held
+   nothing but two date lines — so the band paid for both stacks in full and ran
+   to well over 200px for six short pieces of text. Side by side it is only as
+   tall as the taller of the two. */
+.pdoc__head-side {
+  display: flex;
+  flex-direction: column;
+}
+@media (min-width: 40rem) {
+  .pdoc__head-side {
+    align-items: flex-end;
+    text-align: right;
+  }
+}
+.pdoc__head-side .pdoc__dates {
+  margin-top: var(--space-3);
+}
+/* Rides the letterhead row, pushed to its far end. The standing and the
+   reference are metadata ABOUT the document rather than part of its headline,
+   and as their own line above the title they cost a full row of height on a
+   page that has to fit one screen. `margin-left: auto` right-aligns them beside
+   the sender's name; if the row wraps on a narrow phone they take their own
+   line, still right-aligned, which reads as a caption rather than a heading. */
 .pdoc__status {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-2);
-  margin-bottom: var(--space-4);
+  margin-left: auto;
 }
 .pdoc__ref {
   font-size: var(--text-xs);
@@ -4431,10 +4486,12 @@ html.dark .pdoc {
   letter-spacing: var(--tracking-tight);
   margin-bottom: var(--space-1);
 }
+/* No bottom margin: the subject is the last thing in the head band's left
+   column now, so the grid gap does this spacing. It used to have to clear the
+   amount stacked beneath it. */
 .pdoc__subject {
   font-size: var(--text-sm);
   color: var(--desk-text-2);
-  margin-bottom: var(--space-4);
 }
 .pdoc__label {
   font-size: var(--text-2xs);
@@ -4450,6 +4507,20 @@ html.dark .pdoc {
   letter-spacing: var(--tracking-tighter);
   line-height: var(--leading-tight);
   font-variant-numeric: tabular-nums;
+}
+/* The line under a reduced headline: what was invoiced, and what has already
+   been received against it. Quiet, because it is reassurance rather than an
+   instruction — but present, because a figure that silently drops is one the
+   reader has no way to verify. */
+.pdoc__reduced {
+  margin-top: var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--desk-text-3);
+  font-variant-numeric: tabular-nums;
+}
+.pdoc__row-soft td {
+  font-weight: var(--weight-regular);
+  color: var(--desk-text-2);
 }
 .pdoc__dates {
   display: flex;
@@ -4479,7 +4550,7 @@ html.dark .pdoc {
 }
 .pdoc__party-head {
   padding-bottom: var(--space-2);
-  margin-bottom: var(--space-3);
+  margin-bottom: var(--space-2);
   border-bottom: 1px solid var(--desk-line-soft);
 }
 .pdoc__party-name {
@@ -4495,7 +4566,7 @@ html.dark .pdoc {
 .pdoc__party-line {
   font-size: var(--text-sm);
   color: var(--desk-text-2);
-  margin-top: var(--space-2);
+  margin-top: var(--space-1);
   overflow-wrap: anywhere;
 }
 /* Tax identifiers (spec 05). Present only when the sender has filled them in
@@ -4537,7 +4608,7 @@ html.dark .pdoc {
   color: var(--desk-text-3);
 }
 .pdoc__items td {
-  padding: var(--space-3) 0;
+  padding: var(--space-2) 0;
   border-bottom: 1px solid var(--desk-line-soft);
   vertical-align: top;
 }
@@ -4562,7 +4633,7 @@ html.dark .pdoc {
 .pdoc__items tfoot td {
   border-bottom: 0;
   border-top: 1px solid var(--desk-line);
-  padding-top: var(--space-4);
+  padding-top: var(--space-3);
   color: var(--desk-text);
   font-weight: var(--weight-semibold);
 }
@@ -4571,14 +4642,18 @@ html.dark .pdoc {
    Full width at every size. This is the one thing the page is asking the
    visitor to do, and a centred pill on a phone reads as one option among
    several rather than as the point. */
+/* A flat --space-4 either side of the rule rather than --pdoc-gap twice over.
+   The gap was being paid in full above the rule AND below it, which made the
+   single most important control on the page look marooned at the bottom of a
+   long document. */
 .pdoc__act {
-  padding-top: var(--pdoc-gap);
-  margin-top: var(--pdoc-gap);
+  padding-top: var(--space-4);
+  margin-top: var(--space-4);
   border-top: 1px solid var(--desk-line-soft);
 }
 .pdoc__act .desk-btn {
   width: 100%;
-  min-height: 3rem;
+  min-height: 2.75rem;
 }
 .pdoc__act--split {
   display: grid;
@@ -4599,7 +4674,7 @@ html.dark .pdoc {
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
-  margin-top: var(--space-4);
+  margin-top: var(--space-3);
   font-size: var(--text-2xs);
   letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
@@ -4633,7 +4708,7 @@ html.dark .pdoc {
    invoice look like an advert â€” so it is set at the smallest size in the scale
    and only reaches full strength on hover. */
 .pdoc__foot {
-  margin-top: var(--space-6);
+  margin-top: var(--space-4);
   text-align: center;
 }
 .pdoc__mark {
@@ -4651,6 +4726,17 @@ html.dark .pdoc {
 a.pdoc__mark:hover {
   opacity: 1;
   text-decoration: underline;
+}
+/* The mark itself. This rule is why .pdoc__mark was already an inline-flex with
+   a gap — the glyph slot was in the design and never filled, so the foot read as
+   a bare line of text. Sized to the cap height of the label beside it, which
+   keeps it a signature rather than a logo: spec 09 is explicit that it must not
+   compete with the sender's own letterhead at the top of the page. */
+.pdoc__mark img {
+  width: 0.875rem;
+  height: 0.875rem;
+  object-fit: contain;
+  flex: none;
 }
 
 /* â”€â”€â”€ Bank transfer panel, inside the modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
@@ -4672,6 +4758,23 @@ a.pdoc__mark:hover {
   font-weight: var(--weight-semibold);
   font-variant-numeric: tabular-nums;
   overflow-wrap: anywhere;
+  color: var(--desk-text);
+}
+/* The amount owns the foot of the panel across both columns, with a rule above
+   it separating what identifies the account from what has to be transferred
+   into it. */
+.pdoc__bank-amount {
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--desk-line);
+}
+@media (min-width: 30rem) {
+  .pdoc__bank-amount {
+    grid-column: 1 / -1;
+  }
+}
+.pdoc__bank-v--total {
+  font-size: var(--text-lg);
+  letter-spacing: var(--tracking-tight);
 }
 /* The QR keeps DuitNow's own magenta. It is a payment mark a Malaysian user
    recognises at a glance in their banking app, and recolouring it to fit the
@@ -4727,12 +4830,76 @@ a.pdoc__mark:hover {
 textarea.pdoc__input {
   resize: none;
 }
+/* The slot wrapper for every .pdoc modal — the bank-transfer details on the pay
+   page and the accept/decline dialogs on the quotation page.
+
+   It re-declares typography and colour because UiModal teleports to <body>,
+   which puts this content OUTSIDE .pdoc: it inherits neither the font nor
+   --desk-text from the document it visually belongs to. Every .pdoc__* child
+   that sets only a size and a weight — .pdoc__bank-v, the value lines carrying
+   the account number and the amount — was falling back to the browser's
+   default colour and landing near-invisible on the token-coloured panel behind
+   it. Set the context once here rather than pinning a colour on each child. */
 .pdoc__stack {
   display: grid;
   gap: var(--space-3);
   padding: var(--space-4);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--desk-text);
+}
+.pdoc__stack :where(p, h1, h2, h3, label) {
+  margin: 0;
 }
 .pdoc__stack .desk-btn {
   width: 100%;
+}
+
+/* ─── Fit one screen ────────────────────────────────────────────────────────
+   A stranger opening a link to pay a bill should be able to see the whole
+   document — who it is from, what it is for, what is owed and the button — in
+   one view. Scrolling to find the amount, or worse to find the button, is how
+   an invoice gets closed unpaid.
+
+   Keyed on viewport HEIGHT, not width: the case that fails is a wide, short
+   laptop (1366×768 leaves roughly 700px once browser chrome is taken out), and
+   a tall narrow phone needs none of this. So the rhythm compresses only when
+   there is genuinely no room, and a large display keeps the airier document.
+
+   Last in the section on purpose — these override the base rules above by
+   source order at equal specificity.
+
+   This cannot be a guarantee for every invoice: enough line items will overflow
+   any viewport, and that is correct, because truncating what somebody is being
+   billed for to avoid a scrollbar would be much worse. It fits the ordinary
+   case — a handful of items — comfortably. */
+@media (max-height: 860px) {
+  .pdoc {
+    --pdoc-gap: 0.75rem;
+
+    padding-top: var(--space-4);
+    padding-bottom: var(--space-4);
+  }
+  .pdoc__paper {
+    padding: var(--space-5);
+  }
+  .pdoc__logo {
+    height: 2.25rem;
+  }
+  /* Still by some way the largest thing on the page, which is the point of it —
+     one step down the scale rather than out of the hierarchy. */
+  .pdoc__amount {
+    font-size: var(--text-xl);
+  }
+  .pdoc__items td {
+    padding: var(--space-1) 0;
+  }
+  .pdoc__act {
+    padding-top: var(--space-3);
+    margin-top: var(--space-3);
+  }
+  .pdoc__foot {
+    margin-top: var(--space-3);
+  }
 }
 

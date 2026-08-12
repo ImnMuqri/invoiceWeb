@@ -135,6 +135,37 @@ const copyLink = async () => {
     });
   }
 };
+
+/* ── Share by hand ─────────────────────────────────────────────────────────
+   Opens the user's own WhatsApp with our wording already in the box. Not gated
+   on isPro or on the platform WhatsApp switch, and correctly so: both of those
+   govern messages WE send through Twilio, and this sends nothing. Gating it
+   would be charging for the clipboard.
+
+   It is offered even on a settled invoice — a client asking for a copy of
+   something they have already paid is a normal request. */
+const { share, sharing } = useWhatsappShare();
+
+const shareWhatsapp = async () => {
+  const res = await share("invoice", props.invoiceId);
+
+  if (res.ok) {
+    emit("notify", {
+      message: res.hasPhone
+        ? "WhatsApp Web is open with the message ready — press send there."
+        : "WhatsApp Web is open with the message ready. This client has no phone number saved, so pick the chat yourself.",
+      type: "success",
+    });
+    return;
+  }
+
+  emit("notify", {
+    message: res.blocked
+      ? "Your browser blocked the new tab. Allow pop-ups for this site, or copy the payment link below and paste it into WhatsApp."
+      : res.error,
+    type: "error",
+  });
+};
 </script>
 
 <template>
@@ -163,7 +194,7 @@ const copyLink = async () => {
            greyed out puts two dead controls on the page, tells you why only if
            you can hover, and drops their labels to ~3:1 into the bargain. The
            sentence below carries the same information and takes less room. -->
-      <div class="deliver__grid" :class="{ 'deliver__grid--one': isSettled }">
+      <div class="deliver__grid" :class="{ 'deliver__grid--few': isSettled }">
         <button
           type="button"
           class="desk-btn desk-btn--primary desk-btn--block"
@@ -187,9 +218,13 @@ const copyLink = async () => {
             <UiIcon
               :icon="busy === 'email' ? 'heroicons:arrow-path' : 'heroicons:envelope'"
               :custom-class="busy === 'email' ? 'w-4 h-4 spin' : 'w-4 h-4'" />
-            Email it
+            Send by email
           </button>
 
+          <!-- "We send it" versus "you send it" below. Two WhatsApp buttons
+               reading "WhatsApp it" and "Share on WhatsApp" would be a guess
+               about which one spends an allowance, so each says who presses
+               send. -->
           <button
             type="button"
             class="desk-btn desk-btn--wa desk-btn--block"
@@ -199,10 +234,36 @@ const copyLink = async () => {
             <UiIcon
               :icon="busy === 'wa' ? 'heroicons:arrow-path' : 'simple-icons:whatsapp'"
               :custom-class="busy === 'wa' ? 'w-4 h-4 spin' : 'w-4 h-4'" />
-            WhatsApp it
+            Send on WhatsApp
           </button>
         </template>
+
+        <!-- Always offered, settled or not, paid plan or not: this sends nothing
+             from us, so there is nothing to gate and nothing to meter. -->
+        <button
+          type="button"
+          class="desk-btn desk-btn--ghost desk-btn--block"
+          :disabled="!!busy || sharing"
+          title="Opens WhatsApp Web with the message already written. You press send. On a phone it opens the WhatsApp app instead."
+          @click="shareWhatsapp">
+          <UiIcon
+            :icon="sharing ? 'heroicons:arrow-path' : 'simple-icons:whatsapp'"
+            :custom-class="sharing ? 'w-4 h-4 spin' : 'w-4 h-4'" />
+          {{ sharing ? "Opening…" : "Open in WhatsApp Web" }}
+        </button>
       </div>
+
+      <!-- The distinction between the two WhatsApp actions, said in words rather
+           than left to the button labels. -->
+      <p class="f__hint">
+        <b>Open in WhatsApp Web</b> writes the message for you and opens your own
+        WhatsApp Web on your client's chat — nothing goes out until you press send
+        there, and it costs nothing. On a phone it opens the WhatsApp app instead.
+        <template v-if="!isSettled">
+          <b>Send on WhatsApp</b> delivers it from InvoKita for you.
+        </template>
+        Both use the wording from your WhatsApp settings.
+      </p>
 
       <!-- Why a channel is unavailable, said once, in words. -->
       <p v-if="!isSettled && (!email.ok || !whatsapp.ok)" class="f__hint">

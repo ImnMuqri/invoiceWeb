@@ -207,15 +207,16 @@ const act = async (inv, key, fn, done) => {
   }
 };
 
+/* Only ever called with a status the API will actually accept — which is
+   "Cancelled" and "Draft", and only Cancelled is offered here. Status otherwise
+   follows the payment rows (spec 03), so there is no "Paid" branch to write: the
+   route rejects it, and the way to make an invoice paid is to record the money. */
 const setStatus = (inv, status) =>
   act(
     inv,
     status,
     () => invoiceStore.updateInvoice(inv.id, { status }, true),
-    () =>
-      status === "Paid"
-        ? `${label(inv)} marked paid. Nothing more to chase.`
-        : `${label(inv)} is now ${status.toLowerCase()}.`,
+    () => `${label(inv)} is now ${status.toLowerCase()}.`,
   );
 
 const send = (inv, method, isReminder) =>
@@ -231,6 +232,31 @@ const send = (inv, method, isReminder) =>
       return res?.message || (isReminder ? "Reminder sent." : "Invoice sent.");
     },
   );
+
+/* Manual share. Not routed through act() on purpose: act() sets the row's busy
+   flag and reports "sent", and neither is true here — nothing was sent by us,
+   and the row's chasing state has not changed. */
+const { share, sharing } = useWhatsappShare();
+
+const shareWhatsapp = async (inv) => {
+  const res = await share("invoice", inv.id);
+
+  if (res.ok) {
+    notify(
+      res.hasPhone
+        ? "WhatsApp Web is open with the message ready — press send there."
+        : `WhatsApp Web is open with the message ready. No phone number saved for ${label(inv)}'s client, so pick the chat yourself.`,
+    );
+    return;
+  }
+
+  notify(
+    res.blocked
+      ? "Your browser blocked the new tab. Allow pop-ups for this site, or copy the payment link and paste it into WhatsApp."
+      : res.error,
+    "error",
+  );
+};
 
 const copyPayLink = async (inv) => {
   try {
@@ -693,6 +719,22 @@ const isDeleteModalOpen = computed({
 
                     <template #default="{ close }">
                       <div class="mnu">
+                        <!-- "Mark paid in full" and "Flag as overdue" used to sit
+                             here and neither could ever work. Status is DERIVED
+                             from the payment and credit-note rows (spec 03), and
+                             PATCH /invoices/:id accepts only "Cancelled" and
+                             "Draft" — anything else comes back 400 with "an
+                             invoice's status follows what has been paid". So both
+                             items were guaranteed errors dressed as actions.
+
+                             Overdue was doubly meaningless: deriveStatus() already
+                             returns it the moment the due date passes.
+
+                             Recording a payment is the real version of "mark paid
+                             in full" — the modal opens with the whole outstanding
+                             balance filled in, so settling is still one click, and
+                             the money ends up on the ledger where the balance,
+                             the status and the chaser all read it. -->
                         <p class="mnu__head">Money</p>
                         <button
                           v-if="!isSettled(inv.status)"
@@ -703,23 +745,19 @@ const isDeleteModalOpen = computed({
                             icon="heroicons:banknotes"
                             custom-class="w-4 h-4" />
                           Record a payment
+                          <!-- What the field will be pre-filled with, so "paid in
+                               full" is one glance and one confirm. -->
+                          <span class="mnu__tail">
+                            {{ sym(inv) }} {{ cash(amountOutstanding(inv)) }}
+                          </span>
                         </button>
-                        <button
-                          v-if="inv.status !== 'Paid'"
-                          type="button"
-                          class="mnu__item"
-                          @click="close(); setStatus(inv, 'Paid')">
-                          <i class="mnu__dot mnu__dot--paid" aria-hidden="true"></i>
-                          Mark paid in full
-                        </button>
-                        <button
-                          v-if="!isSettled(inv.status) && inv.status !== 'Overdue'"
-                          type="button"
-                          class="mnu__item"
-                          @click="close(); setStatus(inv, 'Overdue')">
-                          <i class="mnu__dot mnu__dot--late" aria-hidden="true"></i>
-                          Flag as overdue
-                        </button>
+                        <p v-else class="mnu__note">
+                          {{
+                            inv.status === "Cancelled"
+                              ? "Cancelled — nothing outstanding."
+                              : "Settled in full."
+                          }}
+                        </p>
 
                         <div class="mnu__sep" role="none"></div>
                         <p class="mnu__head">Chasing</p>
@@ -740,7 +778,7 @@ const isDeleteModalOpen = computed({
                           <UiIcon
                             icon="heroicons:envelope"
                             custom-class="w-4 h-4" />
-                          Send the invoice
+                          Send the invoice by email
                         </button>
                         <button
                           type="button"
@@ -750,7 +788,7 @@ const isDeleteModalOpen = computed({
                           "
                           @click="close(); send(inv, 'email', true)">
                           <UiIcon icon="heroicons:bell" custom-class="w-4 h-4" />
-                          Send a reminder
+                          Send a reminder by email
                         </button>
                         <button
                           type="button"
@@ -771,8 +809,25 @@ const isDeleteModalOpen = computed({
                           <UiIcon
                             icon="simple-icons:whatsapp"
                             custom-class="w-4 h-4" />
-                          Send over WhatsApp
+                          Send on WhatsApp for me
                           <span v-if="!authStore.isPro" class="mnu__tail">Pro</span>
+                        </button>
+                        <!-- The manual share. No plan gate and no maintenance
+                             gate, because nothing is sent from here — it opens
+                             the user's own WhatsApp with our wording in it. That
+                             is also why it is worded "I'll send it": the three
+                             items above all end with us doing the sending, and
+                             this one does not. -->
+                        <button
+                          type="button"
+                          class="mnu__item"
+                          :disabled="sharing"
+                          title="Opens WhatsApp Web with the message already written. You press send. On a phone it opens the WhatsApp app instead."
+                          @click="close(); shareWhatsapp(inv)">
+                          <UiIcon
+                            icon="simple-icons:whatsapp"
+                            custom-class="w-4 h-4" />
+                          Open in WhatsApp Web — I'll send it
                         </button>
 
                         <div class="mnu__sep" role="none"></div>

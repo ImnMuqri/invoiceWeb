@@ -1,5 +1,11 @@
 <template>
-  <UiModal v-model="uiStore.isWelcomeModalOpen" maxWidth="lg" :showClose="true">
+  <!-- surface="light": the content below is still hardcoded Tailwind slate, so
+       it needs the fixed-white shell rather than the themed one. -->
+  <UiModal
+    v-model="uiStore.isWelcomeModalOpen"
+    maxWidth="lg"
+    surface="light"
+    :showClose="true">
     <div class="relative overflow-hidden min-h-[500px] flex flex-col">
       <!-- Decorative Background Orbs -->
       <div

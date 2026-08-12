@@ -85,6 +85,35 @@ const paymentsOff = computed(
   () => invoice.value?.system?.paymentsEnabled === false,
 );
 
+/* WHAT IS STILL OWED, which is not the same as what the invoice was for.
+   `amountOutstanding` is computed by the same function that raises the gateway
+   bill (routes/pay/index.js), so the figure on this page and the figure at the
+   checkout cannot disagree. Falls back to the same subtraction, then to the
+   total, so an older payload still renders something true.
+
+   This page used to print `invoice.amount` under the words "Amount Due" — the
+   original total, ignoring every payment and credit note against it. */
+const outstanding = computed(() => {
+  const inv = invoice.value;
+  if (!inv) return 0;
+  if (typeof inv.amountOutstanding === "number") return inv.amountOutstanding;
+  return Math.max(
+    0,
+    (Number(inv.amount) || 0) -
+      (Number(inv.amountPaid) || 0) -
+      (Number(inv.amountAdjusted) || 0),
+  );
+});
+
+/* True when something has already come off the total. The client knows they
+   paid; what they cannot see anywhere else is whether it was received. */
+const partly = computed(
+  () =>
+    invoice.value?.status !== "Paid" &&
+    outstanding.value > 0 &&
+    outstanding.value < (Number(invoice.value?.amount) || 0),
+);
+
 /* Where the invoice stands, said in the client's words rather than the
    product's. "Partially Paid" is passed through rather than folded into
    "pending": it is a fact the visitor already knows and hiding it makes the
@@ -301,6 +330,10 @@ const formatDate = (dateStr) => {
       <div v-else class="pdoc__paper">
         <!-- The SENDER's letterhead. Their name always renders, logo or not:
              a client has to see who this is from above the fold. -->
+        <!-- The standing and the reference ride this row rather than opening a
+             band of their own below it: they describe the document, and as a
+             separate line they cost a full row on a page that should not need
+             scrolling. -->
         <div class="pdoc__brand">
           <img
             v-if="invoice.logoUrl"
@@ -310,39 +343,52 @@ const formatDate = (dateStr) => {
           <p class="pdoc__from">
             {{ invoice.fromCompanyName || invoice.fromName || "Invoice" }}
           </p>
+          <div class="pdoc__status">
+            <span class="chip" :class="standing.chip">
+              <i class="chip__dot" aria-hidden="true"></i>
+              {{ standing.label }}
+            </span>
+            <span class="pdoc__ref">
+              {{ invoice.invoiceNumber || invoice.id }}
+            </span>
+          </div>
         </div>
 
-        <!-- Status, amount, dates -->
+        <!-- What it is, and what is owed — side by side rather than stacked.
+             The figure, its label and the dates all share the right column, so
+             this band is only as tall as its taller half. -->
         <div class="pdoc__head">
           <div>
-            <div class="pdoc__status">
-              <span class="chip" :class="standing.chip">
-                <i class="chip__dot" aria-hidden="true"></i>
-                {{ standing.label }}
-              </span>
-              <span class="pdoc__ref">
-                {{ invoice.invoiceNumber || invoice.id }}
-              </span>
-            </div>
-
             <template v-if="invoice.invoiceName">
               <h1 class="pdoc__name">{{ invoice.invoiceName }}</h1>
               <p v-if="invoice.subject" class="pdoc__subject">
                 {{ invoice.subject }}
               </p>
             </template>
+          </div>
 
+          <div class="pdoc__head-side">
             <p class="pdoc__label">
               {{ invoice.status === "Paid" ? "Amount" : "Amount due" }}
             </p>
             <p class="pdoc__amount">
-              {{ currencySymbol }}{{ cash(invoice.amount) }}
+              {{ currencySymbol
+              }}{{ cash(invoice.status === "Paid" ? invoice.amount : outstanding) }}
             </p>
-          </div>
+            <!-- Only when the two figures differ, so an ordinary invoice is
+                 unchanged. Without it the headline drops without explanation
+                 and the reader cannot tell whether their payment landed or the
+                 invoice was wrong all along. -->
+            <p v-if="partly" class="pdoc__reduced">
+              {{ currencySymbol }}{{ cash(invoice.amount) }} invoiced ·
+              {{ currencySymbol
+              }}{{ cash((invoice.amount || 0) - outstanding) }} already received
+            </p>
 
-          <div class="pdoc__dates">
-            <span>Issued {{ formatDate(invoice.date) }}</span>
-            <span>Due {{ formatDate(invoice.dueDate) }}</span>
+            <div class="pdoc__dates">
+              <span>Issued {{ formatDate(invoice.date) }}</span>
+              <span>Due {{ formatDate(invoice.dueDate) }}</span>
+            </div>
           </div>
         </div>
 
@@ -426,6 +472,24 @@ const formatDate = (dateStr) => {
                 {{ currencySymbol }}{{ cash(invoice.amount) }}
               </td>
             </tr>
+            <!-- The arithmetic, shown rather than asserted. A client querying
+                 the balance is querying whether we received their money, and a
+                 single adjusted figure gives them nothing to check. -->
+            <template v-if="partly">
+              <tr class="pdoc__row-soft">
+                <td>Already received</td>
+                <td class="pdoc__num">
+                  −{{ currencySymbol
+                  }}{{ cash((invoice.amount || 0) - outstanding) }}
+                </td>
+              </tr>
+              <tr>
+                <td>Balance due</td>
+                <td class="pdoc__num">
+                  {{ currencySymbol }}{{ cash(outstanding) }}
+                </td>
+              </tr>
+            </template>
           </tfoot>
         </table>
 
@@ -532,6 +596,9 @@ const formatDate = (dateStr) => {
           target="_blank"
           rel="noopener"
           class="pdoc__mark">
+          <!-- alt="" on purpose: the text beside it already names us, so a
+               described image here would just repeat itself to a screen reader. -->
+          <img src="/InvoKitaLogo.png" alt="" />
           {{ invoice.attribution.text }}
         </a>
       </div>
@@ -561,10 +628,18 @@ const formatDate = (dateStr) => {
             <p class="pdoc__label">Account name</p>
             <p class="pdoc__bank-v">{{ invoice.user.manualAccountName }}</p>
           </div>
-          <div>
-            <p class="pdoc__label">Amount</p>
-            <p class="pdoc__bank-v">
-              {{ currencySymbol }}{{ cash(invoice?.amount) }}
+          <!-- The BALANCE, matching the headline and the gateway. Transferring
+               the original total on a part-paid invoice is an overpayment the
+               sender then has to refund by hand.
+
+               Given its own full-width row at the foot of the panel rather than
+               a fourth cell in the grid: it is the figure the payer has to type
+               into their banking app, and as a peer of the bank name it read as
+               one more detail to skim past. -->
+          <div class="pdoc__bank-amount">
+            <p class="pdoc__label">Amount to transfer</p>
+            <p class="pdoc__bank-v pdoc__bank-v--total">
+              {{ currencySymbol }}{{ cash(outstanding) }}
             </p>
           </div>
         </div>
