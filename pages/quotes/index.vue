@@ -56,24 +56,22 @@ const downloadPdf = async (q) => {
    formatter, the public accept/decline link) and hands it to the user's own
    WhatsApp. Nothing is sent from here, so there is no allowance to spend and no
    plan to check. */
-const { share, sharing } = useWhatsappShare();
+const { share, sharing, isMobile } = useWhatsappShare();
 
 const shareWhatsapp = async (q) => {
   const res = await share("quote", q.id);
 
   if (res.ok) {
-    notify(
-      res.hasPhone
-        ? "WhatsApp Web is open with the message ready — press send there."
-        : "WhatsApp Web is open with the message ready. No phone number saved for this client, so pick the chat yourself.",
-    );
+    notify("WhatsApp is open on your client's chat — press send there.");
     return;
   }
 
   notify(
-    res.blocked
-      ? "Your browser blocked the new tab. Allow pop-ups for this site and try again."
-      : res.error,
+    res.noPhone
+      ? "No phone number saved for this client, so there is no chat to open. Add one on their record."
+      : res.blocked
+        ? "Your browser blocked the new tab. Allow pop-ups for this site and try again."
+        : res.error,
     "error",
   );
 };
@@ -486,8 +484,8 @@ const doDelete = async () => {
                   <button
                     type="button"
                     class="iact"
-                    :aria-label="`Open ${label(q)} in WhatsApp Web`"
-                    title="Open in WhatsApp Web — the message is written, you press send"
+                    :aria-label="`Open ${label(q)} in ${isMobile ? 'WhatsApp' : 'WhatsApp Web'}`"
+                    :title="`Open in ${isMobile ? 'WhatsApp' : 'WhatsApp Web'} — the message is written, you press send`"
                     :disabled="sharing"
                     @click="shareWhatsapp(q)">
                     <UiIcon

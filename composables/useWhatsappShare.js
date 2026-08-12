@@ -18,28 +18,25 @@
  * awaiting, and pointed at the URL once the text arrives. If the browser refused
  * even that, `blocked` comes back true and the caller can offer the wording to
  * copy instead of leaving the user staring at a button that did nothing.
+ *
+ * THE LINK IS wa.me/<the client's number>. It resolves to WhatsApp Web on a
+ * desktop and to the app on a phone, and either way it lands on that client's
+ * chat. An earlier version aimed desktops at web.whatsapp.com/send to skip
+ * wa.me's "Continue to Chat" step; that saved a click and cost the whole point,
+ * because it opened the sender's own WhatsApp Web without the client's
+ * conversation. One documented entry point, one predictable landing.
  */
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
 
 /**
- * Is this a phone or tablet, where the WhatsApp APP should take over?
+ * A phone or tablet, where WhatsApp is an installed app rather than a website.
  *
- * Decides which of the two links the server hands back gets used:
- *
- *   desktop → web.whatsapp.com/send, which opens WhatsApp Web on the
- *             conversation directly. wa.me on a desktop stops at a "Continue to
- *             Chat" interstitial first, and this feature is for somebody at a
- *             laptop with WhatsApp Web already open.
- *   mobile  → wa.me, which hands off to the installed app. Sending a phone to
- *             web.whatsapp.com gets them a page asking them to scan a QR code
- *             with the phone they are already holding.
- *
- * A user-agent test, which is a guess — but the failure mode either way is one
- * extra tap, not a lost message, and both links carry the same text. Checked at
- * call time rather than at module load so it is never captured during SSR, where
- * there is no navigator at all.
+ * This decides HOW the link is opened, not WHICH link — the url is wa.me on
+ * every device. Choosing a different WhatsApp url per platform is the mistake
+ * that opened the sender's own WhatsApp Web instead of the client's chat, and it
+ * is not being repeated.
  */
-function onMobileDevice() {
+function detectMobile() {
   if (typeof navigator === "undefined") return false;
   return /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|Mobile Safari/i.test(
     navigator.userAgent || "",
@@ -53,37 +50,72 @@ export function useWhatsappShare() {
   /** Last composed message, so a caller can show or copy it after a block. */
   const lastText = ref("");
 
+  /* Starts false and is only set after mount. The server has no user agent to
+     read, so deciding this during render would make the markup disagree with the
+     client's and Vue would report a hydration mismatch — on a label as small as
+     "Web", which is not worth an error on every page load. */
+  const isMobile = ref(false);
+  onMounted(() => {
+    isMobile.value = detectMobile();
+  });
+
   /**
    * @param {"invoice"|"quote"} kind
    * @param {number|string} id
-   * @returns {Promise<{ok: boolean, blocked?: boolean, text?: string, hasPhone?: boolean, error?: string}>}
+   * @returns {Promise<{ok: boolean, blocked?: boolean, noPhone?: boolean, text?: string, hasPhone?: boolean, error?: string}>}
    */
   const share = async (kind, id) => {
     sharing.value = true;
 
-    /* Claim the tab NOW, while the click is still live. about:blank rather than
-       the final url because we do not know the url yet. */
-    const tab = window.open("", "_blank");
+    /* ON A PHONE, no second tab.
+       wa.me is a universal link: navigating to it hands straight off to the
+       installed WhatsApp app, and the browser stays where it was underneath, so
+       coming back out of WhatsApp returns to this page. A pre-opened tab buys
+       nothing there — it leaves a dead wa.me tab behind after the handoff, and
+       iOS Safari is the least forgiving browser there is about a tab opened
+       blank and pointed somewhere several hundred milliseconds later.
+
+       A plain location assignment is never popup-blocked, so the mobile path
+       cannot fail the way the desktop one can.
+
+       ON A DESKTOP the tab is still claimed up front, because there the target
+       really is a web page and taking over the current tab would throw away
+       whatever the user had on screen. */
+    const wantsTab = !detectMobile();
+    const tab = wantsTab ? window.open("", "_blank") : null;
 
     try {
       const { data } = await $api.get(`/whatsapp/share/${kind}/${id}`);
       lastText.value = data?.text || "";
 
-      /* webUrl on a desktop, url on a phone. Falls back to whichever exists, so
-         an older response shape still opens something. */
-      const target = onMobileDevice()
-        ? data?.url || data?.webUrl
-        : data?.webUrl || data?.url;
-
-      if (!target) throw new Error("No share link came back.");
-
-      if (tab && !tab.closed) {
-        tab.location.href = target;
-        return { ok: true, text: data.text, hasPhone: data.hasPhone };
+      /* No number on the client's record — the server sends url: null rather
+         than a contact-picker link. Opening one of those looks exactly like "it
+         opened my own WhatsApp and did nothing", so close the tab we claimed and
+         let the caller name the actual problem. */
+      if (!data?.url) {
+        if (tab && !tab.closed) tab.close();
+        return { ok: false, noPhone: true, text: data?.text || "" };
       }
 
-      /* Blocked, or the user closed it while we were composing. Not an error —
-         we still have the wording, which is the part that took work. */
+      /* wa.me/<client number> — lands on THAT CLIENT'S chat with the message
+         typed, whether it resolves to WhatsApp Web or the phone app. */
+      if (tab && !tab.closed) {
+        tab.location.href = data.url;
+        return { ok: true, text: data.text, hasPhone: true };
+      }
+
+      if (!wantsTab) {
+        /* The mobile path. WhatsApp takes the foreground and this page is still
+           behind it when they come back. */
+        window.location.href = data.url;
+        return { ok: true, text: data.text, hasPhone: true };
+      }
+
+      /* Desktop, and the tab was blocked or the user closed it while we were
+         composing. Deliberately NOT falling back to navigating this tab: the
+         panel this is clicked from sits on the invoice editor, and taking the
+         page out from under someone to open a chat would be a poor trade. We
+         still have the wording, which is the part that took work. */
       return {
         ok: false,
         blocked: true,
@@ -105,5 +137,5 @@ export function useWhatsappShare() {
     }
   };
 
-  return { share, sharing, lastText };
+  return { share, sharing, lastText, isMobile };
 }

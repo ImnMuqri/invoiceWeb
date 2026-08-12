@@ -144,25 +144,25 @@ const copyLink = async () => {
 
    It is offered even on a settled invoice — a client asking for a copy of
    something they have already paid is a normal request. */
-const { share, sharing } = useWhatsappShare();
+const { share, sharing, isMobile } = useWhatsappShare();
 
 const shareWhatsapp = async () => {
   const res = await share("invoice", props.invoiceId);
 
   if (res.ok) {
     emit("notify", {
-      message: res.hasPhone
-        ? "WhatsApp Web is open with the message ready — press send there."
-        : "WhatsApp Web is open with the message ready. This client has no phone number saved, so pick the chat yourself.",
+      message: "WhatsApp is open on your client's chat — press send there.",
       type: "success",
     });
     return;
   }
 
   emit("notify", {
-    message: res.blocked
-      ? "Your browser blocked the new tab. Allow pop-ups for this site, or copy the payment link below and paste it into WhatsApp."
-      : res.error,
+    message: res.noPhone
+      ? "No phone number saved for this client, so there is no chat to open. Add one on their record and this will go straight to them."
+      : res.blocked
+        ? "Your browser blocked the new tab. Allow pop-ups for this site, or copy the payment link below and paste it into WhatsApp."
+        : res.error,
     type: "error",
   });
 };
@@ -244,21 +244,36 @@ const shareWhatsapp = async () => {
           type="button"
           class="desk-btn desk-btn--ghost desk-btn--block"
           :disabled="!!busy || sharing"
-          title="Opens WhatsApp Web with the message already written. You press send. On a phone it opens the WhatsApp app instead."
+          :title="
+            isMobile
+              ? 'Opens the WhatsApp app on your client\'s chat with the message already written. You press send.'
+              : 'Opens WhatsApp Web on your client\'s chat with the message already written. You press send.'
+          "
           @click="shareWhatsapp">
           <UiIcon
             :icon="sharing ? 'heroicons:arrow-path' : 'simple-icons:whatsapp'"
             :custom-class="sharing ? 'w-4 h-4 spin' : 'w-4 h-4'" />
-          {{ sharing ? "Opening…" : "Open in WhatsApp Web" }}
+          <!-- "Web" only where it is true. On a phone this hands off to the
+               installed app, and a button promising WhatsApp Web there is
+               describing something the reader will never see. -->
+          {{
+            sharing
+              ? "Opening…"
+              : isMobile
+                ? "Open in WhatsApp"
+                : "Open in WhatsApp Web"
+          }}
         </button>
       </div>
 
       <!-- The distinction between the two WhatsApp actions, said in words rather
            than left to the button labels. -->
       <p class="f__hint">
-        <b>Open in WhatsApp Web</b> writes the message for you and opens your own
-        WhatsApp Web on your client's chat — nothing goes out until you press send
-        there, and it costs nothing. On a phone it opens the WhatsApp app instead.
+        <b>{{ isMobile ? "Open in WhatsApp" : "Open in WhatsApp Web" }}</b>
+        opens {{ isMobile ? "the WhatsApp app" : "WhatsApp Web" }}
+        <b>on your client's number</b> with the message already typed — nothing
+        goes out until you press send there, and it costs nothing. Needs a phone
+        number on the client's record.
         <template v-if="!isSettled">
           <b>Send on WhatsApp</b> delivers it from InvoKita for you.
         </template>

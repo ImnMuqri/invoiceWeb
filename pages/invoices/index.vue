@@ -236,24 +236,22 @@ const send = (inv, method, isReminder) =>
 /* Manual share. Not routed through act() on purpose: act() sets the row's busy
    flag and reports "sent", and neither is true here — nothing was sent by us,
    and the row's chasing state has not changed. */
-const { share, sharing } = useWhatsappShare();
+const { share, sharing, isMobile } = useWhatsappShare();
 
 const shareWhatsapp = async (inv) => {
   const res = await share("invoice", inv.id);
 
   if (res.ok) {
-    notify(
-      res.hasPhone
-        ? "WhatsApp Web is open with the message ready — press send there."
-        : `WhatsApp Web is open with the message ready. No phone number saved for ${label(inv)}'s client, so pick the chat yourself.`,
-    );
+    notify("WhatsApp is open on your client's chat — press send there.");
     return;
   }
 
   notify(
-    res.blocked
-      ? "Your browser blocked the new tab. Allow pop-ups for this site, or copy the payment link and paste it into WhatsApp."
-      : res.error,
+    res.noPhone
+      ? `No phone number saved for ${label(inv)}'s client, so there is no chat to open. Add one on their record.`
+      : res.blocked
+        ? "Your browser blocked the new tab. Allow pop-ups for this site, or copy the payment link and paste it into WhatsApp."
+        : res.error,
     "error",
   );
 };
@@ -822,12 +820,16 @@ const isDeleteModalOpen = computed({
                           type="button"
                           class="mnu__item"
                           :disabled="sharing"
-                          title="Opens WhatsApp Web with the message already written. You press send. On a phone it opens the WhatsApp app instead."
+                          title="Opens your client's WhatsApp chat with the message already written. You press send."
                           @click="close(); shareWhatsapp(inv)">
                           <UiIcon
                             icon="simple-icons:whatsapp"
                             custom-class="w-4 h-4" />
-                          Open in WhatsApp Web — I'll send it
+                          {{
+                            isMobile
+                              ? "Open in WhatsApp — I'll send it"
+                              : "Open in WhatsApp Web — I'll send it"
+                          }}
                         </button>
 
                         <div class="mnu__sep" role="none"></div>
