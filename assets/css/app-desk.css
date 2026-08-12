@@ -4249,3 +4249,15 @@ html.dark .tb__av {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
 }
+
+/* A switch that is ON and working but may not be turned off — the business name
+   and the last remaining contact detail (see utils/documentFields.js). Distinct
+   from .pickcard__opt--off, which means "cannot do anything yet": this one keeps
+   its accent because it IS in effect, and only loses the pointer. Showing the
+   two the same way was what made the defaults look broken. */
+.pickcard__opt--locked {
+  cursor: default;
+}
+.pickcard__opt--locked .pickcard__mark {
+  opacity: 0.55;
+}

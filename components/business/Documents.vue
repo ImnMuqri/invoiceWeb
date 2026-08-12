@@ -20,6 +20,18 @@ const props = defineProps({
 
 const emit = defineEmits(["go"]);
 
+/* Which contact switch is the last one still on.
+   At least one of email or phone must always print, so once the other is off
+   the remaining one cannot be turned off either. Null while both are on —
+   nothing is locked, because turning either off still leaves a contact. */
+const lastContact = computed(() => {
+  const email = !!props.form.invoiceIncludeEmail;
+  const phone = !!props.form.invoiceIncludeCompanyPhone;
+  if (email && !phone) return "invoiceIncludeEmail";
+  if (phone && !email) return "invoiceIncludeCompanyPhone";
+  return null;
+});
+
 /* Each field, plus what has to be filled in before it can be switched on. The
    dependency is named rather than implied, so the "why is this greyed out"
    sentence writes itself from the same place the rule lives. */
@@ -35,18 +47,31 @@ const FIELDS = computed(() => [
     label: "Business name",
     icon: "heroicons:building-office-2",
     needs: props.form.companyName ? null : "a business name",
+    /* Not optional. A document that does not name its sender is not a
+       document — the client cannot file it, pay it against anything, or tell
+       who is asking. Enforced server-side too. */
+    locked: "Always shown — an invoice has to say who it is from",
   },
   {
     key: "invoiceIncludeEmail",
     label: "Business email",
     icon: "heroicons:envelope",
     needs: props.form.companyEmail ? null : "a business email",
+    /* One of email or phone has to stay on, so whichever is the LAST one
+       standing locks. Either satisfies it — requiring the phone would be wrong
+       for a business that trades only by email, and vice versa. */
+    locked: lastContact.value === "invoiceIncludeEmail"
+      ? "Kept on — clients need one way to reach you"
+      : null,
   },
   {
     key: "invoiceIncludeCompanyPhone",
     label: "Business phone",
     icon: "heroicons:phone",
     needs: props.form.companyPhone ? null : "a business phone",
+    locked: lastContact.value === "invoiceIncludeCompanyPhone"
+      ? "Kept on — clients need one way to reach you"
+      : null,
   },
   {
     key: "invoiceIncludePersonalPhone",
@@ -87,12 +112,17 @@ const FIELDS = computed(() => [
   },
 ]);
 
+/* Counts what is actually PRINTING, not what the column says.
+   Counting the raw flag reported "8 of 8 switched on" on a fresh account where
+   three of them had nothing to print — which contradicted the greyed cards
+   directly underneath the sentence. Now the count and the cards agree: the
+   ones not counted are exactly the ones shown as unavailable. */
 const onCount = computed(
-  () => FIELDS.value.filter((f) => props.form[f.key]).length,
+  () => FIELDS.value.filter((f) => props.form[f.key] && !f.needs).length,
 );
 
 const toggle = (field) => {
-  if (field.needs) return;
+  if (field.needs || field.locked) return;
   props.form[field.key] = !props.form[field.key];
 };
 
@@ -113,8 +143,9 @@ const toggleAttribution = () => {
       <div class="sec__head">
         <h2 class="sec__title">What prints on your invoices</h2>
         <p class="sec__note">
-          {{ onCount }} of {{ FIELDS.length }} switched on. Anything greyed out
-          needs filling in under
+          {{ onCount }} of {{ FIELDS.length }} switched on. Your business name
+          and one way to reach you always print — everything else is yours to
+          choose. Anything greyed out needs filling in under
           <button type="button" class="card__link" @click="emit('go', 'general')">
             General
           </button>
@@ -128,20 +159,35 @@ const toggleAttribution = () => {
           :key="field.key"
           class="pickcard__opt"
           :class="{
-            'pickcard__opt--on': form[field.key],
+            /* NOT `form[field.key]` alone. The two modifiers can both apply,
+               and a card that is accent-filled with a white tick AND dashed
+               with a not-allowed cursor is telling the user two opposite
+               things at once — which is why the defaults looked like a bug.
+               A switch that cannot do anything yet is shown as unavailable;
+               it still holds its value and lights up the moment the field it
+               depends on is filled in. */
+            'pickcard__opt--on': form[field.key] && !field.needs,
             'pickcard__opt--off': !!field.needs,
+            /* Locked is NOT the same as unavailable. An unavailable switch can
+               do nothing yet; a locked one is on and working, you simply may
+               not turn it off. It keeps the accent and loses the pointer. */
+            'pickcard__opt--locked': !!field.locked && !field.needs,
           }">
           <input
             type="checkbox"
             class="pickcard__inp"
             :checked="!!form[field.key]"
-            :disabled="!!field.needs"
+            :disabled="!!field.needs || !!field.locked"
             @change="toggle(field)" />
           <UiIcon :icon="field.icon" custom-class="w-4 h-4" />
           <span class="pickcard__body">
             <span class="pickcard__name">{{ field.label }}</span>
             <span v-if="field.needs" class="pickcard__note pickcard__note--warn">
-              Add {{ field.needs }} to use this
+              Nothing to print yet — add {{ field.needs }} under General and
+              this switches itself on
+            </span>
+            <span v-else-if="field.locked" class="pickcard__note">
+              {{ field.locked }}
             </span>
           </span>
           <span class="pickcard__mark" aria-hidden="true">
