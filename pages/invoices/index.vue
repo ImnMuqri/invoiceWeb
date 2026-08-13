@@ -248,7 +248,9 @@ const shareWhatsapp = async (inv) => {
 
   notify(
     res.noPhone
-      ? `No phone number saved for ${label(inv)}'s client, so there is no chat to open. Add one on their record.`
+      ? res.phoneProblem === "unusable"
+        ? `The phone number on ${label(inv)}'s client is not one WhatsApp can open — it usually needs the country code, e.g. 016… saved as +6016…. Fix it on their record.`
+        : `No phone number saved for ${label(inv)}'s client, so there is no chat to open. Add one on their record.`
       : res.blocked
         ? "Your browser blocked the new tab. Allow pop-ups for this site, or copy the payment link and paste it into WhatsApp."
         : res.error,

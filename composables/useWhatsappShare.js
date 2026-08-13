@@ -62,7 +62,7 @@ export function useWhatsappShare() {
   /**
    * @param {"invoice"|"quote"} kind
    * @param {number|string} id
-   * @returns {Promise<{ok: boolean, blocked?: boolean, noPhone?: boolean, text?: string, hasPhone?: boolean, error?: string}>}
+   * @returns {Promise<{ok: boolean, blocked?: boolean, noPhone?: boolean, phoneProblem?: "missing"|"unusable", text?: string, error?: string}>}
    */
   const share = async (kind, id) => {
     sharing.value = true;
@@ -88,27 +88,34 @@ export function useWhatsappShare() {
       const { data } = await $api.get(`/whatsapp/share/${kind}/${id}`);
       lastText.value = data?.text || "";
 
-      /* No number on the client's record — the server sends url: null rather
-         than a contact-picker link. Opening one of those looks exactly like "it
-         opened my own WhatsApp and did nothing", so close the tab we claimed and
-         let the caller name the actual problem. */
+      /* No usable number — the server sends url: null rather than a link built
+         on a guess. `phoneProblem` says which: "missing" (nothing saved) or
+         "unusable" (something saved that WhatsApp cannot dial, almost always a
+         local number like 016… stored without its country code). Different
+         sentences, different fixes. Close the tab we claimed rather than parking
+         it on a chat that does not exist. */
       if (!data?.url) {
         if (tab && !tab.closed) tab.close();
-        return { ok: false, noPhone: true, text: data?.text || "" };
+        return {
+          ok: false,
+          noPhone: true,
+          phoneProblem: data?.phoneProblem || "missing",
+          text: data?.text || "",
+        };
       }
 
       /* wa.me/<client number> — lands on THAT CLIENT'S chat with the message
          typed, whether it resolves to WhatsApp Web or the phone app. */
       if (tab && !tab.closed) {
         tab.location.href = data.url;
-        return { ok: true, text: data.text, hasPhone: true };
+        return { ok: true, text: data.text };
       }
 
       if (!wantsTab) {
         /* The mobile path. WhatsApp takes the foreground and this page is still
            behind it when they come back. */
         window.location.href = data.url;
-        return { ok: true, text: data.text, hasPhone: true };
+        return { ok: true, text: data.text };
       }
 
       /* Desktop, and the tab was blocked or the user closed it while we were
@@ -120,7 +127,6 @@ export function useWhatsappShare() {
         ok: false,
         blocked: true,
         text: data.text,
-        hasPhone: data.hasPhone,
       };
     } catch (err) {
       /* A tab left sitting on about:blank looks like a crash. Close it. */
