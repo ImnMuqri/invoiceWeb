@@ -4742,15 +4742,26 @@ a.pdoc__mark:hover {
 /* â”€â”€â”€ Bank transfer panel, inside the modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .pdoc__bank {
   display: grid;
-  gap: var(--space-4);
-  padding: var(--space-4);
+  gap: var(--space-3);
+  padding: var(--space-3);
   background-color: var(--desk-sunken);
   border: 1px solid var(--desk-line);
   border-radius: var(--desk-radius-shell);
 }
-@media (min-width: 30rem) {
+/* Two columns from 22rem rather than 30rem. A 360px phone is 22.5rem, so the
+   old breakpoint put every field on its own row on every handset — four stacked
+   rows for four short values, which is most of why this modal ran off the
+   bottom of a phone screen. Bank name and account number sit side by side now,
+   and the account number wraps inside its own column rather than widening it. */
+@media (min-width: 22rem) {
   .pdoc__bank {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-3) var(--space-4);
+  }
+}
+@media (min-width: 30rem) {
+  .pdoc__bank {
+    padding: var(--space-4);
   }
 }
 .pdoc__bank-v {
@@ -4759,6 +4770,47 @@ a.pdoc__mark:hover {
   font-variant-numeric: tabular-nums;
   overflow-wrap: anywhere;
   color: var(--desk-text);
+}
+/* The value and its copy button on one line. The button does not shrink and the
+   number takes the rest, so a long account number wraps within its own column
+   instead of pushing the control off the edge of a phone. */
+.pdoc__copyrow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.pdoc__copyrow .pdoc__bank-v {
+  min-width: 0;
+}
+.pdoc__copy {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex: none;
+  margin-left: auto;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--desk-control-line);
+  border-radius: var(--radius-full);
+  background-color: transparent;
+  color: var(--desk-text-2);
+  font: inherit;
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-semibold);
+  line-height: 1;
+  cursor: pointer;
+  /* 1.4.11 wants 3:1 on a control whose border is the only thing marking it;
+     --desk-control-line is the one value that clears it on both themes. */
+  transition:
+    color var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out);
+}
+.pdoc__copy:hover {
+  color: var(--desk-text);
+  background-color: var(--desk-card);
+}
+.pdoc__copy:focus-visible {
+  outline: 2px solid var(--desk-accent);
+  outline-offset: 2px;
 }
 /* The amount owns the foot of the panel across both columns, with a rule above
    it separating what identifies the account from what has to be transferred
@@ -4784,15 +4836,22 @@ a.pdoc__mark:hover {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--space-3);
-  margin-top: var(--space-2);
+  gap: var(--space-2);
+  margin-top: 0;
 }
 .pdoc__qr-plate {
-  padding: var(--space-3);
+  padding: var(--space-2);
   background-color: #ffffff;
   border: 3px solid #ed2c67;
   border-radius: var(--radius-md);
-  max-width: 12rem;
+  /* Scales with the SHORTER side of the viewport, so it shrinks on a phone in
+     landscape and on a short laptop — the two cases where this modal overflowed
+     — without shrinking on a tall phone where there is room.
+
+     Floored at 8.5rem (136px) rather than going smaller: a DuitNow QR is dense,
+     and a code a camera cannot resolve is worse than a code that takes space,
+     because the payer's only other option is typing the account number by hand. */
+  width: clamp(8.5rem, 38vmin, 11rem);
 }
 .pdoc__qr-plate img {
   display: block;
@@ -4843,10 +4902,32 @@ textarea.pdoc__input {
 .pdoc__stack {
   display: grid;
   gap: var(--space-3);
-  padding: var(--space-4);
+  padding: var(--space-3);
   font-family: var(--font-sans);
   font-size: var(--text-sm);
   color: var(--desk-text);
+
+  /* A ceiling, so the sheet can never run past the screen it is on. The bank
+     details are four values, a QR and two sentences — on a phone that stacked
+     past the bottom of the viewport, and the "Done" button went with it.
+
+     Everything above shortens it enough that this rarely engages; it is here so
+     that an unusually long bank or account name cannot put the modal in a state
+     with no visible way out. 78svh, not vh: on mobile Safari vh counts the space
+     behind the address bar, which is exactly the amount that would overflow. */
+  max-height: min(78svh, 40rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+@media (min-width: 30rem) {
+  .pdoc__stack {
+    padding: var(--space-4);
+  }
+}
+/* Inside the sheet the notes sit in a grid that already spaces its children, so
+   the standalone margin they carry on the document page is double-counted. */
+.pdoc__stack .pdoc__note {
+  margin-top: 0;
 }
 .pdoc__stack :where(p, h1, h2, h3, label) {
   margin: 0;

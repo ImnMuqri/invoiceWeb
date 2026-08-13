@@ -60,6 +60,33 @@ const toast = ref({ message: "", type: "success" });
 const showManualModal = ref(false);
 const qrCodeDataUrl = ref("");
 
+/* Copying the account number, rather than making somebody read twelve digits
+   off one screen and type them into their banking app on the same phone. A
+   transposed digit there does not bounce — it pays a stranger.
+
+   Feedback is on the button itself and not only in a toast: the toast sits at
+   the bottom-right of the viewport, which on a phone is a long way from the
+   thumb that just tapped, and behind the modal in the reader's attention even
+   though it is above it in z-order. */
+const copiedField = ref("");
+
+const copyValue = async (value, field) => {
+  try {
+    await navigator.clipboard.writeText(String(value ?? ""));
+    copiedField.value = field;
+    setTimeout(() => {
+      if (copiedField.value === field) copiedField.value = "";
+    }, 2000);
+  } catch {
+    /* Clipboard refused — an insecure origin, or permission denied. The number
+       is still selectable, so say that rather than nothing. */
+    toast.value = {
+      message: "Could not reach the clipboard — select the number and copy it.",
+      type: "error",
+    };
+  }
+};
+
 /* Spec 05. Shaped by the same function the PDF uses, so this page and the
    document a client downloads cannot disagree about which identifiers appear. */
 const senderIds = computed(() => documentIdentifiers(invoice.value).from);
@@ -622,7 +649,27 @@ const formatDate = (dateStr) => {
           </div>
           <div v-if="invoice?.user?.manualAccountNumber">
             <p class="pdoc__label">Account number</p>
-            <p class="pdoc__bank-v">{{ invoice.user.manualAccountNumber }}</p>
+            <div class="pdoc__copyrow">
+              <p class="pdoc__bank-v">{{ invoice.user.manualAccountNumber }}</p>
+              <button
+                type="button"
+                class="pdoc__copy"
+                :aria-label="
+                  copiedField === 'account'
+                    ? 'Account number copied'
+                    : 'Copy account number'
+                "
+                @click="copyValue(invoice.user.manualAccountNumber, 'account')">
+                <UiIcon
+                  :icon="
+                    copiedField === 'account'
+                      ? 'heroicons:check-16-solid'
+                      : 'heroicons:clipboard-document'
+                  "
+                  custom-class="w-4 h-4" />
+                <span>{{ copiedField === "account" ? "Copied" : "Copy" }}</span>
+              </button>
+            </div>
           </div>
           <div v-if="invoice?.user?.manualAccountName">
             <p class="pdoc__label">Account name</p>
