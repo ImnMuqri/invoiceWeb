@@ -31,6 +31,10 @@ interface Plan {
   interval: string
   features: string[]
   isActive: boolean
+  /** Monthly invoice cap (Free). Very large for "unlimited". */
+  invoices?: number
+  /** THE metered unit: invoices that get auto-chased per month. */
+  chasedInvoices?: number
 }
 
 const config = useRuntimeConfig()
@@ -101,6 +105,43 @@ function priceLabel(plan: Plan) {
      "RM 2900" on the public pricing page — the first number a visitor sees. */
   return `${symbol} ${price(plan.price)}`
 }
+
+/* ─── Plan finder ─────────────────────────────────────────────────────────
+   "How many invoices do you send a month?" → the cheapest plan that covers
+   it. Every threshold comes from the live plan rows (Free's `invoices` cap,
+   each chaser plan's `chasedInvoices`), so editing a plan in admin moves the
+   recommendation with it. Nothing here is a hardcoded number. */
+const count = ref(12)
+const freePlan = computed(() => plans.value.find((p) => p.price === 0))
+const chaserPlans = computed(() =>
+  plans.value.filter((p) => hasChaser(p) && (p.chasedInvoices ?? 0) > 0)
+)
+const maxChased = computed(() => Math.max(0, ...chaserPlans.value.map((p) => p.chasedInvoices ?? 0)))
+const sliderMax = computed(() => Math.max(100, maxChased.value + 25))
+const ticks = computed(() => {
+  const m = sliderMax.value
+  return [1, Math.round(m / 4), Math.round(m / 2), Math.round((3 * m) / 4), m]
+})
+
+const recommended = computed<Plan | null>(() => {
+  const n = count.value
+  const free = freePlan.value
+  if (free && n <= (free.invoices ?? 0)) return free
+  return chaserPlans.value.find((p) => n <= (p.chasedInvoices ?? 0)) ?? null
+})
+
+const fill = (s: string, n: number | undefined) => s.replace('{n}', String(n ?? ''))
+const recWhy = computed(() => {
+  const f = props.copy.pricing.finder
+  const r = recommended.value
+  if (!r) return fill(f.whyCustom, maxChased.value)
+  if (r.price === 0) return fill(f.whyFree, r.invoices)
+  return fill(f.whyChaser, r.chasedInvoices)
+})
+
+function onSlide(e: Event) {
+  count.value = Number((e.target as HTMLInputElement).value) || 1
+}
 </script>
 
 <template>
@@ -137,16 +178,63 @@ function priceLabel(plan: Plan) {
            left a dangling empty column and squeezed every card to 25% of the
            row. Plans come from the API, so the count is genuinely variable and
            the layout has to be too. -->
-      <ul v-else class="plans" :style="{ '--_cols': columns }">
+      <template v-else>
+      <div class="finder" data-reveal>
+        <div class="finder__glow" aria-hidden="true"></div>
+        <div class="finder__input">
+          <label for="plan-count" class="finder__q">{{ copy.pricing.finder.question }}</label>
+          <p class="finder__value">
+            <output for="plan-count" class="finder__n k-serif">{{ count }}</output>
+            <span class="finder__unit">{{ copy.pricing.finder.unit }}</span>
+          </p>
+          <input
+            id="plan-count"
+            class="finder__range"
+            type="range"
+            min="1"
+            :max="sliderMax"
+            step="1"
+            :value="count"
+            :style="{ '--_p': `${((count - 1) / (sliderMax - 1)) * 100}%` }"
+            @input="onSlide" />
+          <p class="finder__ticks k-num" aria-hidden="true">
+            <span v-for="t in ticks" :key="t">{{ t }}</span>
+          </p>
+        </div>
+
+        <div class="finder__result" aria-live="polite">
+          <p class="finder__fit">{{ copy.pricing.finder.fit }}</p>
+          <p class="finder__plan">
+            <span class="finder__name">{{ recommended ? recommended.name : copy.pricing.finder.custom }}</span>
+            <span class="finder__price k-num">
+              {{ recommended ? priceLabel(recommended) : copy.pricing.finder.customPrice }}<small v-if="recommended && recommended.price > 0">{{ copy.pricing.perMonth }}</small>
+            </span>
+          </p>
+          <p class="finder__why">{{ recWhy }}</p>
+          <a
+            :href="recommended ? '/register' : 'mailto:support@invokita.my?subject=Custom%20plan%20enquiry'"
+            class="k-btn k-btn--primary finder__cta">
+            {{ recommended ? (recommended.price === 0 ? copy.pricing.ctaFree : copy.pricing.cta) : copy.pricing.customCta }}
+          </a>
+        </div>
+      </div>
+
+      <ul class="plans" :style="{ '--_cols': columns }">
         <li
           v-for="plan in plans"
           :key="plan.id"
           class="plan"
-          :class="{ 'plan--accent': hasChaser(plan) && plan.price > 0 }"
+          :class="{
+            'plan--accent': hasChaser(plan) && plan.price > 0,
+            'plan--rec': recommended && recommended.id === plan.id,
+          }"
           data-reveal
           data-reveal-group="plans">
           <header class="plan__head">
-            <h3 class="plan__name">{{ plan.name }}</h3>
+            <h3 class="plan__name">
+              {{ plan.name }}
+              <span v-if="recommended && recommended.id === plan.id" class="plan__fit">{{ copy.pricing.finder.fitShort }}</span>
+            </h3>
             <p v-if="plan.description" class="plan__desc">{{ plan.description }}</p>
           </header>
 
@@ -193,6 +281,7 @@ function priceLabel(plan: Plan) {
           </a>
         </li>
       </ul>
+      </template>
 
       <p class="pricing__footnote">{{ copy.pricing.footnote }}</p>
     </div>
@@ -227,6 +316,208 @@ function priceLabel(plan: Plan) {
   display: grid;
   gap: var(--space-4);
   justify-items: center;
+}
+
+/* ─── Plan finder ───────────────────────────────────────────────────────── */
+.finder {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-8);
+  margin-bottom: var(--space-6);
+  padding: clamp(1.5rem, 4vw, 2.75rem);
+  border-radius: var(--radius-2xl);
+  background-color: var(--surface-slab);
+  color: var(--text-on-slab);
+}
+.finder__glow {
+  position: absolute;
+  z-index: -1;
+  right: -8rem;
+  top: -12rem;
+  width: 28rem;
+  height: 28rem;
+  border-radius: var(--radius-full);
+  background: radial-gradient(circle, var(--a-green-32), transparent 65%);
+}
+.finder__input {
+  flex: 1.4 1 22rem;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.finder__q {
+  font-size: var(--text-md);
+  font-weight: var(--weight-bold);
+}
+.finder__value {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  margin: 0;
+}
+.finder__n {
+  min-width: 1.4ch;
+  font-size: clamp(5rem, 10vw, 8rem);
+  line-height: 0.85;
+  letter-spacing: -0.03em;
+  color: var(--text-on-slab-accent);
+}
+.finder__unit {
+  color: var(--text-on-slab-muted);
+}
+.finder__range {
+  --_p: 10%;
+  width: 100%;
+  height: 1.75rem;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.finder__range::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(90deg, var(--green-400) var(--_p), var(--a-paper-12) var(--_p));
+}
+.finder__range::-moz-range-track {
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(90deg, var(--green-400) var(--_p), var(--a-paper-12) var(--_p));
+}
+.finder__range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 26px;
+  height: 26px;
+  margin-top: -10px;
+  border-radius: var(--radius-full);
+  border: 4px solid var(--surface-slab);
+  background-color: var(--green-400);
+  box-shadow: 0 0 0 2px var(--green-400);
+}
+.finder__range::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: var(--radius-full);
+  border: 4px solid var(--surface-slab);
+  background-color: var(--green-400);
+  box-shadow: 0 0 0 2px var(--green-400);
+}
+.finder__range:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 4px;
+}
+.finder__ticks {
+  display: flex;
+  justify-content: space-between;
+  margin: 0;
+  font-size: var(--text-2xs);
+  color: var(--ink-500);
+}
+.finder__result {
+  flex: 1 1 18rem;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-6);
+  border-radius: var(--radius-xl);
+  background-color: var(--receipt-bg);
+  color: var(--receipt-ink);
+}
+.finder__fit {
+  margin: 0;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-extrabold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-accent);
+}
+.finder__plan {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin: 0;
+}
+.finder__name {
+  font-size: var(--text-3xl);
+  font-weight: var(--weight-extrabold);
+  letter-spacing: var(--tracking-tighter);
+}
+.finder__price {
+  font-size: var(--text-xl);
+  font-weight: var(--weight-semibold);
+}
+.finder__price small {
+  font-size: var(--text-sm);
+  color: var(--receipt-ink-muted);
+}
+.finder__why {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--leading-relaxed);
+  color: var(--receipt-ink-muted);
+}
+.finder__cta {
+  margin-top: var(--space-2);
+  justify-content: center;
+}
+
+/* Recommended plan: ink card with a light travelling round its border. */
+@property --ang {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+.plan--rec,
+.plan--rec:hover {
+  border: 2px solid transparent;
+  background:
+    linear-gradient(var(--surface-slab), var(--surface-slab)) padding-box,
+    conic-gradient(from var(--ang), var(--ink-800) 0 70%, var(--green-400) 85%, var(--green-50) 90%, var(--ink-800) 100%) border-box;
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-xl);
+  animation: ang 4.5s linear infinite;
+}
+@keyframes ang {
+  to { --ang: 360deg; }
+}
+.plan--rec .plan__name,
+.plan--rec .plan__amount {
+  color: var(--text-on-slab);
+}
+.plan--rec .plan__desc,
+.plan--rec .plan__interval,
+.plan--rec .plan__badge--muted,
+.plan--rec .feature {
+  color: var(--text-on-slab-muted);
+}
+.plan--rec .feature__tick {
+  color: var(--green-400);
+}
+.plan__fit {
+  margin-left: var(--space-2);
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-full);
+  background-color: var(--green-400);
+  color: var(--ink-950);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-extrabold);
+  vertical-align: middle;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .plan--rec,
+  .plan--rec:hover {
+    animation: none;
+  }
 }
 
 /* ─── Plans ─────────────────────────────────────────────────────────────── */

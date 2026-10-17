@@ -64,14 +64,40 @@ const quotations = computed(() => quotationPath(props.locale))
 
       <hr class="k-rule foot__rule" />
 
-      <p class="foot__legal">
-        © {{ year }} InvoKita — BSYX LABS (202603086039). {{ copy.footer.rights }}
-      </p>
+      <div class="foot__base">
+        <p class="foot__legal">
+          © {{ year }} InvoKita — BSYX LABS (202603086039). {{ copy.footer.rights }}
+        </p>
+        <p class="foot__maker">
+          {{ copy.footer.madeBy }}
+          <a href="https://bsyx.my" rel="noopener">Bsyx Labs</a>
+        </p>
+      </div>
     </div>
   </footer>
 </template>
 
 <style scoped>
+.foot__base {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-3) var(--space-6);
+}
+.foot__maker {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--text-tertiary);
+}
+.foot__maker a {
+  color: var(--text-primary);
+  font-weight: var(--weight-bold);
+  text-decoration: none;
+}
+.foot__maker a:hover {
+  color: var(--text-accent);
+}
 .foot {
   padding-block: var(--space-9) var(--space-8);
   background-color: var(--surface-page);
