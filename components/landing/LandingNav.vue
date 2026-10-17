@@ -10,8 +10,10 @@ import { localePath } from '~/composables/useLandingCopy'
  * a real navigation.
  */
 const props = withDefaults(
-  defineProps<{ copy: LandingCopy; locale: Locale; sectionBase?: string }>(),
-  { sectionBase: '' }
+  /* `slab`: the page opens on an ink slab (the landing hero), so until the
+     page scrolls the nav uses its on-slab colours. */
+  defineProps<{ copy: LandingCopy; locale: Locale; sectionBase?: string; slab?: boolean }>(),
+  { sectionBase: '', slab: false }
 )
 
 const scrolled = ref(false)
@@ -48,12 +50,20 @@ function closeMenu() {
 </script>
 
 <template>
-  <header class="nav" :class="{ 'nav--scrolled': scrolled }">
+  <header class="nav" :class="{ 'nav--scrolled': scrolled, 'nav--slab': slab && !scrolled && !menuOpen }">
     <div class="nav__inner k-container k-container--wide">
       <a :href="home" class="mark" :aria-label="copy.nav.home">
-        <!-- Wordmark rendered as text so it stays crisp and themes for free.
-             Swap point for the real logo asset — see README. -->
-        <span class="mark__text">InvoKita</span><span class="mark__dot" aria-hidden="true">.</span>
+        <!-- The K mark, inline so it stays crisp and takes its colours from
+             the locked tokens (same drawing as public/favicon.svg). -->
+        <svg class="mark__k" viewBox="0 0 64 64" aria-hidden="true">
+          <rect width="64" height="64" rx="15" class="mark__tile" />
+          <g fill="none" class="mark__glyph" stroke-width="8.5" stroke-linecap="round">
+            <path d="M21.5 15V49" />
+            <path d="M25 32 42.5 17" />
+            <path d="M25 32 44 47" />
+          </g>
+        </svg>
+        <span class="mark__text">InvoKita</span>
       </a>
 
       <nav class="nav__links" aria-label="Sections">
@@ -63,15 +73,25 @@ function closeMenu() {
       </nav>
 
       <div class="nav__actions">
-        <a :href="otherHref" class="nav__lang nav__lang--wide" :hreflang="otherLocale === 'ms' ? 'ms-MY' : 'en-MY'">
-          <svg class="nav__lang-ico" viewBox="0 0 16 16" aria-hidden="true">
-            <circle cx="8" cy="8" r="6.6" fill="none" stroke="currentColor" stroke-width="1.4" />
-            <ellipse cx="8" cy="8" rx="2.9" ry="6.6" fill="none" stroke="currentColor" stroke-width="1.4" />
-            <path d="M1.6 8h12.8" stroke="currentColor" stroke-width="1.4" />
-          </svg>
-          {{ otherLocale === 'ms' ? 'BM' : 'EN' }}
-          <span class="k-sr">{{ copy.nav.localeSwitchTo }}</span>
-        </a>
+        <!-- EN | BM. Real links to the two crawlable locale routes, not a
+             client-side toggle; the current one is marked, the other carries
+             hreflang. -->
+        <div class="lang-seg" role="group" aria-label="Language">
+          <a
+            :href="localePath('en')"
+            class="lang-seg__opt"
+            :class="{ 'is-on': locale === 'en' }"
+            :aria-current="locale === 'en' ? 'true' : undefined"
+            hreflang="en-MY"
+            lang="en">EN</a>
+          <a
+            :href="localePath('ms')"
+            class="lang-seg__opt"
+            :class="{ 'is-on': locale === 'ms' }"
+            :aria-current="locale === 'ms' ? 'true' : undefined"
+            hreflang="ms-MY"
+            lang="ms">BM</a>
+        </div>
 
         <button type="button" class="nav__icon-btn" @click="toggle">
           <span class="k-sr">{{ copy.nav.themeToggle }}</span>
@@ -174,8 +194,96 @@ function closeMenu() {
   color: var(--text-primary);
   flex: none;
 }
-.mark__dot {
-  color: var(--text-accent);
+.mark {
+  align-items: center;
+  gap: var(--space-2);
+}
+.mark__k {
+  width: 30px;
+  height: 30px;
+  flex: none;
+}
+.mark__tile {
+  fill: var(--brand-green);
+}
+.mark__glyph {
+  stroke: var(--brand-ink);
+}
+
+/* On a phone the K tile carries the brand on its own, so the CTA, the
+   language switch and the menu all fit in a 390px row. */
+@media (max-width: 479px) {
+  .mark__text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  .lang-seg__opt {
+    min-width: 2.1rem;
+  }
+}
+
+/* EN | BM segmented switch */
+.lang-seg {
+  display: inline-flex;
+  padding: 3px;
+  border-radius: var(--radius-md);
+  background-color: var(--chip-bg);
+}
+.lang-seg__opt {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.5rem;
+  height: 2.125rem;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-wide);
+  text-decoration: none;
+  transition:
+    background-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out);
+}
+.lang-seg__opt:hover {
+  color: var(--text-primary);
+}
+.lang-seg__opt.is-on {
+  background-color: var(--surface-raised);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-xs);
+}
+
+/* On the ink slab, before the page scrolls. */
+.nav--slab .mark,
+.nav--slab .nav__link:hover,
+.nav--slab .nav__signin:hover,
+.nav--slab .nav__icon-btn:hover,
+.nav--slab .nav__burger {
+  color: var(--text-on-slab);
+}
+.nav--slab .nav__link,
+.nav--slab .nav__signin,
+.nav--slab .nav__icon-btn,
+.nav--slab .lang-seg__opt {
+  color: var(--text-on-slab-muted);
+}
+.nav--slab .nav__icon-btn:hover {
+  background-color: var(--a-paper-10);
+}
+.nav--slab .nav__burger {
+  border-color: var(--border-on-slab);
+}
+.nav--slab .lang-seg {
+  background-color: var(--a-paper-10);
+}
+.nav--slab .lang-seg__opt.is-on {
+  background-color: var(--paper-50);
+  color: var(--ink-950);
 }
 
 .nav__links {

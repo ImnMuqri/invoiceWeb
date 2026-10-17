@@ -58,6 +58,21 @@ const copy = {
       ctaNote: 'Free plan · 5 invoices a month · no card needed',
       proofLabel: 'Connects to the gateways you already use',
       threadCaption: 'The default follow-up, word for word',
+      /* Chase track (hero). Dates match the example thread in useThread.ts. */
+      track: {
+        overdue: 'Overdue',
+        overdueBody: 'Due date passed. Status changed to overdue. You did nothing.',
+        paidVia: 'Paid via ToyyibPay',
+        stops: [
+          { date: '2 Nov · 10:04', event: 'Invoice sent' },
+          { date: '15 Nov · 00:00', event: 'Due date passed' },
+          { date: '18 Nov · 09:00', event: 'Reminder sent' },
+          { date: '18 Nov · 09:12', event: 'Paid' },
+        ],
+      },
+      noGateway: 'No gateway yet?',
+      noGatewayLink: 'Get paid with your DuitNow QR',
+      tape: ['Invoice sent', 'Reminder sent', 'Paid', 'Back to work', 'No more awkward follow-ups'],
     },
 
     thread: {
@@ -86,6 +101,20 @@ const copy = {
       eyebrow: 'Setting it up',
       title: 'From nothing to sent, in one sitting.',
       lead: 'There is no data import and no onboarding call. You can do this before your coffee goes cold.',
+      /* Labels inside the stepper's preview panel. */
+      vis: {
+        quoteFor: 'Brand shoot · 2 days',
+        quoteNote: 'Your client taps once. No account needed.',
+        accept: 'Accept',
+        decline: 'Decline',
+        draft: 'Draft ready',
+        email: 'Email',
+        linkNote: 'Opens a payment page, not a PDF.',
+        every: 'Follow up every',
+        intervals: ['1 day', '3 days', '7 days'],
+        reminders: ['Reminder 1 · 18 Nov', 'Reminder 2 · 21 Nov'],
+        stops: 'Stops the moment they pay',
+      },
       items: [
         /* Spec 07 puts quoting before invoicing, which is the order the work
            actually happens in — you price the job, then you bill it. It is
@@ -150,6 +179,9 @@ const copy = {
       ],
       totalLabel: 'TIMES YOU HAD TO ASK',
       totalValue: 'NONE',
+      printing: 'PRINTING LOG',
+      stamp: 'PAID',
+      zero: 'Not once. That was the point.',
       byYou: 'YOU',
       byAuto: 'AUTO',
       footnote:
@@ -207,6 +239,7 @@ const copy = {
           body: 'Clients get a payment page, not an attachment they have to download and lose. If their accounts department wants a PDF, that is one click.',
           link: 'invokita.my/pay/k3f9a',
           pdf: 'Invoice-INV-0042.pdf',
+          payCta: 'View and pay',
         },
         /* Spec 07. One card, not a second headline — quoting is a supporting
            capability and the page stays about chasing invoices. */
@@ -242,6 +275,18 @@ const copy = {
          of Max now, so listing it here read as an extra you had to ask for. */
       customBody: 'Chasing more than 75 invoices a month, or something shaped differently. Tell us what you need.',
       customCta: 'Talk to us',
+      /* Plan finder. {n} is replaced from the live plan row, never hardcoded. */
+      finder: {
+        question: 'How many invoices do you send a month?',
+        unit: 'invoices a month',
+        fit: 'Best fit for you',
+        fitShort: 'Your fit',
+        whyFree: 'Up to {n} invoices a month. You send the reminders yourself.',
+        whyChaser: 'Chases up to {n} invoices a month for you, automatically.',
+        whyCustom: 'More than {n} a month. Tell us what you need and we will set it up.',
+        custom: 'Custom',
+        customPrice: 'Let’s talk',
+      },
     },
 
     faq: {
@@ -325,6 +370,7 @@ const copy = {
         refund: 'Refund policy',
       },
       rights: 'All rights reserved.',
+      madeBy: 'A product by',
     },
   },
 
@@ -367,6 +413,20 @@ const copy = {
       ctaNote: 'Pelan percuma · 5 invois sebulan · tanpa kad kredit',
       proofLabel: 'Sambung terus ke gateway yang anda guna sekarang',
       threadCaption: 'Mesej susulan lalai, perkataan demi perkataan',
+      track: {
+        overdue: 'Tertunggak',
+        overdueBody: 'Tarikh akhir lepas. Status bertukar ke tertunggak. Anda tak buat apa-apa.',
+        paidVia: 'Dibayar melalui ToyyibPay',
+        stops: [
+          { date: '2 Nov · 10:04', event: 'Invois dihantar' },
+          { date: '15 Nov · 00:00', event: 'Tarikh akhir lepas' },
+          { date: '18 Nov · 09:00', event: 'Peringatan dihantar' },
+          { date: '18 Nov · 09:12', event: 'Dibayar' },
+        ],
+      },
+      noGateway: 'Belum ada gateway?',
+      noGatewayLink: 'Terima bayaran guna DuitNow QR anda',
+      tape: ['Invois dihantar', 'Peringatan dihantar', 'Dah bayar', 'Sambung kerja', 'Tak payah kejar sendiri'],
     },
 
     thread: {
@@ -395,6 +455,19 @@ const copy = {
       eyebrow: 'Cara mula',
       title: 'Dari kosong ke hantar, dalam satu duduk.',
       lead: 'Tiada import data, tiada sesi onboarding. Boleh siap sebelum kopi anda sejuk.',
+      vis: {
+        quoteFor: 'Penggambaran jenama · 2 hari',
+        quoteNote: 'Pelanggan tekan sekali. Tanpa akaun.',
+        accept: 'Terima',
+        decline: 'Tolak',
+        draft: 'Draf siap',
+        email: 'Emel',
+        linkNote: 'Buka halaman bayaran, bukan PDF.',
+        every: 'Susul setiap',
+        intervals: ['1 hari', '3 hari', '7 hari'],
+        reminders: ['Peringatan 1 · 18 Nov', 'Peringatan 2 · 21 Nov'],
+        stops: 'Berhenti sebaik mereka bayar',
+      },
       items: [
         {
           n: '01',
@@ -454,6 +527,9 @@ const copy = {
       ],
       totalLabel: 'BERAPA KALI ANDA KENA MINTA',
       totalValue: 'TIADA',
+      printing: 'MENCETAK LOG',
+      stamp: 'DIBAYAR',
+      zero: 'Tak sekali pun. Itu tujuannya.',
       byYou: 'ANDA',
       byAuto: 'AUTO',
       footnote:
@@ -511,6 +587,7 @@ const copy = {
           body: 'Pelanggan dapat halaman bayaran, bukan fail lampiran yang kena muat turun kemudian hilang. Kalau bahagian akaun mereka nak PDF, satu klik je.',
           link: 'invokita.my/pay/k3f9a',
           pdf: 'Invois-INV-0042.pdf',
+          payCta: 'Lihat dan bayar',
         },
         quotes: {
           title: 'Sebut harga yang balik dengan jawapan.',
@@ -542,6 +619,17 @@ const copy = {
       customTitle: 'Perlu sesuatu yang lebih besar?',
       customBody: 'Mengejar lebih 75 invois sebulan, atau sesuatu yang lain bentuknya. Beritahu kami apa yang anda perlukan.',
       customCta: 'Hubungi kami',
+      finder: {
+        question: 'Berapa invois anda hantar sebulan?',
+        unit: 'invois sebulan',
+        fit: 'Paling sesuai untuk anda',
+        fitShort: 'Sesuai',
+        whyFree: 'Sehingga {n} invois sebulan. Anda hantar peringatan sendiri.',
+        whyChaser: 'Kejar sehingga {n} invois sebulan untuk anda, secara automatik.',
+        whyCustom: 'Lebih {n} sebulan. Beritahu kami apa yang anda perlukan.',
+        custom: 'Khas',
+        customPrice: 'Jom bincang',
+      },
     },
 
     faq: {
@@ -620,6 +708,7 @@ const copy = {
         refund: 'Dasar bayaran balik',
       },
       rights: 'Hak cipta terpelihara.',
+      madeBy: 'Produk oleh',
     },
   },
 } as const

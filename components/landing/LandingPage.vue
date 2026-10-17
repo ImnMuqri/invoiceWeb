@@ -197,11 +197,14 @@ useHead({
   <div ref="root" class="kirim">
     <a href="#main" class="k-skip">{{ copy.nav.skip }}</a>
 
-    <LandingNav :copy="copy" :locale="locale" />
+    <LandingNav :copy="copy" :locale="locale" slab />
 
     <main id="main">
       <LandingHero :copy="copy" :locale="locale" />
-      <LandingStory :copy="copy" :locale="locale" />
+      <LandingTape :copy="copy" />
+      <!-- LandingStory (the sticky phone thread) is retired from the page:
+           the hero's chase track now carries the same argument. The
+           component is kept for reuse. -->
       <LandingSteps :copy="copy" />
       <LandingPayments :copy="copy" />
       <LandingChaser :copy="copy" />

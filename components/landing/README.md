@@ -685,3 +685,23 @@ the largest thing on the page for a new account.
 
 **Not done:** the forecast, profitability and referral panels are restyled but
 not restructured, and the multi-currency note was demoted rather than rewritten.
+
+---
+
+## 6. Redesign v2 (October 2026)
+
+What changed, section by section:
+
+| Section | Component | Change |
+|---|---|---|
+| Nav | `LandingNav` | K mark (inline SVG, token colours) replaces the text wordmark; EN \| BM segmented switch linking the two locale routes; on-slab colours while over the hero (`slab` prop). |
+| Hero | `LandingHero` | Ink slab, centred promise, and the **chase track**: one invoice moving Sent → Overdue → Reminder → Paid, built from the `useThread` example so the reminder is still the real default template. "No gateway yet? DuitNow QR" line under the gateways. |
+| Tape | `LandingTape` (new) | Green serif marquee, phrases per locale (`hero.tape`). Decorative, `aria-hidden`. |
+| The thread | `LandingStory` | Retired from the page (component kept). The chase track carries this argument now. |
+| Steps | `LandingSteps` | Interactive stepper with a preview panel per step. Auto-plays; a click holds the step. |
+| Chaser | `LandingChaser` | Green slab, giant serif 0, receipt feeds from a printer bar. Receipt is full height from the start; lines print one per second once it is on screen. |
+| Bento | `LandingBento` | 4-column mixed-span grid on mixed grounds, pointer-following light written to CSS vars (no re-render). |
+| Pricing | `LandingPricing` | Plan finder: a slider ("how many invoices a month?") recommends the cheapest plan that covers it. Thresholds come from the live plan rows (`invoices`, `chasedInvoices`), never hardcoded. The recommended card gets the travelling border. |
+| Footer | `LandingFooter` | "A product by Bsyx Labs". |
+
+**Motion exceptions to the "conversation cadence" rule (§2), agreed for v2:** the tape marquee, the hero track loop, the stepper auto-play, the receipt print loop, the bento demo loops and the recommended-plan border run longer than 300ms. All of them stop under `prefers-reduced-motion`. The serif now also appears in the tape, the chaser "0" and the finder number.
