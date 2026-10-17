@@ -1,583 +1,31 @@
-<template>
-  <div class="max-w-[1300px]">
-    <div class="mb-8">
-      <h2 class="text-2xl font-bold text-slate-900 tracking-tight">Settings</h2>
-      <p class="text-xs font-medium text-slate-500 mt-1">
-        Manage your profile and platform preferences.
-      </p>
-    </div>
-
-    <div class="flex flex-col md:flex-row gap-8">
-      <!-- Sidebar Navigation -->
-      <aside class="w-full md:w-64 flex-shrink-0">
-        <nav class="space-y-1">
-          <button
-            v-for="tab in tabs"
-            :key="tab.id"
-            @click="switchTab(tab.id)"
-            :class="[
-              activeTab === tab.id
-                ? 'bg-slate-100 text-slate-900'
-                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900',
-              'group flex items-center px-4 py-2.5 text-sm font-semibold rounded-md transition-all w-full text-left',
-            ]">
-            <UiIcon
-              :name="tab.icon"
-              :class="[
-                activeTab === tab.id
-                  ? 'text-slate-900'
-                  : 'text-slate-400 group-hover:text-slate-500',
-                'mr-3 h-5 w-5 flex-shrink-0 transition-colors',
-              ]" />
-            {{ tab.name }}
-          </button>
-        </nav>
-      </aside>
-
-      <!-- Main Content Area -->
-      <div class="flex-1 mb-12">
-        <div
-          class="bg-white shadow-sm rounded-xl border border-slate-200 overflow-hidden">
-          <!-- General Tab -->
-          <div v-if="activeTab === 'general'" class="divide-y divide-slate-100">
-            <div class="p-6">
-              <h3
-                class="text-base font-semibold text-slate-900 tracking-tight mb-6">
-                Company Information
-              </h3>
-              <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
-                <div class="sm:col-span-4">
-                  <label
-                    class="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2"
-                    >Full Name</label
-                  >
-                  <input
-                    type="text"
-                    v-model="profileForm.name"
-                    class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-slate-950 outline-none transition-all" />
-                </div>
-                <div class="sm:col-span-4">
-                  <label
-                    class="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2"
-                    >Company Name</label
-                  >
-                  <input
-                    type="text"
-                    v-model="profileForm.companyName"
-                    class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-slate-950 outline-none transition-all" />
-                </div>
-                <div class="sm:col-span-4">
-                  <label
-                    class="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2"
-                    >Billing Email</label
-                  >
-                  <input
-                    type="email"
-                    v-model="profileForm.companyEmail"
-                    class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-slate-950 outline-none transition-all" />
-                </div>
-                <div class="sm:col-span-6">
-                  <label
-                    class="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2"
-                    >Address</label
-                  >
-                  <textarea
-                    v-model="profileForm.address"
-                    rows="3"
-                    class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-slate-950 outline-none transition-all"></textarea>
-                </div>
-              </div>
-            </div>
-
-            <div class="p-6">
-              <h3
-                class="text-base font-semibold text-slate-900 tracking-tight mb-6">
-                Preferences
-              </h3>
-              <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
-                <div class="sm:col-span-3">
-                  <label
-                    class="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2"
-                    >Default Currency</label
-                  >
-                  <UiSelect
-                    v-model="profileForm.defaultCurrency"
-                    :options="currencyOptions"
-                    placeholder="Select currency" />
-                </div>
-                <div class="sm:col-span-3">
-                  <label
-                    class="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2"
-                    >Default Tax Rate (%)</label
-                  >
-                  <input
-                    type="number"
-                    v-model.number="profileForm.defaultTaxRate"
-                    class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-slate-950 outline-none transition-all" />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- WhatsApp Tab -->
-          <div
-            v-if="activeTab === 'whatsapp'"
-            class="divide-y divide-slate-100 relative overflow-hidden min-h-[400px]">
-            <!-- Lock Overlay -->
-            <div
-              v-if="!authStore.isPro"
-              class="absolute inset-0 z-10 backdrop-blur-[6px] bg-white/40 flex flex-col items-center justify-center p-8 text-center">
-              <div
-                class="w-16 h-16 bg-white rounded-2xl shadow-sm border border-slate-200 flex items-center justify-center mb-4 text-emerald-600">
-                <UiIcon icon="heroicons:lock-closed" custom-class="w-6 h-6" />
-              </div>
-              <h3 class="text-xl font-bold text-slate-900 mb-1">
-                WhatsApp & Reminders are Pro Features
-              </h3>
-              <p class="text-sm text-slate-500 mb-4 max-w-sm leading-relaxed">
-                Connect your own Twilio, customize automated reminder templates,
-                and more by upgrading to a business plan.
-              </p>
-              <button
-                @click="switchTab('billing')"
-                class="inline-flex items-center px-6 py-3 bg-slate-900 text-white text-sm font-bold rounded-xl hover:bg-slate-800 transition-all uppercase tracking-widest shadow-lg">
-                Upgrade to Pro
-              </button>
-            </div>
-
-            <div class="p-6">
-              <h3
-                class="text-base font-semibold text-slate-900 tracking-tight mb-2">
-                WhatsApp Connection
-              </h3>
-              <p class="text-sm text-slate-500 mb-6 font-medium">
-                Choose how you want to connect to WhatsApp.
-              </p>
-
-              <div class="space-y-3 mb-8">
-                <label
-                  class="flex items-center p-4 border rounded-md cursor-pointer transition-all border-slate-200 hover:border-slate-300"
-                  :class="{
-                    'border-slate-900 bg-slate-50':
-                      settingsForm.whatsappMode === 'SYSTEM',
-                  }">
-                  <input
-                    type="radio"
-                    value="SYSTEM"
-                    v-model="settingsForm.whatsappMode"
-                    class="sr-only" />
-                  <div class="flex-1">
-                    <p class="text-sm font-semibold text-slate-900">
-                      Managed (InvoKita Shared Number)
-                    </p>
-                    <p class="text-xs text-slate-500 mt-1">
-                      Plug & Play. Use our shared business number to send
-                      messages instantly.
-                    </p>
-                  </div>
-                  <div
-                    class="h-4 w-4 rounded-full border flex items-center justify-center"
-                    :class="
-                      settingsForm.whatsappMode === 'SYSTEM'
-                        ? 'border-slate-900'
-                        : 'border-slate-300'
-                    ">
-                    <div
-                      v-if="settingsForm.whatsappMode === 'SYSTEM'"
-                      class="h-2 w-2 rounded-full bg-slate-900"></div>
-                  </div>
-                </label>
-
-                <label
-                  class="flex items-center p-4 border rounded-md cursor-pointer transition-all border-slate-200 hover:border-slate-300"
-                  :class="{
-                    'border-slate-900 bg-slate-50':
-                      settingsForm.whatsappMode === 'CUSTOM',
-                  }">
-                  <input
-                    type="radio"
-                    value="CUSTOM"
-                    v-model="settingsForm.whatsappMode"
-                    class="sr-only" />
-                  <div class="flex-1">
-                    <p class="text-sm font-semibold text-slate-900">
-                      Custom (Bring Your Own Twilio)
-                    </p>
-                    <p class="text-xs text-slate-500 mt-1">
-                      Connect your own Twilio account to send from your own
-                      business number.
-                    </p>
-                  </div>
-                  <div
-                    class="h-4 w-4 rounded-full border flex items-center justify-center"
-                    :class="
-                      settingsForm.whatsappMode === 'CUSTOM'
-                        ? 'border-slate-900'
-                        : 'border-slate-300'
-                    ">
-                    <div
-                      v-if="settingsForm.whatsappMode === 'CUSTOM'"
-                      class="h-2 w-2 rounded-full bg-slate-900"></div>
-                  </div>
-                </label>
-              </div>
-
-              <div
-                v-if="settingsForm.whatsappMode === 'CUSTOM'"
-                class="grid grid-cols-1 gap-6 sm:grid-cols-2 bg-slate-50 p-6 rounded-md border border-slate-200">
-                <div class="sm:col-span-2">
-                  <label
-                    class="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2"
-                    >Twilio Account SID</label
-                  >
-                  <input
-                    type="text"
-                    v-model="settingsForm.twilioSid"
-                    placeholder="AC..."
-                    class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-slate-950 outline-none bg-white transition-all" />
-                </div>
-                <div>
-                  <label
-                    class="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2"
-                    >Twilio Auth Token</label
-                  >
-                  <input
-                    type="password"
-                    v-model="settingsForm.twilioAuthToken"
-                    placeholder="••••••••"
-                    class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-slate-950 outline-none bg-white transition-all" />
-                </div>
-                <div>
-                  <label
-                    class="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2"
-                    >Twilio WhatsApp Number</label
-                  >
-                  <input
-                    type="text"
-                    v-model="settingsForm.twilioPhoneNumber"
-                    placeholder="whatsapp:+123..."
-                    class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-slate-950 outline-none bg-white transition-all" />
-                </div>
-              </div>
-            </div>
-
-            <div class="p-6">
-              <h3
-                class="text-base font-semibold text-slate-900 tracking-tight mb-2">
-                Message Templates
-              </h3>
-              <p class="text-sm text-slate-500 mb-6 font-medium">
-                Customize the messages sent to your clients.
-              </p>
-
-              <div class="space-y-6">
-                <div>
-                  <label
-                    class="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2"
-                    >Invoice Send Template</label
-                  >
-                  <textarea
-                    v-model="settingsForm.whatsappSendTemplate"
-                    rows="4"
-                    class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-slate-950 outline-none transition-all"
-                    placeholder="Enter template for manual sending"></textarea>
-                </div>
-                <div>
-                  <label
-                    class="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2"
-                    >Automatic Reminder Template</label
-                  >
-                  <textarea
-                    v-model="settingsForm.whatsappReminderTemplate"
-                    rows="4"
-                    class="block w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-slate-950 outline-none transition-all"
-                    placeholder="Enter template for auto reminders"></textarea>
-                </div>
-
-                <div class="bg-slate-50 rounded-md p-6 border border-slate-200">
-                  <h4
-                    class="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-3">
-                    Available Placeholders
-                  </h4>
-                  <div class="flex flex-wrap gap-2">
-                    <span
-                      v-for="tag in [
-                        '{{userName}}',
-                        '{{companyName}}',
-                        '{{clientName}}',
-                        '{{invoiceNumber}}',
-                        '{{totalAmount}}',
-                        '{{currency}}',
-                        '{{dueDate}}',
-                        '{{invoiceUrl}}',
-                      ]"
-                      :key="tag"
-                      class="px-2 py-1 bg-white border border-slate-200 rounded-md text-[10px] font-mono font-semibold text-slate-600 shadow-sm">
-                      {{ tag }}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Billing Tab -->
-          <div v-if="activeTab === 'billing'" class="p-6">
-            <!-- Current Plan Banner -->
-            <div
-              class="mb-8 p-4 bg-slate-50 border border-slate-200 rounded-md flex items-center justify-between transition-all hover:bg-slate-100/50">
-              <div class="flex items-center gap-3">
-                <div
-                  class="w-10 h-10 bg-white border border-slate-200 rounded-md flex items-center justify-center text-lg shadow-sm">
-                  <UiIcon
-                    icon="solar:bill-check-bold"
-                    class="text-emerald-600"></UiIcon>
-                </div>
-                <div>
-                  <p
-                    class="text-[10px] font-semibold text-slate-500 uppercase tracking-widest leading-none mb-1">
-                    Your Current Plan
-                  </p>
-                  <h4
-                    class="text-sm font-semibold text-slate-900 leading-none capitalize">
-                    {{ authStore.user?.plan || "Free" }}
-                  </h4>
-                </div>
-              </div>
-              <div
-                class="text-[10px] text-emerald-600 font-semibold uppercase tracking-wider bg-emerald-50 px-2 py-1 rounded border border-emerald-100 shadow-sm">
-                Active
-              </div>
-            </div>
-
-            <!-- Pricing Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pb-12">
-              <!-- Free Plan -->
-              <div
-                class="border border-slate-200 rounded-2xl p-8 transition-all hover:border-slate-300 bg-white shadow-sm flex flex-col">
-                <div class="mb-8">
-                  <div class="flex items-center justify-between mb-2">
-                    <h5 class="text-lg font-semibold text-slate-900">Free</h5>
-                    <span
-                      v-if="authStore.user?.plan === 'FREE'"
-                      class="px-2 py-0.5 bg-slate-900 text-white text-[10px] font-semibold rounded uppercase tracking-widest">
-                      Active
-                    </span>
-                  </div>
-                  <p class="text-sm text-slate-500 font-medium">For starters</p>
-                </div>
-                <div class="mb-8 flex items-baseline">
-                  <span
-                    class="text-4xl font-semibold text-slate-900 tracking-tight"
-                    >$0</span
-                  >
-                  <span class="text-slate-400 text-sm ml-1 font-medium"
-                    >/month</span
-                  >
-                </div>
-                <ul class="space-y-4 mb-8 flex-1">
-                  <li
-                    v-for="feature in [
-                      '5 Invoices/mo',
-                      'Email Delivery',
-                      'Manual Reminders',
-                    ]"
-                    :key="feature"
-                    class="flex items-center text-sm font-medium text-slate-600">
-                    <UiIcon
-                      icon="heroicons:check"
-                      class="w-4 h-4 mr-3 text-slate-400" />
-                    {{ feature }}
-                  </li>
-                  <li
-                    v-for="limit in [
-                      'No AI Drafts',
-                      'No WhatsApp',
-                      'No Auto-Chasers',
-                    ]"
-                    :key="limit"
-                    class="flex items-center text-sm font-medium text-slate-400 line-through">
-                    <UiIcon
-                      icon="heroicons:x-mark"
-                      class="w-4 h-4 mr-3 text-slate-300" />
-                    {{ limit }}
-                  </li>
-                </ul>
-                <button
-                  @click="
-                    authStore.user?.plan !== 'FREE' ? updatePlan('FREE') : null
-                  "
-                  :disabled="authStore.user?.plan === 'FREE'"
-                  class="w-full py-2.5 rounded-xl text-sm font-semibold transition-all border"
-                  :class="
-                    authStore.user?.plan === 'FREE'
-                      ? 'border-slate-100 bg-slate-50 text-slate-400 cursor-not-allowed'
-                      : 'bg-slate-900 text-white border-slate-900 hover:bg-slate-800'
-                  ">
-                  {{
-                    authStore.user?.plan === "FREE"
-                      ? "Current Plan"
-                      : "Downgrade"
-                  }}
-                </button>
-              </div>
-
-              <!-- Pro Plan -->
-              <div
-                class="border border-slate-200 rounded-2xl p-8 transition-all hover:border-emerald-200 bg-white shadow-sm flex flex-col">
-                <div class="mb-8">
-                  <div class="flex items-center justify-between mb-2">
-                    <h5 class="text-lg font-semibold text-slate-900">Pro</h5>
-                    <span
-                      v-if="authStore.user?.plan === 'PRO'"
-                      class="px-2 py-0.5 bg-emerald-600 text-white text-[10px] font-semibold rounded uppercase tracking-widest">
-                      Active
-                    </span>
-                  </div>
-                  <p class="text-sm text-slate-500 font-medium">
-                    Growing businesses
-                  </p>
-                </div>
-                <div class="mb-8 flex items-baseline">
-                  <span
-                    class="text-4xl font-semibold text-slate-900 tracking-tight"
-                    >$29</span
-                  >
-                  <span class="text-slate-400 text-sm ml-1 font-medium"
-                    >/month</span
-                  >
-                </div>
-                <ul class="space-y-4 mb-8 flex-1">
-                  <li
-                    v-for="feature in [
-                      '30 Invoices/mo',
-                      '10 WhatsApp channels',
-                      '30 Reminders/mo',
-                      '20 AI Drafts/mo',
-                    ]"
-                    :key="feature"
-                    class="flex items-center text-sm font-medium text-slate-600">
-                    <UiIcon
-                      icon="heroicons:check"
-                      class="w-4 h-4 mr-3 text-emerald-600" />
-                    {{ feature }}
-                  </li>
-                  <li
-                    class="flex items-center text-sm font-medium text-slate-400 line-through">
-                    <UiIcon
-                      icon="heroicons:x-mark"
-                      class="w-4 h-4 mr-3 text-slate-300" />
-                    White Labelling
-                  </li>
-                </ul>
-                <button
-                  @click="
-                    authStore.user?.plan !== 'PRO' ? updatePlan('PRO') : null
-                  "
-                  :disabled="authStore.user?.plan === 'PRO'"
-                  class="w-full py-2.5 rounded-xl text-sm font-semibold transition-all border"
-                  :class="
-                    authStore.user?.plan === 'PRO'
-                      ? 'border-emerald-100 bg-emerald-50 text-emerald-600'
-                      : 'bg-slate-900 text-white border-slate-900 hover:bg-slate-800'
-                  ">
-                  {{
-                    authStore.user?.plan === "PRO"
-                      ? "Current Plan"
-                      : "Select Pro"
-                  }}
-                </button>
-              </div>
-
-              <!-- Max Plan -->
-              <div
-                class="border border-slate-200 rounded-2xl p-8 transition-all hover:border-indigo-200 bg-white shadow-sm flex flex-col">
-                <div class="mb-8">
-                  <div class="flex items-center justify-between mb-2">
-                    <h5 class="text-lg font-semibold text-slate-900">Max</h5>
-                    <span
-                      v-if="authStore.user?.plan === 'MAX'"
-                      class="px-2 py-0.5 bg-indigo-600 text-white text-[10px] font-semibold rounded uppercase tracking-widest">
-                      Active
-                    </span>
-                  </div>
-                  <p class="text-sm text-slate-500 font-medium">Power users</p>
-                </div>
-                <div class="mb-8 flex items-baseline">
-                  <span
-                    class="text-4xl font-semibold text-slate-900 tracking-tight"
-                    >$99</span
-                  >
-                  <span class="text-slate-400 text-sm ml-1 font-medium"
-                    >/month</span
-                  >
-                </div>
-                <ul class="space-y-4 mb-8 flex-1">
-                  <li
-                    v-for="feature in [
-                      '100 Invoices/mo',
-                      'Unlimited Channels',
-                      '100 Reminders/mo',
-                      '50 AI Drafts/mo',
-                      'White Labelling',
-                    ]"
-                    :key="feature"
-                    class="flex items-center text-sm font-medium text-slate-600">
-                    <UiIcon
-                      icon="heroicons:check"
-                      class="w-4 h-4 mr-3 text-indigo-500" />
-                    {{ feature }}
-                  </li>
-                </ul>
-                <button
-                  @click="
-                    authStore.user?.plan !== 'MAX' ? updatePlan('MAX') : null
-                  "
-                  :disabled="authStore.user?.plan === 'MAX'"
-                  class="w-full py-2.5 rounded-xl text-sm font-semibold transition-all border"
-                  :class="
-                    authStore.user?.plan === 'MAX'
-                      ? 'border-indigo-100 bg-indigo-50 text-indigo-600'
-                      : 'bg-slate-900 text-white border-slate-900 hover:bg-slate-800'
-                  ">
-                  {{
-                    authStore.user?.plan === "MAX"
-                      ? "Current Plan"
-                      : "Select Max"
-                  }}
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Footer Actions -->
-          <div
-            v-if="activeTab !== 'billing'"
-            class="bg-slate-50 px-6 py-4 border-t border-slate-100 flex justify-end">
-            <button
-              type="button"
-              @click="saveSettings"
-              :disabled="authStore.loading"
-              class="inline-flex justify-center items-center rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 transition-all disabled:opacity-50">
-              <UiIcon
-                v-if="authStore.loading"
-                icon="heroicons:arrow-path"
-                custom-class="w-4 h-4 mr-2 animate-spin text-white" />
-              {{ authStore.loading ? "Saving..." : "Save Settings" }}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-    <UiToast v-model="toast" />
-  </div>
-</template>
-
 <script setup>
-import { ref, onMounted, watch } from "vue";
+/**
+ * SETTINGS — your account with us.
+ *
+ * Three tabs now. Details, Documents, Email and WhatsApp moved to /business,
+ * where they belong: those describe your business as clients experience it, and
+ * these describe your relationship with this software. What is left is money in
+ * (Payments), money out (Plan) and the key to the door (Security).
+ *
+ * Bugs fixed when this page was seven tabs, still standing:
+ *
+ *  1. Whether a tab has a save footer is a property of the tab. It used to
+ *     render for every tab except Billing, which put a permanently disabled
+ *     primary button on Security.
+ *  2. Two native `confirm()` dialogs — disconnecting a gateway, removing a logo
+ *     — in an app with UiModal on every other destructive action.
+ *  3. The QR upload accepted any file of any size and fed it straight to an
+ *     Image, while the logo upload two functions away checked both.
+ *  4. `authStore.user?.plan.toUpperCase()` guarded `user` and not `plan`.
+ *
+ * Data contracts unchanged: same stores, same payloads, same endpoints.
+ */
+import { computed, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useAuthStore } from "~/stores/authStore";
 import { useUiStore } from "~/stores/uiStore";
+import { useSubscribeStore } from "~/stores/subscribeStore";
+import jsQR from "jsqr";
 
 const authStore = useAuthStore();
 const uiStore = useUiStore();
@@ -586,142 +34,669 @@ const route = useRoute();
 const router = useRouter();
 const { $api } = useNuxtApp();
 
-const tabs = [
-  {
-    id: "general",
-    name: "General & Profile",
-    icon: "heroicons:building-office",
-  },
-  {
-    id: "whatsapp",
-    name: "WhatsApp Configuration",
-    icon: "heroicons:chat-bubble-left-right",
-  },
-  { id: "billing", name: "Billing", icon: "heroicons:credit-card" },
+const toast = ref({ message: "", type: "success" });
+const notify = (message, type = "success") => (toast.value = { message, type });
+
+const TABS = [
+  { id: "payments", name: "Payments", icon: "heroicons:banknotes", form: "settings", saves: false },
+  /* "Plan & top-ups", not "Plan". Both dashboard "Top up" links land here, and
+     a tab labelled Plan told those users they had been sent somewhere else —
+     which, until the top-up section was built, they effectively had. */
+  { id: "billing", name: "Plan & top-ups", icon: "heroicons:sparkles", form: null, saves: false },
+  { id: "security", name: "Security", icon: "heroicons:lock-closed", form: null, saves: false },
 ];
 
-const activeTab = ref(route.query.tab || "general");
-const toast = ref({ message: "", type: "success" });
-const currencyOptions = ref([]);
-
-const fetchCurrencies = async () => {
-  try {
-    const response = await $api.get("/currencies");
-    currencyOptions.value = response.data;
-  } catch (err) {
-    // Fallback if API fails
-    currencyOptions.value = [
-      { value: "MYR", label: "MYR (RM)" },
-      { value: "USD", label: "USD ($)" },
-    ];
-  }
+/* The four tabs that left. A bookmark, a help-modal link or a habit still
+   arrives here asking for them, and a silent fallback to Payments would look
+   like the setting had been deleted. Send them where it went. */
+const MOVED = {
+  general: "details",
+  invoice_config: "documents",
+  details: "details",
+  documents: "documents",
+  email: "email",
+  whatsapp: "whatsapp",
 };
 
-// Sync with route changes
-watch(
-  () => route.query.tab,
-  (newTab) => {
-    if (newTab && tabs.some((t) => t.id === newTab)) {
-      activeTab.value = newTab;
-    } else if (!newTab) {
-      activeTab.value = "general";
-    }
-  },
+const activeTab = ref(TABS.some((t) => t.id === route.query.tab) ? route.query.tab : "payments");
+const tab = computed(() => TABS.find((t) => t.id === activeTab.value) || TABS[0]);
+
+const route_ = (next) => {
+  if (MOVED[next]) {
+    router.replace({ path: "/business", query: { tab: MOVED[next] } });
+    return;
+  }
+  activeTab.value = TABS.some((t) => t.id === next) ? next : "payments";
+};
+
+onMounted(() => {
+  route_(route.query.tab);
+
+  /* Coming back from a top-up checkout (spec 01).
+     The gateway returns to ?topup=success|failed and nothing read it, so a user
+     who had just paid landed back on this page with no acknowledgement at all —
+     the balance does not update instantly either, because it is granted by the
+     webhook rather than by this redirect, so silence reads as "did that work?".
+
+     The query is cleared afterwards so a refresh does not replay the message. */
+  const outcome = route.query.topup;
+  if (outcome === "success") {
+    notify("Payment received. Your top-up appears as soon as the bank confirms it — usually seconds.");
+  } else if (outcome === "failed") {
+    notify("That payment did not go through. Nothing has been charged.", "error");
+  }
+  if (outcome) {
+    const q = { ...route.query };
+    delete q.topup;
+    router.replace({ query: q });
+  }
+});
+watch(() => route.query.tab, route_);
+
+const go = (id) => {
+  if (!id) return router.push("/clients");
+  if (MOVED[id]) return router.push({ path: "/business", query: { tab: MOVED[id] } });
+  router.push({ query: { ...route.query, tab: id } });
+};
+
+/* ─── Forms ─────────────────────────────────────────────────────────────── */
+const settingsForm = ref({
+  manualBankName: "",
+  manualAccountNumber: "",
+  manualAccountName: "",
+  manualQrCode: "",
+});
+
+const cleanSettings = ref({});
+
+const isDirty = computed(() =>
+  tab.value.form === "settings"
+    ? JSON.stringify(settingsForm.value) !== JSON.stringify(cleanSettings.value)
+    : false,
 );
 
-const switchTab = (tabId) => {
-  router.push({ query: { ...route.query, tab: tabId } });
+const plans = ref([]);
+const saving = ref(false);
+
+/* ─── Load ──────────────────────────────────────────────────────────────── */
+const fetchPlans = async () => {
+  try {
+    const { data } = await $api.get("/plans");
+    plans.value = data;
+  } catch {
+    plans.value = [];
+  }
 };
 
-const profileForm = ref({
-  name: "",
-  companyName: "",
-  companyEmail: "",
-  address: "",
-  defaultCurrency: "MYR",
-  defaultTaxRate: 0,
-});
-
-const settingsForm = ref({
-  whatsappSendTemplate: "",
-  whatsappReminderTemplate: "",
-  whatsappMode: "SYSTEM",
-  twilioSid: "",
-  twilioAuthToken: "",
-  twilioPhoneNumber: "",
-});
+const providers = ref([]);
+const fetchProviders = async () => {
+  providers.value = (await authStore.fetchPaymentProviders()) || [];
+};
 
 onMounted(async () => {
-  fetchCurrencies();
-  await authStore.fetchProfile();
-  if (authStore.user) {
-    profileForm.value = {
-      name: authStore.user.name || "",
-      companyName: authStore.user.companyName || "",
-      companyEmail: authStore.user.companyEmail || "",
-      address: authStore.user.address || "",
-      defaultCurrency: authStore.user.defaultCurrency || "MYR",
-      defaultTaxRate: authStore.user.defaultTaxRate || 0,
-    };
+  /* Gateway return trip. Clearing the flag out of the URL keeps a refresh from
+     re-announcing a payment that happened minutes ago. */
+  if (route.query.success === "true" || route.query.failed === "true") {
+    notify(
+      route.query.success === "true"
+        ? "You are set up. Your plan is active."
+        : "That did not go through, and you have not been charged.",
+      route.query.success === "true" ? "success" : "error",
+    );
+    const q = { ...route.query };
+    delete q.success;
+    delete q.failed;
+    router.replace({ query: q });
   }
 
-  const settings = await authStore.fetchSettings();
-  if (settings) {
-    settingsForm.value = {
-      whatsappSendTemplate: settings.whatsappSendTemplate || "",
-      whatsappReminderTemplate: settings.whatsappReminderTemplate || "",
-      whatsappMode: settings.whatsappMode || "SYSTEM",
-      twilioSid: settings.twilioSid || "",
-      twilioAuthToken: settings.twilioAuthToken || "",
-      twilioPhoneNumber: settings.twilioPhoneNumber || "",
-    };
-  }
+  fetchPlans();
+  await authStore.fetchProfile();
+
+  const pay = (await authStore.fetchPaymentSettings()) || {};
+  settingsForm.value = {
+    manualBankName: pay.manualBankName || "",
+    manualAccountNumber: pay.manualAccountNumber || "",
+    manualAccountName: pay.manualAccountName || "",
+    manualQrCode: pay.manualQrCode || "",
+  };
+  cleanSettings.value = JSON.parse(JSON.stringify(settingsForm.value));
+
+  fetchProviders();
 });
 
-const saveSettings = async () => {
+/* ─── Save ──────────────────────────────────────────────────────────────── */
+const save = async () => {
+  saving.value = true;
   try {
-    let res;
-    if (activeTab.value === "general") {
-      res = await authStore.updateProfile(profileForm.value);
-    } else if (activeTab.value === "whatsapp") {
-      res = await authStore.updateSettings(settingsForm.value);
-    } else {
+    await authStore.updatePaymentSettings(settingsForm.value);
+    cleanSettings.value = JSON.parse(JSON.stringify(settingsForm.value));
+    notify("Saved.");
+  } catch (err) {
+    notify(
+      err.response?.data?.message ||
+        authStore.error ||
+        "Could not save that. Your changes are still on screen.",
+      "error",
+    );
+  } finally {
+    saving.value = false;
+  }
+};
+
+/* ─── Payment providers ─────────────────────────────────────────────────── */
+const connectModal = ref(false);
+const selectedProvider = ref(null);
+const disconnectFor = ref(null);
+const manualModal = ref(false);
+
+const openConnect = (key) => {
+  selectedProvider.value = key;
+  connectModal.value = true;
+};
+
+const saveConnection = async (data) => {
+  try {
+    await authStore.updatePaymentProvider(data);
+    await fetchProviders();
+    notify("Connected. Invoices can take payment through it now.");
+  } catch {
+    notify("Could not connect that provider.", "error");
+  }
+};
+
+const confirmDisconnect = async () => {
+  const g = disconnectFor.value;
+  if (!g) return;
+  try {
+    const p = providers.value.find((pr) => pr.provider === g.key);
+    if (p) await authStore.deletePaymentProvider(p.id);
+    await fetchProviders();
+    disconnectFor.value = null;
+    notify(`${g.name} disconnected.`);
+  } catch {
+    notify(`Could not disconnect ${g.name}.`, "error");
+  }
+};
+
+const preferGateway = async (key) => {
+  try {
+    const p = providers.value.find((pr) => pr.provider === key);
+    if (!p) return;
+    await authStore.setPreferredPaymentProvider(p.id);
+    await fetchProviders();
+    notify("Your invoices will use it from now on.");
+  } catch {
+    notify("Could not change that.", "error");
+  }
+};
+
+const preferManual = async () => {
+  try {
+    await $api.patch("/users/payments/manual/prefer");
+    await fetchProviders();
+    notify("Your invoices will show your bank details.");
+  } catch {
+    notify("Could not change that.", "error");
+  }
+};
+
+const MALAYSIA_BANKS = [
+  "Maybank", "CIMB Bank", "Public Bank", "RHB Bank", "Hong Leong Bank",
+  "AmBank", "UOB Bank", "Bank Rakyat", "Bank Islam", "Affin Bank",
+  "Alliance Bank", "Standard Chartered Bank", "OCBC Bank", "HSBC Bank",
+  "MBSB Bank", "Bank Muamalat", "Agrobank", "Al Rajhi Bank", "Citibank",
+].map((b) => ({ value: b, label: b }));
+
+const readingQr = ref(false);
+
+const handleQrUpload = (event) => {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  /* The logo upload checked type and size; this one checked neither and handed
+     whatever it got to an Image. */
+  if (!file.type.startsWith("image/")) {
+    notify("That is not an image file.", "error");
+    event.target.value = "";
+    return;
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    notify("That image is over 5MB. Try a smaller one.", "error");
+    event.target.value = "";
+    return;
+  }
+  readingQr.value = true;
+  const reader = new FileReader();
+  reader.onerror = () => {
+    readingQr.value = false;
+    notify("Could not read that file.", "error");
+  };
+  reader.onload = (e) => {
+    const img = new Image();
+    img.onerror = () => {
+      readingQr.value = false;
+      notify("Could not open that image.", "error");
+    };
+    img.onload = () => {
+      try {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0);
+        const px = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const code = jsQR(px.data, px.width, px.height);
+        if (code?.data) {
+          settingsForm.value.manualQrCode = code.data;
+          notify("QR read. Save to keep it.");
+        } else {
+          notify("No QR code found in that image.", "error");
+        }
+      } catch {
+        notify("Could not read a QR code from that image.", "error");
+      } finally {
+        readingQr.value = false;
+      }
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+  event.target.value = "";
+};
+
+/* ─── Password ──────────────────────────────────────────────────────────── */
+const changingPassword = ref(false);
+
+const changePassword = async (payload, reset) => {
+  changingPassword.value = true;
+  try {
+    await authStore.changePassword({
+      oldPassword: payload.oldPassword,
+      newPassword: payload.newPassword,
+    });
+    reset?.();
+    notify("Password changed.");
+  } catch (err) {
+    notify(
+      err.response?.data?.message || "Could not change your password.",
+      "error",
+    );
+  } finally {
+    changingPassword.value = false;
+  }
+};
+
+/* ─── Plan ──────────────────────────────────────────────────────────────── */
+const promoCode = ref("");
+const promo = ref({ code: "", valid: false, loading: false, error: "", applied: null, text: "" });
+
+watch(promoCode, (v) => (promo.value.code = v));
+
+const applyPromo = async () => {
+  if (!promo.value.code) return;
+  promo.value.loading = true;
+  promo.value.error = "";
+  try {
+    const { data } = await $api.post("/promo/validate", { code: promo.value.code });
+    promo.value.applied = data;
+    promo.value.valid = true;
+    promo.value.text =
+      data.discountType === "PERCENTAGE"
+        ? `${data.discountValue}%`
+        : `${data.discountValue} MYR`;
+  } catch (err) {
+    promo.value.error = err.response?.data?.message || "That code is not valid.";
+    promo.value.valid = false;
+    promo.value.applied = null;
+  } finally {
+    promo.value.loading = false;
+  }
+};
+
+const clearPromo = () => {
+  promo.value = { code: "", valid: false, loading: false, error: "", applied: null, text: "" };
+  promoCode.value = "";
+};
+
+const cancelModal = ref(false);
+const cancelling = ref(false);
+
+const currentSub = computed(() => authStore.user?.subscriptions?.[0] || null);
+const activeSub = computed(() =>
+  currentSub.value?.status === "ACTIVE" ? currentSub.value : null,
+);
+const isCancelling = computed(() => {
+  const s = currentSub.value;
+  if (!s) return false;
+  return !!s.cancelAtPeriodEnd || s.status === "CANCELED" || s.status === "CANCELLED";
+});
+
+const choosePlan = async (plan) => {
+  const name = String(plan?.name ?? "").toUpperCase();
+  const mine = String(authStore.user?.plan ?? "").toUpperCase();
+  if (mine === name && name !== "FREE") {
+    cancelModal.value = true;
+    return;
+  }
+  try {
+    const res = await subscribeStore.subscribe(
+      plan.name,
+      promo.value.valid ? promo.value.code : null,
+    );
+    if (res?.checkoutUrl) {
+      notify("Taking you to the payment page…");
+      setTimeout(() => (window.location.href = res.checkoutUrl), 400);
       return;
     }
-    toast.value = {
-      message: res?.message || "Settings saved successfully!",
-      type: "success",
-    };
+    await authStore.fetchProfile();
+    notify(res?.message || `You are on ${plan.name} now.`);
   } catch (err) {
-    toast.value = {
-      message:
-        err.response?.data?.message ||
-        authStore.error ||
-        "Failed to save settings",
-      type: "error",
-    };
+    notify(
+      err.response?.data?.message || subscribeStore.error || "Could not change your plan.",
+      "error",
+    );
   }
 };
 
-const updatePlan = async (plan) => {
+const confirmCancel = async () => {
+  cancelling.value = true;
   try {
-    const res = await subscribeStore.subscribe(plan);
-    // Refetch profile to get new usage limits
+    const res = await subscribeStore.subscribe("FREE", null);
     await authStore.fetchProfile();
-    toast.value = {
-      message: res?.message || `Successfully switched to ${plan} plan!`,
-      type: "success",
-    };
+    cancelModal.value = false;
+    notify(res?.message || "Cancelled. You keep your benefits until the period ends.");
   } catch (err) {
-    toast.value = {
-      message:
-        err.response?.data?.message ||
-        subscribeStore.error ||
-        "Failed to update plan",
-      type: "error",
-    };
+    notify(
+      err.response?.data?.message || subscribeStore.error || "Could not cancel your plan.",
+      "error",
+    );
+  } finally {
+    cancelling.value = false;
   }
 };
+
+const endsOn = computed(() => {
+  const end = currentSub.value?.subscriptionEnds;
+  if (!end) return "";
+  return new Date(end).toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+});
 </script>
 
-<style scoped></style>
+<template>
+  <div class="desk">
+    <header class="desk__head">
+      <div>
+        <h1 class="desk__title">Settings</h1>
+        <p class="desk__sub">
+          How you get paid, what you pay us, and who can get in.
+        </p>
+      </div>
+      <div class="desk__actions">
+        <NuxtLink to="/business" class="desk-btn desk-btn--ghost">
+          Business details
+        </NuxtLink>
+        <button
+          type="button"
+          class="desk-btn desk-btn--icon"
+          aria-label="How this page works"
+          @click="uiStore.openModuleHelp('settings', activeTab)">
+          <UiIcon icon="formkit:help" custom-class="w-5 h-5" />
+        </button>
+      </div>
+    </header>
+
+    <div class="set">
+      <nav class="set__nav" aria-label="Settings sections">
+        <button
+          v-for="t in TABS"
+          :key="t.id"
+          type="button"
+          class="set__tab"
+          :class="{ 'set__tab--on': activeTab === t.id }"
+          :aria-current="activeTab === t.id ? 'page' : undefined"
+          @click="go(t.id)">
+          <UiIcon :icon="t.icon" custom-class="w-4 h-4" />
+          {{ t.name }}
+        </button>
+      </nav>
+
+      <div class="set__panel">
+        <div class="set__body">
+          <SettingsPayments
+            v-if="activeTab === 'payments'"
+            :form="settingsForm"
+            :providers="providers"
+            @connect="openConnect"
+            @disconnect="disconnectFor = $event"
+            @prefer="preferGateway"
+            @prefer-manual="preferManual"
+            @edit-manual="manualModal = true" />
+
+          <SettingsBilling
+            v-else-if="activeTab === 'billing'"
+            :plans="plans"
+            :plan="authStore.user?.plan || 'FREE'"
+            :subscription="activeSub"
+            :cancelling="isCancelling"
+            :promo="promo"
+            @choose="choosePlan"
+            @cancel="cancelModal = true"
+            @apply-promo="applyPromo"
+            @clear-promo="clearPromo"
+            @update:code="promoCode = $event" />
+
+          <SettingsSecurity
+            v-else-if="activeTab === 'security'"
+            :busy="changingPassword"
+            @change="changePassword" />
+        </div>
+
+        <!-- Only tabs that have something to save get a footer. This used to
+             render for every tab except billing, which put a permanently
+             disabled primary button on Security. -->
+        <div v-if="tab.saves" class="set__foot">
+          <p class="set__dirty">
+            {{ isDirty ? "You have unsaved changes." : "Everything here is saved." }}
+          </p>
+          <button
+            type="button"
+            class="desk-btn desk-btn--primary"
+            :disabled="saving || !isDirty"
+            @click="save">
+            <UiIcon
+              v-if="saving"
+              icon="heroicons:arrow-path"
+              custom-class="w-4 h-4 spin" />
+            {{ saving ? "Saving…" : "Save changes" }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Disconnect a gateway ─────────────────────────────────────────── -->
+    <UiModal
+      :model-value="!!disconnectFor"
+      max-width="sm"
+      @update:model-value="disconnectFor = null">
+      <div class="dlg">
+        <h3 class="dlg__title">Disconnect {{ disconnectFor?.name }}?</h3>
+        <p class="dlg__body">
+          Your keys are deleted and new invoices stop offering it. Payment links
+          already sent through {{ disconnectFor?.name }} will stop working.
+        </p>
+        <div class="dlg__acts">
+          <button
+            type="button"
+            class="desk-btn desk-btn--ghost"
+            @click="disconnectFor = null">
+            Keep it connected
+          </button>
+          <button
+            type="button"
+            class="desk-btn desk-btn--danger"
+            @click="confirmDisconnect">
+            Disconnect
+          </button>
+        </div>
+      </div>
+    </UiModal>
+
+    <!-- ── Cancel plan ──────────────────────────────────────────────────── -->
+    <UiModal v-model="cancelModal" max-width="sm">
+      <div class="dlg">
+        <h3 class="dlg__title">
+          Cancel your {{ (authStore.user?.plan || "paid").toUpperCase() }} plan?
+        </h3>
+        <p class="dlg__body">
+          <template v-if="endsOn">
+            You keep everything until <b>{{ endsOn }}</b>, then move to Free.
+          </template>
+          <template v-else>
+            You keep everything until the end of the period you have paid for,
+            then move to Free.
+          </template>
+          Automatic chasing stops on Free, so late invoices go back to being
+          yours to follow up.
+        </p>
+        <div class="dlg__acts">
+          <button
+            type="button"
+            class="desk-btn desk-btn--ghost"
+            @click="cancelModal = false">
+            Stay on it
+          </button>
+          <button
+            type="button"
+            class="desk-btn desk-btn--danger"
+            :disabled="cancelling"
+            @click="confirmCancel">
+            <UiIcon
+              v-if="cancelling"
+              icon="heroicons:arrow-path"
+              custom-class="w-4 h-4 spin" />
+            {{ cancelling ? "Cancelling…" : "Cancel plan" }}
+          </button>
+        </div>
+      </div>
+    </UiModal>
+
+    <!-- ── Bank details ─────────────────────────────────────────────────── -->
+    <UiModal v-model="manualModal" max-width="lg">
+      <div class="dlg">
+        <h3 class="dlg__title">Your bank details</h3>
+        <p class="dlg__body" style="margin-bottom: var(--space-5)">
+          These print on the invoice so a client can transfer directly. We cannot
+          see when that lands, so you mark those invoices paid yourself.
+        </p>
+
+        <div class="f">
+          <span class="f__label">Bank</span>
+          <UiSelect
+            v-model="settingsForm.manualBankName"
+            :options="MALAYSIA_BANKS"
+            placeholder="Pick your bank" />
+        </div>
+
+        <div class="fgrid">
+          <div class="f" style="margin: 0">
+            <label class="f__label" for="bank-acc">Account number</label>
+            <input
+              id="bank-acc"
+              v-model="settingsForm.manualAccountNumber"
+              type="text"
+              inputmode="numeric"
+              class="inp no-ik"
+              placeholder="1234567890" />
+          </div>
+          <div class="f" style="margin: 0">
+            <label class="f__label" for="bank-name">Account holder</label>
+            <input
+              id="bank-name"
+              v-model="settingsForm.manualAccountName"
+              type="text"
+              class="inp no-ik"
+              placeholder="As it appears on the account" />
+          </div>
+        </div>
+
+        <div class="f">
+          <span class="f__label">DuitNow QR</span>
+          <div class="logo-well">
+            <div class="logo-well__box">
+              <UiIcon
+                v-if="readingQr"
+                icon="heroicons:arrow-path"
+                custom-class="w-5 h-5 spin" />
+              <UiIcon
+                v-else-if="settingsForm.manualQrCode"
+                icon="heroicons:qr-code"
+                custom-class="w-6 h-6" />
+              <UiIcon
+                v-else
+                icon="heroicons:arrow-up-tray"
+                custom-class="w-5 h-5" />
+            </div>
+            <div>
+              <div class="bar">
+                <label class="desk-btn desk-btn--ghost desk-btn--sm">
+                  {{ settingsForm.manualQrCode ? "Replace" : "Upload your QR" }}
+                  <input
+                    type="file"
+                    class="sr-only"
+                    accept="image/*"
+                    @change="handleQrUpload" />
+                </label>
+                <button
+                  v-if="settingsForm.manualQrCode"
+                  type="button"
+                  class="desk-btn desk-btn--ghost desk-btn--sm"
+                  @click="settingsForm.manualQrCode = ''">
+                  Remove
+                </button>
+              </div>
+              <p class="f__hint">
+                <template v-if="settingsForm.manualQrCode">
+                  Read and ready. It prints on your invoices so they can scan it.
+                </template>
+                <template v-else>
+                  A screenshot of your DuitNow QR works. We read the code out of
+                  the image rather than storing the picture.
+                </template>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="dlg__acts">
+          <button
+            type="button"
+            class="desk-btn desk-btn--ghost"
+            @click="manualModal = false">
+            Cancel
+          </button>
+          <button
+            type="button"
+            class="desk-btn desk-btn--primary"
+            :disabled="saving"
+            @click="
+              save();
+              manualModal = false;
+            ">
+            Save details
+          </button>
+        </div>
+      </div>
+    </UiModal>
+
+    <PaymentConnectModal
+      v-model="connectModal"
+      :provider="selectedProvider"
+      :existing-data="providers.find((p) => p.provider === selectedProvider) || {}"
+      @save="saveConnection" />
+
+    <UiToast v-model="toast" />
+  </div>
+</template>

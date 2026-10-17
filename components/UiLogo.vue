@@ -1,26 +1,33 @@
 <template>
   <div class="flex items-center gap-2" :class="containerClass">
     <div
+      v-if="finalSrc"
       :class="[
         sizeClasses[size],
         'relative flex items-center justify-center shrink-0',
       ]">
       <!-- Logo Mark -->
       <img
-        src="/InvoKitaLogo.png"
-        alt="InvoKita Logo"
+        :src="finalSrc"
+        alt="Logo"
         class="w-full h-full object-contain" />
     </div>
     <span
-      v-if="showText"
-      :class="textClasses[size]"
-      class="font-bold tracking-tighter text-slate-900 normal-case">
+      v-if="showText && !isCustomLogo"
+      :class="[
+        textClasses[size],
+        theme === 'dark' ? 'text-slate-900' : 'text-white',
+      ]"
+      class="font-bold tracking-tighter normal-case">
       InvoKita<span class="text-emerald-600">.</span>
     </span>
   </div>
 </template>
 
 <script setup>
+import { computed } from "vue";
+import { useAuthStore } from "~/stores/authStore";
+
 const props = defineProps({
   size: {
     type: String,
@@ -34,6 +41,39 @@ const props = defineProps({
     type: String,
     default: "",
   },
+  theme: {
+    type: String,
+    default: "dark", // dark, light
+  },
+  src: {
+    type: String,
+    default: null,
+  },
+  userLogo: {
+    type: Boolean,
+    default: false,
+  },
+});
+
+const authStore = useAuthStore();
+const config = useRuntimeConfig();
+
+/* GET /users/me flattens the profile, so this is `user.logoUrl` and NOT
+   `user.profile.logoUrl`. The nested form silently resolved to undefined, which
+   is indistinguishable from "no logo uploaded" — every surface fell back to the
+   InvoKita mark and nothing looked broken enough to report. */
+const isCustomLogo = computed(() => {
+  return props.src || (props.userLogo && authStore.user?.logoUrl);
+});
+
+const finalSrc = computed(() => {
+  if (props.src) return props.src;
+  if (props.userLogo && authStore.user?.logoUrl) {
+    const url = authStore.user.logoUrl;
+    if (url.startsWith("http")) return url;
+    return `${config.public.apiBase}${url}`;
+  }
+  return "/InvoKitaLogo.png";
 });
 
 const sizeClasses = {

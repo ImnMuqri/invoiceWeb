@@ -1,139 +1,228 @@
+<script setup lang="ts">
+/**
+ * Sign in.
+ *
+ * The previous version (.archive/login.legacy.vue) had no `autocomplete`
+ * attributes — which quietly breaks every password manager — no password
+ * reveal, no inline validation, and a "Forgot?" link pointing at href="#": a
+ * dead end with no recovery path at all. See the note on that link below.
+ */
+import { useAuthStore } from '~/stores/authStore'
+import { useSocialAuth } from '~/composables/useSocialAuth'
+
+definePageMeta({ layout: false })
+
+const router = useRouter()
+const authStore = useAuthStore()
+const social = useSocialAuth()
+
+const email = ref('')
+const password = ref('')
+const errors = ref<{ email?: string; password?: string }>({})
+const formError = ref('')
+const submitting = ref(false)
+
+function validate() {
+  const next: { email?: string; password?: string } = {}
+  if (!email.value.trim()) next.email = 'Enter the email address on your account.'
+  else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim()))
+    next.email = 'That does not look like an email address.'
+  if (!password.value) next.password = 'Enter your password.'
+  errors.value = next
+  return Object.keys(next).length === 0
+}
+
+async function handleLogin() {
+  formError.value = ''
+  if (!validate()) return
+  submitting.value = true
+  try {
+    await authStore.login(email.value.trim(), password.value)
+    await router.push('/dashboard')
+  } catch (err: any) {
+    /* The API returns one message for both "no such email" and "wrong
+       password", which is correct — telling an attacker which half matched is
+       an account-enumeration hole. Surfaced as-is. */
+    formError.value =
+      err?.response?.data?.message ||
+      authStore.error ||
+      'Could not sign you in. Check your details and try again.'
+  } finally {
+    submitting.value = false
+  }
+}
+
+watch(email, () => {
+  if (errors.value.email) errors.value = { ...errors.value, email: undefined }
+})
+watch(password, () => {
+  if (errors.value.password) errors.value = { ...errors.value, password: undefined }
+})
+</script>
+
 <template>
-  <div>
-    <h2
-      class="text-center text-3xl font-black tracking-tight text-slate-900 mb-2">
-      Welcome back
-    </h2>
-    <p class="text-center text-slate-500 mb-8 font-medium">
-      Sign in to your account
-    </p>
-
-    <div
-      class="bg-white/70 backdrop-blur-md py-8 px-4 shadow-[0_8px_30px_rgb(0,0,0,0.04)] sm:rounded-3xl sm:px-10 border border-slate-200/80">
-      <form class="space-y-6" @submit.prevent="handleLogin">
-        <div>
-          <label for="email" class="block text-sm font-semibold text-slate-700"
-            >Email address</label
-          >
-          <div class="mt-2">
-            <input
-              id="email"
-              v-model="email"
-              name="email"
-              type="email"
-              autocomplete="email"
-              required
-              class="appearance-none block w-full px-4 py-3 border border-slate-200 rounded-xl shadow-sm placeholder-slate-400 focus:outline-none focus:ring-emerald-600 focus:border-emerald-600 sm:text-sm bg-white transition-shadow" />
-          </div>
-        </div>
-        <div>
-          <label
-            for="password"
-            class="block text-sm font-semibold text-slate-700"
-            >Password</label
-          >
-          <div class="mt-2">
-            <input
-              id="password"
-              v-model="password"
-              name="password"
-              type="password"
-              autocomplete="current-password"
-              required
-              class="appearance-none block w-full px-4 py-3 border border-slate-200 rounded-xl shadow-sm placeholder-slate-400 focus:outline-none focus:ring-emerald-600 focus:border-emerald-600 sm:text-sm bg-white transition-shadow" />
-          </div>
-        </div>
-        <div class="flex items-center justify-between">
-          <div class="flex items-center">
-            <input
-              id="remember-me"
-              name="remember-me"
-              type="checkbox"
-              class="h-4 w-4 text-emerald-600 focus:ring-emerald-600 border-slate-300 rounded" />
-            <label
-              for="remember-me"
-              class="ml-2 block text-sm font-medium text-slate-700">
-              Remember me
-            </label>
-          </div>
-          <div class="text-sm">
-            <a
-              href="#"
-              class="font-semibold text-emerald-600 hover:text-emerald-600 transition-colors">
-              Forgot your password?
-            </a>
-          </div>
-        </div>
-        <div>
-          <button
-            type="submit"
-            :disabled="authStore.loading"
-            class="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-semibold text-white bg-slate-900 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-900 transition-colors disabled:opacity-50">
-            <UiIcon
-              v-if="authStore.loading"
-              icon="heroicons:arrow-path"
-              custom-class="w-4 h-4 mr-2 animate-spin text-white" />
-            {{ authStore.loading ? "Signing in..." : "Sign in" }}
-          </button>
-        </div>
-      </form>
-      <div class="mt-8 relative">
-        <div class="absolute inset-0 flex items-center" aria-hidden="true">
-          <div class="w-full border-t border-slate-200/80"></div>
-        </div>
-        <div class="relative flex justify-center">
-          <span
-            class="px-3 bg-white/70 backdrop-blur-sm rounded-full text-xs font-semibold text-slate-400 uppercase tracking-widest"
-            >Or continue with</span
-          >
-        </div>
-      </div>
-      <div class="mt-6">
-        <button
-          class="w-full flex justify-center items-center py-3 px-4 border border-slate-200 rounded-xl shadow-sm text-sm font-semibold text-slate-600 bg-white hover:bg-slate-50 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-200 transition-all">
-          <svg class="w-5 h-5 mr-3" viewBox="0 0 24 24" fill="currentColor">
-            <path
-              d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.543,6.477,2.543,12s4.478,10,10.002,10c8.396,0,10.249-7.85,9.426-11.748L12.545,10.239z" />
+  <AuthShell
+    eyebrow="Welcome back"
+    title="Sign in to"
+    title-accent="InvoKita."
+    lead="Pick up where you left off. Anything that came due while you were away has already been chased."
+    meta-title="Sign in — InvoKita"
+    panel-title="It kept working while you were gone."
+    :panel-points="[
+      'Reminders went out on the schedule you set, in your words.',
+      'Anything your gateway confirmed is already marked paid.',
+      'Invoices that got paid stopped being chased automatically.',
+    ]">
+    <form class="form" novalidate @submit.prevent="handleLogin">
+      <!-- Google slot. Off until the backend route exists — see
+           composables/useSocialAuth.ts for exactly what that takes. -->
+      <template v-if="social.enabled">
+        <a :href="social.googleUrl" class="social">
+          <svg viewBox="0 0 18 18" aria-hidden="true">
+            <path d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.92a8.78 8.78 0 0 0 2.68-6.62Z" fill="#4285F4" />
+            <path d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.26A5.4 5.4 0 0 1 9 14.42a5.42 5.42 0 0 1-5.09-3.75H.96v2.33A9 9 0 0 0 9 18Z" fill="#34A853" />
+            <path d="M3.91 10.67a5.41 5.41 0 0 1 0-3.34V5H.96a9 9 0 0 0 0 8l2.95-2.33Z" fill="#FBBC05" />
+            <path d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.59A9 9 0 0 0 .96 5l2.95 2.33A5.42 5.42 0 0 1 9 3.58Z" fill="#EA4335" />
           </svg>
-          Sign in with Google
-        </button>
-      </div>
+          Continue with Google
+        </a>
+        <p class="divider"><span>or</span></p>
+      </template>
 
-      <div class="mt-8 text-center text-sm font-medium text-slate-500">
-        Not a member?
-        <NuxtLink
-          to="/register"
-          class="font-bold text-emerald-600 hover:text-emerald-700 transition-colors"
-          >Create an account</NuxtLink
-        >
-      </div>
-    </div>
-    <UiToast v-model="toast" />
-  </div>
+      <p v-if="formError" class="alert" role="alert">
+        <svg viewBox="0 0 16 16" aria-hidden="true">
+          <circle cx="8" cy="8" r="6.6" fill="none" stroke="currentColor" stroke-width="1.5" />
+          <path d="M8 4.6v4.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+          <circle cx="8" cy="11.4" r="0.9" fill="currentColor" />
+        </svg>
+        {{ formError }}
+      </p>
+
+      <AuthField
+        id="email"
+        v-model="email"
+        label="Email"
+        type="email"
+        autocomplete="username"
+        inputmode="email"
+        placeholder="you@yourbusiness.com"
+        :error="errors.email"
+        required />
+
+      <AuthField
+        id="password"
+        v-model="password"
+        label="Password"
+        type="password"
+        autocomplete="current-password"
+        placeholder="Your password"
+        :error="errors.password"
+        required>
+        <template #action>
+          <!-- No password reset flow exists in the backend yet, so this reaches
+               a human rather than the dead href="#" it pointed at before. -->
+          <a
+            href="mailto:support@invokita.my?subject=Password%20reset%20request"
+            class="forgot">Forgot?</a>
+        </template>
+      </AuthField>
+
+      <button type="submit" class="k-btn k-btn--primary submit" :disabled="submitting">
+        {{ submitting ? 'Signing you in…' : 'Sign in' }}
+      </button>
+    </form>
+
+    <template #alt>
+      New here?
+      <a href="/register" class="k-link">Create a free account</a>
+    </template>
+  </AuthShell>
 </template>
 
-<script setup>
-definePageMeta({ layout: "auth" });
-import { useRouter } from "vue-router";
-import { ref } from "vue";
-import { useAuthStore } from "~/stores/authStore";
+<style scoped>
+.form {
+  display: grid;
+  gap: var(--space-5);
+}
 
-const router = useRouter();
-const authStore = useAuthStore();
-const toast = ref({ message: "", type: "success" });
+.submit {
+  width: 100%;
+  margin-top: var(--space-2);
+}
+.submit:disabled {
+  opacity: 0.7;
+  cursor: progress;
+}
 
-const email = ref("");
-const password = ref("");
+.forgot {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  color: var(--text-accent);
+  text-decoration: none;
+}
+.forgot:hover {
+  text-decoration: underline;
+}
 
-const handleLogin = async () => {
-  try {
-    await authStore.login(email.value, password.value);
-    router.push("/dashboard");
-  } catch (err) {
-    toast.value = {
-      message: err.response?.data?.message || authStore.error || "Login failed",
-      type: "error",
-    };
-  }
-};
-</script>
+.social {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  min-height: 3rem;
+  padding: var(--space-3) var(--space-5);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-full);
+  background-color: var(--surface-raised);
+  color: var(--text-primary);
+  font-size: var(--text-base);
+  font-weight: var(--weight-bold);
+  text-decoration: none;
+  transition:
+    border-color var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out);
+}
+.social:hover {
+  border-color: var(--text-primary);
+  background-color: var(--chip-hover-bg);
+}
+.social svg {
+  width: 18px;
+  height: 18px;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
+}
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background-color: var(--border-default);
+}
+
+.alert {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--state-error);
+  border-radius: var(--radius-md);
+  background-color: var(--state-error-surface);
+  color: var(--state-error);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-normal);
+}
+.alert svg {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  margin-top: 2px;
+}
+</style>

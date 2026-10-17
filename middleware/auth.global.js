@@ -1,30 +1,64 @@
+import { isProtectedRoute } from "~/utils/routeAccess";
+
 export default defineNuxtRouteMiddleware((to, from) => {
+  if (import.meta.prerender) return;
+
   const authStore = useAuthStore();
 
-  // Ensure store is synced with cookies on every route change
+  // 🔥 Always sync first
   authStore.syncFromCookies();
 
-  const publicRoutes = ["/login", "/register", "/", "/pay"];
-  const isPublicRoute = publicRoutes.some(
-    (route) =>
-      to.path === route ||
-      to.path.startsWith("/pay/") ||
-      (to.path.startsWith("/invoices/") && to.path.endsWith("/export")) ||
-      to.path === "/pay" ||
-      to.name === "pay-id",
-  );
+  const path = to.path;
 
-  const isAuthenticated = !!authStore.accessToken;
-  // Reduced logging to avoid terminal clutter, but kept essential for debugging
+  // NOTE: this is a GLOBAL middleware. Nuxt does not reliably hot-reload it —
+  // restart the dev server after changing this file or the change won't apply.
 
+  // Routes are PUBLIC unless they are explicitly protected. This used to be an
+  // allowlist of public paths, which meant every new marketing page (like the
+  // Bahasa Malaysia landing at /ms) was login-walled until someone remembered
+  // to add it. See utils/routeAccess.ts.
+  const isProtected = isProtectedRoute(path);
 
-  // If user is not authenticated and trying to access a protected route
-  if (!isAuthenticated && !isPublicRoute) {
+  // 🔥 Try cookie first (SSR)
+  let cookieToken = useCookie("accessToken").value;
+
+  if (process.server && !cookieToken) {
+    const headers = useRequestHeaders(["cookie"]);
+    const cookieHeader = headers.cookie || "";
+    const match = cookieHeader.match(
+      new RegExp("(^|;)\\s*accessToken\\s*=\\s*([^;]+)"),
+    );
+    if (match) cookieToken = match[2];
+  }
+
+  // 🔥 FALLBACK to store (this is the key fix)
+  const storeToken = authStore.accessToken;
+
+  const isAuthenticated = !!(cookieToken || storeToken);
+
+  // 🚫 Protect routes
+  if (!isAuthenticated && isProtected) {
     return navigateTo("/login");
   }
 
-  // If user is authenticated and trying to access login/register
-  if (isAuthenticated && (to.path === "/login" || to.path === "/register")) {
+  // 🔁 Redirect away from auth pages
+  if (isAuthenticated && (path === "/login" || path === "/register")) {
     return navigateTo("/dashboard");
+  }
+
+  // ✅ Onboarding logic (safe now)
+  if (isAuthenticated) {
+    const isCompleted = authStore.user?.onboardingCompleted === true;
+    const isOnboarding = path === "/onboarding" || path === "/onboarding/";
+
+    // Only nudge into onboarding from inside the app. Doing it on a public page
+    // would hijack a marketing visit for a signed-in reader.
+    if (!isCompleted && !isOnboarding && isProtected) {
+      return navigateTo("/onboarding");
+    }
+
+    if (isCompleted && isOnboarding) {
+      return navigateTo("/dashboard");
+    }
   }
 });

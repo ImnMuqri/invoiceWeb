@@ -11,24 +11,40 @@ export const useSubscribeStore = defineStore("subscribe", () => {
    * @param {string} plan - The plan name (FREE, PRO, MAX)
    * @returns {Promise<Object>} The response data
    */
-  async function subscribe(plan) {
+  async function subscribe(
+    plan,
+    promoCode = null,
+    successUrl = null,
+    failureUrl = null,
+  ) {
     const { $api } = useNuxtApp();
     const authStore = useAuthStore();
-    
+
     loading.value = true;
     error.value = null;
-    
+
     try {
-      const { data } = await $api.post("/users/subscribe", { plan });
-      
-      // Update the user plan in authStore instantly
-      if (authStore.user) {
+      const { data } = await $api.post("/users/subscribe", {
+        plan,
+        promoCode,
+        successUrl,
+        failureUrl,
+      });
+
+      if (data.checkoutUrl) {
+        // Return without updating the store so the UI doesn't glitch while redirecting
+        return data;
+      } else if (authStore.user) {
+        // Upgrade/downgrade instant success without checkout
         authStore.user.plan = data.plan;
       }
-      
+
       return data;
     } catch (err) {
-      error.value = err.response?.data?.message || err.message || "Failed to subscribe to plan";
+      error.value =
+        err.response?.data?.message ||
+        err.message ||
+        "Failed to subscribe to plan";
 
       throw err;
     } finally {

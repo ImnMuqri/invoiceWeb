@@ -2,16 +2,596 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Inter, self-hosted and latin-subset. Replaces the render-blocking Google
+   Fonts <link> that used to sit in app.vue. Variable 300-700 in one file. */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  src: url('/fonts/inter-latin-var.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* ═══════════════════════════════════════════
+   InvoKita Global Design System
+   Tokens: #1a1d23 text | #059669 emerald | Inter
+   ═══════════════════════════════════════════ */
+
 @layer base {
+  :root {
+    --ik-text:       #1a1d23;
+    --ik-muted:      #6b7280;
+    --ik-accent:     #059669;
+    --ik-accent-bg:  #ecfdf5;
+    /* Active sidebar item. The label used to be #059669 on #ecfdf5 = 3.58:1,
+       which fails AA in LIGHT mode too, not just dark. emerald-700 gives
+       5.21:1 on the same surface. */
+    --app-sidebar-bg:  var(--shell-side);
+    --nav-section-color: #656c6a;   /* 5.38:1 on the sidebar */
+    --nav-link-color:    #626a68;   /* 4.97:1 on the warmed sidebar */
+    --nav-active-bg:   #ecfdf5;
+    --nav-active-text: #047857;
+    --ik-border:     rgba(0, 0, 0, 0.08);
+    --ik-card:       #ffffff;
+    --ik-surface:    #f8f9fa;
+    --ik-ease:       cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  /* Global Dark Mode Tokens (Deep Slate & Emerald) */
+  /* Dark mode runs on the brand-ink ramp (design-tokens.css, "APP DARK MODE")
+     instead of Tailwind slate. Slate is blue-biased; beside an emerald accent it
+     reads as two unrelated colour families, which is the "off" feeling. These
+     greys share the green's hue at very low chroma: neutral, but related. */
+  html.dark {
+    --ik-text:       var(--app-text);
+    --ik-muted:      var(--app-text-3);
+    --ik-accent:     #059669; /* emerald-600 - locked, unchanged */
+    --ik-accent-bg:  rgba(5, 150, 105, 0.15);
+    --ik-border:     var(--app-border);
+    --ik-card:       var(--app-2);
+    --ik-surface:    var(--app-1);
+    --app-sidebar-bg:  var(--app-0);
+    --nav-section-color: var(--app-text-3);
+    --nav-link-color:    var(--app-text-2);
+    --nav-active-bg:   var(--tint-emerald);
+    --nav-active-text: var(--tint-emerald-text);  /* 8.21:1 */
+    color-scheme: dark;
+  }
+
   body {
-    @apply bg-slate-50 text-slate-900;
+    @apply bg-slate-50 text-slate-900 transition-colors duration-300;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    color: var(--ik-text);
+  }
+  
+  html.dark body {
+    background-color: var(--app-1) !important;
+    color: var(--app-text) !important;
   }
 
-  /* Standardize weights: limit bold to semibold as per user request */
-  .font-bold, font-bold {
-    font-weight: 600 !important; /* Semibold */
+  /* Core structural background overrides */
+  html.dark .bg-white { background-color: var(--app-2) !important; }   /* cards lift off the page */
+  html.dark .bg-slate-50, html.dark .bg-slate-100, html.dark .bg-gray-50 { background-color: var(--app-1) !important; }
+  html.dark .bg-slate-200 { background-color: var(--app-3) !important; }
+  
+  /* Arbitrary hex values used in Layout (Sidebar/Navbar) */
+  /* THE main fix. This was slate-950 - the same value as the page background -
+     so sidebar and content collapsed into one flat plane and the layout
+     separation that works so well in light mode disappeared. The sidebar is now
+     the deepest surface: it recedes, content sits above it, mirroring the light
+     mode relationship. */
+  html.dark .bg-\[\#f7f7f9\] { background-color: var(--app-0) !important; }   /* sidebar / topbar */
+  html.dark .bg-\[\#ebebec\] { background-color: var(--app-3) !important; }   /* search field */
+  
+  /* Primary buttons & CTA logic - flip to emerald-600 in dark mode for maximum pop */
+  /* Primary button flips to emerald in dark mode. Its text is now ink, not
+     white: white on #059669 measures 3.77:1 and FAILS AA; ink measures 4.70:1.
+     Same correction already applied on the marketing pages. */
+  /* .bg-slate-900 means TWO different things in this codebase: the primary
+     button, and a dark surface (tooltips, popovers). Flipping the class wholesale
+     to emerald turned every tooltip green underneath its light text — which is
+     why "Revenue Prediction" measured 1.96:1. Scope the flip to actual controls
+     and let dark surfaces stay dark. */
+  html.dark a.bg-slate-900,
+  html.dark button.bg-slate-900,
+  html.dark .bg-slate-900.btn-primary { background-color: #059669 !important; color: #0d1b17 !important; }
+  html.dark a.bg-slate-900 .text-white,
+  html.dark button.bg-slate-900 .text-white { color: #0d1b17 !important; }
+  /* Tooltips and dark panels: keep them dark, one step off the sidebar so they
+     read as floating above everything. */
+  html.dark div.bg-slate-900,
+  html.dark span.bg-slate-900,
+  html.dark section.bg-slate-900 { background-color: var(--app-0) !important; }
+  html.dark .bg-slate-800 { background-color: #047857 !important; color: #ffffff !important; } /* 5.28:1 */
+
+  /* Subtle UI elements */
+  html.dark .bg-slate-50\/50, html.dark .bg-slate-50\/80 { background-color: rgba(38, 44, 42, 0.6) !important; } /* alpha of --app-2 */
+
+  /* Text color mapping */
+  html.dark .text-slate-900 { color: var(--app-text) !important; }    /* 13.1:1 on page */
+  html.dark .text-slate-800 { color: var(--app-text) !important; }
+  html.dark .text-slate-700 { color: var(--app-text-2) !important; }  /*  7.2:1 */
+  html.dark .text-slate-600 { color: var(--app-text-2) !important; }
+  html.dark .text-slate-500 { color: var(--app-text-3) !important; }  /*  6.2:1 */
+  /* slate-400 mapped to #64748b, which measured 3.43:1 on slate-950 and failed
+     AA outright. Nothing muted is allowed below --app-text-3 now. */
+  html.dark .text-slate-400 { color: var(--app-text-3) !important; }
+  
+  /* Prevent interaction flashes - Hover states overrides */
+  html.dark .hover\:bg-slate-50:hover, 
+  html.dark .hover\:bg-slate-100:hover, 
+  html.dark .hover\:bg-gray-50:hover { background-color: var(--app-3) !important; }
+  /* Sidebar nav hover sits ONE step above the sidebar, not two, so hovering a
+     nav item does not make it jump out of its own plane. */
+  html.dark .hover\:bg-\[\#ebebec\]:hover { background-color: var(--app-2) !important; }
+  html.dark .hover\:bg-slate-800:hover { background-color: #047857 !important; }
+  html.dark .hover\:text-slate-900:hover { color: var(--app-text) !important; }
+  
+  /* Borders and dividers */
+  html.dark .border-slate-100 { border-color: var(--app-border) !important; }
+  html.dark .border-slate-200 { border-color: var(--app-border) !important; }
+  html.dark .border-slate-300 { border-color: var(--app-border-strong) !important; }
+  html.dark .border-\[\#e5e5e5\] { border-color: var(--app-border) !important; }
+  html.dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]) { border-color: var(--app-border) !important; }
+  html.dark .divide-slate-200 > :not([hidden]) ~ :not([hidden]) { border-color: var(--app-border-strong) !important; }
+
+
+  /* ── Tinted semantic surfaces ─────────────────────────────────────────
+     NOTE the -950 and -500 steps are included. They were missed on the first
+     pass, and -950 is what the dashboard KPI numbers use: indigo-950 on the
+     indigo tile measured 1.23:1 — the headline figures were all but invisible.
+     Light pastel utilities (bg-*-50/100/200) previously stayed light in dark
+     mode, so a dark dashboard carried pastel lavender/yellow/mint/pink
+     slabs. Each family now maps to a dark tint of the same semantic hue,
+     with matching text and border tints. See design-tokens.css. */
+  html.dark .bg-emerald-50, html.dark .bg-emerald-100, html.dark .bg-green-50, html.dark .bg-green-100, html.dark .bg-teal-50, html.dark .bg-teal-100 {
+    background-color: var(--tint-emerald) !important;
+  }
+  html.dark .bg-emerald-200, html.dark .bg-green-200, html.dark .bg-teal-200 {
+    background-color: var(--tint-emerald-border) !important;
+  }
+  html.dark .text-emerald-500, html.dark .text-emerald-600, html.dark .text-emerald-700, html.dark .text-emerald-800, html.dark .text-emerald-900, html.dark .text-emerald-950, html.dark .text-green-500, html.dark .text-green-600, html.dark .text-green-700, html.dark .text-green-800, html.dark .text-green-900, html.dark .text-green-950, html.dark .text-teal-500, html.dark .text-teal-600, html.dark .text-teal-700, html.dark .text-teal-800, html.dark .text-teal-900, html.dark .text-teal-950 {
+    color: var(--tint-emerald-text) !important;
+  }
+  html.dark .border-emerald-100, html.dark .border-emerald-200, html.dark .border-emerald-300, html.dark .border-green-100, html.dark .border-green-200, html.dark .border-green-300, html.dark .border-teal-100, html.dark .border-teal-200, html.dark .border-teal-300 {
+    border-color: var(--tint-emerald-border) !important;
+  }
+  html.dark .bg-amber-50, html.dark .bg-amber-100, html.dark .bg-yellow-50, html.dark .bg-yellow-100, html.dark .bg-orange-50, html.dark .bg-orange-100 {
+    background-color: var(--tint-amber) !important;
+  }
+  html.dark .bg-amber-200, html.dark .bg-yellow-200, html.dark .bg-orange-200 {
+    background-color: var(--tint-amber-border) !important;
+  }
+  html.dark .text-amber-500, html.dark .text-amber-600, html.dark .text-amber-700, html.dark .text-amber-800, html.dark .text-amber-900, html.dark .text-amber-950, html.dark .text-yellow-500, html.dark .text-yellow-600, html.dark .text-yellow-700, html.dark .text-yellow-800, html.dark .text-yellow-900, html.dark .text-yellow-950, html.dark .text-orange-500, html.dark .text-orange-600, html.dark .text-orange-700, html.dark .text-orange-800, html.dark .text-orange-900, html.dark .text-orange-950 {
+    color: var(--tint-amber-text) !important;
+  }
+  html.dark .border-amber-100, html.dark .border-amber-200, html.dark .border-amber-300, html.dark .border-yellow-100, html.dark .border-yellow-200, html.dark .border-yellow-300, html.dark .border-orange-100, html.dark .border-orange-200, html.dark .border-orange-300 {
+    border-color: var(--tint-amber-border) !important;
+  }
+  html.dark .bg-rose-50, html.dark .bg-rose-100, html.dark .bg-red-50, html.dark .bg-red-100, html.dark .bg-pink-50, html.dark .bg-pink-100 {
+    background-color: var(--tint-rose) !important;
+  }
+  html.dark .bg-rose-200, html.dark .bg-red-200, html.dark .bg-pink-200 {
+    background-color: var(--tint-rose-border) !important;
+  }
+  html.dark .text-rose-500, html.dark .text-rose-600, html.dark .text-rose-700, html.dark .text-rose-800, html.dark .text-rose-900, html.dark .text-rose-950, html.dark .text-red-500, html.dark .text-red-600, html.dark .text-red-700, html.dark .text-red-800, html.dark .text-red-900, html.dark .text-red-950, html.dark .text-pink-500, html.dark .text-pink-600, html.dark .text-pink-700, html.dark .text-pink-800, html.dark .text-pink-900, html.dark .text-pink-950 {
+    color: var(--tint-rose-text) !important;
+  }
+  html.dark .border-rose-100, html.dark .border-rose-200, html.dark .border-rose-300, html.dark .border-red-100, html.dark .border-red-200, html.dark .border-red-300, html.dark .border-pink-100, html.dark .border-pink-200, html.dark .border-pink-300 {
+    border-color: var(--tint-rose-border) !important;
+  }
+  html.dark .bg-blue-50, html.dark .bg-blue-100, html.dark .bg-sky-50, html.dark .bg-sky-100, html.dark .bg-cyan-50, html.dark .bg-cyan-100 {
+    background-color: var(--tint-blue) !important;
+  }
+  html.dark .bg-blue-200, html.dark .bg-sky-200, html.dark .bg-cyan-200 {
+    background-color: var(--tint-blue-border) !important;
+  }
+  html.dark .text-blue-500, html.dark .text-blue-600, html.dark .text-blue-700, html.dark .text-blue-800, html.dark .text-blue-900, html.dark .text-blue-950, html.dark .text-sky-500, html.dark .text-sky-600, html.dark .text-sky-700, html.dark .text-sky-800, html.dark .text-sky-900, html.dark .text-sky-950, html.dark .text-cyan-500, html.dark .text-cyan-600, html.dark .text-cyan-700, html.dark .text-cyan-800, html.dark .text-cyan-900, html.dark .text-cyan-950 {
+    color: var(--tint-blue-text) !important;
+  }
+  html.dark .border-blue-100, html.dark .border-blue-200, html.dark .border-blue-300, html.dark .border-sky-100, html.dark .border-sky-200, html.dark .border-sky-300, html.dark .border-cyan-100, html.dark .border-cyan-200, html.dark .border-cyan-300 {
+    border-color: var(--tint-blue-border) !important;
+  }
+  html.dark .bg-indigo-50, html.dark .bg-indigo-100, html.dark .bg-violet-50, html.dark .bg-violet-100, html.dark .bg-purple-50, html.dark .bg-purple-100 {
+    background-color: var(--tint-indigo) !important;
+  }
+  html.dark .bg-indigo-200, html.dark .bg-violet-200, html.dark .bg-purple-200 {
+    background-color: var(--tint-indigo-border) !important;
+  }
+  html.dark .text-indigo-500, html.dark .text-indigo-600, html.dark .text-indigo-700, html.dark .text-indigo-800, html.dark .text-indigo-900, html.dark .text-indigo-950, html.dark .text-violet-500, html.dark .text-violet-600, html.dark .text-violet-700, html.dark .text-violet-800, html.dark .text-violet-900, html.dark .text-violet-950, html.dark .text-purple-500, html.dark .text-purple-600, html.dark .text-purple-700, html.dark .text-purple-800, html.dark .text-purple-900, html.dark .text-purple-950 {
+    color: var(--tint-indigo-text) !important;
+  }
+  html.dark .border-indigo-100, html.dark .border-indigo-200, html.dark .border-indigo-300, html.dark .border-violet-100, html.dark .border-violet-200, html.dark .border-violet-300, html.dark .border-purple-100, html.dark .border-purple-200, html.dark .border-purple-300 {
+    border-color: var(--tint-indigo-border) !important;
+  }
+
+  /* Opacity-modified text utilities (text-emerald-700/80 and friends).
+     Tailwind emits these as a SEPARATE class, so mapping .text-emerald-700
+     never touched them — the dashboard info banner was still rendering its
+     body copy at 1.95:1. The substring selector catches every alpha step. */
+  html.dark [class*="text-emerald-500/"], html.dark [class*="text-emerald-600/"], html.dark [class*="text-emerald-700/"], html.dark [class*="text-emerald-800/"], html.dark [class*="text-emerald-900/"], html.dark [class*="text-emerald-950/"], html.dark [class*="text-green-500/"], html.dark [class*="text-green-600/"], html.dark [class*="text-green-700/"], html.dark [class*="text-green-800/"], html.dark [class*="text-green-900/"], html.dark [class*="text-green-950/"], html.dark [class*="text-teal-500/"], html.dark [class*="text-teal-600/"], html.dark [class*="text-teal-700/"], html.dark [class*="text-teal-800/"], html.dark [class*="text-teal-900/"], html.dark [class*="text-teal-950/"] {
+    color: var(--tint-emerald-text) !important;
+  }
+  html.dark [class*="text-amber-500/"], html.dark [class*="text-amber-600/"], html.dark [class*="text-amber-700/"], html.dark [class*="text-amber-800/"], html.dark [class*="text-amber-900/"], html.dark [class*="text-amber-950/"], html.dark [class*="text-yellow-500/"], html.dark [class*="text-yellow-600/"], html.dark [class*="text-yellow-700/"], html.dark [class*="text-yellow-800/"], html.dark [class*="text-yellow-900/"], html.dark [class*="text-yellow-950/"], html.dark [class*="text-orange-500/"], html.dark [class*="text-orange-600/"], html.dark [class*="text-orange-700/"], html.dark [class*="text-orange-800/"], html.dark [class*="text-orange-900/"], html.dark [class*="text-orange-950/"] {
+    color: var(--tint-amber-text) !important;
+  }
+  html.dark [class*="text-rose-500/"], html.dark [class*="text-rose-600/"], html.dark [class*="text-rose-700/"], html.dark [class*="text-rose-800/"], html.dark [class*="text-rose-900/"], html.dark [class*="text-rose-950/"], html.dark [class*="text-red-500/"], html.dark [class*="text-red-600/"], html.dark [class*="text-red-700/"], html.dark [class*="text-red-800/"], html.dark [class*="text-red-900/"], html.dark [class*="text-red-950/"], html.dark [class*="text-pink-500/"], html.dark [class*="text-pink-600/"], html.dark [class*="text-pink-700/"], html.dark [class*="text-pink-800/"], html.dark [class*="text-pink-900/"], html.dark [class*="text-pink-950/"] {
+    color: var(--tint-rose-text) !important;
+  }
+  html.dark [class*="text-blue-500/"], html.dark [class*="text-blue-600/"], html.dark [class*="text-blue-700/"], html.dark [class*="text-blue-800/"], html.dark [class*="text-blue-900/"], html.dark [class*="text-blue-950/"], html.dark [class*="text-sky-500/"], html.dark [class*="text-sky-600/"], html.dark [class*="text-sky-700/"], html.dark [class*="text-sky-800/"], html.dark [class*="text-sky-900/"], html.dark [class*="text-sky-950/"], html.dark [class*="text-cyan-500/"], html.dark [class*="text-cyan-600/"], html.dark [class*="text-cyan-700/"], html.dark [class*="text-cyan-800/"], html.dark [class*="text-cyan-900/"], html.dark [class*="text-cyan-950/"] {
+    color: var(--tint-blue-text) !important;
+  }
+  html.dark [class*="text-indigo-500/"], html.dark [class*="text-indigo-600/"], html.dark [class*="text-indigo-700/"], html.dark [class*="text-indigo-800/"], html.dark [class*="text-indigo-900/"], html.dark [class*="text-indigo-950/"], html.dark [class*="text-violet-500/"], html.dark [class*="text-violet-600/"], html.dark [class*="text-violet-700/"], html.dark [class*="text-violet-800/"], html.dark [class*="text-violet-900/"], html.dark [class*="text-violet-950/"], html.dark [class*="text-purple-500/"], html.dark [class*="text-purple-600/"], html.dark [class*="text-purple-700/"], html.dark [class*="text-purple-800/"], html.dark [class*="text-purple-900/"], html.dark [class*="text-purple-950/"] {
+    color: var(--tint-indigo-text) !important;
+  }
+
+  /* White on emerald-600 measures 3.77:1 and fails AA; ink measures 4.70:1.
+     Applied in dark mode only — the same pairing exists in light mode and is
+     equally wrong there, but changing it would alter a light theme that was
+     not in scope. Flagged in the handover instead. */
+  html.dark .bg-emerald-600,
+  html.dark .bg-emerald-600 .text-white {
+    color: #0d1b17 !important;
+  }
+
+  /* ── Light-mode muted text ────────────────────────────────────────────────
+     text-slate-400 (#94a3b8) is this app's muted colour and measures 2.56:1 on
+     white — it failed AA everywhere it appeared: nav section headings, the
+     "Workspace /" crumb, quota labels, empty states, the version stamp. 279
+     usages, so fixing it at the source is not practical; remapping it is.
+     gray-660 is the brand-tinted neutral at 5.38:1 on white, and being
+     green-cast rather than blue it also stops fighting the emerald accent.
+     Excluded inside dark panels, where the light value is correct. */
+  html:not(.dark) .text-slate-400:not(.bg-slate-900 *):not(.bg-slate-800 *) {
+    color: #656c6a !important;
+  }
+  html:not(.dark) .text-slate-300:not(.bg-slate-900 *):not(.bg-slate-800 *) {
+    color: #7b8280 !important;   /* large text / decorative only */
+  }
+
+
+  /* ── Light-mode accent + on-accent text ───────────────────────────────────
+     Three AA failures that exist in LIGHT mode and have nothing to do with the
+     dark theme:
+       emerald-600 as text on white            3.77:1  -> emerald-700  5.02:1
+       emerald-700/80 (alpha) on emerald-50    3.59:1  -> solid 700
+       white on an emerald-600 chip/avatar     3.77:1  -> ink 4.70:1
+     Excluded inside dark panels, where the light values are correct. */
+  html:not(.dark) .text-emerald-600:not(.bg-slate-900 *):not(.bg-slate-800 *),
+  html:not(.dark) .text-green-600:not(.bg-slate-900 *):not(.bg-slate-800 *),
+  html:not(.dark) [class*="text-emerald-600/"]:not(.bg-slate-900 *),
+  html:not(.dark) [class*="text-emerald-700/"]:not(.bg-slate-900 *) {
+    color: #047857 !important;
+  }
+  /* White on emerald fails in both themes; the dark half was already corrected. */
+  html:not(.dark) .bg-emerald-600,
+  html:not(.dark) .bg-emerald-600 .text-white {
+    color: #0d1b17 !important;
+  }
+
+
+  /* ── The warm shell ───────────────────────────────────────────────────────
+     Light mode moves off Tailwind's cool slate and onto the brand paper hue so
+     the app and the marketing site are the same temperature. Only colour
+     changes — layout, radii and spacing are untouched. */
+  html:not(.dark) .bg-white:not(.no-shell) { background-color: var(--shell-card) !important; }
+  html:not(.dark) .bg-slate-50,
+  html:not(.dark) .bg-slate-100,
+  html:not(.dark) .bg-gray-50 { background-color: var(--shell-page) !important; }
+  html:not(.dark) .bg-\[\#f7f7f9\] { background-color: var(--shell-side) !important; }
+  html:not(.dark) .bg-\[\#ebebec\] { background-color: var(--shell-input) !important; }
+  html:not(.dark) .hover\:bg-\[\#ebebec\]:hover { background-color: var(--shell-input) !important; }
+  html:not(.dark) .border-\[\#e5e5e5\],
+  html:not(.dark) .border-slate-100,
+  html:not(.dark) .border-slate-200 { border-color: var(--shell-line) !important; }
+
+  /* Shadows tuned for dark surfaces */
+  /* Elevation on a dark UI comes from LIGHTER surfaces plus a lit top edge, not
+     from black shadows. A 0.8-alpha black shadow against a near-black page is
+     invisible - the old values cost paint and bought nothing. */
+  html.dark .shadow-sm {
+    box-shadow:
+      inset 0 1px 0 rgba(227, 231, 230, 0.04),
+      0 1px 2px rgba(0, 0, 0, 0.4) !important;
+  }
+  html.dark .shadow {
+    box-shadow:
+      inset 0 1px 0 rgba(227, 231, 230, 0.05),
+      0 6px 16px rgba(0, 0, 0, 0.45) !important;
+  }
+
+  /* Standardize weights */
+  .font-bold {
+    font-weight: 600 !important;
+  }
+
+  /* Focus ring: emerald across all interactive elements */
+  *:focus-visible {
+    outline: 2px solid var(--ik-accent);
+    outline-offset: 2px;
   }
 }
+
+@layer components {
+
+  /* ── Page Header ── */
+  /* Consistent page title + subtitle across all pages */
+  .page-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    color: var(--ik-text);
+    line-height: 1.2;
+  }
+  .page-subtitle {
+    font-size: 0.8125rem;
+    color: var(--ik-muted);
+    margin-top: 0.2rem;
+  }
+
+  /* ── Primary CTA Button ── */
+  /* Dark pill button matching landing + login */
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    padding: 0.625rem 1.25rem;
+    background: var(--ik-text);
+    color: #fff;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition:
+      background 0.2s var(--ik-ease),
+      transform 0.2s var(--ik-ease),
+      box-shadow 0.2s var(--ik-ease);
+  }
+  .btn-primary:hover:not(:disabled) {
+    background: #2d3748;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.14);
+  }
+  .btn-primary:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  /* Emerald accent variant */
+  .btn-accent {
+    background: var(--ik-accent);
+  }
+  .btn-accent:hover:not(:disabled) {
+    background: #047857;
+  }
+
+  /* Ghost / outline variant */
+  .btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.625rem 1.25rem;
+    background: transparent;
+    color: var(--ik-text);
+    font-size: 0.875rem;
+    font-weight: 500;
+    border: 1px solid var(--ik-border);
+    border-radius: 10px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.2s var(--ik-ease), border-color 0.2s var(--ik-ease);
+  }
+  .btn-ghost:hover:not(:disabled) {
+    background: var(--ik-surface);
+    border-color: rgba(0,0,0,0.14);
+  }
+
+  /* ── Form inputs ── */
+  /* Upgraded from Tailwind defaults to match login.vue */
+  .ik-input {
+    width: 100%;
+    padding: 0.6875rem 0.875rem;
+    font-size: 0.875rem;
+    font-family: inherit;
+    color: var(--ik-text);
+    background: #fff;
+    border: 1px solid var(--ik-border);
+    border-radius: 10px;
+    outline: none;
+    transition:
+      border-color 0.15s ease,
+      box-shadow 0.15s ease;
+    -webkit-appearance: none;
+  }
+  .ik-input::placeholder { color: #9ca3af; }
+  .ik-input:focus {
+    border-color: var(--ik-accent);
+    box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.12);
+  }
+
+  /* Also upgrade existing Tailwind form inputs globally */
+  input[type="text"]:not(.no-ik),
+  input[type="email"]:not(.no-ik),
+  input[type="password"]:not(.no-ik),
+  input[type="number"]:not(.no-ik),
+  input[type="tel"]:not(.no-ik),
+  input[type="url"]:not(.no-ik),
+  input[type="search"]:not(.no-ik),
+  textarea:not(.no-ik),
+  select:not(.no-ik) {
+    transition:
+      border-color 0.15s ease,
+      box-shadow 0.15s ease;
+  }
+  input[type="text"]:focus:not(.no-ik),
+  input[type="email"]:focus:not(.no-ik),
+  input[type="password"]:focus:not(.no-ik),
+  input[type="number"]:focus:not(.no-ik),
+  input[type="tel"]:focus:not(.no-ik),
+  input[type="url"]:focus:not(.no-ik),
+  input[type="search"]:focus:not(.no-ik),
+  textarea:focus:not(.no-ik) {
+    border-color: var(--ik-accent) !important;
+    box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.12) !important;
+    /* `outline: none` is intentional here: the accent border plus the halo IS
+       this app's focus indicator for inputs, and the green border measures
+       3.50:1 against the page, which satisfies WCAG 2.4.11. Note that text
+       inputs match :focus-visible on pointer focus too (they accept keyboard
+       input), so there is no modality distinction to make.
+       Removed alongside this: a `ring: none` declaration, which is not a real
+       CSS property and never did anything.
+       The landing/legal/auth pages opt out of this block with `.no-ik` and use
+       the design-token focus ring instead. */
+    outline: none;
+  }
+
+  /* ── Stat / KPI Cards ── */
+  .ik-stat-card {
+    background: var(--ik-card);
+    border: 1px solid var(--ik-border);
+    border-radius: 14px;
+    padding: 1.5rem;
+    transition:
+      transform 0.25s var(--ik-ease),
+      box-shadow 0.25s var(--ik-ease),
+      border-color 0.2s ease;
+  }
+  .ik-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.07);
+  }
+
+  /* ── Content Cards ── */
+  .ik-card {
+    background: var(--ik-card);
+    border: 1px solid var(--ik-border);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+
+  /* ── Table rows ── */
+  .ik-table tr {
+    transition: background 0.15s var(--ik-ease);
+  }
+  .ik-table tr:hover td {
+    background: var(--ik-surface);
+  }
+
+  /* ── Eyebrow labels ── */
+  /* Matching the landing page section eyebrows */
+  .ik-eyebrow {
+    display: inline-block;
+    font-size: 0.625rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ik-accent);
+  }
+
+  /* ── Section dividers inside pages ── */
+  .ik-section-title {
+    font-size: 1.0625rem;
+    font-weight: 600;
+    color: var(--ik-text);
+    letter-spacing: -0.02em;
+  }
+
+  /* ── Badge / status pills ── */
+  .ik-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem 0.625rem;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    border-radius: 99px;
+    letter-spacing: 0.02em;
+  }
+
+  /* ── Action icon buttons ── */
+  .ik-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem;
+    border-radius: 8px;
+    color: #9ca3af;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition:
+      color 0.15s var(--ik-ease),
+      background 0.15s var(--ik-ease);
+  }
+  .ik-icon-btn:hover {
+    color: var(--ik-accent);
+    background: var(--ik-accent-bg);
+  }
+
+  /* ── Upgrade / Pro locked blur overlays ── */
+  .ik-locked-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 10;
+    backdrop-filter: blur(4px);
+    background: rgba(255, 255, 255, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: inherit;
+  }
+  .ik-locked-cta {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ik-accent);
+    border: 1px solid rgba(5, 150, 105, 0.3);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    background: transparent;
+    text-decoration: none;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .ik-locked-cta:hover {
+    background: var(--ik-accent-bg);
+    border-color: var(--ik-accent);
+  }
+}
+
+/* ── Filter Expansion Transition ── */
+.filter-grow-enter-active,
+.filter-grow-leave-active {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  max-width: 400px;
+  overflow: hidden;
+}
+.filter-grow-enter-from,
+.filter-grow-leave-to {
+  max-width: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  opacity: 0;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+/* ── Page entry animation ── */
+/* Adds a subtle fade-up when navigating between pages */
+.page-enter-active,
+.page-leave-active {
+  transition: opacity 0.2s var(--ik-ease), transform 0.2s var(--ik-ease);
+}
+.page-enter-from,
+.page-leave-to {
+  opacity: 0;
+  transform: translateY(5px);
+}
+

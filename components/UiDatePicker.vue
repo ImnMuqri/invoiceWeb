@@ -1,6 +1,8 @@
 <template>
   <div class="relative w-full" ref="container">
-    <label v-if="label" class="block text-sm font-medium text-slate-700 mb-2">
+    <!-- See UiSelect: the old 11px slate-500 label measured 4.25:1 on the light
+         card. `.f__label` is the tokenised, theme-tracking equivalent. -->
+    <label v-if="label" class="f__label">
       {{ label }}
     </label>
 
@@ -17,77 +19,81 @@
       </div>
     </div>
 
-    <Transition
-      enter-active-class="transition ease-out duration-100"
-      enter-from-class="transform opacity-0 scale-95"
-      enter-to-class="transform opacity-100 scale-100"
-      leave-active-class="transition ease-in duration-75"
-      leave-from-class="transform opacity-100 scale-100"
-      leave-to-class="transform opacity-0 scale-95">
-      <div
-        v-if="isOpen"
-        class="absolute z-50 mt-2 w-72 bg-white rounded-xl shadow-2xl border border-slate-200 p-4 select-none">
-        <!-- Calendar Header -->
-        <div class="flex items-center justify-between mb-4">
-          <button
-            type="button"
-            @click.stop="prevMonth"
-            class="p-1.5 hover:bg-slate-50 rounded-lg transition-colors">
-            <UiIcon
-              icon="heroicons:chevron-left"
-              class="w-4 h-4 text-slate-600" />
-          </button>
+    <Teleport to="body">
+      <Transition
+        enter-active-class="transition ease-out duration-100"
+        enter-from-class="transform opacity-0 scale-95"
+        enter-to-class="transform opacity-100 scale-100"
+        leave-active-class="transition ease-in duration-75"
+        leave-from-class="transform opacity-100 scale-100"
+        leave-to-class="transform opacity-0 scale-95">
+        <div
+          v-if="isOpen"
+          ref="popoverRef"
+          :style="popoverStyle"
+          class="fixed z-[9999] w-72 bg-white rounded-xl shadow-2xl border border-slate-200 p-4 select-none">
+          <!-- Calendar Header -->
+          <div class="flex items-center justify-between mb-4">
+            <button
+              type="button"
+              @click.stop="prevMonth"
+              class="p-1.5 hover:bg-slate-50 rounded-lg transition-colors">
+              <UiIcon
+                icon="heroicons:chevron-left"
+                class="w-4 h-4 text-slate-600" />
+            </button>
 
-          <span class="text-sm font-bold text-slate-900">
-            {{ monthNames[viewDate.getMonth()] }} {{ viewDate.getFullYear() }}
-          </span>
+            <span class="text-sm font-bold text-slate-900">
+              {{ monthNames[viewDate.getMonth()] }} {{ viewDate.getFullYear() }}
+            </span>
 
-          <button
-            type="button"
-            @click.stop="nextMonth"
-            class="p-1.5 hover:bg-slate-50 rounded-lg transition-colors">
-            <UiIcon
-              icon="heroicons:chevron-right"
-              class="w-4 h-4 text-slate-600" />
-          </button>
-        </div>
+            <button
+              type="button"
+              @click.stop="nextMonth"
+              class="p-1.5 hover:bg-slate-50 rounded-lg transition-colors">
+              <UiIcon
+                icon="heroicons:chevron-right"
+                class="w-4 h-4 text-slate-600" />
+            </button>
+          </div>
 
-        <!-- Days of Week -->
-        <div class="grid grid-cols-7 mb-2">
-          <div
-            v-for="day in ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']"
-            :key="day"
-            class="text-[10px] font-bold text-slate-400 text-center uppercase tracking-wider">
-            {{ day }}
+          <!-- Days of Week -->
+          <div class="grid grid-cols-7 mb-2">
+            <div
+              v-for="day in ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']"
+              :key="day"
+              class="text-[10px] font-bold text-slate-400 text-center uppercase tracking-wider">
+              {{ day }}
+            </div>
+          </div>
+
+          <!-- Days Grid -->
+          <div class="grid grid-cols-7 gap-1">
+            <div
+              v-for="(day, idx) in calendarDays"
+              :key="idx"
+              class="aspect-square flex items-center justify-center text-xs font-semibold rounded-lg transition-all cursor-pointer"
+              :class="[
+                day.isCurrentMonth ? 'text-slate-900' : 'text-slate-300',
+                day.isSelected
+                  ? 'bg-slate-900 text-white shadow-md'
+                  : 'hover:bg-slate-50',
+                day.isToday && !day.isSelected
+                  ? 'text-emerald-600 border border-emerald-100'
+                  : '',
+              ]"
+              @click.stop="selectDate(day.date)">
+              {{ day.date.getDate() }}
+            </div>
           </div>
         </div>
-
-        <!-- Days Grid -->
-        <div class="grid grid-cols-7 gap-1">
-          <div
-            v-for="(day, idx) in calendarDays"
-            :key="idx"
-            class="aspect-square flex items-center justify-center text-xs font-semibold rounded-lg transition-all cursor-pointer"
-            :class="[
-              day.isCurrentMonth ? 'text-slate-900' : 'text-slate-300',
-              day.isSelected
-                ? 'bg-slate-900 text-white shadow-md'
-                : 'hover:bg-slate-50',
-              day.isToday && !day.isSelected
-                ? 'text-emerald-600 border border-emerald-100'
-                : '',
-            ]"
-            @click.stop="selectDate(day.date)">
-            {{ day.date.getDate() }}
-          </div>
-        </div>
-      </div>
-    </Transition>
+      </Transition>
+    </Teleport>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from "vue";
+import { ref, computed, onMounted, onUnmounted, nextTick, watch } from "vue";
 import { formatDate } from "~/utils/date";
 
 const props = defineProps({
@@ -109,9 +115,46 @@ const emit = defineEmits(["update:modelValue"]);
 
 const isOpen = ref(false);
 const container = ref(null);
+const popoverRef = ref(null);
+const popoverStyle = ref({});
 const viewDate = ref(
   props.modelValue ? new Date(props.modelValue) : new Date(),
 );
+
+const updatePosition = () => {
+  if (!container.value || !isOpen.value) return;
+
+  const rect = container.value.getBoundingClientRect();
+  const offset = 8;
+  const viewportHeight = window.innerHeight;
+  const viewportWidth = window.innerWidth;
+
+  let top = rect.bottom + offset;
+  let left = rect.left;
+
+  // Wait for next tick to get popover dimensions
+  nextTick(() => {
+    if (popoverRef.value) {
+      const popoverRect = popoverRef.value.getBoundingClientRect();
+
+      // Horizontal collision
+      if (left + popoverRect.width > viewportWidth) {
+        left = rect.right - popoverRect.width;
+      }
+
+      // Vertical collision
+      if (top + popoverRect.height > viewportHeight) {
+        top = rect.top - popoverRect.height - offset;
+      }
+
+      popoverStyle.value = {
+        top: `${top}px`,
+        left: `${left}px`,
+      };
+    }
+  });
+};
+
 const monthNames = [
   "January",
   "February",
@@ -180,13 +223,20 @@ const calendarDays = computed(() => {
   return days;
 });
 
-const toggleCalendar = () => {
+const toggleCalendar = async () => {
   isOpen.value = !isOpen.value;
+  if (isOpen.value) {
+    await nextTick();
+    updatePosition();
+  }
 };
 
 const selectDate = (date) => {
-  const isoDate = date.toISOString().split("T")[0];
-  emit("update:modelValue", isoDate);
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  const localDateStr = `${y}-${m}-${d}`;
+  emit("update:modelValue", localDateStr);
   isOpen.value = false;
 };
 
@@ -196,6 +246,7 @@ const prevMonth = () => {
     viewDate.value.getMonth() - 1,
     1,
   );
+  nextTick(updatePosition);
 };
 
 const nextMonth = () => {
@@ -204,19 +255,31 @@ const nextMonth = () => {
     viewDate.value.getMonth() + 1,
     1,
   );
+  nextTick(updatePosition);
 };
 
 const handleClickOutside = (event) => {
   if (container.value && !container.value.contains(event.target)) {
+    if (popoverRef.value && popoverRef.value.contains(event.target)) return;
     isOpen.value = false;
   }
 };
 
 onMounted(() => {
   document.addEventListener("click", handleClickOutside);
+  window.addEventListener("scroll", updatePosition, true);
+  window.addEventListener("resize", updatePosition);
 });
 
 onUnmounted(() => {
   document.removeEventListener("click", handleClickOutside);
+  window.removeEventListener("scroll", updatePosition, true);
+  window.removeEventListener("resize", updatePosition);
+});
+
+watch(isOpen, (val) => {
+  if (val) {
+    updatePosition();
+  }
 });
 </script>
