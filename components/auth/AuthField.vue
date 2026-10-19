@@ -26,6 +26,9 @@ const props = withDefaults(
     required?: boolean
     inputmode?: string
     optionalLabel?: string
+    /** Accessible names for the password reveal button (translated). */
+    showLabel?: string
+    hideLabel?: string
   }>(),
   { type: 'text', required: false }
 )
@@ -76,7 +79,7 @@ const describedBy = computed(() => {
         type="button"
         class="field__reveal"
         :aria-pressed="revealed"
-        :aria-label="revealed ? 'Hide password' : 'Show password'"
+        :aria-label="revealed ? hideLabel || 'Hide password' : showLabel || 'Show password'"
         @click="revealed = !revealed">
         <svg v-if="revealed" viewBox="0 0 20 20" aria-hidden="true">
           <path

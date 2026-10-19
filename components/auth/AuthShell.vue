@@ -1,36 +1,40 @@
 <script setup lang="ts">
 /**
- * Two-panel auth shell, in the KIRIM system.
+ * Auth shell — sign in, sign up, forgot password, set new password.
  *
- * Reassurance on the ink slab at the left, form on warm paper at the right.
- * The panel carries no
- * invented proof — no logos, no testimonials, no counters. Just the three
- * commitments that are actually true and checkable (free plan, no card, cancel
- * yourself) and the real gateway names. At the moment someone is deciding
- * whether to hand over an email address, verifiable specifics beat adjectives.
+ * One screen, no scroll on a laptop: form on the left (paper), an ink panel on
+ * the right that shows the product working (each page passes its own panel
+ * through the `panel` slot). The panel hides below 900px; on a phone the form
+ * is the whole page.
  *
- * Auth pages are noindex: they are thin, duplicated across every SaaS, and
- * indexing them dilutes the marketing pages that should rank instead.
+ * Top bar: K mark home, the page's alternate action (sign in ↔ sign up), the
+ * EN | BM switch and the theme toggle — the same light/dark the landing page
+ * uses (useTheme writes data-theme on <html>, tokens remap against it).
+ *
+ * Auth pages are noindex: thin, duplicated across every SaaS, and indexing them
+ * dilutes the marketing pages that should rank instead.
  */
 import { BRAND } from '~/composables/useBrandTokens'
 import { THEME_INIT_SCRIPT } from '~/composables/useTheme'
+import { useAuthLocale } from '~/composables/useAuthCopy'
 
 const props = defineProps<{
-  eyebrow: string
-  title: string
-  titleAccent: string
-  lead: string
   metaTitle: string
-  /** Shown under the ink panel heading. */
-  panelTitle: string
-  panelPoints: string[]
+  eyebrow?: string
+  /** Renders the eyebrow as a green pill instead of plain text. */
+  eyebrowPill?: boolean
+  title?: string
+  titleAccent?: string
+  lead?: string
 }>()
 
-const GATEWAYS = ['Billplz', 'ToyyibPay', 'HitPay', 'senangPay']
+const { locale, t, setLocale } = useAuthLocale()
+const { isDark, toggle } = useTheme()
+const year = new Date().getFullYear()
 
 useHead({
-  htmlAttrs: { lang: 'en-MY', class: 'kirim-scroll' },
-  title: props.metaTitle,
+  htmlAttrs: { lang: computed(() => t.value.htmlLang), class: 'kirim-scroll' },
+  title: computed(() => props.metaTitle),
   script: [{ innerHTML: THEME_INIT_SCRIPT, tagPosition: 'head' }],
   meta: [{ name: 'robots', content: 'noindex, follow' }],
 })
@@ -45,336 +49,325 @@ useSeoMeta({
 
 <template>
   <div class="kirim auth">
-    <a href="#auth-form" class="k-skip">Skip to the form</a>
+    <a href="#auth-form" class="k-skip">{{ t.shell.skip }}</a>
 
-    <!-- ── Form panel ─────────────────────────────────────────────────────── -->
     <main class="auth__main">
-      <div class="auth__inner">
-        <!-- One control, not two: a bare wordmark is not a recognisable way
-             back, and a separate "home" link next to a linked logo would be two
-             anchors to the same destination. The arrow supplies the affordance. -->
-        <a href="/" class="back" aria-label="Back to the InvoKita home page">
-          <span class="back__arrow" aria-hidden="true">
-            <svg viewBox="0 0 20 20">
-              <path
-                d="M16 10H5M9.5 5.5 5 10l4.5 4.5"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.9"
-                stroke-linecap="round"
-                stroke-linejoin="round" />
-            </svg>
-          </span>
-          <span class="back__label">Back to</span>
-          <!-- wordmark and its full stop must be ONE flex item, or the parent's
-               gap opens a space between "InvoKita" and the green dot -->
-          <span class="back__mark"
-            >InvoKita<span class="mark__dot" aria-hidden="true">.</span></span
-          >
+      <header class="bar">
+        <a href="/" class="bar__mark" :aria-label="t.shell.home">
+          <svg viewBox="0 0 64 64" aria-hidden="true">
+            <rect width="64" height="64" rx="15" class="bar__tile" />
+            <g fill="none" class="bar__glyph" stroke-width="8.5" stroke-linecap="round">
+              <path d="M21.5 15V49" />
+              <path d="M25 32 42.5 17" />
+              <path d="M25 32 44 47" />
+            </g>
+          </svg>
+          <span>InvoKita</span>
         </a>
 
-        <header class="auth__head">
-          <p class="k-eyebrow">{{ eyebrow }}</p>
-          <h1 class="auth__title">
-            {{ title }} <span class="auth__accent"><KirimText :text="titleAccent" /></span>
-          </h1>
-          <p class="auth__lead">{{ lead }}</p>
-        </header>
-
-        <div id="auth-form" class="auth__form">
-          <slot />
+        <div class="bar__end">
+          <p v-if="$slots.alt" class="bar__alt"><slot name="alt" /></p>
+          <div class="seg" role="group" :aria-label="t.shell.language">
+            <button type="button" :aria-pressed="locale === 'en'" lang="en" @click="setLocale('en')">EN</button>
+            <button type="button" :aria-pressed="locale === 'ms'" lang="ms" @click="setLocale('ms')">BM</button>
+          </div>
+          <button type="button" class="bar__icon" :aria-label="t.shell.theme" @click="toggle">
+            <svg v-if="isDark" viewBox="0 0 20 20" aria-hidden="true">
+              <circle cx="10" cy="10" r="3.8" fill="currentColor" />
+              <g stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+                <path d="M10 1.4v2.2M10 16.4v2.2M1.4 10h2.2M16.4 10h2.2" />
+                <path d="M3.9 3.9 5.5 5.5M14.5 14.5l1.6 1.6M16.1 3.9 14.5 5.5M5.5 14.5l-1.6 1.6" />
+              </g>
+            </svg>
+            <svg v-else viewBox="0 0 20 20" aria-hidden="true">
+              <path d="M16.5 12.6A7.2 7.2 0 0 1 7.4 3.5a7.2 7.2 0 1 0 9.1 9.1Z" fill="currentColor" />
+            </svg>
+          </button>
         </div>
+      </header>
 
-        <p class="auth__alt"><slot name="alt" /></p>
+      <div class="auth__center">
+        <div id="auth-form" class="auth__inner">
+          <slot name="top" />
+          <div v-if="title" class="head">
+            <p v-if="eyebrow" class="head__eyebrow" :class="{ 'head__eyebrow--pill': eyebrowPill }">{{ eyebrow }}</p>
+            <h1 class="head__title">
+              {{ title }} <span v-if="titleAccent" class="head__accent k-serif">{{ titleAccent }}</span>
+            </h1>
+            <p v-if="lead" class="head__lead">{{ lead }}</p>
+          </div>
+          <slot />
+          <!-- On a phone the top bar has no room for the alternate action, so
+               it sits under the form instead. -->
+          <p v-if="$slots.alt" class="alt-mobile"><slot name="alt" /></p>
+        </div>
       </div>
 
-      <footer class="auth__foot">
-        <a href="/legal/terms">Terms</a>
-        <span aria-hidden="true">·</span>
-        <a href="/legal/privacy">Privacy</a>
-        <span aria-hidden="true">·</span>
-        <a href="mailto:support@invokita.my">Support</a>
+      <footer class="foot">
+        <span>© {{ year }} InvoKita · {{ t.shell.madeBy }} <a href="https://bsyx.my" rel="noopener">Bsyx Labs</a></span>
+        <span class="foot__links">
+          <a href="/legal/terms">{{ t.shell.terms }}</a>
+          <a href="/legal/privacy">{{ t.shell.privacy }}</a>
+          <a href="mailto:support@invokita.my">{{ t.shell.support }}</a>
+        </span>
       </footer>
     </main>
 
-    <!-- ── Reassurance panel ──────────────────────────────────────────────── -->
-    <aside class="auth__aside k-grain-host" aria-label="What you get">
-      <KirimGrain id="auth" :opacity="0.18" />
-      <AuthLedger />
-
-      <div class="aside__inner">
-        <h2 class="aside__title">{{ panelTitle }}</h2>
-
-        <ul class="aside__list">
-          <li v-for="p in panelPoints" :key="p" class="aside__item">
-            <svg viewBox="0 0 16 16" aria-hidden="true">
-              <path
-                d="M3.4 8.4 6.4 11.4 12.6 4.6"
-                fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round" />
-            </svg>
-            <span>{{ p }}</span>
-          </li>
-        </ul>
-
-        <div class="aside__gw">
-          <p class="aside__gw-label">Connects to the gateways you already use</p>
-          <ul class="aside__gw-list">
-            <li v-for="g in GATEWAYS" :key="g">{{ g }}</li>
-          </ul>
-        </div>
-      </div>
+    <aside class="panel k-grain-host" aria-hidden="true">
+      <KirimGrain id="auth" :opacity="0.16" />
+      <div class="panel__glow"></div>
+      <slot name="panel" />
     </aside>
   </div>
 </template>
 
 <style scoped>
 .auth {
+  display: flex;
   min-height: 100vh;
   min-height: 100dvh;
-  display: grid;
-}
-
-/* ─── Form side ───────────────────────────────────────────────────────────── */
-.auth__main {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: var(--space-8);
-  padding: var(--space-6) var(--gutter) var(--space-6);
   background-color: var(--surface-page);
+  color: var(--text-primary);
+}
+@media (min-width: 900px) {
+  .auth {
+    height: 100vh;
+    height: 100dvh;
+    min-height: 40rem;
+    overflow: hidden;
+  }
 }
 
-.auth__inner {
-  width: 100%;
-  max-width: 25rem;
-  margin-inline: auto;
+.auth__main {
+  flex: 1 1 30rem;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  flex: 1;
-  justify-content: center;
-  gap: var(--space-7);
+  padding: var(--space-6) clamp(1.5rem, 4vw, 3.5rem);
 }
 
-.back {
+/* ── Top bar ───────────────────────────────────────────── */
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.bar__mark {
   display: inline-flex;
   align-items: center;
-  align-self: flex-start;
   gap: var(--space-2);
-  min-height: 2.5rem;
-  margin-left: calc(var(--space-2) * -1);
-  padding: var(--space-1) var(--space-2);
-  border-radius: var(--radius-full);
-  text-decoration: none;
+  color: var(--text-primary);
   font-size: var(--text-lg);
   font-weight: var(--weight-extrabold);
   letter-spacing: var(--tracking-tighter);
+  text-decoration: none;
+}
+.bar__mark svg {
+  width: 30px;
+  height: 30px;
+}
+.bar__tile {
+  fill: var(--brand-green);
+}
+.bar__glyph {
+  stroke: var(--brand-ink);
+}
+.bar__end {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.bar__alt {
+  display: none;
+  margin: 0 var(--space-2) 0 0;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+.bar__alt :deep(a) {
+  color: var(--text-accent);
+  font-weight: var(--weight-bold);
+  text-decoration: none;
+}
+.bar__alt :deep(a:hover) {
+  text-decoration: underline;
+}
+.alt-mobile {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+.alt-mobile :deep(a) {
+  color: var(--text-accent);
+  font-weight: var(--weight-bold);
+}
+@media (min-width: 560px) {
+  .bar__alt {
+    display: block;
+  }
+  .alt-mobile {
+    display: none;
+  }
+}
+.seg {
+  display: inline-flex;
+  padding: 3px;
+  border-radius: var(--radius-md);
+  background-color: var(--chip-bg);
+}
+.seg button {
+  min-width: 2.6rem;
+  height: 2rem;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  cursor: pointer;
+}
+.seg button[aria-pressed='true'] {
+  background-color: var(--surface-raised);
   color: var(--text-primary);
-  transition: background-color var(--dur-fast) var(--ease-out);
+  box-shadow: var(--shadow-xs);
 }
-.back:hover {
-  background-color: var(--chip-hover-bg);
-}
-.back__arrow {
+.bar__icon {
   display: grid;
   place-items: center;
-  width: 1.25rem;
-  height: 1.25rem;
-  flex: none;
-  color: var(--text-tertiary);
-  transition:
-    transform var(--dur-base) var(--ease-out),
-    color var(--dur-fast) var(--ease-out);
+  width: 2.4rem;
+  height: 2.4rem;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
 }
-.back__arrow svg {
+.bar__icon:hover {
+  background-color: var(--chip-hover-bg);
+  color: var(--text-primary);
+}
+.bar__icon svg {
   width: 18px;
   height: 18px;
 }
-.back:hover .back__arrow {
-  transform: translateX(-3px);
+
+/* ── Form column ───────────────────────────────────────── */
+.auth__center {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-block: var(--space-6);
+}
+.auth__inner {
+  width: 100%;
+  max-width: 25rem;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.head__eyebrow {
+  margin: 0;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   color: var(--text-accent);
 }
-/* "Back to" is the affordance; the wordmark is the destination. Hidden on the
-   narrowest screens where the arrow alone carries it and space is tight. */
-.back__label {
-  display: none;
-  font-size: var(--text-sm);
-  font-weight: var(--weight-semibold);
-  letter-spacing: var(--tracking-normal);
-  color: var(--text-secondary);
-}
-.back__mark {
-  white-space: nowrap;
-}
-.mark__dot {
-  color: var(--text-accent);
-}
-
-@media (min-width: 480px) {
-  .back__label {
-    display: inline;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .back:hover .back__arrow {
-    transform: none;
-  }
-}
-
-.auth__title {
-  margin-top: var(--space-4);
-  font-size: clamp(1.9531rem, 1.6rem + 1.6vw, 2.4414rem);
+.head__eyebrow--pill {
+  align-self: flex-start;
+  padding: 3px var(--space-3);
+  border-radius: var(--radius-full);
+  background-color: var(--surface-accent-soft);
   font-weight: var(--weight-extrabold);
-  letter-spacing: var(--tracking-tighter);
-  line-height: var(--leading-tight);
-  color: var(--text-primary);
-  text-wrap: balance;
 }
-.auth__accent {
+.head__title {
+  margin: 0;
+  font-size: clamp(2rem, 3.4vw, 2.5rem);
+  font-weight: var(--weight-extrabold);
+  line-height: 1.04;
+  letter-spacing: -0.045em;
+}
+.head__accent {
   color: var(--text-accent);
+  letter-spacing: -0.01em;
 }
-.auth__lead {
-  margin-top: var(--space-4);
+.head__lead {
+  margin: 0;
   font-size: var(--text-base);
   line-height: var(--leading-relaxed);
   color: var(--text-secondary);
 }
 
-.auth__alt {
-  font-size: var(--text-sm);
-  color: var(--text-secondary);
-  text-align: center;
-}
-
-.auth__foot {
+.foot {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-2) var(--space-3);
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-5);
   font-size: var(--text-xs);
   color: var(--text-tertiary);
 }
-.auth__foot a {
-  display: inline-flex;
-  align-items: center;
-  min-height: 1.5rem;
+.foot a {
   color: var(--text-tertiary);
   text-decoration: none;
 }
-.auth__foot a:hover {
-  color: var(--text-accent);
+.foot a:hover {
+  color: var(--text-primary);
 }
-
-/* ─── Reassurance side ────────────────────────────────────────────────────── */
-.auth__aside {
-  display: none;
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
-  background-color: var(--surface-slab);
-  color: var(--text-on-slab);
-  padding: var(--space-10) var(--space-9);
-  align-content: center;
-}
-.aside__inner {
-  position: relative;
-  z-index: 1;
-  max-width: 26rem;
-}
-
-.aside__title {
-  font-size: clamp(1.5625rem, 1.3rem + 1vw, 1.9531rem);
-  font-weight: var(--weight-extrabold);
-  letter-spacing: var(--tracking-tighter);
-  line-height: var(--leading-snug);
-  color: var(--text-on-slab);
-  text-wrap: balance;
-}
-
-.aside__list {
-  display: grid;
-  gap: var(--space-4);
-  margin: var(--space-7) 0 0;
-  padding: 0;
-  list-style: none;
-}
-.aside__item {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: var(--space-3);
-  align-items: start;
-  font-size: var(--text-md);
-  line-height: var(--leading-relaxed);
-  color: var(--text-on-slab-muted);
-}
-.aside__item svg {
-  width: 18px;
-  height: 18px;
-  margin-top: 4px;
-  color: var(--text-on-slab-accent);
-}
-
-.aside__gw {
-  margin-top: var(--space-9);
-  padding-top: var(--space-5);
-  border-top: 1px solid var(--border-on-slab);
-}
-.aside__gw-label {
-  font-size: var(--text-2xs);
+.foot > span:first-child a {
+  color: var(--text-primary);
   font-weight: var(--weight-bold);
-  letter-spacing: var(--tracking-widest);
-  text-transform: uppercase;
-  color: var(--text-on-slab-muted);
-  margin-bottom: var(--space-4);
 }
-.aside__gw-list {
+.foot__links {
   display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-  margin: 0;
-  padding: 0;
-  list-style: none;
+  gap: var(--space-4);
 }
-.aside__gw-list li {
-  padding: var(--space-2) var(--space-4);
-  border: 1px solid var(--border-on-slab);
+
+/* ── Panel ─────────────────────────────────────────────── */
+.panel {
+  display: none;
+}
+@media (min-width: 900px) {
+  .panel {
+    flex: 1 1 35rem;
+    min-width: 0;
+    box-sizing: border-box;
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: var(--space-6);
+    margin: var(--space-4) var(--space-4) var(--space-4) 0;
+    padding: clamp(1.75rem, 3.4vw, 3rem);
+    border-radius: var(--radius-2xl);
+    background-color: var(--surface-slab);
+    color: var(--text-on-slab);
+  }
+  /* In dark mode the page is dark too, so lift the panel off it. */
+  [data-theme='dark'] .panel {
+    background-color: var(--ink-900);
+    border: 1px solid var(--a-paper-08);
+  }
+}
+.panel__glow {
+  position: absolute;
+  z-index: -1;
+  right: -14rem;
+  top: -16rem;
+  width: 40rem;
+  height: 40rem;
   border-radius: var(--radius-full);
-  background-color: var(--chip-on-slab-bg);
-  font-size: var(--text-sm);
-  font-weight: var(--weight-bold);
-  letter-spacing: var(--tracking-tight);
-  color: var(--text-on-slab);
-}
-
-/* ─── Breakpoints ─────────────────────────────────────────────────────────── */
-@media (min-width: 1024px) {
-  /* Columns are [panel, form]. The form stays FIRST in the DOM — it is the
-     reason the page exists, so it should be what a screen reader and the tab
-     key reach first — and is only moved visually with `order`. That is safe
-     here because the aside contains no interactive elements at all, so there is
-     no focus-order mismatch to create (WCAG 2.4.3). */
-  .auth {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  }
-  .auth__aside {
-    order: 1;
-    display: grid;
-    /* In dark mode the slab (ink-975) and the form side (ink-950) are one step
-       apart, which reads as a smudge rather than a division. A hairline does
-       the work that a colour difference cannot. */
-    border-right: 1px solid var(--border-default);
-  }
-  .auth__main {
-    order: 2;
-    padding: var(--space-8) var(--space-9);
-  }
-}
-
-@media (min-width: 1440px) {
-  .auth {
-    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
-  }
+  background: radial-gradient(circle, var(--a-green-32), transparent 62%);
 }
 </style>
