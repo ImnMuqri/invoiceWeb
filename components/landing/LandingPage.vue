@@ -15,6 +15,10 @@ import { fromSen } from '~/utils/invoice'
 const props = defineProps<{ locale: Locale }>()
 
 const copy = useLandingCopy(props.locale)
+
+/* Remember the language so the auth pages (which have no /ms routes) open in
+   the same one — somebody signing up from /ms gets the BM form. */
+useCookie('ik-lang', { maxAge: 60 * 60 * 24 * 365, sameSite: 'lax' }).value = props.locale
 const root = ref<HTMLElement | null>(null)
 useReveal(root)
 

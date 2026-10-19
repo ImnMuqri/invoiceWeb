@@ -139,6 +139,29 @@ export const useAuthStore = defineStore("auth", () => {
     }
   }
 
+  /* ── Password reset ─────────────────────────────────────────────────────
+     /auth/forgot-password answers the same way for every email (it must not
+     reveal which addresses have accounts), so a resolved promise only means
+     "request accepted", never "account exists". */
+  async function forgotPassword(email, locale = "en") {
+    const { $api } = useNuxtApp();
+    await $api.post("/auth/forgot-password", { email, locale });
+    return true;
+  }
+
+  /** { valid: boolean, email?: string } — called when the reset page opens. */
+  async function checkResetToken(token) {
+    const { $api } = useNuxtApp();
+    const { data } = await $api.post("/auth/reset-password/check", { token });
+    return data;
+  }
+
+  async function resetPassword(token, password) {
+    const { $api } = useNuxtApp();
+    await $api.post("/auth/reset-password", { token, password });
+    return true;
+  }
+
   async function logout() {
     const { $api } = useNuxtApp();
 
@@ -430,6 +453,9 @@ export const useAuthStore = defineStore("auth", () => {
     isHydrated,
     login,
     register,
+    forgotPassword,
+    checkResetToken,
+    resetPassword,
     logout,
     fetchProfile,
     updateProfile,

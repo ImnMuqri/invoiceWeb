@@ -1,0 +1,277 @@
+/* Shared form styles for the auth pages (login, register, forgot, reset).
+   Pulled in with <style scoped src> so each page stays scoped. Tokens only. */
+
+.form {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.submit {
+  width: 100%;
+  margin-top: var(--space-1);
+}
+.submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.alert {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--state-error);
+  border-radius: var(--radius-md);
+  background-color: var(--state-error-surface);
+  color: var(--state-error);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-normal);
+}
+.alert svg {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  margin-top: 2px;
+}
+
+.inline-link {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  color: var(--text-accent);
+  text-decoration: none;
+}
+.inline-link:hover {
+  text-decoration: underline;
+}
+
+/* Password strength: four bars + a label, under the field. */
+.strength {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: calc(var(--space-2) * -1);
+}
+.strength__bars {
+  flex: 1 1 auto;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 4px;
+}
+.strength__bars span {
+  height: 4px;
+  border-radius: 2px;
+  background-color: var(--border-default);
+  transition: background-color var(--dur-base) var(--ease-out);
+}
+.strength[data-score='0'] .strength__bars span.is-on { background-color: var(--brand-clay); }
+.strength[data-score='1'] .strength__bars span.is-on { background-color: var(--clay-400); }
+.strength[data-score='2'] .strength__bars span.is-on { background-color: var(--green-500); }
+.strength[data-score='3'] .strength__bars span.is-on { background-color: var(--surface-accent); }
+.strength__label {
+  min-width: 5.5rem;
+  text-align: right;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  color: var(--text-tertiary);
+}
+.strength[data-score='0'] .strength__label { color: var(--text-warm); }
+.strength[data-score='2'] .strength__label,
+.strength[data-score='3'] .strength__label { color: var(--text-accent); }
+
+.legal {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-4);
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: var(--leading-normal);
+  color: var(--text-tertiary);
+}
+.legal a {
+  color: var(--text-secondary);
+  font-weight: var(--weight-semibold);
+}
+
+.text-btn {
+  flex: none;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-accent);
+  font: inherit;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  cursor: pointer;
+}
+.text-btn:hover {
+  text-decoration: underline;
+}
+
+.chip-ok {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  background-color: var(--surface-accent-soft);
+  color: var(--text-accent);
+  font-size: var(--text-sm);
+}
+.chip-ok svg {
+  width: 16px;
+  height: 16px;
+  flex: none;
+}
+
+.back-link {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  color: var(--text-secondary);
+  text-decoration: none;
+}
+.back-link:hover {
+  color: var(--text-primary);
+}
+.back-link svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* A state panel (email sent, link expired, password saved). */
+.state {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+.state__icon {
+  display: grid;
+  place-items: center;
+  width: 3.6rem;
+  height: 3.6rem;
+  border-radius: var(--radius-xl);
+  background-color: var(--surface-accent-soft);
+  color: var(--text-accent);
+}
+.state__icon--solid {
+  border-radius: var(--radius-full);
+  background-color: var(--surface-accent);
+  color: var(--text-on-accent);
+  box-shadow: 0 0 0 10px var(--a-green-12);
+}
+.state__icon--warn {
+  background-color: var(--a-clay-16);
+  color: var(--text-warm);
+}
+.state__icon svg {
+  width: 28px;
+  height: 28px;
+}
+.state__title {
+  margin: 0;
+  font-size: clamp(2rem, 3.4vw, 2.5rem);
+  font-weight: var(--weight-extrabold);
+  line-height: 1.04;
+  letter-spacing: -0.045em;
+}
+.state__body {
+  margin: 0;
+  font-size: var(--text-base);
+  line-height: var(--leading-relaxed);
+  color: var(--text-secondary);
+}
+.state__body strong {
+  color: var(--text-primary);
+}
+
+.tips {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-4);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background-color: var(--surface-raised);
+  list-style: none;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+.tips b {
+  color: var(--text-primary);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.help {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--leading-relaxed);
+  color: var(--text-tertiary);
+}
+.help a {
+  color: var(--text-accent);
+  font-weight: var(--weight-bold);
+}
+
+.rules {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background-color: var(--surface-raised);
+  list-style: none;
+}
+.rules li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--text-tertiary);
+  transition: color var(--dur-fast) var(--ease-out);
+}
+.rules li i {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--border-strong);
+  border-radius: var(--radius-full);
+  font-style: normal;
+  font-size: 11px;
+  font-weight: var(--weight-extrabold);
+  color: var(--ink-950);
+  transition: all var(--dur-fast) var(--ease-out);
+}
+.rules li.is-ok {
+  color: var(--text-primary);
+}
+.rules li.is-ok i {
+  border-color: var(--surface-accent);
+  background-color: var(--surface-accent);
+}
+
+.fade-enter-active {
+  transition:
+    opacity var(--dur-slow) var(--ease-out),
+    transform var(--dur-slow) var(--ease-out);
+}
+.fade-enter-from {
+  opacity: 0;
+  transform: translateY(10px);
+}
